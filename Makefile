@@ -2,6 +2,9 @@
 build:
 	python setup.py build
 install:
-	python setup.py install
+	cat files.txt | xargs rm -rf
+	python setup.py install --record files.txt
 clean:
-	rm -rf build/
+	python setup.py clean 
+	cat files.txt | xargs rm -rf
+	
