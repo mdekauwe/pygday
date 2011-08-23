@@ -1,0 +1,13 @@
+pygday: a python implementation of the G'DAY (Generic Decomposition And Yield) 
+model
+
+Package depends on:
+------------------
+
+    * Nothing outside the standard library (I hope!)
+
+To install:
+-----------
+
+  make 
+  sudo make install
