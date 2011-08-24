@@ -85,6 +85,7 @@ ncmaxfyoung      = 0.04           #max N:C ratio of foliage in young stand
 ncmaxfold        = 0.04           #max N:C ratio of foliage in old stand
 ncmaxr           = 0.03           #max N:C ratio of roots
 retransmob       = 0.0            #Fraction stem mobile N retranscd (/yr)
+fhw              = 0.8            # n:c ratio of stemwood - immobile pool and new ring
 
 #set litter parameters
 fdecay           = 0.5     #foliage decay rate (1/yr)
