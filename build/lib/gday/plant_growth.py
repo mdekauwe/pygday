@@ -73,31 +73,11 @@ class PlantGrowth(object):
         rdecay : float
             fine root decay rate
         """
-        
-        # used to fraction of n_crit
-        nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)	 
-        
-        # n:c ratio of new branch wood
-        ncbnew = (self.params.ncbnew + nitfac * 
-                    (self.params.ncbnew_crit - self.params.ncbnew))
-        
-        # n:c ratio of stemwood - immobile pool and new ring
-        ncwimm = (self.params.ncwimm + nitfac * 
-                    (self.params.ncwimm_crit - self.params.ncwimm))
-        
-        # New stem ring N:C at critical leaf N:C (mobile)
-        ncwnew = (self.params.ncwnew + nitfac * 
-                    (self.params.ncwnew_crit - self.params.ncwnew))
-        
-        
-        # group stuff just to reduce func args passed through code
-        wood_nc = Bunch(ncbnew=ncbnew, ncwimm=ncwimm, ncwnew=ncwnew)
-        
         daylen = day_length(date, self.params.latitude)
         
         # calculate NPP
-        self.carbon_production(date, day, daylen)   
-            
+        self.carbon_production(date, day, daylen) 
+        
         # calculate water balance and adjust C production for any water stress.
         # If we are using the MATE model then water stress is applied directly
         # through the Ci:Ca reln, so do not apply any scalar to production.
@@ -108,13 +88,65 @@ class PlantGrowth(object):
             if self.control.model_number != 7: 
                 self.wl.adjust_cproduction(self.control.water_model)
         
+        # leaf N:C as a fraction of Ncmaxyoung, i.e. the max N:C ratio of 
+        # foliage in young stand
+        nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)	
+        
         # figure out allocation fractions for C
         allocfrac = self.allocate_carbon(nitfac)
         
         # Distribute new C and N through the system
+        wood_nc = self.calculate_ncwood_ratios(nitfac)
         self.nitrogen_distribution(wood_nc, fdecay, rdecay, allocfrac)
         self.carbon_distribution(allocfrac, nitfac)
         self.update_plant_state(fdecay, rdecay)
+    
+    def calculate_ncwood_ratios(self, nitfac):
+        """ Estimate the N:C ratio in the branch and stem. Option to vary 
+        the N:C ratio of the stem following Jeffreys (1999) or keep it a fixed
+        fraction
+        
+        Parameters:
+        -----------
+        nitfac : float
+            leaf N:C as a fraction of the max N:C ratio of foliage in young 
+            stand
+        
+        Returns:
+        --------
+        wood_nc : object
+            object containing N:C ratio of branch, immobile and mobile stem
+            components
+        
+        References:
+        ----------
+        * Jeffreys, M. P. (1999) Dynamics of stemwood nitrogen in Pinus radiata
+          with modelled implications for forest productivity under elevated
+          atmospheric carbon dioxide. PhD.
+        """
+        # n:c ratio of new branch wood
+        ncbnew = (self.params.ncbnew + nitfac * 
+                    (self.params.ncbnew_crit - self.params.ncbnew))
+        
+        # fixed N:C in the stemwood
+        if self.control.fixed_stem_nc == 1:
+            # n:c ratio of stemwood - immobile pool and new ring
+            ncwimm = (self.params.ncwimm + nitfac * 
+                        (self.params.ncwimm_crit - self.params.ncwimm))
+            
+            # New stem ring N:C at critical leaf N:C (mobile)
+            ncwnew = (self.params.ncwnew + nitfac * 
+                        (self.params.ncwnew_crit - self.params.ncwnew))
+        
+        # vary stem N:C based on reln with foliage, see Jeffreys.
+        else:
+            ncwimm = (0.0282 * self.state.shootnc + 0.000234) * self.params.fhw
+        
+            # New stem ring N:C at critical leaf N:C (mobile)
+            ncwnew = 0.162 * self.state.shootnc - 0.00143
+        
+        # group stuff just to reduce func args passed through code
+        return Bunch(ncbnew=ncbnew, ncwimm=ncwimm, ncwnew=ncwnew)
     
     def carbon_production(self, date, day, daylen):
         """ Calculate GPP, NPP and plant respiration 
