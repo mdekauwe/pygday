@@ -3,10 +3,6 @@
 simulates carbon, nutrient and water state and fluxes. See below for model 
 description. 
 """
-# test
-
-# add roots
-
 
 #import ipdb
 import sys
