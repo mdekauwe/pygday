@@ -23,23 +23,6 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (15.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
-def get_attrs(class_name):
-    """ Get user class attributes and exclude builitin attributes
-    Returns a list
-    
-    Parameters:
-    ----------
-    class_name : object
-        clas object 
-    
-    Returns:
-    -------
-    attr list : list 
-        list of attributes in a class object
-    
-    """
-    return [i for i in class_name.__dict__.keys() 
-                if not i.startswith('__') and not i.endswith('__')]
 
 class Gday(object):
     """ The G'DAY (Generic Decomposition And Yield) model.
