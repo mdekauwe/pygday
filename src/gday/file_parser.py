@@ -49,6 +49,8 @@ def initialise_model_data(fname, DUMP=True):
     # get driving data
     forcing_data = read_met_forcing(fname=user_files['met_fname'])
     
+    
+    
     # read in default modules and then adjust these
     if DUMP == False:
         params = adjust_object_attributes(user_params, p)

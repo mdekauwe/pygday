@@ -166,11 +166,11 @@ class PrintOutput(object):
                 oparams.write("%s = %s\n" % (i[0], i[1]))
         except IOError:
             raise IOError("Error writing params files, control section")
-        
+         
         try:
             oparams.write("\n[print]\n")
             for var in self.print_opts:
-                oparams.write("%s = %s\n" % (var, "yes"))
+                oparams.write('%s = "%s"\n' % (var, "yes"))
         except IOError:
             raise IOError("Error writing params files, print section")
            

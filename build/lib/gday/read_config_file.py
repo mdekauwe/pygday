@@ -18,49 +18,20 @@ class LoadConfigFile(object):
     This class should be sub-classed. Object expects that you are using the 
     configspec file as well. I guess I should make this optional one day...
     """
-    def __init__(self, fname, default_dir=None, fname_spec=None, 
-                    default_spec_dir=None, ext='.cfg'):
+    def __init__(self, fname):
         
         """
         Parameters:
         ----------
         fname : string
-            filename of parameter (CFG) file
-        default_dir : string
-            path to the parameter file
-        fname_spec : string
-            filename of parameter (CFG) spec file. Spec file is identical to the
-            CFG file except it list the various data types.
-        default_spec_dir : string
-            path to the parameter spec file
-        ext : string
-            file extension for parameter file, default = CFG
+            filename of parameter (CFG) file [including path]
         
         """
-        self.fname = fname
-        self.default_dir = default_dir
-        self.fname_spec = fname_spec
-        self.default_spec_dir = default_spec_dir
-        self.ext = ext
+        self.config_file = fname
         
-        if self.default_dir is None:
-            self.default_dir = os.getcwd()
-        self.config_file = os.path.join(self.default_dir, '%s%s' 
-                                                % (self.fname, self.ext))
-        
-        # the configspec file should be in same directory as the config file?
-        if self.default_spec_dir is None:
-            self.default_spec_dir = self.default_dir
-        if self.fname_spec is None:
-            self.fname_spec = self.fname + 'spec'
-            self.config_spec_file = os.path.join(self.default_spec_dir, '%s%s' 
-                                                % (self.fname_spec, self.ext))
-        else:
-            self.config_spec_file = os.path.join(self.default_spec_dir, '%s%s' 
-                                                % (self.fname_spec, self.ext))
 
     def load_files(self): 
-        """ load config and configspec file, return a dictionary 
+        """ load config file, return a dictionary 
         
         Returns:
         --------
@@ -69,16 +40,9 @@ class LoadConfigFile(object):
         
         """
         try:
-            config = ConfigObj(self.config_file, 
-                                configspec=self.config_spec_file,
-                                file_error=True)
-            # check default values have been filled in
-            validator = Validator()
-            config.validate(validator)
-            
+            config = ConfigObj(self.config_file, unrepr=True)
         except (ConfigObjError, IOError), e:
             raise IOError('%s' % e)
-        
         return config
     
     def get_config_dicts(self, config_dict):
@@ -98,10 +62,8 @@ class TestRead(LoadConfigFile):
         
 if __name__ == "__main__":
     
-    # pylint: disable=C0103
-    default_dir = "/Users/mdekauwe/src/python/GDAY_model/params"
-    fname = 'gday'
-    T = LoadConfigFile(fname, default_dir=default_dir)
+    fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing"
+    T = LoadConfigFile(fname)
     config_dict = T.load_files()
     T.get_config_dicts(config_dict)
     

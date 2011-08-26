@@ -61,7 +61,11 @@ def replace_keys(text, replacements_dict):
         # skip .cfg section dividers
         elif not row.startswith("["):
             key, sep, val = row.split() 
-            lines[i] = " ".join((key, sep, replacements_dict.get(key, val))) 
+            lines[i] = " ".join((key, sep, replacements_dict.get(key, val)))
+        elif row.startswith("[print]"):
+            break
+            
+            
     return '\n'.join(lines) + '\n' 
     
     

@@ -189,7 +189,7 @@ class NitrogenPools(object):
         # expressed as linear eqn passing thru point (nmin0, actnc0)
         # values can be nmin0=0, actnc0= actncmin or 
         # eqm values from a previous run (see notes from bordeaux 0999)
-        # nb n:c ratio of new passive som can change even if assume passiveconst
+        # nb n:c ratio of new passive SOM can change even if assume passiveconst
 
         conv = const.M2_AS_HA / const.G_AS_TONNES
         actncslope = ((self.params.actncmax - self.params.actnc0) / 
@@ -199,10 +199,10 @@ class NitrogenPools(object):
         passncslope = ((self.params.passncmax - self.params.passnc0) / 
                         (self.params.nmincrit - self.params.nmin0)* conv)
          
+        conv2 = const.M2_AS_HA * const.G_AS_TONNES
         # active
         actnc = (self.params.actnc0 + actncslope * 
-                    (self.state.inorgn - self.params.nmin0 / 
-                    const.M2_AS_HA * const.G_AS_TONNES))
+                    (self.state.inorgn - self.params.nmin0 / conv))
         if float_gt(actnc, self.params.actncmax):
             actnc = self.params.actncmax
         
@@ -211,8 +211,7 @@ class NitrogenPools(object):
     
         # slow
         slownc = (self.params.slownc0 + slowncslope* 
-                    (self.state.inorgn - self.params.nmin0 / 
-                    const.M2_AS_HA * const.G_AS_TONNES))
+                    (self.state.inorgn - self.params.nmin0 / conv2))
         if float_gt(slownc, self.params.slowncmax):
             slownc = self.params.slowncmax
         
@@ -221,8 +220,7 @@ class NitrogenPools(object):
         
         # passive
         passnc = (self.params.passnc0 + passncslope * 
-                    (self.state.inorgn - self.params.nmin0 / 
-                    const.M2_AS_HA * const.G_AS_TONNES))
+                    (self.state.inorgn - self.params.nmin0 / conv2))
         if float_gt(passnc, self.params.passncmax): 
             passnc = self.params.passncmax
         

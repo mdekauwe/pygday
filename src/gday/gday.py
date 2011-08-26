@@ -308,7 +308,7 @@ def profile_main():
     
 if __name__ == "__main__":
     
-    #main()
-    profile_main()
+    main()
+    #profile_main()
     
    
