@@ -8,13 +8,13 @@ __version__ = "1.0 (09.03.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 
-def get_attrs(class_name):
+def get_attrs(obj):
     """ Get user class attributes and exclude builitin attributes
     Returns a list
     
     Parameters:
     ----------
-    class_name : object
+    obj : object
         clas object 
     
     Returns:
@@ -23,7 +23,7 @@ def get_attrs(class_name):
         list of attributes in a class object
     
     """
-    return [i for i in class_name.__dict__.keys() 
+    return [i for i in obj.__dict__.keys() 
                 if not i.startswith('__') and not i.endswith('__')]
 
 class Bunch(object):

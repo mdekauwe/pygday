@@ -15,24 +15,14 @@ import default_files as fi
 import default_fluxes 
 from read_config_file import LoadConfigFile
 
-def initialise_model_data(fname, default_dir=None, fname_spec=None, 
-                                default_spec_dir=None, ext='.cfg', DUMP=True): 
+def initialise_model_data(fname, DUMP=True): 
     """ Load default model data, met forcing and return
     If there are user supplied input files initialise model with these instead
     
     Parameters:
     ----------
     fname : string
-        filename of parameter (CFG) file
-    default_dir : string
-        path to the parameter file
-    fname_spec : string
-        filename of parameter (CFG) spec file. Spec file is identical to the
-        CFG file except it list the various data types.
-    default_spec_dir : string
-        path to the parameter spec file
-    ext : string
-        file extension for parameter file, default = CFG
+        filename of input options, parameters. Filename should include path!
     DUMP : logical
         dump a the default parameters to a file
     
@@ -51,9 +41,7 @@ def initialise_model_data(fname, default_dir=None, fname_spec=None,
     
     """
     
-    R = ReadUserConfigFile(fname, default_dir=default_dir, 
-                            fname_spec=fname_spec, 
-                            default_spec_dir=default_spec_dir, ext=ext) 
+    R = ReadUserConfigFile(fname) 
     config_dict = R.load_files()
     (user_control, user_params, user_state, 
         user_files, user_fluxes, user_print) = R.get_config_dicts(config_dict)
@@ -103,7 +91,6 @@ class ReadUserConfigFile(LoadConfigFile):
             model fluxes
         
         """
-        
         user_files = config_dict['files']
         user_params = config_dict['params'] 
         user_control = config_dict['control'] 
@@ -112,7 +99,7 @@ class ReadUserConfigFile(LoadConfigFile):
         
         # add default cfg fname, dir incase user wants to dump the defaults
         fi.cfg_fname = self.config_file
-        fi.cfg_spec_fname = self.config_spec_file
+    
         return (user_control, user_params, user_state, user_files, 
                 default_fluxes, user_print_opts)
 
@@ -176,7 +163,7 @@ def adjust_object_attributes(user_dict, obj):
     """
     # check user hasn't specified a parameter we are not expecting...
     # make sure parameters is not named a reserved python word
-    ignore = ['cfg_fname', 'cfgspec_fname']
+    ignore = ['cfg_fname']
     bad_words = keyword.kwlist
     bad_vars = [method for method in dir(str) if method[:2]=='__']
     for key, value in user_dict.iteritems():
