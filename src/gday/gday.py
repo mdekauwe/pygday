@@ -80,9 +80,7 @@ class Gday(object):
       873-888.
     
     """
-    def __init__(self, fname=None, default_dir=None, fname_spec=None, 
-                    default_spec_dir=None, ext='.cfg', chk_cmd_line=True,
-                    DUMP=False):
+    def __init__(self, fname=None, chk_cmd_line=True, DUMP=False):
         
         """ Set up model
         
@@ -93,16 +91,7 @@ class Gday(object):
         Parameters:
         ----------
         fname : string
-            filename of parameter (CFG) file
-        default_dir : string
-            path to the parameter file
-        fname_spec : string
-            filename of parameter (CFG) spec file. Spec file is identical to the
-            CFG file except it list the various data types.
-        default_spec_dir : string
-            path to the parameter spec file
-        ext : string
-            file extension for parameter file, default = CFG
+            filename of model parameters, including path
         chk_cmd_line : logical
             parse the cmd line?
         DUMP : logical
@@ -123,11 +112,7 @@ class Gday(object):
         (self.control, self.params, 
             self.state, self.files, 
             self.fluxes, self.met_data,
-            print_opts) = initialise_model_data(fname, 
-                                            default_dir=default_dir, 
-                                            fname_spec=fname_spec, 
-                                            default_spec_dir=default_spec_dir, 
-                                            ext=ext, DUMP=DUMP) 
+            print_opts) = initialise_model_data(fname, DUMP=DUMP) 
         
         # printing stuff
         self.pr = PrintOutput(self.params, self.state, self.fluxes,
@@ -210,7 +195,7 @@ class Gday(object):
             self.increment_date()
             
             #print self.fluxes.transpiration 
-            print self.fluxes.gpp_gCm2
+            #print self.fluxes.gpp_gCm2
             #print self.state.stemn * 100.0
                 
         if self.control.print_options == 1:
@@ -296,10 +281,9 @@ def main():
     import time
     start_time = time.time()
     
-    fname = "duke_testing"
-    fdir = "/Users/mdekauwe/src/python/pygday/params"
     
-    G = Gday(fname=fname, default_dir=fdir)
+    fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
+    G = Gday(fname)
     G.run_sim()
     
     end_time = time.time()
@@ -324,7 +308,7 @@ def profile_main():
     
 if __name__ == "__main__":
     
-    main()
-    #profile_main()
+    #main()
+    profile_main()
     
    

@@ -436,15 +436,12 @@ if __name__ == "__main__":
     from misc_funcs import day_length
     from utilities import float_lt
     import datetime
+
+    fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
     
-    default_dir = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params"
-    fname = "dk_varyco2_varyndep_grassequilib_then_forest_dukegrass_youngforest"
-    
-    (control, params, 
-            state, files, 
-            fluxes, met_data,
-            print_opts) = initialise_model_data(fname, 
-                                            default_dir=default_dir, DUMP=False) 
+    (control, params, state, files, 
+        fluxes, met_data,
+            print_opts) = initialise_model_data(fname, DUMP=False)  
     
     M = Mate(control, params, state, fluxes, met_data)
     

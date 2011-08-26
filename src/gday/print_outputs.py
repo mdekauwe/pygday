@@ -9,6 +9,7 @@ __version__ = "1.0 (21.03.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 
+
 class PrintOutput(object):
     """Print model self.state and fluxes.
 
@@ -41,12 +42,10 @@ class PrintOutput(object):
         
         # dump the default run parameters for the user to change
         self.default_param_fname = self.files.cfg_fname
-        self.default_param_spec_fname = self.files.cfg_spec_fname
         
         # dump the state at the end of a run, typical if user is running to 
         # equilibrium
         self.out_param_fname = self.files.out_param_fname
-        self.out_param_spec_fname = self.files.out_param_spec_fname
         
         # daily output filename
         try:
@@ -56,7 +55,6 @@ class PrintOutput(object):
             
         # stuff not to print out!
         self.ignore_state = ["activesoil", "activesoiln"]
-        
         
         
     def save_default_parameters(self):
@@ -71,17 +69,10 @@ class PrintOutput(object):
             raise IOError("Can't open %s file for write" % 
                             self.default_param_fname)
         
-        try:
-            oparams_spec = open(self.default_param_spec_fname, 'w')
-        except IOError:
-            raise IOError("Can't open %s file for write" % 
-                            self.default_param_spec_fname)
-        
-        self.print_parameters(oparams=oparams, oparams_spec=oparams_spec)
+        self.print_parameters(oparams=oparams)
         
         # tidy up
         oparams.close()
-        oparams_spec.close()
     
     def save_state(self):
         """ Save model state
@@ -100,19 +91,12 @@ class PrintOutput(object):
             raise IOError("Can't open %s file for write" % 
                             self.out_param_fname)
         
-        try:
-            oparams_spec = open(self.out_param_spec_fname, 'w')
-        except IOError:
-            raise IOError("Can't open %s file for write" % 
-                            self.out_param_spec_fname)
-        
-        self.print_parameters(oparams=oparams, oparams_spec=oparams_spec)
+        self.print_parameters(oparams=oparams)
         
         # tidy up
         oparams.close()
-        oparams_spec.close()
     
-    def print_parameters(self, oparams=None, oparams_spec=None):
+    def print_parameters(self, oparams=None):
         """ print model parameters
         
         This is either called before running the program so that the user can
@@ -125,13 +109,10 @@ class PrintOutput(object):
         -----------
         oparams : string
             output parameter filename
-        oparams_spec : string
-            output spec parameter filename    
         
         """
         try:
             oparams.write("[files]\n")
-            oparams_spec.write("[files]\n")
             files_attr = []
             
             for attr in get_attrs(self.files):
@@ -140,7 +121,6 @@ class PrintOutput(object):
             files_attr.sort()  
             for i in files_attr:  
                 oparams.write("%s = %s\n" % (i[0], i[1]))
-                oparams_spec.write("%s = %s\n" % (i[0], "string(default=None)"))
             
         except IOError:
             raise IOError("Error writing params files, files section")
@@ -151,7 +131,6 @@ class PrintOutput(object):
         attributes = [i for i in get_attrs(self.params) if i not in ignore]
         try:
             oparams.write("\n[params]\n")
-            oparams_spec.write("\n[params]\n")
             param_attr = []
             for attr in attributes:
                 attr_val = getattr(self.params, attr)
@@ -159,14 +138,12 @@ class PrintOutput(object):
             param_attr.sort()    
             for i in param_attr:
                 oparams.write("%s = %s\n" % (i[0], i[1]))
-                oparams_spec.write("%s = %s\n" % (i[0], "float(default=None)"))
         except IOError:
             raise IOError("Error writing params files, params section")
         
         attributes = [i for i in get_attrs(self.state) if i not in ignore]
         try:
             oparams.write("\n[state]\n")
-            oparams_spec.write("\n[state]\n")
             state_attr = []
             for attr in attributes:
                 attr_val = getattr(self.state, attr)
@@ -174,14 +151,12 @@ class PrintOutput(object):
             state_attr.sort()
             for i in state_attr:
                 oparams.write("%s = %s\n" % (i[0], i[1]))
-                oparams_spec.write("%s = %s\n" % (i[0], "float(default=None)"))
         except IOError:
             raise IOError("Error writing params files, state section")
         
         attributes = [i for i in get_attrs(self.control) if i not in ignore]
         try:
             oparams.write("\n[control]\n")
-            oparams_spec.write("\n[control]\n")
             ctrl_attr = []
             for attr in attributes:
                 attr_val = getattr(self.control, attr)
@@ -189,16 +164,13 @@ class PrintOutput(object):
             ctrl_attr.sort()
             for i in ctrl_attr:
                 oparams.write("%s = %s\n" % (i[0], i[1]))
-                oparams_spec.write("%s = %s\n" % (i[0], "integer(default=None)"))    
         except IOError:
             raise IOError("Error writing params files, control section")
         
         try:
             oparams.write("\n[print]\n")
-            oparams_spec.write("\n[print]\n")
             for var in self.print_opts:
                 oparams.write("%s = %s\n" % (var, "yes"))
-                oparams_spec.write("%s = %s\n" % (var, "string(default=None)"))
         except IOError:
             raise IOError("Error writing params files, print section")
            
@@ -223,7 +195,6 @@ class PrintOutput(object):
             format yr/mth/day
 
         """
-        
         # day of year 1-365/366
         doy = int(date.strftime('%j'))
         year = date.year
