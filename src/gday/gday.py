@@ -195,7 +195,7 @@ class Gday(object):
             self.increment_date()
 
             #print self.fluxes.transpiration
-            #print self.fluxes.gpp_gCm2
+            print self.fluxes.gpp_gCm2
             #print self.state.stemn * 100.0
 
         if self.control.print_options == 1:
