@@ -36,4 +36,4 @@ use_leuning = 0
 scale_nup_with_availb = 0
 trans_model = 1        # 0=trans from WUE, 1=Penman-Monteith, 2=Priestley-Taylor
 co2_conc = 0           # 0=ambient, 1=elevated
-fixed_stem_nc = 0      # 1=fixed stem N:C, 0=vary stem N:C with foliage
+fixed_stem_nc = 1      # 1=fixed stem N:C, 0=vary stem N:C with foliage

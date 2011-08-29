@@ -37,74 +37,33 @@ class Bunch(object):
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
-class FloatLogic(object):
-    """Series of logic tests for floating point numbers.
+def float_eq(arg1, arg2, tol=1E-14):
+    """arg1 == arg2"""
+    return math.fabs(arg1 - arg2) < tol + tol * math.fabs(arg2)
+    
+def float_ne(arg1, arg2, tol=1E-14):
+    """arg1 != arg2"""
+    return not float_eq(arg1, arg2)
 
-    Due to rounding issues we shouldn't test float comparisons, rather using
-    some tolerance see if the tests are met.
+def float_lt(arg1, arg2, tol=1E-14):
+    """arg1 < arg2"""
+    return arg2 - arg1 > math.fabs(arg1) * tol
+    
+def float_le(arg1, arg2, tol=1E-14):
+    """arg1 <= arg2"""
+    return float_lt(arg1, arg2)
 
-    see http://www.lahey.com/float.htm, adapted from scitools, as that wasn't
-    working for me.
-    """
+def float_gt(arg1, arg2, tol=1E-14):
+    """arg1 > arg2"""
+    return arg1 - arg2 > math.fabs(arg1) * tol
 
-    def __init__(self, comparison=None, tol=1E-14):
-        """ Pick an operator'==', '<', '<=', '>', '>=', '!='. """
+def float_ge(arg1, arg2, tol=1E-14):
+    """arg1 >= arg2"""
+    return float_gt(arg1, arg2)
 
-        d = {   '==': self.eq,
-                '!=': self.ne,
-                '<' : self.lt,
-                '<=': self.le,
-                '>' : self.gt,
-                '>=': self.ge    }
-        self.comparison = d[comparison]
-        self.tol = tol
-
-    def __call__(self, arg1, arg2):
-        """ Call the appropriate method given our comparison test """
-        return self.comparison(arg1, arg2)
-
-    def eq(self, arg1, arg2):
-        """arg1 == arg2"""
-        if math.fabs(arg1 - arg2) < self.tol + self.tol * math.fabs(arg2):
-            return True
-        else:
-            return False
-
-    def ne(self, arg1, arg2):
-        """arg1 != arg2"""
-        return not self.eq(arg1, arg2)
-
-    def lt(self, arg1, arg2):
-        """arg1 < arg2"""
-        if arg2 - arg1 > math.fabs(arg1) * self.tol:
-            return True
-        else:
-            return False
-
-    def le(self, arg1, arg2):
-        """arg1 <= arg2"""
-        return self.lt(arg1, arg2)
-
-    def gt(self, arg1, arg2):
-        """arg1 > arg2"""
-        if arg1 - arg2 > math.fabs(arg1) * self.tol:
-            return True
-        else:
-            return False
-
-    def ge(self, arg1, arg2):
-        """arg1 >= arg2"""
-        return self.gt(arg1, arg2)
-
-
-# define shorter interface names for method calling
-float_eq = FloatLogic('==')
-float_ne = FloatLogic('!=')
-float_lt = FloatLogic('<')
-float_le = FloatLogic('<=')
-float_gt = FloatLogic('>')
-float_ge = FloatLogic('>=')
 
 if __name__ == '__main__':
 
     print float_eq(0.0, 0.0)
+    
+    print float_ge(2.1000001, 2.1000001)
