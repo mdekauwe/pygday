@@ -286,7 +286,7 @@ class PlantGrowth(object):
         # N flux into new ring (immobile component -> structrual components)
         self.fluxes.npstemimm = (self.fluxes.npp * allocfrac.alstem * 
                                     wood_nc.ncwimm)
-        
+        print self.state.root * 0.1
         # N flux into new ring (mobile component -> can be retrans for new
         # woody tissue)
         self.fluxes.npstemmob = (self.fluxes.npp * allocfrac.alstem * 
