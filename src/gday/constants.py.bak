@@ -8,19 +8,19 @@ import gday_constants as const
 
 Refs
 ====
-* McCree, K. J., 1972, Test of current definitions of photosynthetically
+* McCree, K. J., 1972, Test of current definitions of photosynthetically 
 active radiation against leaf photosynthesis data. A
 gricultural Meteorology, 10, 442-453.
 
 """
-M2_AS_HA = 1E-4
-HA_AS_M2 = 1.0 / 1E-4
+M2_AS_HA = 1E-4 
+HA_AS_M2 = 1.0 / 1E-4 
 G_AS_TONNES = 1E-6
 TONNES_AS_G = 1.0 / G_AS_TONNES
 KG_AS_TONNES = 1E-3
-TONNES_AS_KG = 1.0 / KG_AS_TONNES
+TONNES_AS_KG = 1.0 / KG_AS_TONNES  
 KG_AS_G = 1E+3
-DEG_TO_KELVIN = 273.15
+DEG_TO_KELVIN = 273.15    
 G_TO_KG = 1000.0
 JOULES_TO_MJ = 1E6
 WATT_HR_TO_MJ = 0.0036

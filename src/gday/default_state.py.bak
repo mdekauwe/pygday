@@ -1,7 +1,7 @@
 """
 G'DAY default module: Initial State
 
-Read into the model unless the user changes these at runtime with definitions
+Read into the model unless the user changes these at runtime with definitions 
 in the .INI file
 
 """
@@ -42,7 +42,7 @@ stemn        = stemnimm + stemnmob    # Stem N (t/ha)
 
 #set various initial states
 pawater_root     = 200.0              # plant available water - root zone (mm)
-pawater_tsoil    = 50.0               # plant available water - top soil(mm)
+pawater_tsoil    = 50.0               # plant available water - top soil(mm) 
 carbon_loss      = 0.0
 lai = None
 sla = None
@@ -63,12 +63,12 @@ litterc = 0.0
 plantc =  0.0
 totalc = 0.0
 
-# total plant, soil & litter nitrogen
+# total plant, soil & litter nitrogen  
 soiln = 0.0
 litternag = 0.0
 litternbg = 0.0
 littern = 0.0
-plantn = 0.0
+plantn = 0.0 
 totaln = 0.0
 
 # N:C ratios

@@ -33,3 +33,4 @@ ax.legend(numpoints=1, loc='best', shadow=True).draw_frame(True)
 ax.set_xlabel("Day of year")
 ax.set_ylabel("NPP (gCm2day)")
 fig.savefig("/Users/mdekauwe/Desktop/npp_comp.png")
+

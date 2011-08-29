@@ -31,7 +31,7 @@ class PrintOutput(object):
             model fluxes
         print_opts : object
             output print options
-
+            
         """
         self.params = params
         self.state = state
@@ -39,41 +39,41 @@ class PrintOutput(object):
         self.control = control
         self.files = files
         self.print_opts = print_opts
-
+        
         # dump the default run parameters for the user to change
         self.default_param_fname = self.files.cfg_fname
-
-        # dump the state at the end of a run, typical if user is running to
+        
+        # dump the state at the end of a run, typical if user is running to 
         # equilibrium
         self.out_param_fname = self.files.out_param_fname
-
+        
         # daily output filename
         try:
             self.odaily = open(self.files.out_fname, 'w')
         except IOError:
             raise IOError("Can't open %s file for write" % self.odaily)
-
+            
         # stuff not to print out!
         self.ignore_state = ["activesoil", "activesoiln"]
-
-
+        
+        
     def save_default_parameters(self):
         """ Print default model state, control and param files.
-
-        User should be adjusting these files as the defaults may be utter
+        
+        User should be adjusting these files as the defaults may be utter 
         rubbish.
         """
         try:
             oparams = open(self.default_param_fname, 'w')
         except IOError:
-            raise IOError("Can't open %s file for write" %
+            raise IOError("Can't open %s file for write" % 
                             self.default_param_fname)
-
+        
         self.print_parameters(oparams=oparams)
-
+        
         # tidy up
         oparams.close()
-
+    
     def save_state(self):
         """ Save model state
 
@@ -88,43 +88,43 @@ class PrintOutput(object):
         try:
             oparams = open(self.out_param_fname, 'w')
         except IOError:
-            raise IOError("Can't open %s file for write" %
+            raise IOError("Can't open %s file for write" % 
                             self.out_param_fname)
-
+        
         self.print_parameters(oparams=oparams)
-
+        
         # tidy up
         oparams.close()
-
+    
     def print_parameters(self, oparams=None):
         """ print model parameters
-
+        
         This is either called before running the program so that the user can
-        see the default parameters. Otherwise it is called at the end of
+        see the default parameters. Otherwise it is called at the end of 
         run time, in which case it will represent the state of the model. This
-        file can then be used to restart a run. A typical usage of this is
+        file can then be used to restart a run. A typical usage of this is 
         running the model to some "equilibrium" state
-
+        
         Parameters:
         -----------
         oparams : string
             output parameter filename
-
+        
         """
         try:
             oparams.write("[files]\n")
             files_attr = []
-
+            
             for attr in get_attrs(self.files):
                 attr_val = getattr(self.files, attr)
                 files_attr.append((attr, attr_val))
-            files_attr.sort()
-            for i in files_attr:
+            files_attr.sort()  
+            for i in files_attr:  
                 oparams.write("%s = %s\n" % (i[0], i[1]))
-
+            
         except IOError:
             raise IOError("Error writing params files, files section")
-
+        
         # don't print calculate partition coefficents as the user can't
         # adjust these!
         ignore = ['decayrate', 'fmfaeces', 'light_interception']
@@ -135,12 +135,12 @@ class PrintOutput(object):
             for attr in attributes:
                 attr_val = getattr(self.params, attr)
                 param_attr.append((attr, attr_val))
-            param_attr.sort()
+            param_attr.sort()    
             for i in param_attr:
                 oparams.write("%s = %s\n" % (i[0], i[1]))
         except IOError:
             raise IOError("Error writing params files, params section")
-
+        
         attributes = [i for i in get_attrs(self.state) if i not in ignore]
         try:
             oparams.write("\n[state]\n")
@@ -153,7 +153,7 @@ class PrintOutput(object):
                 oparams.write("%s = %s\n" % (i[0], i[1]))
         except IOError:
             raise IOError("Error writing params files, state section")
-
+        
         attributes = [i for i in get_attrs(self.control) if i not in ignore]
         try:
             oparams.write("\n[control]\n")
@@ -166,14 +166,14 @@ class PrintOutput(object):
                 oparams.write("%s = %s\n" % (i[0], i[1]))
         except IOError:
             raise IOError("Error writing params files, control section")
-
+         
         try:
             oparams.write("\n[print]\n")
             for var in self.print_opts:
                 oparams.write('%s = "%s"\n' % (var, "yes"))
         except IOError:
             raise IOError("Error writing params files, print section")
-
+           
     def write_daily_file_headers(self):
         """write (with comment, #) column headings"""
         try:
@@ -186,7 +186,7 @@ class PrintOutput(object):
 
     def save_daily_output(self, project_day, date):
         """ print daily output to file
-
+        
         Parameters:
         -----------
         project_day : integer
