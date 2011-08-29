@@ -7,13 +7,13 @@ __version__ = "1.0 (25.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 
-class LitterProduction(object):
-    """ Calculate C and N litter production
-
+class LitterProduction(object): 
+    """ Calculate C and N litter production 
+    
     Litter production for each pool is assumed to be proportional to biomass
     pool size.
     """
-    def __init__(self, control, params, state, fluxes):
+    def __init__(self, control, params, state, fluxes): 
         """
         Parameters
         ----------
@@ -26,72 +26,72 @@ class LitterProduction(object):
         fluxes : floats, object
             model fluxes
         """
-
+        
         self.params = params
         self.fluxes = fluxes
         self.control = control
         self.state = state
-
+        
     def calculate_litter_flows(self):
         """Various C and N litter production elements
-
+        
         Returns:
         --------
         fdecay : float
             foliage decay rate [tonnes C/ha/day]
         rdecay : float
             fine root decay rate [tonnes C/ha/day]
-
+        
         """
-
+        
         # Leaf litterfall rates have been found to be higher during dry periods
         # and therefore is dependent on soil water content
-        fdecay = self.decay_in_dry_soils(self.params.fdecay,
+        fdecay = self.decay_in_dry_soils(self.params.fdecay, 
                                             self.params.fdecaydry)
-        rdecay = self.decay_in_dry_soils(self.params.rdecay,
+        rdecay = self.decay_in_dry_soils(self.params.rdecay, 
                                             self.params.rdecaydry)
-
+        
         # litter production
-        self.fluxes.deadleaves = fdecay * self.state.shoot
+        self.fluxes.deadleaves = fdecay * self.state.shoot 
         self.fluxes.deadroots = rdecay * self.state.root   # ditto
         self.fluxes.deadbranch = self.params.bdecay * self.state.branch
-        self.fluxes.deadstems = self.params.wdecay * self.state.stem
-
+        self.fluxes.deadstems = self.params.wdecay * self.state.stem  
+        
         # litter n:c ratios
         ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
         ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
-
+        
         # n in litter production
         self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
         self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
-
-        # n in branch litter - assuming fraction is retranslocated before
+        
+        # n in branch litter - assuming fraction is retranslocated before 
         # senescence
-        self.fluxes.deadbranchn = (self.params.bdecay * self.state.branchn *
+        self.fluxes.deadbranchn = (self.params.bdecay * self.state.branchn * 
                                 (1.0 - self.params.bretrans))
-
+        
         # n in stemwood litter - only mobile n is retranslocated
-        self.fluxes.deadstemn = (self.params.wdecay * (self.state.stemnimm +
-                                    self.state.stemnmob *
+        self.fluxes.deadstemn = (self.params.wdecay * (self.state.stemnimm + 
+                                    self.state.stemnmob * 
                                     (1.0 - self.params.wretrans)))
-
+        
         # any animals at work?
         if self.control.grazing:
             (self.fluxes.ceaten, self.fluxes.neaten) = self.grazing_calc(fdecay)
         else:
             self.fluxes.ceaten = 0.0
             self.fluxes.neaten = 0.0
-
+        
         return (fdecay, rdecay)
-
+           
     def grazing_calc(self, fdecay):
-        """ grass grazing...
-
+        """ grass grazing... 
+        
         Parameters:
         -----------
         fdecay : float
             foliage decay rate
-
+        
         Returns:
         --------
         ceaten : float
@@ -100,58 +100,60 @@ class LitterProduction(object):
             N consumed by grazers [tonnes C/ha/day]
         """
         arg = (1.0 - self.params.fracteaten)
-        ceaten = fdecay * self.params.fracteaten / arg * self.state.shoot
+        ceaten = fdecay * self.params.fracteaten / arg * self.state.shoot    
         neaten = fdecay * self.params.fracteaten / arg * self.state.shootn
         return (ceaten, neaten)
-
+         
     def decay_in_dry_soils(self, decay_rate, decay_rate_dry):
-        """Decay rates (e.g. leaf litterfall) can increase in dry soil, adjust
+        """Decay rates (e.g. leaf litterfall) can increase in dry soil, adjust 
         decay param
-
+        
         Parameters:
         -----------
         decay_rate : float
             default model parameter decay rate [tonnes C/ha/day]
         decay_rate_dry : float
             default model parameter dry deacy rate [tonnes C/ha/day]
-
+        
         Returns:
         --------
         decay_rate : float
             adjusted deacy rate if the soil is dry [tonnes C/ha/day]
-
+        
         """
-
-        new_decay_rate = (decay_rate_dry - (decay_rate_dry -
-                            decay_rate) * (self.state.pawater_root /
-                            self.params.wcapac_root - self.params.watdecaydry) /
+        
+        new_decay_rate = (decay_rate_dry - (decay_rate_dry - 
+                            decay_rate) * (self.state.pawater_root / 
+                            self.params.wcapac_root - self.params.watdecaydry) / 
                             (self.params.watdecaywet - self.params.watdecaydry))
-
-        if float_lt(new_decay_rate, decay_rate):
-            new_decay_rate = decay_rate
-
-        if float_gt(new_decay_rate, decay_rate_dry):
+        
+        if float_lt(new_decay_rate, decay_rate): 
+            new_decay_rate = decay_rate 
+        
+        if float_gt(new_decay_rate, decay_rate_dry): 
             new_decay_rate = decay_rate_dry
-
+              
         return new_decay_rate
+ 
 
-
-
+ 
 if __name__ == "__main__":
-
+    
     from file_parser import ConfigFileParser
     # pylint: disable=C0103
     # pylint: disable=C0324
     ini = "/Users/mdekauwe/src/python/GDAY_model/params/gday.ini"
     inispec = "/Users/mdekauwe/src/python/GDAY_model/params/gdayspec.ini"
     met = "/Users/mdekauwe/src/python/GDAY_model/forcing/ornl_met.dat"
-
+    
     # read in user defined variables (stored in dictionaries)
-    pars = ConfigFileParser(ini_fname=ini, inispec_fname=inispec, met_fname=met)
+    pars = ConfigFileParser(ini_fname=ini, inispec_fname=inispec, met_fname=met) 
     (adj_control, adj_params, adj_state, adj_fluxes, forcing) = pars.main()
-
+    
     lf = LitterFlows(adj_control, adj_params, adj_state, adj_fluxes)
-
+    
     for d in xrange(len(forcing)):
         lf.flows()
         print adj_fluxes.deadleaves
+    
+    

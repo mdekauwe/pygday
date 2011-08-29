@@ -126,8 +126,8 @@ class Mate(object):
         ac[am] = self.assim_rate_when_rubisco_limit(ci[am], gamma_star[am], 
                                                     km[am], vmax[am])
         ac[pm] = self.assim_rate_when_rubisco_limit(ci[pm], gamma_star[pm], 
-                                                    km[pm], vmax[pm])
-                                                    
+                                                    km[pm], vmax[pm])                                            
+        
         # Photosynthesis rate when RUBP regneneration is limiting - Jmax
         aj[am] = self.assim_rate_when_rubp_regen_limit(jmax[am], ci[am], 
                                                         gamma_star[am])

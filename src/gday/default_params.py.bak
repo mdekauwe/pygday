@@ -1,7 +1,7 @@
 """
 G'DAY default model parameters
 
-Read into the model unless the user changes these at runtime with definitions
+Read into the model unless the user changes these at runtime with definitions 
 in the .INI file
 
 """
@@ -12,7 +12,7 @@ __email__   = "mdekauwe@gmail.com"
 
 
 #set environment parameters
-finesoil         = 0.5            #clay+silt fraction
+finesoil         = 0.5            #clay+silt fraction 
 ambient_co2      = 350.0          #ambient co2 concentration (ppm)
 co2_unlim_c_prod = 1.0            #unlimited C prodn (t/ha/yr)
 co2_effect_on_wue = 0.705          #CO2 effect on WUE (btwn 0 and 1# try )
@@ -26,7 +26,7 @@ slainit           = 3.9            #specific leaf area (m2/kg_biomass)
 slazero           = 3.9            #specific leaf area new fol at zero leaf N/C (m2/kg)
 slamax            = 3.9            #specofic leaf area new fol at max leaf N/C (m2/kg)
 lai_cover         = 0.5            #Onesided LAI correspdg to complete ground cover
-cfracts           = 0.5            #carbon fraction of dry biomass
+cfracts           = 0.5            #carbon fraction of dry biomass 
 nmin              = 0.95           #minimum leaf n for +ve p/s (g/m2)
 jmaxn             = 56.0           #slope of jmax vs n (umol/g n/s)
 vcmaxn            = 28.0           #slope of vcmax vs n (umol/g n/s)
@@ -48,11 +48,11 @@ g1                = 4.8            # fitted param, proportional to sqrt(gamma_st
 
 
 #set carbon allocation & grazing parameters
-callocf_crit     = 0.25  #allocation to leaves at leaf  n_crit
+callocf_crit     = 0.25  #allocation to leaves at leaf  n_crit 
 callocf          = 0.25  #allocation to leaves at zero leaf n/c
-callocr_crit     = 0.05 #allocation to roots at leaf  n_crit
+callocr_crit     = 0.05 #allocation to roots at leaf  n_crit 
 callocr          = 0.05 #allocation to roots at zero leaf n/c
-callocb_crit     = 0.2  #allocation to branches at leaf  n_crit
+callocb_crit     = 0.2  #allocation to branches at leaf  n_crit 
 callocb          = 0.2  #allocation to branches at zero leaf n/c
 fracteaten       = 0.5  #Fractn of leaf prodn eaten by grazers
 fracfaeces       = 0.3  #Fractn of grazd C that ends up in faeces (0..1)
@@ -79,7 +79,7 @@ ncwimm_crit      = 0.003          #Immobile stem N C at critical leaf N C
 ncbnew           = 0.003          #new branch N C at zero leaf N C
 ncbnew_crit      = 0.003          #new branch N C at critical leaf N C
 ncrfac           = 0.8            #N:C of root prodn / N:C c of leaf prodn
-ageold           = 1000.0         #Plant age when max leaf N C ratio is lowest
+ageold           = 1000.0         #Plant age when max leaf N C ratio is lowest 
 ageyoung         = 0.0            #Plant age when max leaf N C ratio is highest
 ncmaxfyoung      = 0.04           #max N:C ratio of foliage in young stand
 ncmaxfold        = 0.04           #max N:C ratio of foliage in old stand
@@ -139,8 +139,8 @@ latitude         = 39.11999 #latitude (degrees, negative for south)
 albedo           = 0.18            #albedo
 liteffnc         = 0.0
 canht            = 17.0   # Canopy height increased from 16m in 2001 to 18m in 2004 at Duke
-dz0v_dh          = 0.075  # Rate of change of vegetation roughness length for momentum with height.
-displace_ratio   = 0.78   # Value for coniferous forest from Jarvis et al 1976, taken from Jones 1992 pg 67.
+dz0v_dh          = 0.075  # Rate of change of vegetation roughness length for momentum with height. 
+displace_ratio   = 0.78   # Value for coniferous forest from Jarvis et al 1976, taken from Jones 1992 pg 67.  
 
 
 
