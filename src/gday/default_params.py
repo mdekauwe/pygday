@@ -13,7 +13,6 @@ __email__   = "mdekauwe@gmail.com"
 
 #set environment parameters
 finesoil         = 0.5            #clay+silt fraction
-ambient_co2      = 350.0          #ambient co2 concentration (ppm)
 co2_unlim_c_prod = 1.0            #unlimited C prodn (t/ha/yr)
 co2_effect_on_wue = 0.705          #CO2 effect on WUE (btwn 0 and 1# try )
 

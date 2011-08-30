@@ -433,8 +433,7 @@ class Mate(object):
 if __name__ == "__main__":
 
     from file_parser import initialise_model_data
-    from misc_funcs import day_length
-    from utilities import float_lt
+    from utilities import float_lt, day_length
     import datetime
 
     fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
@@ -462,8 +461,8 @@ if __name__ == "__main__":
     #import numpy as np
     #laidata = np.loadtxt(laifname)
 
-    params.co2_offset = 0.0
-
+    
+    
     for project_day in xrange(len(met_data['prjday'])):
 
         state.shootnc = state.shootn / state.shoot
