@@ -72,34 +72,40 @@ class Bewdy(object):
         Nothing
             Method calculates GPP, NPP and Ra.
         """
-        temp, sw_rad, ca = self.get_met_data(day)
-
+        (temp, sw_rad, ca) = self.get_met_data(day)
+        
         # presumably conversion to seconds
         daylength = daylen * const.HRS_TO_SECS * 1E-6
-
+        
         # calculated from the canopy-averaged leaf N
         leaf_absorptance = ((self.state.ncontent / 2.8) /
                             (self.state.ncontent / 2.8 + 0.076))
-
+        
+        
         direct_rad = sw_rad / daylength / 0.235 * self.params.direct_frac
         diffuse_rad = (sw_rad / daylength / 0.235 *
                         (1.0 - self.params.direct_frac))
-
+        
         (quantum_yield, rho) = self.calculate_bewdy_params(temp, ca)
 
         b = quantum_yield * self.params.kext * direct_rad * leaf_absorptance
         s = quantum_yield * self.params.kext * diffuse_rad * leaf_absorptance
-
+        
+        
+        
         # effect of incomplete ground cover - modifies lai to lai/cover
         # (jackson & palmer)
         lai_mod = self.state.lai / frac_gcover
         n = (rho * self.params.kext *
                 (self.state.ncontent - self.params.nmin) * lai_mod /
                 (1.0 - math.exp(-self.params.kext * lai_mod)))
-
+        
+        
+        
+        
         self.fluxes.gpp = ((self.sunlit_contribution(b, s, n, lai_mod) +
                             self.shaded_contribution(b, s, n, lai_mod)))
-
+        
         # rescale gpp
         self.fluxes.gpp *= daylength
 
@@ -129,7 +135,7 @@ class Bewdy(object):
             ambient or elevated.
 
         """
-        temp = [ self.met_data['tam'][day], self.met_data['tpm'][day] ]
+        temp = self.met_data['tair'][day]
         sw_rad = self.met_data['sw_rad'][day]
 
         if self.control.co2_conc == 0:
@@ -274,8 +280,8 @@ class Bewdy(object):
         else:
             # use proportionality with GPP
             npp = (self.params.cue * self.fluxes.gpp * frac_gcover *
-                    const.G_M2_2_TON_HEC)
-
+                    const.G_AS_TONNES / const.M2_AS_HA)
+        
         return npp
 
     def calc_autotrophic_respiration(self, temp):
@@ -313,7 +319,7 @@ class Bewdy(object):
         """
 
         if float_gt(temp, 10.0):
-            jmax = (self.params.jmaxn * (1. + (temp - 25.0) * (0.05 +
+            jmax = (self.params.jmaxn * (1.0 + (temp - 25.0) * (0.05 +
                     (temp - 25.0) * (-1.81 * 1E-3 + (temp - 25.0) *
                     (-1.37 * 1E-4)))))
             vcmax = (self.params.vcmaxn * (1.0 + (temp - 25.0) *
@@ -346,8 +352,7 @@ class Bewdy(object):
             intercellular CO2 concentration.
         """
         if self.control.use_leuning == 1:
-            ci = (self.params.ambient_co2 -
-                    (self.params.ambient_co2 - gamma_star) *
+            ci = (ca - (ca - gamma_star) * 
                     (1.0 + self.params.vpd / self.params.d0) * 1.6 /
                     self.params.a1)
         else:
@@ -372,7 +377,6 @@ class Bewdy(object):
             model_parameter
 
         """
-
         arg1 = self.params.alpha_j / 4.0
         arg2 = ((ci - gamma_star) / (ci + 2. * gamma_star))
 
@@ -383,24 +387,21 @@ class Bewdy(object):
 
 
 if __name__ == "__main__":
-
-
+    
+    
     from file_parser import initialise_model_data
-    from misc_funcs import day_length
-    from utilities import float_lt
+    from utilities import float_lt, day_length
     import datetime
 
-    default_dir = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params"
-    fname = "dk_varyco2_varyndep_grassequilib_then_forest_dukegrass_youngforest"
+    fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
 
-    (control, params,
-            state, files,
-            fluxes, met_data,
-            print_opts) = initialise_model_data(fname,
-                                            default_dir=default_dir, DUMP=False)
+    (control, params, state, files,
+        fluxes, met_data,
+            print_opts) = initialise_model_data(fname, DUMP=False)
 
     B = Bewdy(control, params, state, fluxes, met_data)
-
+    
+    
     state.lai = (params.slainit * const.M2_AS_HA /
                             const.KG_AS_TONNES / params.cfracts *
                             state.shoot)
@@ -417,12 +418,19 @@ if __name__ == "__main__":
     #laifname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/experiments/lai"
     #import numpy as np
     #laidata = np.loadtxt(laifname)
+    
+   
 
-    params.co2_offset = 0.0
 
     for project_day in xrange(len(met_data['prjday'])):
-
+        
         state.shootnc = state.shootn / state.shoot
+        
+        
+        # when it reads the duke file the shootn is very low and it buggers
+        # this up if ur running standalone to test so play with the shootnc
+        # ratio. Checked and the actual code seems fine
+        #state.shootnc = 0.02
         state.ncontent = (state.shootnc * params.cfracts /
                                 state.sla * const.KG_AS_G)
         daylen = day_length(datex, params.latitude)
@@ -434,5 +442,12 @@ if __name__ == "__main__":
 
         B.calculate_photosynthesis(frac_gcover, datex, project_day, daylen)
 
+        print fluxes.gpp_gCm2
+
+
+
 
         datex += datetime.timedelta(days=1)
+    
+    
+    
