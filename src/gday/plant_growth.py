@@ -3,12 +3,11 @@
 import math
 
 import constants as const
-from utilities import float_eq, float_lt, float_gt, Bunch
+from utilities import float_eq, float_lt, float_gt, Bunch, day_length
 from bewdy import Bewdy
 from plant_production_mcmurtrie import PlantProdModel
 from water_balance import WaterBalance, WaterLimitedNPP
 from mate import Mate
-from misc_funcs import day_length
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (23.02.2011)"

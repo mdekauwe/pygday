@@ -5,8 +5,7 @@ import sys
 import datetime
 import math
 import constants as const
-from utilities import float_eq, float_lt, float_le, float_gt, float_ge
-from misc_funcs import day_length
+from utilities import float_eq, float_lt, float_le, float_gt, day_length
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (08.03.2011)"

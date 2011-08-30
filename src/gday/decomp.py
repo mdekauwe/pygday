@@ -3,8 +3,7 @@
 import math
 
 from water_balance import WaterBalance
-from utilities import float_eq, float_lt, float_le, float_gt, float_ge
-from misc_funcs import clip
+from utilities import float_eq, float_lt, float_le, float_gt, float_ge, clip
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (25.02.2011)"
