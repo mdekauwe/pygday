@@ -1,5 +1,7 @@
-""" Logic tests for floating point numbers """
+""" Various misc funcs """
 
+import datetime
+import calendar
 import math
 import sys
 
