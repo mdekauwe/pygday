@@ -2,8 +2,7 @@
 
 import math
 
-from utilities import float_gt, float_eq
-from misc_funcs import clip
+from utilities import float_gt, float_eq, clip
 import constants as const
 import sys
 
