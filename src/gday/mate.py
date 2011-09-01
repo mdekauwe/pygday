@@ -417,7 +417,12 @@ class Mate(object):
 
 
 if __name__ == "__main__":
-
+    
+    # timing...
+    import sys
+    import time
+    start_time = time.time()
+    
     from file_parser import initialise_model_data
     from utilities import float_lt, day_length
     import datetime
@@ -479,3 +484,6 @@ if __name__ == "__main__":
 
 
         datex += datetime.timedelta(days=1)
+    end_time = time.time()
+    sys.stderr.write("\nTotal simulation time: %.1f seconds\n\n" %
+                                                    (end_time - start_time))
