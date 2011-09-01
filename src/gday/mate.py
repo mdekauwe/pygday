@@ -90,11 +90,7 @@ class Mate(object):
 
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        asat, lue, ac, aj = [None] * 2, [None] * 2, [None] * 2, [None] * 2
-        cica, temp = [None] * 2, [None] * 2
-
         temp, par, vpd, ca = self.get_met_data(day)
-
 
         #jmax25 = self.params.jmaxn * self.state.ncontent
         #vcmax25 = self.params.vcmaxn * self.state.ncontent
@@ -115,33 +111,33 @@ class Mate(object):
 
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
-        cica[am] = self.calculate_ci_ca_ratio(vpd[am])
-        cica[pm] = self.calculate_ci_ca_ratio(vpd[pm])
+        cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         ci = [i * ca for i in cica]
 
         # store value as needed in water balance calculation
         self.fluxes.cica_avg = sum(cica) / len(cica)
-
-        # Photosynthesis rate when Rubisco activity is limiting - Vcmax
-        ac[am] = self.assim_rate_when_rubisco_limit(ci[am], gamma_star[am],
-                                                    km[am], vmax[am])
-        ac[pm] = self.assim_rate_when_rubisco_limit(ci[pm], gamma_star[pm],
-                                                    km[pm], vmax[pm])
-
-        # Photosynthesis rate when RUBP regneneration is limiting - Jmax
-        aj[am] = self.assim_rate_when_rubp_regen_limit(jmax[am], ci[am],
-                                                        gamma_star[am])
-        aj[pm] = self.assim_rate_when_rubp_regen_limit(jmax[pm], ci[pm],
-                                                        gamma_star[pm])
-
+        
+        # Generally under low PAR photosynthesis is limited by the rate of 
+        # electron transport in the light reactions. Whereas at high PAR 
+        # photosynthesis is limited by rubisco. So leaves growing in the shade 
+        # would achieve no gain investing in rubisco, therefore have low Vcmax. 
+        # Sunlit leaves have high Vcmax to maximise the rate of photosynthsis.
+        # Further, if rubisco is low, there is no need to have extra
+        # chlorophyll to trap light, therefore low Vcmax is twinned with low
+        # Jmax.
+        
+        # Rubisco-limited rate of photosynthesis
+        ac = [self.ac(ci[k], gamma_star[k], km[k], vmax[k]) for k in am, pm]
+        
+        # Light-limited rate of photosynthesis allowed by RuBP regeneration
+        aj = [self.aj(jmax[k], ci[k], gamma_star[k]) for k in am, pm]
+        
         # Note that these are gross photosynthetic rates.
-        asat[am] = min(aj[am], ac[am])
-        asat[pm] = min(aj[pm], ac[pm])
-
+        asat = [min(aj[k], ac[k]) for k in am, pm]
+        
         # LUE, calculation is performed for morning and afternnon periods
-        lue[am] = self.epsilon(asat[am], par, daylen)
-        lue[pm] = self.epsilon(asat[pm], par, daylen)
-
+        lue = [self.epsilon(asat[k], par, daylen) for k in am, pm]
+        
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / len(lue)
 
@@ -236,35 +232,27 @@ class Mate(object):
         * Medlyn et al. (2002) PCE, 25, 1167-1179.
 
         """
-
-        gamma_star = [None] * 2
-        km = [None] * 2
-        jmax = [None] * 2
-        vmax = [None] * 2
-
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
 
         # co2 compensation point in the absence of mitochondrial respiration
-        gamma_star[am] = self.arrh(42.75, 37830.0, temp[am])
-        gamma_star[pm] = self.arrh(42.75, 37830.0, temp[pm])
+        gamma_star = [self.arrh(42.75, 37830.0, temp[k]) for k in am, pm]
+
 
         # effective Michaelis-Menten coefficent of Rubisco activity
-        km[am] = (self.arrh(404.9, 79430.0, temp[am]) *
-                    (1.0 + 205000.0 / self.arrh(278400.0, 36380.0, temp[am])))
-        km[pm] = (self.arrh(404.9, 79430.0, temp[pm]) *
-                    (1.0 + 205000.0 / self.arrh(278400.0, 36380.0, temp[pm])))
+        km = [self.arrh(404.9, 79430.0, temp[k]) *
+                (1.0 + 205000.0 / self.arrh(278400.0, 36380.0, temp[k]))
+                for k in am, pm]
+        
 
         # max rate of electron transport and rubisco activity
-        jmax[am] = self.jmaxt(temp[am], jmax25)
-        jmax[pm] = self.jmaxt(temp[pm], jmax25)
-        vmax[am] = self.arrh(vcmax25, self.params.eav, temp[am])
-        vmax[pm] = self.arrh(vcmax25, self.params.eav, temp[pm])
-
+        jmax = [self.jmaxt(temp[k], jmax25) for k in am, pm]
+        vmax = [self.arrh(vcmax25, self.params.eav, temp[k]) for k in am, pm]
+        
         return gamma_star, km, jmax, vmax
 
 
-    def assim_rate_when_rubisco_limit(self, ci, gamma_star, km, vmax):
+    def ac(self, ci, gamma_star, km, vmax):
         """Morning and afternoon calcultion of photosynthesis when Rubisco
         activity is limiting, Ac.
 
@@ -286,11 +274,11 @@ class Mate(object):
             assimilation rate when Rubisco activity is limiting
 
         """
-        return max(0.0, (ci - gamma_star)) / (ci + km) * vmax
+        return max(0.0, (ci - gamma_star) * vmax) / (ci + km)
 
-    def assim_rate_when_rubp_regen_limit(self, jmax, ci, gamma_star):
+    def aj(self, jmax, ci, gamma_star):
         """Morning and afternoon calcultion of photosynthesis when
-        ribulose-1,5-bisphosphate (RuBP)-regeneration is limiting, Aj.
+        ribulose-1,5-bisphosphate (RuBP)-regeneration is limiting
 
         Parameters:
         ----------
@@ -307,9 +295,7 @@ class Mate(object):
             photosynthesis when RuBP regeneration is limiting
 
         """
-        return (jmax / 4.0) * ((ci - gamma_star) / (ci + 2.0 * gamma_star))
-
-
+        return (jmax * (ci - gamma_star)) / (4.0 * (ci + 2.0 * gamma_star))
 
     def calculate_ci_ca_ratio(self, vpd):
         """ Calculate the ratio of intercellular to atmos CO2 conc
@@ -487,7 +473,7 @@ if __name__ == "__main__":
         #print state.shootn
         M.calculate_photosynthesis(project_day, daylen)
 
-        print project_day, fluxes.gpp_gCm2
+        print fluxes.gpp_gCm2
 
 
 
