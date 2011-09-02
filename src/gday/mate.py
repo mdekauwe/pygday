@@ -85,9 +85,7 @@ class Mate(object):
         -------
         Nothing
             Method calculates GPP, NPP and Ra.
-
         """
-
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
         temp, par, vpd, ca = self.get_met_data(day)
@@ -183,8 +181,8 @@ class Mate(object):
             ambient or elevated. [umol mol-1]
 
         """
-        temp = [ self.met_data['tam'][day], self.met_data['tpm'][day] ]
-        vpd = [ self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day] ]
+        temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
+        vpd = [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
 
         # if PAR is supplied by the user then use this data, otherwise use the
         # standard conversion factor. This was added as the NCEAS run had a
@@ -238,13 +236,11 @@ class Mate(object):
         # co2 compensation point in the absence of mitochondrial respiration
         gamma_star = [self.arrh(42.75, 37830.0, temp[k]) for k in am, pm]
 
-
         # effective Michaelis-Menten coefficent of Rubisco activity
         km = [self.arrh(404.9, 79430.0, temp[k]) *
                 (1.0 + 205000.0 / self.arrh(278400.0, 36380.0, temp[k]))
                 for k in am, pm]
         
-
         # max rate of electron transport and rubisco activity
         jmax = [self.jmaxt(temp[k], jmax25) for k in am, pm]
         vmax = [self.arrh(vcmax25, self.params.eav, temp[k]) for k in am, pm]
@@ -368,8 +364,8 @@ class Mate(object):
         return lue
 
     def arrh(self, kc, ea, tair):
-        """ Arrhenius function: describes the effect of temperature on
-        enzyme activity
+        """ Arrhenius function: describes the effect of temperature on enzyme 
+        activity
 
         Parameters:
         ----------
