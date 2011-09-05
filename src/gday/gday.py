@@ -14,7 +14,6 @@ from plant_growth import PlantGrowth
 from print_outputs import PrintOutput
 from litter_production import LitterProduction
 from soil_cnflows import CarbonFlows, NitrogenFlows
-from nmineralisation import Mineralisation
 from update_pools import CarbonPools, NitrogenPools
 from derive import Derive
 from utilities import float_eq
@@ -148,7 +147,6 @@ class Gday(object):
         """ Run model simulation! """
 
         # class instances
-        mi = Mineralisation(self.control, self.params, self.state, self.fluxes)
         cf = CarbonFlows(self.control, self.params, self.state, self.fluxes,
                             self.met_data)
         nf = NitrogenFlows(self.control, self.params, self.state, self.fluxes)
@@ -170,15 +168,12 @@ class Gday(object):
             # litterfall rate: C and N fluxes
             (fdecay, rdecay) = lf.calculate_litter_flows()
 
-            # co2 assimilation
-            pg.calculate_net_c_prodn(project_day, self.date, fdecay, rdecay)
+            # co2 assimilation, N uptake and loss
+            pg.grow(project_day, self.date, fdecay, rdecay)
 
             # soil model fluxes
             cf.calculate_cflows(project_day)
             nf.calculate_nflows()
-
-            # N uptake and loss
-            mi.calculate_mineralisation()
 
             self.fluxes.nep = self.calculate_nep()
 
