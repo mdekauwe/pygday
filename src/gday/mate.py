@@ -26,6 +26,9 @@ class Mate(object):
     * McMurtrie, R. E. et al. (2008) Functional Change Biology, 35, 521-34.
     * Sands, P. J. (1995) Australian Journal of Plant Physiology, 22, 601-14.
 
+    Rubisco kinetic parameter values are from:
+    * Bernacchi et al. (2001) PCE, 24, 253-259.
+    * Medlyn et al. (2002) PCE, 25, 1167-1179, see pg. 1170.
     """
 
     def __init__(self, control, params, state, fluxes, met_data):
@@ -44,16 +47,38 @@ class Mate(object):
             meteorological forcing data
 
         """
-
         self.params = params
         self.fluxes = fluxes
         self.control = control
         self.state = state
         self.met_data = met_data
 
-        self.am = 0
-        self.pm = 1
-
+        self.am = 0 # morning index
+        self.pm = 1 # afternoon index
+        
+        # co2 compensation partial pressure in the absence of dark resp at 
+        # 25 degC [umol mol-1]
+        self.gamstar25 = 42.75
+        
+        # intercellular concentration of O2
+        self.Oi = 205000.0
+        
+        # value at 25degC [umol mol-1]
+        self.Kc25 = 404.9 
+        
+        # value at 25degC [umol mol-1], note value in Bernacchi 2001 is in mmol! 
+        self.Ko25 = 278400.0 
+        
+        # Activation energy for carboxylation [J mol-1]
+        self.Ec = 79430.0
+        
+        # Activation energy for oxygenation [J mol-1]
+        self.Eo = 36380.0
+        
+        # Activation energy at CO2 compensation point [J mol-1]
+        self.Egamma = 37830.0
+        
+    
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
         a commonly assumed reln (e.g. Potter 1993, Myneni 2002). The slope of
@@ -89,24 +114,14 @@ class Mate(object):
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
         temp, par, vpd, ca = self.get_met_data(day)
-
-        #jmax25 = self.params.jmaxn * self.state.ncontent
-        #vcmax25 = self.params.vcmaxn * self.state.ncontent
-
-
-        # Assumption leaf N declines exponentially through the canopy. Input N
-        # is top of canopy (N0)
-        N0 = (self.state.ncontent * self.state.lai * self.params.kext /
-                (1.0 - math.exp(-self.params.kext * self.state.lai)))
-
-        # calculate the maximum rate of Rubisco activity at 25 degC and the
-        # maximum rate of electron transport at 25 degC
-        jmax25 = self.params.jmaxn * N0
-        vcmax25 = self.params.vcmaxn * N0
-
-        (gamma_star, km, jmax,
-            vmax) = self.calculate_mate_params(temp, jmax25, vcmax25)
-
+        
+        # calculate mate parameters, e.g. accounting for temp dependancy
+        gamma_star = self.calculate_co2_compensation_point(temp)
+        km = self.calculate_michaelis_menten_parameter(temp)
+        N0 = self.calculate_leafn()
+        jmax = self.calculate_jmax_parameter(temp, N0)
+        vcmax = self.calculate_vcmax_parameter(temp, N0)
+        
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
@@ -125,7 +140,7 @@ class Mate(object):
         # Jmax.
         
         # Rubisco-limited rate of photosynthesis
-        ac = [self.ac(ci[k], gamma_star[k], km[k], vmax[k]) for k in am, pm]
+        ac = [self.ac(ci[k], gamma_star[k], km[k], vcmax[k]) for k in am, pm]
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
         aj = [self.aj(jmax[k], ci[k], gamma_star[k]) for k in am, pm]
@@ -201,54 +216,112 @@ class Mate(object):
 
         return temp, par, vpd, ca
 
-    def calculate_mate_params(self, temp, jmax25, vcmax25):
-        """ Method to calculate the parameters used in the MATE model
+    def calculate_co2_compensation_point(self, temp):
+        """ CO2 compensation point in the absence of mitochondrial respiration
 
         Parameters:
         ----------
         temp : float
             air temperature
-        jmax25 : float
-            Jmax at 25DegC, function of leaf N
-        vcmax25 : float
-            Vcmax at 25DegC, function of leaf N
-
+        
         Returns:
         -------
         gamma_star : float, list [am, pm]
             CO2 compensation point in the abscence of mitochondrial respiration
-        km : float, list [am, pm]
-            effective Michaelis-Menten constant for Rubisco catalytic activity
-        jmax : float, list [am, pm]
-            maximum rate of electron transport
-        vmax : float, list [am, pm]
-            maximum rate of Rubisco activity
-
-        References:
-        -----------
-        Rubisco kinetic parameter values are from:
-        * Medlyn et al. (2002) PCE, 25, 1167-1179.
-
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
+        return [self.arrh(self.gamstar25, self.Egamma, temp[k]) for k in am, pm]
 
-        # co2 compensation point in the absence of mitochondrial respiration
-        gamma_star = [self.arrh(42.75, 37830.0, temp[k]) for k in am, pm]
+    def calculate_michaelis_menten_parameter(self, temp):
+        """ Effective Michaelis-Menten coefficent of Rubisco activity
 
-        # effective Michaelis-Menten coefficent of Rubisco activity
-        km = [self.arrh(404.9, 79430.0, temp[k]) *
-                (1.0 + 205000.0 / self.arrh(278400.0, 36380.0, temp[k]))
-                for k in am, pm]
+        Parameters:
+        ----------
+        temp : float
+            air temperature
         
-        # max rate of electron transport and rubisco activity
-        jmax = [self.jmaxt(temp[k], jmax25) for k in am, pm]
-        vmax = [self.arrh(vcmax25, self.params.eav, temp[k]) for k in am, pm]
+        Returns:
+        -------
+        value : float, list [am, pm]
+            km, effective Michaelis-Menten constant for Rubisco catalytic activity
         
-        return gamma_star, km, jmax, vmax
+        References:
+        -----------
+        Rubisco kinetic parameter values are from:
+        * Bernacchi et al. (2001) PCE, 24, 253-259.
+        * Medlyn et al. (2002) PCE, 25, 1167-1179, see pg. 1170.
+        
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        
+        # Michaelis-Menten coefficents for carboxylation by Rubisco
+        Kc = [self.arrh(self.Kc25, self.Ec, temp[k]) for k in am, pm]
+        
+        # Michaelis-Menten coefficents for oxygenation by Rubisco
+        Ko = [self.arrh(self.Ko25, self.Eo, temp[k]) for k in am, pm]
+        
+        # return effectinve Michaelis-Menten coeffeicent for CO2
+        return [Kc[k] * (1.0 + self.Oi / Ko[k]) for k in am, pm]
+                
+    def calculate_leafn(self):  
+        """ Assumption leaf N declines exponentially through the canopy. Input N
+        is top of canopy (N0) """
+        
+        # old leaf N calculation
+        #jmax25 = self.params.jmaxn * self.state.ncontent
+        #vcmax25 = self.params.vcmaxn * self.state.ncontent
+        return (self.state.ncontent * self.state.lai * self.params.kext /
+                (1.0 - math.exp(-self.params.kext * self.state.lai)))
+    
+    def calculate_jmax_parameter(self, temp, N0):
+        """ Max rate of electron transport, Jmax. 
 
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        N0 : float
+            leaf N
 
-    def ac(self, ci, gamma_star, km, vmax):
+        Returns:
+        -------
+        jmax : float, list [am, pm]
+            maximum rate of electron transport
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        
+        # calculate the maximum rate of electron transport at 25 degC 
+        jmax25 = self.params.jmaxn * N0
+        
+        return [self.jmaxt(temp[k], jmax25) for k in am, pm]
+    
+    def calculate_vcmax_parameter(self, temp, N0):
+        """ Max rate of electron transport, Jmax. 
+
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        N0 : float
+            leaf N
+            
+        Returns:
+        -------
+        vcmax : float, list [am, pm]
+            maximum rate of Rubisco activity
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        
+        # calculate the maximum rate of Rubisco activity at 25 degC 
+        vcmax25 = self.params.vcmaxn * N0
+    
+        return [self.arrh(vcmax25, self.params.eav, temp[k]) for k in am, pm]
+    
+    def ac(self, ci, gamma_star, km, vcmax):
         """Morning and afternoon calcultion of photosynthesis when Rubisco
         activity is limiting, Ac.
 
@@ -261,7 +334,7 @@ class Mate(object):
         km : float
             effective Michaelis-Menten constant for Rubisco catalytic activity
             for CO2
-        vmax : float
+        vcmax : float
             maximum rate of Rubisco activity
 
         Returns:
@@ -270,7 +343,7 @@ class Mate(object):
             assimilation rate when Rubisco activity is limiting
 
         """
-        return max(0.0, (ci - gamma_star) * vmax) / (ci + km)
+        return max(0.0, (ci - gamma_star) * vcmax) / (ci + km)
 
     def aj(self, jmax, ci, gamma_star):
         """Morning and afternoon calcultion of photosynthesis when
