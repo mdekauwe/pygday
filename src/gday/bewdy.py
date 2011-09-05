@@ -270,7 +270,7 @@ class Bewdy(object):
             net primary productivity
         """
 
-        if self.control.model_number == 5:
+        if self.control.assim_model == 5:
             # use dependence on nitrogen and temperature
             self.fluxes.auto_resp = self.calc_autotrophic_respiration(temp)
 

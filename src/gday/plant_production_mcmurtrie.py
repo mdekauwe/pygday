@@ -293,7 +293,7 @@ def main():
 
 
 
-    adj_control.model_number = 3
+    adj_control.assim_model = 3
 
     num_days = len(met_data['doy'])
     for i in xrange(num_days):

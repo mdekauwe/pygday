@@ -57,18 +57,18 @@ class LitterProduction(object):
         self.fluxes.deadbranch = self.params.bdecay * self.state.branch
         self.fluxes.deadstems = self.params.wdecay * self.state.stem
 
-        # litter n:c ratios
+        # litter N:C ratios, roots and shoot
         ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
         ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
 
-        # n in litter production
+        # N in litter production
         self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
         self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
 
-        # n in branch litter - assuming fraction is retranslocated before
-        # senescence
+        # N in branch litter - assuming fraction is retranslocated before
+        # senescence, i.e. a fracion of nutrients is stored within the plant
         self.fluxes.deadbranchn = (self.params.bdecay * self.state.branchn *
-                                (1.0 - self.params.bretrans))
+                                    (1.0 - self.params.bretrans))
 
         # n in stemwood litter - only mobile n is retranslocated
         self.fluxes.deadstemn = (self.params.wdecay * (self.state.stemnimm +
