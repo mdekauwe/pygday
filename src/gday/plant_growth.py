@@ -84,7 +84,7 @@ class PlantGrowth(object):
             self.wb.calculate_water_balance(day, daylen)
             # adjust carbon production for water limitations, all models except
             # MATE!
-            if self.control.model_number != 7:
+            if self.control.assim_model != 7:
                 self.wl.adjust_cproduction(self.control.water_model)
 
         # leaf N:C as a fraction of Ncmaxyoung, i.e. the max N:C ratio of
@@ -184,18 +184,16 @@ class PlantGrowth(object):
         # and the entire root zone
         self.state.wtfac_root = self.wb.calculate_soil_water_fac(topsoil=False)
 
-
         # Estimate photosynthesis using an empirical model
-        if self.control.model_number >=0 and self.control.model_number <= 4:
+        if self.control.assim_model >=0 and self.control.assim_model <= 4:
             self.pp.calculate_photosynthesis(day)
         # Estimate photosynthesis using the mechanistic BEWDY model
-        elif self.control.model_number >=5 and self.control.model_number <= 6:
+        elif self.control.assim_model >=5 and self.control.assim_model <= 6:
             # calculate plant C uptake using bewdy
             self.bw.calculate_photosynthesis(frac_gcover, date, day, daylen)
         # Estimate photosynthesis using the mechanistic MATE model. Also need to
         # calculate a water availability scalar to determine Ci:Ca reln.
-        elif self.control.model_number ==7:
-
+        elif self.control.assim_model ==7:
             self.mt.calculate_photosynthesis(day, daylen)
         else:
             raise AttributeError('Unknown assimilation model')
@@ -251,26 +249,12 @@ class PlantGrowth(object):
             allocation frac for leaf, root, branch and stem
 
         """
-
-        # N retranslocated proportion from dying plant tissue
+        # N retranslocated proportion from dying plant tissue and stored within
+        # the plant
         retrans = self.nitrogen_retrans(fdecay, rdecay)
-
-        # N uptake from the soil
-        if self.control.constuptake:
-            self.fluxes.nuptake = self.params.nuptakez
-        else:
-            if self.control.scale_nup_with_availb == 0:
-                # evaluate nuptake : proportional to dynamic inorganic n pool
-                self.fluxes.nuptake = self.params.rateuptake * self.state.inorgn
-            else:
-                # Assume N uptake depends on the rate at whioch soil mineral
-                # N is made available (self.params.Uo) and the value or root C
-                # at which 50% of the available N is taken up.
-                # Dewar and McMurtrie, 1996, Tree Physiology, 16, 161-171.
-                arg = (self.params.uo * self.state.inorgn *
-                        (self.state.root / (self.state.root + self.params.kr)))
-                self.fluxes.nuptake = max(arg, 0.0)
-        #print self.fluxes.nuptake
+        
+        self.fluxes.nuptake = self.calculate_nuptake()
+        
         # N lost from system through leaching and gaseous emissions
         # - a clear assumption using fixed rate constant across the year
         self.fluxes.nloss = self.params.rateloss * self.state.inorgn
@@ -340,7 +324,38 @@ class PlantGrowth(object):
                     self.state.stemnmob)
 
         return arg1 + arg2
-
+    
+    def calculate_nuptake(self):
+        """ N uptake from the soil 
+        
+        Returns:
+        --------
+        nuptake : float
+            N uptake
+            
+        References:
+        -----------
+        * Dewar and McMurtrie, 1996, Tree Physiology, 16, 161-171.    
+            
+        """
+        if self.control.nuptake_model == 0:
+            # Constant N uptake
+            nuptake = self.params.nuptakez
+        elif self.control.nuptake_model == 1:
+            # evaluate nuptake : proportional to dynamic inorganic N pool
+            nuptake = self.params.rateuptake * self.state.inorgn
+        elif self.control.nuptake_model == 2:
+            # Assume N uptake depends on the rate at which soil mineral
+            # N is made available (self.params.Uo) and the value or root C
+            # at which 50% of the available N is taken up (Dewar and McM).
+            arg = (self.params.uo * self.state.inorgn *
+                    (self.state.root / (self.state.root + self.params.kr)))
+            nuptake = max(arg, 0.0)
+        else:
+            raise AttributeError('Unknown N uptake assumption')
+        
+        return nuptake
+        
     def carbon_distribution(self, allocfrac, nitfac):
         """ C distribution - allocate available C through system
 
@@ -455,7 +470,7 @@ if __name__ == "__main__":
     (adj_control, adj_params, adj_state, adj_files,
                                         adj_fluxes, forcing) = pars.main()
 
-    adj_control.model_number = 3
+    adj_control.assim_model = 3
 
     year = str(adj_control.startyear)
     month = str(adj_control.startmonth)
@@ -471,7 +486,7 @@ if __name__ == "__main__":
     # Specific LAI (m2 onesided/kg DW)
     adj_state.sla = adj_params.slainit
 
-    adj_control.model_number = 3
+    adj_control.assim_model = 3
 
     # figure out photosynthesis
     PG = PlantGrowth(adj_control, adj_params, adj_state, adj_fluxes, forcing)

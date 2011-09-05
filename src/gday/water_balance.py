@@ -160,7 +160,7 @@ class WaterBalance(object):
                 self.fluxes.wue = self.params.wue0 * co2_adjustment / vpd
             else:
                 self.fluxes.wue = 0.0
-        elif self.control.wue_model == 1 and self.control.model_number == 7:
+        elif self.control.wue_model == 1 and self.control.assim_model == 7:
             conv = const.MOLE_C_TO_GRAMS_C / const.MOLE_WATER_TO_GRAMS_WATER
             self.fluxes.wue = (conv * 1000.0 * (ca * const.UMOL_TO_MOL *
                                 (1.0 - self.fluxes.cica_avg) /
