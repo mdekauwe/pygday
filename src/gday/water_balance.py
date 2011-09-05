@@ -702,12 +702,12 @@ class PenmanMonteith(object):
 
 
         # decoupling coefficent, Jarvis and McNaughton, 1983
-        e = slope / gamma # chg of latent heat relative to sensible heat of air
-        omega = (e + 1.0) / (e + 1.0 + (ga / gc))
+        #e = slope / gamma # chg of latent heat relative to sensible heat of air
+        #omega = (e + 1.0) / (e + 1.0 + (ga / gc))
 
         # Values of Fs close to 1 = high sensitivity of transpiration to changes
         # in gs and values close to 0 indicate low sensitivity to changes in gs
-        fs = 1.0 - omega
+        #fs = 1.0 - omega
 
         #print ga * 1000.
 

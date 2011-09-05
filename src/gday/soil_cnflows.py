@@ -7,6 +7,7 @@ Slow pool -> resistant plant material, turnover time of 20-50 yrs.
 Passive pool -> very resistant to decomp, turnover time of > 400 yrs.
 """
 
+import constants as const
 from decomp import DecompFactors
 from utilities import float_eq, float_lt, float_le, float_gt, float_ge
 
@@ -308,6 +309,7 @@ class NitrogenFlows(object):
         self.fluxes = fluxes
         self.control = control
         self.state = state
+        self.conv = const.M2_AS_HA / const.G_AS_TONNES
 
     def calculate_nflows(self):
 
@@ -326,6 +328,13 @@ class NitrogenFlows(object):
         self.nfluxes_from_active_pool()
         self.nfluxes_from_slow_pool()
         self.nfluxes_from_passive_pool()
+        
+        # gross N mineralisation 
+        self.fluxes.ngross = self.calculate_ngross()
+
+        # calculate N immobilisation
+        self.fluxes.nimmob = self.calculate_nimmobilisation()
+        
 
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
@@ -482,3 +491,86 @@ class NitrogenFlows(object):
         # -> active
         self.fluxes.npassive = (self.state.passivesoiln *
                                                     self.params.decayrate[6])
+
+    def calculate_ngross(self):
+        """ Gross release of organically bound N during decomposition
+        
+        Returns:
+        --------
+        value : float
+            Gross N mineralisation 
+        """
+        return  (sum(self.fluxes.nstruct) + sum(self.fluxes.nmetab) +
+                    sum(self.fluxes.nactive) + sum(self.fluxes.nslow) + 
+                    self.fluxes.npassive)
+    
+    def calculate_nimmobilisation(self):
+        """ Calculated N immobilised in new soil organic matter
+        
+         General equation for new soil N:C ratio vs Nmin, expressed as linear 
+         equation passing through point Nmin0, actnc0 (etc). Values can be 
+         Nmin0=0, Actnc0=Actncmin 
+         
+         if Nmin < Nmincrit:
+            New soil N:C = soil N:C (when Nmin=0) + slope * Nmin
+         
+         if Nmin > Nmincrit
+            New soil N:C = max soil N:C       
+        
+        NB N:C ratio of new passive SOM can change even if assume Passiveconst
+        
+        Returns:
+        --------
+        nimob : float
+            N immobilsed
+        """
+        
+        # N:C new SOM - active, slow and passive
+        arg = (self.params.nmincrit - self.params.nmin0) / self.conv
+    
+        actncslope = (self.params.actncmax - self.params.actnc0) / arg 
+        slowncslope = (self.params.slowncmax - self.params.slownc0) / arg 
+        passncslope = (self.params.passncmax - self.params.passnc0) / arg 
+        
+        arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
+                    (self.params.passnc0 - passncslope * self.params.nmin0 /
+                    self.conv))
+        arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
+                    self.fluxes.cactive[0]) *
+                    (self.params.slownc0 - slowncslope *
+                    self.params.nmin0 / self.conv))
+        arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
+                    sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                    self.fluxes.passive) * (self.params.actnc0 - actncslope *
+                    self.params.nmin0 / self.conv))
+        numer1 = arg1 + arg2 + arg3
+
+
+        arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
+                    self.params.passncmax)
+        arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
+                    self.fluxes.cactive[0]) * self.params.slowncmax)
+        arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
+                    sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                    self.fluxes.passive) * self.params.actncmax)
+        numer2 = arg1 + arg2 + arg3
+
+        arg1 = (self.fluxes.cactive[1] + self.fluxes.cslow[1]) * passncslope
+        arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
+                    self.fluxes.cactive[0]) * slowncslope)
+        arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
+                    sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                    self.fluxes.passive) * actncslope)
+        denom = arg1 + arg2 + arg3
+        
+        # evaluate N immobilisation in new SOM
+        nimmob = numer1 + denom * self.state.inorgn
+        if float_gt(nimmob, numer2):
+            nimmob = numer2
+        
+        return nimmob
+    
+    
+
+
+
