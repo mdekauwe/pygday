@@ -45,40 +45,39 @@ class Mate(object):
             model fluxes
         met_data : floats, dictionary
             meteorological forcing data
-
+        gamstar25 : float
+            co2 compensation partial pressure in the absence of dark resp at 
+            25 degC [umol mol-1]
+        Oi : float
+            intercellular concentration of O2
+        Kc25 : float
+            Michaelis-Menten coefficents for carboxylation by Rubisco at 
+            25degC [umol mol-1]
+        Ko25: float
+            Michaelis-Menten coefficents for oxygenation by Rubisco at 
+            25degC [umol mol-1]. Note value in Bernacchie 2001 is in mmol!!
+        Ec : float
+            Activation energy for carboxylation [J mol-1]
+        Eo : float
+            Activation energy for oxygenation [J mol-1]
+        Egamma : float
+            Activation energy at CO2 compensation point [J mol-1]
         """
         self.params = params
         self.fluxes = fluxes
         self.control = control
         self.state = state
         self.met_data = met_data
-
         self.am = 0 # morning index
         self.pm = 1 # afternoon index
-        
-        # co2 compensation partial pressure in the absence of dark resp at 
-        # 25 degC [umol mol-1]
         self.gamstar25 = 42.75
-        
-        # intercellular concentration of O2
         self.Oi = 205000.0
-        
-        # value at 25degC [umol mol-1]
         self.Kc25 = 404.9 
-        
-        # value at 25degC [umol mol-1], note value in Bernacchi 2001 is in mmol! 
         self.Ko25 = 278400.0 
-        
-        # Activation energy for carboxylation [J mol-1]
         self.Ec = 79430.0
-        
-        # Activation energy for oxygenation [J mol-1]
         self.Eo = 36380.0
-        
-        # Activation energy at CO2 compensation point [J mol-1]
         self.Egamma = 37830.0
         
-    
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
         a commonly assumed reln (e.g. Potter 1993, Myneni 2002). The slope of
@@ -267,7 +266,8 @@ class Mate(object):
                 
     def calculate_leafn(self):  
         """ Assumption leaf N declines exponentially through the canopy. Input N
-        is top of canopy (N0) """
+        is top of canopy (N0) 
+        """
         
         # old leaf N calculation
         #jmax25 = self.params.jmaxn * self.state.ncontent
@@ -389,7 +389,6 @@ class Mate(object):
         return (1.0 - ((1.6 * math.sqrt(vpd)) /
                 (self.params.g1 * self.state.wtfac_root + math.sqrt(vpd))))
 
-
     def epsilon(self, amax, par, daylen):
         """ Integrate LUE using method from Sands 1995, 1996.
 
@@ -477,9 +476,9 @@ class Mate(object):
         tref = 25.0 + const.ABSZERO
         tk = tair + const.ABSZERO
         arg1 = self.arrh(jmax25, self.params.eaj, tair)
-        arg2 = (1 + math.exp((self.params.delsj * tref - self.params.edj) /
+        arg2 = (1.0 + math.exp((self.params.delsj * tref - self.params.edj) /
                 const.RGAS / tref))
-        arg3 = (1 + math.exp((self.params.delsj * tk - self.params.edj) /
+        arg3 = (1.0 + math.exp((self.params.delsj * tk - self.params.edj) /
                 const.RGAS / tk))
         return arg1 * arg2 / arg3
 
