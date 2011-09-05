@@ -25,10 +25,10 @@ def nc_ratio(carbon_val, nitrogen_val):
     if float_lt(carbon_val, 0.0):
         # Note, previously the else branch was set to 1E6...presumably this 
         # was a hack to deal with the scenario for example where 
-        # self.state.metabsurf and self.state.metabsurfn are both zero. This 
-        # was fine as this ratio isn't used in the code. Since I have commented
-        # out these diagnostics we shouldn't end up here unless there really 
-        # is an error. 
+        # self.state.metabsurf and self.state.metabsurfn both start at zero.  
+        # This was fine as this ratio isn't used in the code. Since I have 
+        # commented out these diagnostics we shouldn't end up here unless there 
+        # really is an error!!
         raise ValueError("Dianostic N:C has invalid values, probably zero?")
     
     return nitrogen_val / carbon_val
