@@ -1,510 +1,3652 @@
-<pre>
-         1261217 function calls (1256743 primitive calls) in 1.545 CPU seconds
-
-   Ordered by: cumulative time
-   List reduced from 546 to 500 due to restriction <500>
-
-   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1    0.000    0.000    1.545    1.545 ./gday.py:274(main)
-        1    0.031    0.031    1.361    1.361 ./gday.py:147(run_sim)
-     3652    0.024    0.000    0.719    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:61(calculate_net_c_prodn)
-     3652    0.025    0.000    0.336    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:150(carbon_production)
-     3652    0.061    0.000    0.301    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:57(calculate_photosynthesis)
-        1    0.000    0.000    0.184    0.184 ./gday.py:83(__init__)
-     3652    0.022    0.000    0.176    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:49(calculate_water_balance)
-        1    0.000    0.000    0.168    0.168 /Users/mdekauwe/src/python/pygday/src/gday/file_parser.py:18(initialise_model_data)
-     3652    0.018    0.000    0.154    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:46(calculate_cflows)
-     7304    0.058    0.000    0.120    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:320(epsilon)
-     3653    0.063    0.000    0.109    0.000 /Users/mdekauwe/src/python/pygday/src/gday/derive.py:52(derive_vals_from_state)
-     3652    0.065    0.000    0.103    0.000 /Users/mdekauwe/src/python/pygday/src/gday/update_pools.py:114(calculate_npools)
-        1    0.045    0.045    0.092    0.092 /Users/mdekauwe/src/python/pygday/src/gday/file_parser.py:109(read_met_forcing)
-     3652    0.025    0.000    0.081    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:204(calculate_mate_params)
-     3652    0.013    0.000    0.076    0.000 /Users/mdekauwe/src/python/pygday/src/gday/nmineralisation.py:35(calculate_mineralisation)
-        1    0.000    0.000    0.075    0.075 /Users/mdekauwe/src/python/pygday/src/gday/read_config_file.py:33(load_files)
-        1    0.000    0.000    0.075    0.075 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:1187(__init__)
-        1    0.000    0.000    0.075    0.075 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:1245(_load)
-        1    0.002    0.002    0.075    0.075 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:1533(_parse)
-     3652    0.016    0.000    0.073    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:312(calculate_nflows)
-      238    0.001    0.000    0.070    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:214(unrepr)
-      238    0.006    0.000    0.069    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:142(getObj)
-     3652    0.018    0.000    0.067    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:237(calc_transpiration_penmon)
-     7342    0.064    0.000    0.064    0.000 {method 'strftime' of 'datetime.date' objects}
-     3652    0.023    0.000    0.057    0.000 /Users/mdekauwe/src/python/pygday/src/gday/utilities.py:66(day_length)
-      238    0.000    0.000    0.053    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:49(parse)
-    87648    0.042    0.000    0.051    0.000 /Users/mdekauwe/src/python/pygday/src/gday/utilities.py:58(float_gt)
-    43812    0.044    0.000    0.048    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:348(<lambda>)
-     3652    0.025    0.000    0.047    0.000 /Users/mdekauwe/src/python/pygday/src/gday/litter_production.py:35(calculate_litter_flows)
-     3652    0.035    0.000    0.043    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:387(update_plant_state)
-     3652    0.020    0.000    0.040    0.000 /Users/mdekauwe/src/python/pygday/src/gday/decomp.py:40(decay_rates)
-    36520    0.031    0.000    0.035    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:366(arrh)
-     3652    0.020    0.000    0.034    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:235(nitrogen_distribution)
-     3652    0.015    0.000    0.032    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:661(calc_evaporation)
-     3652    0.011    0.000    0.031    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:369(calc_soil_evaporation)
-     3652    0.028    0.000    0.031    0.000 /Users/mdekauwe/src/python/pygday/src/gday/nmineralisation.py:99(calc_mineral_npool)
-      238    0.001    0.000    0.031    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:126(parsesuite)
-    14608    0.015    0.000    0.030    0.000 /Users/mdekauwe/src/python/pygday/src/gday/update_pools.py:241(nclimit)
-     3652    0.009    0.000    0.029    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:84(ligin_nratio)
-      238    0.001    0.000    0.028    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:120(transform)
-     7304    0.019    0.000    0.028    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:388(jmaxt)
-     3652    0.027    0.000    0.028    0.000 /Users/mdekauwe/src/python/pygday/src/gday/update_pools.py:40(calculate_cpools)
-      238    0.000    0.000    0.027    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:145(compile_node)
-      238    0.001    0.000    0.026    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:179(file_input)
-     3652    0.013    0.000    0.026    0.000 /Users/mdekauwe/src/python/pygday/src/gday/nmineralisation.py:56(calc_new_nc_slope_params)
-    40172    0.019    0.000    0.023    0.000 /Users/mdekauwe/src/python/pygday/src/gday/utilities.py:50(float_lt)
-  476/238    0.001    0.000    0.023    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:1090(com_append_stmt)
-  476/238    0.000    0.000    0.022    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:316(stmt)
-  476/238    0.001    0.000    0.022    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:1083(com_stmt)
-     7304    0.013    0.000    0.022    0.000 /Users/mdekauwe/src/python/pygday/src/gday/litter_production.py:107(decay_in_dry_soils)
-      238    0.011    0.000    0.022    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:104(__init__)
-      238    0.001    0.000    0.022    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:323(simple_stmt)
-     3673    0.021    0.000    0.021    0.000 {method 'split' of 'str' objects}
-     3652    0.014    0.000    0.021    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:201(allocate_carbon)
-     3652    0.010    0.000    0.020    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:88(get_met_data)
-    21912    0.016    0.000    0.020    0.000 /Users/mdekauwe/src/python/pygday/src/gday/utilities.py:42(float_eq)
-      238    0.001    0.000    0.019    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:362(expr_stmt)
-     3652    0.017    0.000    0.017    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:228(cfluxes_from_metabolic_pool)
-   175296    0.017    0.000    0.017    0.000 {math.fabs}
-        4    0.016    0.004    0.016    0.004 {method 'close' of 'file' objects}
-    47474    0.015    0.000    0.015    0.000 {sum}
-     7304    0.012    0.000    0.015    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:464(calculate_soil_water_fac)
-     3652    0.015    0.000    0.015    0.000 ./gday.py:226(increment_date)
-     3652    0.012    0.000    0.015    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:103(calculate_ncwood_ratios)
-    10956    0.008    0.000    0.015    0.000 /Users/mdekauwe/src/python/pygday/src/gday/utilities.py:39(__init__)
-     3652    0.012    0.000    0.014    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:423(update_water_storage)
-     3652    0.014    0.000    0.014    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:173(cflux_from_plants)
-     3652    0.013    0.000    0.013    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:205(cfluxes_from_struct_pool)
-     3652    0.009    0.000    0.013    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:377(inputs_from_structrual_pool)
-     3652    0.006    0.000    0.013    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:932(calc_evaporation)
-     3652    0.013    0.000    0.013    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:359(carbon_distribution)
-      238    0.000    0.000    0.013    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:574(testlist)
-     3652    0.012    0.000    0.012    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:421(nfluxes_from_structural_pools)
- 1428/238    0.002    0.000    0.012    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:1071(com_binary)
-     7304    0.012    0.000    0.012    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:624(__init__)
-     3652    0.008    0.000    0.012    0.000 /Users/mdekauwe/src/python/pygday/src/gday/decomp.py:83(soil_temp_factor)
-      238    0.000    0.000    0.012    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:590(test)
-        1    0.001    0.001    0.012    0.012 ./gday.py:253(cmdline_parser)
-     3652    0.007    0.000    0.012    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:330(grazer_inputs)
- 1666/238    0.001    0.000    0.012    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:798(com_node)
-      238    0.000    0.000    0.011    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:604(or_test)
-     3652    0.010    0.000    0.011    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:278(calc_stomatal_conductance)
-      238    0.000    0.000    0.011    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:611(and_test)
-        1    0.003    0.003    0.011    0.011 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:22(<module>)
-     7304    0.006    0.000    0.010    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:151(metafract)
-      238    0.000    0.000    0.010    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:615(not_test)
-    76692    0.010    0.000    0.010    0.000 {math.exp}
-      238    0.000    0.000    0.010    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:622(comparison)
-     3652    0.009    0.000    0.009    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:163(get_met_data)
-     3652    0.006    0.000    0.009    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:137(calc_wue)
-     3652    0.007    0.000    0.009    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:268(cfluxes_from_passive_pool)
-      238    0.000    0.000    0.009    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:655(expr)
-     7304    0.008    0.000    0.009    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:296(calculate_ci_ca_ratio)
-     3652    0.007    0.000    0.009    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:326(calc_radiation)
-      238    0.000    0.000    0.009    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:659(xor_expr)
-        1    0.002    0.002    0.009    0.009 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/__init__.py:22(<module>)
-     7304    0.007    0.000    0.009    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:837(calc_slope_of_saturation_vapour_pressure_curve)
-      238    0.000    0.000    0.008    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:663(and_expr)
-    19537    0.008    0.000    0.008    0.000 /Users/mdekauwe/src/python/pygday/src/gday/utilities.py:150(clip)
-    20431    0.008    0.000    0.008    0.000 {hasattr}
-    40183    0.008    0.000    0.008    0.000 /Users/mdekauwe/src/python/pygday/src/gday/derive.py:10(nc_ratio)
-     3652    0.005    0.000    0.008    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:109(ratio_of_litternc_to_live_leafnc)
-      238    0.000    0.000    0.008    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:667(shift_expr)
-    10956    0.008    0.000    0.008    0.000 /Users/mdekauwe/src/python/pygday/src/gday/nmineralisation.py:80(calc_ratio)
-     3652    0.007    0.000    0.007    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:301(nitrogen_retrans)
-     3652    0.005    0.000    0.007    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:183(calc_infiltration)
-      238    0.000    0.000    0.007    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:680(arith_expr)
-     7304    0.005    0.000    0.007    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:251(ac)
-     3652    0.004    0.000    0.007    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:129(ratio_of_litternc_to_live_rootnc)
-      238    0.000    0.000    0.007    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:692(term)
-    10956    0.007    0.000    0.007    0.000 {method 'update' of 'dict' objects}
-     3652    0.005    0.000    0.007    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:726(calc_canopy_boundary_conductance)
-    62072    0.006    0.000    0.006    0.000 {math.sqrt}
-  239/238    0.000    0.000    0.006    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:710(factor)
-     3652    0.006    0.000    0.006    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:353(inputs_from_plant_litter)
-      238    0.000    0.000    0.006    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:723(power)
-    43812    0.006    0.000    0.006    0.000 {math.sin}
-     3652    0.004    0.000    0.005    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:446(calc_runoff)
-    14623    0.005    0.000    0.005    0.000 {max}
-      238    0.000    0.000    0.005    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:736(atom)
-        1    0.001    0.001    0.005    0.005 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/textwrap.py:2(<module>)
-    60743    0.005    0.000    0.005    0.000 {method 'append' of 'list' objects}
-       15    0.000    0.000    0.005    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/re.py:188(compile)
-     3652    0.005    0.000    0.005    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:455(nfluxes_from_active_pool)
-       15    0.000    0.000    0.005    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/re.py:229(_compile)
-        9    0.000    0.000    0.005    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:501(compile)
-      238    0.004    0.000    0.005    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:995(com_assign)
-     3652    0.004    0.000    0.004    0.000 ./gday.py:232(calculate_nep)
-      238    0.004    0.000    0.004    0.000 {eval}
-     3652    0.004    0.000    0.004    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:444(nfluxes_from_metabolic_pool)
-      185    0.001    0.000    0.004    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:757(atom_number)
-        1    0.002    0.002    0.004    0.004 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1(<module>)
-     3652    0.003    0.000    0.003    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:467(nfluxes_from_slow_pool)
-        1    0.003    0.003    0.003    0.003 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:9(<module>)
-        1    0.000    0.000    0.003    0.003 ./gday.py:212(simulation_start_date)
-        1    0.001    0.001    0.003    0.003 {built-in method strptime}
-     3656    0.003    0.000    0.003    0.000 {zip}
-     7304    0.003    0.000    0.003    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:856(calc_pyschrometric_constant)
-     3652    0.003    0.000    0.003    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:328(calculate_nuptake)
-     7304    0.003    0.000    0.003    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:275(aj)
-     3652    0.003    0.000    0.003    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:73(flux_from_grazers)
-    11071    0.003    0.000    0.003    0.000 {min}
-        1    0.001    0.001    0.003    0.003 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/string.py:20(<module>)
-    10956    0.003    0.000    0.003    0.000 /Users/mdekauwe/src/python/pygday/src/gday/update_pools.py:11(ncflux)
-        9    0.000    0.000    0.002    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:669(parse)
-    16379    0.002    0.000    0.002    0.000 {getattr}
-     25/9    0.000    0.000    0.002    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:307(_parse_sub)
-     36/9    0.001    0.000    0.002    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:385(_parse)
-        1    0.001    0.001    0.002    0.002 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/gettext.py:11(<module>)
-        1    0.000    0.000    0.002    0.002 /Users/mdekauwe/src/python/pygday/src/gday/print_outputs.py:78(save_state)
-     7304    0.002    0.000    0.002    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:894(calc_latent_heat_of_vapourisation)
-        9    0.000    0.000    0.002    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:486(_code)
-16743/16723    0.002    0.000    0.002    0.000 {len}
- 1190/238    0.002    0.000    0.002    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:1358(get_docstring)
-     3652    0.002    0.000    0.002    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/calendar.py:97(isleap)
-     3652    0.002    0.000    0.002    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:479(nfluxes_from_passive_pool)
-        1    0.002    0.002    0.002    0.002 /Users/mdekauwe/src/python/pygday/src/gday/print_outputs.py:100(print_parameters)
-     2871    0.002    0.000    0.002    0.000 {isinstance}
-        1    0.000    0.000    0.002    0.002 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/string.py:112(__init__)
-     52/9    0.000    0.000    0.002    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:38(_compile)
-      238    0.002    0.000    0.002    0.000 {parser.suite}
-        1    0.001    0.001    0.002    0.002 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pyassem.py:1(<module>)
-     3652    0.002    0.000    0.002    0.000 {math.log}
-        1    0.000    0.000    0.001    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:12(<module>)
-     4192    0.001    0.000    0.001    0.000 {method 'startswith' of 'str' objects}
-        1    0.000    0.000    0.001    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:179(__init__)
-        1    0.001    0.001    0.001    0.001 {method 'readlines' of 'file' objects}
-        1    0.000    0.000    0.001    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/textwrap.py:32(TextWrapper)
-      243    0.001    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:582(__setitem__)
-     7304    0.001    0.000    0.001    0.000 {math.tan}
-       35    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:184(_compile_charset)
-       53    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:773(atom_string)
-        4    0.000    0.000    0.001    0.000 /Users/mdekauwe/src/python/pygday/src/gday/file_parser.py:150(adjust_object_attributes)
-     3652    0.001    0.000    0.001    0.000 {math.cos}
-      482    0.001    0.000    0.001    0.000 {built-in method match}
-     3652    0.001    0.000    0.001    0.000 {math.acos}
-        1    0.000    0.000    0.001    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:295(_strptime)
-       35    0.001    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:213(_optimize_charset)
-        1    0.000    0.000    0.001    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:263(compile)
-     2857    0.001    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:795(lookup_node)
-        2    0.001    0.000    0.001    0.000 ./gday.py:243(correct_rate_constants)
-      479    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:207(get)
-       53    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:762(decode_literal)
-     3652    0.001    0.000    0.001    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:904(calc_density_of_air)
-     1505    0.001    0.000    0.001    0.000 {range}
-      567    0.001    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:188(__next)
-        1    0.001    0.001    0.001    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/dis.py:1(<module>)
-      238    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1159(getChildren)
-      238    0.001    0.000    0.001    0.000 {parser.st2tuple}
-        1    0.001    0.001    0.001    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/struct.py:1(<module>)
-        1    0.001    0.001    0.001    0.001 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:4(<module>)
-        5    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/gettext.py:565(gettext)
-      238    0.001    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:1055(com_assign_name)
-        5    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/gettext.py:527(dgettext)
-      238    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:175(getChildren)
-        5    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/gettext.py:461(translation)
-        4    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:240(pattern)
-      476    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:7(flatten)
-        5    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/gettext.py:421(find)
-      238    0.000    0.000    0.001    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:157(build)
-     3656    0.001    0.000    0.001    0.000 {method 'lstrip' of 'str' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:50(__init__)
-      255    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
-        4    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:737(iteritems)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/copy.py:49(<module>)
-        4    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:722(items)
-        4    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:732(values)
-        9    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:367(_compile_info)
-      195    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:565(__getitem__)
-        6    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:221(__seqToRE)
-        4    0.000    0.000    0.000    0.000 {open}
-    61/22    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:146(getwidth)
-    57/13    0.000    0.000    0.000    0.000 {method 'join' of 'str' objects}
-      714    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1155(__init__)
-        4    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/utilities.py:13(get_attrs)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1185(__init__)
-      234    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:201(match)
-       10    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/gettext.py:130(_expand_lang)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/opcode.py:5(<module>)
-       50    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:236(<genexpr>)
-      172    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:136(__getitem__)
-       45    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/re.py:206(escape)
-        4    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:264(_mk_bitmap)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:96(__calc_month)
-      719    0.000    0.000    0.000    0.000 {method 'extend' of 'list' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1252(_populate_option_list)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1242(_add_help_option)
-       26    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/calendar.py:55(__getitem__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:88(__calc_weekday)
-       20    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/genericpath.py:15(exists)
-      243    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:1739(_unquote)
-      247    0.000    0.000    0.000    0.000 {method 'write' of 'file' objects}
-        8    0.000    0.000    0.000    0.000 {built-in method sub}
-        4    0.000    0.000    0.000    0.000 {dir}
-       13    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/locale.py:316(normalize)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pyassem.py:313(PyFlowGraph)
-      238    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:170(__init__)
-      238    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:117(__init__)
-       14    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/calendar.py:74(__getitem__)
-      243    0.000    0.000    0.000    0.000 {built-in method groups}
-       21    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/posixpath.py:59(join)
-       21    0.000    0.000    0.000    0.000 {posix.stat}
-      238    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:909(__init__)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/print_outputs.py:21(__init__)
-      238    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:361(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:133(LocalNameFinder)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:94(Transformer)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:115(__calc_date_time)
-      247    0.000    0.000    0.000    0.000 {method 'strip' of 'str' objects}
-        2    0.000    0.000    0.000    0.000 {map}
-      214    0.000    0.000    0.000    0.000 {setattr}
-        8    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/re.py:271(_subx)
-      238    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:914(getChildren)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1007(add_option)
-        4    0.000    0.000    0.000    0.000 {method 'sort' of 'list' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/symbol.py:3(<module>)
-      238    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:166(build_Const)
-        8    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/re.py:251(_compile_repl)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:560(__init__)
-      259    0.000    0.000    0.000    0.000 {method 'endswith' of 'str' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/symbols.py:1(<module>)
-        6    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:499(__init__)
-       22    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:231(_class_escape)
-      247    0.000    0.000    0.000    0.000 {method 'rstrip' of 'str' objects}
-       69    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:144(append)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:697(parse_template)
-        3    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:27(_getlang)
-       54    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:57(fixup)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/token.py:3(<module>)
-        7    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:222(isname)
-      142    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
-        3    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/locale.py:481(getlocale)
-       12    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:360(_simple)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:1385(_handle_bom)
-      113    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/opcode.py:27(def_op)
-       11    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:184(__init__)
-       93    0.000    0.000    0.000    0.000 {method 'replace' of 'str' objects}
-       52    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:96(__init__)
-       69    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:132(__len__)
-       20    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/UserDict.py:57(get)
-        1    0.000    0.000    0.000    0.000 {method 'splitlines' of 'str' objects}
-        5    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:542(_interpolate)
-       14    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:263(_escape)
-        6    0.000    0.000    0.000    0.000 {sorted}
-        8    0.000    0.000    0.000    0.000 {time.strftime}
-        3    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/locale.py:382(_parse_localename)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1362(parse_args)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_growth.py:28(__init__)
-       62    0.000    0.000    0.000    0.000 {method 'lower' of 'str' objects}
-        5    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/encodings/__init__.py:49(normalize_encoding)
-       11    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:78(opengroup)
-       63    0.000    0.000    0.000    0.000 {_sre.getlower}
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/file_parser.py:76(get_config_dicts)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/visitor.py:1(<module>)
-        1    0.000    0.000    0.000    0.000 {method 'read' of 'file' objects}
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:609(_set_attrs)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:365(__init__)
-        9    0.000    0.000    0.000    0.000 {_sre.compile}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:182(CodeGenerator)
-        7    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:525(_initialise)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:1342(_initialise)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/genericpath.py:26(isfile)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:20(__init__)
-       11    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/opcode.py:31(name_op)
-       11    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:89(closegroup)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:103(__calc_am_pm)
-       18    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:480(isstring)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1313(get_default_values)
-      106    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_compile.py:24(_identityfunction)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/misc.py:2(<module>)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:160(__calc_timezone)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/future.py:3(<module>)
-      106    0.000    0.000    0.000    0.000 {ord}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:932(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:200(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/syntax.py:10(<module>)
-        3    0.000    0.000    0.000    0.000 {_locale.setlocale}
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:588(_set_opt_strings)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:204(build_UnarySub)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/copy_reg.py:14(pickle)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/gettext.py:173(NullTranslations)
-       20    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/UserDict.py:69(__contains__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1118(OptionParser)
-        7    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/opcode.py:35(jrel_op)
-       28    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:216(isident)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/decomp.py:15(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:835(Values)
-       10    0.000    0.000    0.000    0.000 {method 'count' of 'str' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:106(Module)
-        5    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:316(interpolate)
-        4    0.000    0.000    0.000    0.000 {method 'keys' of 'dict' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/symbols.py:211(SymbolVisitor)
-        9    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:73(__init__)
-       12    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:140(__setitem__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:445(Option)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1237(_create_option_list)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/misc.py:11(Set)
-       16    0.000    0.000    0.000    0.000 {method 'index' of 'str' objects}
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/print_outputs.py:221(tidy_up)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:943(_create_option_mappings)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pyassem.py:712(StackDepthTracker)
-        6    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/UserDict.py:17(__getitem__)
-       11    0.000    0.000    0.000    0.000 {method 'remove' of 'list' objects}
-        1    0.000    0.000    0.000    0.000 {time.tzset}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pyassem.py:646(LineAddrTable)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1271(set_usage)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:742(iterkeys)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:155(HelpFormatter)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:832(isbasestring)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:579(_check_opt_strings)
-       30    0.000    0.000    0.000    0.000 {method 'find' of 'str' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pyassem.py:11(FlowGraph)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:980(_check_conflict)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/consts.py:2(<module>)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:900(OptionContainer)
-       10    0.000    0.000    0.000    0.000 {method 'reverse' of 'list' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/stat.py:49(S_ISREG)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/derive.py:30(__init__)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/update_pools.py:22(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1321(AbstractFunctionCode)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:837(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/string.py:543(Formatter)
-        1    0.000    0.000    0.000    0.000 {thread.allocate_lock}
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/plant_production_mcmurtrie.py:25(__init__)
-        5    0.000    0.000    0.000    0.000 {method 'translate' of 'str' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:31(LocaleTime)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:635(_check_type)
-        6    0.000    0.000    0.000    0.000 {method 'iteritems' of 'dict' objects}
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/update_pools.py:91(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1088(OptionGroup)
-        5    0.000    0.000    0.000    0.000 {iter}
-        9    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/misc.py:18(add)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/mate.py:31(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/symbols.py:13(Scope)
-        2    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/water_balance.py:27(__init__)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:665(_check_choice)
-        1    0.000    0.000    0.000    0.000 {built-in method groupdict}
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:699(_check_nargs)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pyassem.py:219(Block)
-        1    0.000    0.000    0.000    0.000 {strop.maketrans}
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/opcode.py:39(jabs_op)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:419(Discard)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:502(For)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1010(Print)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/future.py:47(BadFutureParser)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:23(Node)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1110(Slice)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1489(Delegator)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/symbols.py:195(LambdaScope)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/warnings.py:14(warnpy3k)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/future.py:16(FutureParser)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/copy.py:54(Error)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:97(OptParseError)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:834(ListComp)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:461(Exec)
-        1    0.000    0.000    0.000    0.000 {built-in method __enter__}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/stat.py:24(S_IFMT)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:678(_check_dest)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/symbols.py:180(GenExprScope)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1138(Sliceobj)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1414(AbstractClassCode)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:743(Invert)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:487(FloorDiv)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/string.py:124(Template)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/visitor.py:6(ASTVisitor)
-        1    0.000    0.000    0.000    0.000 {chr}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/string.py:85(_multimap)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/read_config_file.py:21(__init__)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:693(_check_const)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:220(Bitand)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:952(Not)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:68(And)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:35(EmptyNode)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1263(NestedScopeMixin)
-        1    0.000    0.000    0.000    0.000 {locals}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:53(Add)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/copy_reg.py:27(constructor)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:206(Backquote)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:121(OptionConflictError)
-        1    0.000    0.000    0.000    0.000 {built-in method end}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:627(GenExprIf)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:310(Class)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:879(ListCompIf)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:803(LeftShift)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1399(GenExprCodeGenerator)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1081(Return)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:84(AssAttr)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:190(AugAssign)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:169(Assign)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:252(Bitxor)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/misc.py:31(Stack)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1515(AugSubscript)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:662(Getattr)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:380(TitledHelpFormatter)
-        3    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:704(literal)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pyassem.py:622(TupleArg)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:281(CallFunc)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:142(AmbiguousOptionError)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:361(IndentedHelpFormatter)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:116(AssName)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/calendar.py:50(<lambda>)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/bewdy.py:35(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:677(Global)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1270(ModuleCodeGenerator)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:923(Mul)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:211(tell)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:268(Break)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/litter_production.py:16(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:403(Dict)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1264(UnaryAdd)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:374(Continue)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:546(Function)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1095(RightShift)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:67(AbstractCompileMode)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/syntax.py:19(SyntaxErrorChecker)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:97(Interactive)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:938(Name)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1317(With)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/transformer.py:33(WalkerError)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1383(FunctionCodeGenerator)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1154(Stmt)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/configobj.py:311(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1307(_get_all_options)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:38(Expression)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1248(Tuple)
-        1    0.000    0.000    0.000    0.000 {method 'copy' of 'dict' objects}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/sre_parse.py:213(seek)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1208(TryExcept)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:966(Or)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:959(set_conflict_handler)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:729(Import)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/symbols.py:171(ModuleScope)
-        2    0.000    0.000    0.000    0.000 {time.time}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:530(From)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/misc.py:12(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:360(Const)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:691(If)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1284(ExpressionCodeGenerator)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:629(_check_action)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:855(ListCompFor)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:236(Bitor)
-        1    0.000    0.000    0.000    0.000 <string>:1(<module>)
-        2    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:708(_check_callback)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:818(List)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:387(Decorators)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:176(TimeRE)
-        2    0.000    0.000    0.000    0.000 {filter}
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:1356(_get_args)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:88(Expression)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:893(Mod)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/nmineralisation.py:16(__init__)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1298(InteractiveCodeGenerator)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:100(AssList)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1278(UnarySub)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/ast.py:1054(Raise)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/compiler/pycodegen.py:1509(AugName)
-        1    0.000    0.000    0.000    0.000 {method '__getitem__' of 'dict' objects}
-        5    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/_strptime.py:212(<genexpr>)
-        1    0.000    0.000    0.000    0.000 /opt/local/Library/Frameworks/Python.framework/Versions/Current/lib/python2.6/optparse.py:105(OptionError)
-        1    0.000    0.000    0.000    0.000 /Users/mdekauwe/src/python/pygday/src/gday/soil_cnflows.py:293(__init__)
-
-
-</pre>
+2.17960186999
+3.14514709442
+3.72619029822
+3.87056411947
+3.90463443269
+2.88496157354
+2.56079992339
+2.27572180581
+3.73383132548
+3.41251919201
+3.4121635032
+3.28183487542
+3.06414561736
+2.3366850698
+1.75454528562
+2.09962800457
+2.2335108697
+2.78560190097
+1.71932285175
+2.85320630919
+2.76841043253
+2.00524277503
+1.88645880993
+2.17243521893
+2.92047622957
+3.2517296405
+1.74643957014
+2.40591570604
+4.01862595833
+3.84821864636
+3.17883791459
+3.25897878819
+3.36848335928
+2.41227912227
+2.31618777454
+2.37588040242
+2.60220431414
+2.21322347967
+3.24673369914
+1.72689917158
+3.61600873221
+3.763960262
+4.82436700331
+2.31656753202
+3.6566832841
+3.19170970217
+3.23853742477
+5.60420659616
+1.23018638267
+3.94563792918
+4.56434666711
+4.16925322196
+4.00141332854
+2.46963962049
+4.5677453993
+4.92275357972
+4.62292044279
+3.13796825674
+4.98105589522
+4.50024257045
+4.34056960715
+3.41080985887
+3.85390440722
+4.13571923435
+4.08051184386
+5.06717934244
+5.20805692285
+5.20120372942
+3.78452544401
+3.14472696847
+2.8691094214
+3.53497887841
+5.29199674206
+4.77653379459
+3.22951349719
+2.67388722905
+3.25386809745
+5.75722046648
+6.08034182782
+3.6737779215
+4.47848588383
+4.56163010607
+5.26289253705
+4.91020667781
+5.77769691477
+6.55454169968
+6.48162308012
+6.31450592296
+6.32283546653
+6.55303150568
+5.37397340981
+6.4523554171
+4.83754509722
+3.4263726229
+5.62433986784
+6.11630442512
+6.24771397067
+6.70375326173
+6.29460469064
+4.35415390011
+5.60533833346
+6.30914924417
+6.60741936556
+3.20414431949
+7.16161571607
+6.63286496487
+5.43343561163
+3.98764925043
+4.99993780585
+6.75091999427
+6.58521197837
+4.23356732233
+6.27852679784
+6.90338916736
+7.07988791235
+7.026944847
+5.49101191027
+6.25742664365
+6.67509632989
+5.75174524376
+6.18665688236
+6.88028965901
+6.93239874893
+7.09833880729
+7.27683411595
+7.29270218117
+5.3518476725
+7.52371224973
+7.84983077715
+6.42558475236
+6.59928887543
+6.16912750785
+6.32627543706
+7.57392596521
+7.2537690997
+7.30421939311
+7.46983398139
+7.26762129046
+6.85651475335
+6.87104154619
+7.1122150821
+6.975885232
+5.98622149108
+6.90562652181
+7.80249065814
+7.8075607431
+7.92957257345
+7.62576489229
+8.2402974504
+7.82231881222
+7.87804957719
+7.52969158701
+7.86916767146
+7.3713005628
+7.09642755823
+6.61736862688
+5.48779927614
+7.29066088794
+7.63672895611
+5.74125309022
+7.59506802406
+8.08264655952
+7.82829832843
+7.94921749655
+7.56349218338
+7.9283170598
+7.31723383955
+7.58257794147
+7.18376942266
+7.07068819044
+7.28541750708
+7.2132746903
+7.53185080989
+7.70490711426
+7.51892328267
+7.46095573674
+6.88115681188
+6.58615320587
+6.97860246919
+7.19948537048
+7.23328993975
+7.09503608837
+6.79037205687
+7.2914719369
+7.11755879802
+7.57204847669
+7.45765076383
+7.27286797274
+6.55781598993
+7.06970662672
+7.23921312616
+6.98346933589
+6.95754242914
+6.93115044284
+7.1034324789
+6.96913819544
+6.84967091214
+6.98101176852
+6.40515864833
+6.30573846513
+6.32495348224
+6.44487556117
+6.19469730482
+6.83963942157
+6.84830385424
+7.29914785121
+6.86191427403
+5.2964397187
+6.90903063175
+6.36414630048
+6.67811728331
+6.52232862163
+6.81669083508
+7.04836514882
+6.90838991923
+6.66824149504
+6.71518201875
+6.79983346896
+6.08224627874
+6.51622970884
+6.77423365779
+5.99759700775
+6.66865843553
+6.40405047818
+6.31830464071
+6.25170094192
+6.17099678781
+6.50962543738
+6.54504682036
+5.96340653272
+6.47647440612
+6.71925414661
+6.51189479433
+5.98592901877
+5.7104876513
+5.83130478774
+5.68232911976
+5.56279333116
+5.09023282265
+5.55288188142
+5.36423892994
+6.01581775726
+5.73468588357
+5.8481281779
+5.63739351545
+4.04362552048
+6.06861119225
+6.25932520012
+6.19579734542
+5.87423729884
+5.50463138066
+6.26525669096
+6.31440601805
+6.21439441236
+5.80163681457
+5.73674892968
+6.25313551771
+6.24317641993
+6.19360968991
+5.95953752581
+6.01627309804
+5.86786678437
+5.97278386066
+5.33281020496
+6.19734529063
+5.98014673998
+5.8892082907
+5.77804886724
+5.33682156467
+5.34722923772
+5.31709241467
+5.14789176522
+5.61780587866
+5.54095516451
+5.54654723083
+5.65087715411
+4.25194791535
+3.87067998028
+3.44812551184
+5.13231035135
+4.65732941964
+5.62835148565
+5.5352163957
+5.60332672864
+5.45788782014
+5.37846019487
+5.26263868137
+5.20863872627
+5.16544340072
+5.1905555781
+5.27835213749
+5.02364369348
+5.21084382052
+4.16485519186
+4.00942799136
+4.38101153703
+4.62092308611
+4.864156028
+4.78019246656
+4.67495400025
+4.70403400837
+5.07558946776
+4.60769428258
+4.97297320666
+4.70862506972
+4.2608427597
+2.41270145618
+2.85410079164
+3.48287429407
+3.16889134444
+3.36798641963
+2.8805729516
+4.20273440775
+4.24120732201
+3.81623089012
+3.98762323609
+2.82835100404
+2.77344471728
+4.56259415816
+3.85396954706
+4.72987782252
+3.90662742782
+3.86692253304
+4.04748386694
+3.62278135813
+3.46644382205
+4.0858294789
+4.46843751893
+3.98948160599
+3.47375877788
+3.61326522272
+3.77026596764
+4.16170371821
+4.1589387944
+4.36312657695
+3.95203863315
+4.21639165072
+4.1807293589
+3.90840140917
+4.40828775864
+4.42230750019
+3.91333008402
+2.70884719095
+2.90414074487
+2.73418960469
+1.81119552138
+1.68601866265
+2.7723447926
+2.4795150531
+3.11464482715
+1.83873477811
+2.78077515454
+2.58488445013
+3.23964380914
+3.13510525847
+2.59881749544
+1.16498918513
+1.57849066495
+1.80570688401
+1.80135772096
+2.4860712318
+2.88243161229
+1.85369783319
+2.41565369527
+2.20729551921
+2.44196315524
+1.34268034184
+2.24709712766
+1.88214506382
+1.6461288054
+2.06760555913
+3.08596649816
+1.93623161853
+2.50887077143
+2.11744683762
+2.79052759919
+3.65581357579
+3.47869753358
+3.32663991882
+3.23419780013
+3.35679244561
+3.16894061726
+3.43322118972
+3.71922381819
+3.63421176737
+3.60021822915
+3.16481363261
+3.90226657941
+2.71600446097
+3.81516087669
+3.39787419388
+3.75169363694
+4.52665967757
+4.44636543095
+3.2941321376
+2.37023064183
+1.80034120015
+2.72666373204
+4.19908904531
+4.11984321491
+4.05181784427
+4.16203030579
+4.17903992846
+4.53768159785
+3.65611477476
+4.81746978987
+4.36277538803
+4.42355963192
+2.81379826932
+2.73329816843
+3.86885758702
+4.30016016142
+4.2955918115
+2.84813015151
+2.64851745516
+3.60576496948
+2.93386205116
+2.60898816627
+2.04370260083
+2.76629391941
+2.30331582992
+3.85307448029
+4.07425371126
+2.88330762727
+3.80287127946
+4.74520374664
+4.55255399552
+3.64842539752
+3.84084766098
+5.04273117342
+3.62566462096
+3.08366608327
+1.76843102596
+2.96467074367
+3.949574941
+4.33093301573
+3.00032444615
+0.896390490314
+3.09057107769
+4.97701220021
+5.60266589495
+5.89395635868
+5.04893492866
+5.09216056273
+3.6625719564
+4.75806352825
+5.02938071876
+4.78762098659
+4.80541206012
+4.33416671154
+4.76807842966
+5.61926201562
+5.96506641749
+5.81619984985
+5.5230597474
+4.14588772096
+6.41344223752
+5.94679082169
+6.25617847698
+5.73421707721
+4.16902415266
+6.59188561791
+6.3758202106
+6.73508554184
+6.91125732918
+5.11771112565
+6.58632959872
+5.8407123849
+6.17855467392
+4.18084145956
+6.54471280852
+5.59788718567
+5.59557054127
+6.13378169479
+6.67500104924
+6.63156778493
+6.67804510892
+6.51213314772
+6.34662311519
+6.57700886033
+5.51029356874
+7.06315718727
+2.43910217815
+2.59364578634
+4.71937451994
+6.12465565954
+6.58658811321
+6.95101476425
+7.18373044974
+6.11592760581
+7.14321343732
+7.1814886914
+7.16457347702
+7.23788045609
+7.34589084339
+7.50886270102
+7.5365468379
+7.06665906761
+3.27117545547
+7.18416682157
+7.39145112817
+7.046823358
+7.54213789803
+7.03483828012
+7.35658483359
+7.17261456022
+7.35328673669
+7.40431589343
+7.15065087413
+6.96805636139
+6.75441225631
+7.58214663942
+7.26723073318
+7.12005630429
+7.25825244238
+7.31911204256
+7.54888036435
+7.55751060702
+7.27793538475
+7.46494252711
+7.5193903934
+7.40367658713
+7.13891274909
+6.64466591923
+6.67049448497
+6.95981368443
+5.98022211745
+7.65410287942
+7.06601206783
+7.17576931506
+5.55969507006
+4.03288352934
+6.28356870402
+7.85438028983
+7.54255878813
+3.89892623838
+5.51746485587
+5.61201652427
+7.84707066451
+7.75861374246
+6.4443420858
+7.03526286779
+7.69068595723
+7.85379942574
+7.69371939023
+5.71365410866
+7.42573594079
+7.82249687406
+7.73766910398
+7.49573712644
+6.97887342633
+7.05555489308
+7.23584310715
+7.2736522712
+6.82064985608
+7.12305968481
+4.60485594627
+3.44831619455
+3.85035316949
+5.29283629662
+7.39882908529
+7.67793963265
+7.43861504362
+7.08345181488
+7.04882639567
+6.81800369667
+7.59716371239
+7.27784974722
+6.67014730922
+7.40811437508
+7.1592862289
+6.48687549917
+6.82048541503
+6.54882073068
+6.9299144423
+6.21211528501
+5.67700925982
+6.01909918306
+6.4797176839
+6.4655788646
+6.53777625025
+6.11536701043
+6.08978093491
+5.60134640724
+5.89992743827
+6.73681965865
+6.8405991073
+5.85565299049
+5.96734773882
+6.10975263914
+6.13460597158
+6.9558210214
+6.89029815916
+6.38066199156
+6.13614538652
+6.18112350475
+6.01586249742
+6.73287546949
+6.73966260361
+6.72468751147
+6.33099034847
+6.48948306532
+6.85885867382
+6.8773748692
+6.47267139226
+6.30916692514
+6.36674199584
+6.28643266521
+6.11309724804
+6.11727341497
+6.10048475069
+5.39896051115
+2.41537068489
+5.82119107197
+6.82037191389
+6.73133327848
+6.27620906479
+6.38365144169
+6.30801340739
+6.48274493632
+6.57276690727
+4.99201816265
+1.9526850791
+5.84506166603
+6.21113896087
+6.17140789893
+6.21504681996
+6.29314371216
+5.22764460903
+5.72244208851
+5.70007621301
+5.91778045348
+5.89489057168
+6.11806703654
+3.68481040939
+2.24784477484
+3.08484647007
+5.68502982856
+5.61695516389
+5.79272927643
+6.00496397574
+4.47710948181
+5.21423072614
+5.33181203157
+5.4995651783
+5.35992899443
+5.12654436391
+3.61463498663
+4.66285905321
+5.14349188421
+2.33781593222
+5.39443980408
+5.08615535735
+5.32075195211
+1.64088976954
+5.42937504553
+3.94367832296
+1.90877499375
+4.75916643455
+4.73642898037
+4.24434210471
+3.9081804634
+4.11952833619
+4.46621009129
+4.81122133326
+4.43296635724
+4.53810028085
+4.69602034622
+5.05867112459
+4.78422660684
+4.60595972461
+3.58392069387
+3.86729008855
+4.14198799115
+4.50620001309
+4.55199793825
+4.05163889335
+4.50010069747
+4.62252327835
+3.46598188467
+3.614111661
+4.32958803055
+4.42800177269
+3.90044065424
+3.47333532545
+3.22435349233
+3.49362665998
+3.87041678067
+4.19384987762
+4.18496404524
+4.21099949624
+4.30334340803
+2.86331188618
+3.04253349726
+1.352730999
+3.82334721629
+3.86435457717
+3.24827405606
+2.49897021821
+2.32688918047
+2.97461286223
+3.47324174225
+3.95936786656
+3.81412414739
+3.05203778884
+2.97477616888
+3.16820825216
+3.44482525886
+2.68136638568
+3.17413675567
+2.40191049017
+1.79555701416
+4.21975512012
+3.40266414847
+3.07404845175
+2.96962199137
+2.96863960508
+1.87583801682
+1.65583310425
+1.40944881862
+1.47525163375
+2.43847115689
+1.8913983905
+1.87898144684
+2.56939638325
+2.68374044606
+2.39121356502
+2.72427931709
+3.15180681753
+3.6092539851
+3.29032485114
+3.21999745717
+3.24693610088
+1.73084003909
+2.61599450149
+2.50824492283
+3.19497206537
+2.65758648308
+1.20610775623
+3.06502170954
+3.65304829411
+3.26336877008
+3.52015816988
+2.25126773541
+2.25954813061
+3.406832082
+2.51622233604
+0.401544093258
+1.76978463902
+2.27792488341
+1.91998593278
+1.76870493825
+1.2762552552
+1.55595544898
+1.82907896024
+1.95781774104
+1.87343900291
+2.13556459172
+2.10371964709
+0.801274002915
+2.28200342664
+2.32300453332
+2.51107046638
+3.00878767993
+3.1487919899
+2.99468301084
+3.23671688063
+3.78080000854
+3.16913085653
+3.15109093404
+3.91082276262
+4.0915187498
+0.766932551446
+1.18210869075
+3.45144207678
+3.6720204836
+3.96012866649
+3.54323813604
+1.6104912419
+3.69175698427
+3.41378120728
+3.33917501511
+3.37940545712
+3.7704438708
+4.28938725713
+4.57581867481
+4.26710853337
+3.86832869136
+4.24194625982
+4.15934526641
+4.38093648093
+4.12189829258
+4.07838820617
+3.05449698867
+4.28840800303
+4.59131838128
+4.53495301834
+4.79436312548
+4.7095983857
+4.84537179842
+4.77943167233
+4.08724143997
+3.64607963974
+4.13423488392
+4.6439192268
+3.18271399825
+5.32050725285
+3.58935464282
+3.51914202416
+1.58092675583
+3.54725610842
+3.65090273466
+5.03206868045
+5.42603612053
+6.17282253084
+6.18726115792
+3.74664674641
+5.32139817585
+5.33005814691
+4.12425157483
+5.81106331828
+5.79636096692
+4.13630563426
+5.61970426738
+4.43069721779
+5.26533959668
+6.04405628278
+6.31351957025
+4.93049687594
+5.25374462004
+6.14475613749
+6.35215584038
+6.11255955271
+1.80272737594
+2.84179308207
+3.82242625708
+6.77297516979
+6.45390273641
+2.90875976997
+6.62020914338
+6.76204383584
+6.56528961712
+5.63716128352
+6.40516250719
+5.42527257327
+2.43612415364
+4.89914922602
+5.85587636365
+1.63862160202
+6.23174284434
+6.90511316585
+6.88143541913
+6.11861182368
+7.23891914386
+7.19196760728
+7.11520678016
+6.9634640387
+6.89391607547
+6.98134698047
+7.0988842327
+6.95791473287
+6.92867248354
+6.93698226758
+6.86448036308
+7.18618874018
+7.10210031399
+7.12019701669
+7.02852563304
+7.21351819551
+6.95098667448
+7.18164857811
+6.18471892308
+7.74751986755
+6.60475746156
+7.42753191254
+7.18195696321
+7.32025211592
+7.30798482607
+5.75256965956
+5.07793160557
+6.86635477788
+7.5228666874
+7.28217538378
+6.98911646495
+7.33062372045
+6.52578875025
+3.91153894756
+7.60622093382
+7.60533175663
+7.60755186821
+7.44868932995
+7.39284898875
+7.37127086946
+7.06916598039
+6.91560049136
+7.33629234788
+7.82152645345
+7.92513792067
+7.56762934114
+7.56691783123
+7.31874664096
+5.20753183536
+7.52367294364
+7.1870852635
+7.32527722594
+7.60806146691
+7.53671963442
+7.67962694202
+7.46539566825
+6.42507290826
+5.88450166708
+7.56343199006
+7.60691820545
+7.7782968294
+7.34257470546
+7.17238946122
+7.44567045149
+7.93200741983
+7.89550974057
+7.43822681112
+7.46421355785
+7.20556768352
+7.22992887707
+6.4422983707
+6.02227615079
+7.59324173024
+7.63608156545
+7.59457419645
+7.42365576903
+7.20049604651
+7.22677177035
+7.24716701003
+6.77752758089
+6.68836931796
+5.32617349765
+4.33674538354
+3.70486199118
+6.06688752151
+7.87905731449
+7.74737298777
+7.91731110293
+8.09824616165
+7.46067965973
+7.57613439544
+7.81742125853
+7.00052588111
+7.17443535703
+7.29474768085
+7.27902071705
+6.98952420749
+7.24818391092
+7.11250843264
+7.29095156915
+7.10979132546
+7.16112192404
+6.17134817131
+6.98036680995
+6.79457968619
+6.68404102671
+6.90650600859
+6.65983132889
+7.02523546294
+6.4310137379
+6.87555977437
+6.88498911235
+6.64592819163
+6.30978857048
+6.93387066955
+7.02434291421
+5.69049860938
+6.77499116028
+6.15776462003
+4.58176878267
+6.29627996843
+6.76533077527
+5.80697462515
+5.22793477313
+3.14536889802
+2.24258137861
+5.0207249239
+6.02472638748
+6.63036624946
+6.69629761328
+6.3444565109
+6.5527667735
+6.30373905635
+6.43393700455
+5.47293103644
+6.47409836887
+5.61996032212
+5.33319164321
+2.55735714651
+5.933425907
+6.29016366302
+5.77166411933
+3.84439553564
+4.17264373807
+6.37309119308
+2.58828268335
+4.34620069498
+5.72293591603
+5.67775928492
+5.43301814399
+5.62157005048
+5.26662648193
+5.93245905912
+5.82662870621
+5.87114489125
+5.83478455201
+5.65598545566
+5.34121804127
+2.86761171278
+3.93600233637
+4.48596867025
+4.9414528709
+5.13836795043
+5.11424359701
+5.13541082008
+5.09220632435
+5.22002317703
+5.22469654474
+4.82748331588
+5.13851293956
+4.81425235629
+4.76947836151
+5.14268058687
+4.86548849151
+4.30134568692
+5.01933550936
+4.81144259316
+5.10238919117
+4.80321009857
+4.2756947753
+4.19938979464
+4.33907780821
+4.32440952007
+4.32262130408
+4.30275527764
+3.7284435359
+4.50280700044
+4.02910088402
+2.15256894348
+3.99552106803
+2.56878647874
+4.80343464324
+4.10303559628
+3.92031069451
+3.81604283424
+3.54575535269
+3.20735547352
+2.36030739143
+2.71647264526
+2.29269345286
+0.663840578868
+2.08220839938
+2.41590477011
+2.42980309369
+2.81876034242
+2.38729152534
+0.88883596106
+2.12027696196
+3.56098944505
+3.54829408028
+3.14022493535
+3.05915092977
+2.89108249981
+1.55630576304
+1.9382761226
+2.55191098991
+2.89924423867
+2.28876278935
+2.96447048999
+3.41878635816
+2.87479356865
+1.2743023791
+1.64234175921
+3.29356830659
+2.17291382082
+1.44254819702
+2.84376289612
+1.61694576919
+2.54639173095
+2.13162922149
+1.08892851145
+1.81418625294
+2.09448003003
+2.30304936969
+1.81518481582
+2.49317798752
+1.87448032136
+1.72865842336
+2.05220422845
+2.03671736025
+2.09601784345
+1.80136390124
+2.04635214662
+2.20344614768
+2.15937900465
+2.01074995507
+2.43866414695
+2.31167482025
+2.97863709524
+3.12731169677
+2.06157140752
+2.35208748172
+2.98272862714
+3.47598929671
+2.59841721751
+3.14824890332
+1.92048960179
+3.58730728268
+3.29853791268
+2.61934989613
+1.2997927142
+2.183902096
+1.16234130619
+2.48242941158
+2.58929275215
+2.74562311639
+3.29854566888
+2.6881696986
+2.63584227514
+3.63976933357
+3.20948387731
+3.35307234898
+4.34409043278
+4.43769250032
+2.97210111169
+3.0572310221
+2.70591142887
+2.38619863232
+3.54799399977
+3.62356034743
+4.17508761197
+4.10332226418
+4.51127478909
+4.76086821854
+3.13085552786
+1.20285120288
+3.48171930668
+1.90721129567
+3.11061821501
+3.48015484747
+3.8531339604
+2.71926794976
+3.40420118388
+4.61710670893
+3.64767417256
+1.303600609
+3.50587624811
+4.11129387294
+1.90171280008
+5.25467387394
+4.46114542236
+3.74125202261
+4.18991437864
+4.3851005594
+2.36382356394
+1.93742827669
+3.94596068304
+2.79934195986
+3.60010049913
+4.13292658703
+4.52098238837
+3.88148649495
+4.75042584006
+4.48280360039
+5.6831933643
+5.47809663057
+1.58485357462
+2.11800218421
+5.0986458368
+4.48052694346
+4.6234871711
+2.36141643112
+2.78610268032
+5.36366395165
+5.37537466569
+5.59750434576
+4.49407189471
+4.1677961098
+3.71966737915
+4.40938373075
+1.9025986525
+5.75819120421
+5.74404320363
+2.31241807439
+5.3551088964
+4.37332951454
+4.15009235042
+5.71322658427
+6.21787502863
+6.29167337645
+6.49367758823
+6.16717529961
+6.14052008991
+5.84437583732
+6.54528218261
+6.40292754325
+6.50544254682
+5.58273944545
+6.4797730222
+4.02439997929
+4.74630115947
+5.73743263009
+5.82790194839
+6.60722456353
+6.90304390479
+7.03975112089
+7.04680891231
+4.58755215045
+6.17688525247
+6.57046078614
+6.97260790228
+6.44664158841
+6.72680987545
+7.1043354778
+7.09833986945
+7.05415526063
+6.95346209771
+6.95935196641
+6.63459581223
+7.18811117479
+6.69819686403
+7.23372663814
+7.13733319069
+7.07251042832
+7.23329443026
+7.29035830972
+6.98745646235
+5.99334301402
+4.41913254456
+3.80574857238
+7.29253742234
+7.09399563833
+6.8569622302
+6.395843793
+7.05952961025
+7.53299007201
+7.4113524135
+7.13961102019
+7.10148116955
+7.45576910021
+5.44736907034
+7.59418573009
+7.5443622641
+7.3551664271
+4.16023910354
+7.87868017691
+7.63854215093
+7.66579080348
+7.58491383054
+7.80037904172
+7.15460564706
+7.22032189639
+7.67038324192
+7.53508644911
+7.55278761755
+7.54535973954
+7.43607297015
+5.46901514924
+7.73383841866
+7.85307074797
+7.25444450305
+7.36695556377
+7.56557525718
+7.62533100508
+7.76131010888
+8.01794641281
+7.85287117321
+7.90076105173
+7.71579872163
+7.89990028412
+8.08856978878
+7.62266487141
+7.79868931204
+7.81219825722
+7.75570792633
+7.80622554524
+7.11727419037
+7.76851771352
+8.14270502928
+7.63332603392
+7.81712433809
+6.42969045021
+7.77251002674
+7.75224714988
+7.60518702826
+7.29676167065
+6.64854597769
+7.27548762915
+7.29455952277
+6.92459439497
+7.1105588012
+6.62686912847
+7.1378065475
+7.40999713065
+7.38470251845
+7.31761295507
+7.42896960251
+7.56842985833
+7.42982737044
+6.58200806783
+4.96602123346
+5.50407672738
+5.22452157147
+6.31839326748
+7.6124677433
+7.12122569539
+7.67399047098
+7.23314143491
+6.98564245703
+7.25057459295
+7.35603505545
+7.00482255027
+6.91260699513
+6.68431373609
+6.86644988766
+7.81864992947
+7.44777608831
+6.67572262559
+7.25779693894
+7.08417895699
+7.39925133958
+7.00297768401
+5.27693746343
+7.0562408586
+7.01444796077
+6.84530989039
+6.81771453141
+6.66678578995
+6.78886234513
+6.8515031844
+6.95167331855
+6.7560189841
+6.5444191924
+6.76824923566
+5.63372817409
+6.92002936418
+4.67634330409
+6.68066680596
+5.74407836543
+6.1351956648
+6.81286263957
+6.7366060145
+6.81010623534
+6.75006400038
+6.13044305999
+6.60831169814
+6.38503083409
+6.39983760319
+6.25394475532
+5.28259233216
+5.97136204216
+6.05008937946
+5.89395564875
+5.75579730781
+5.89354321593
+6.01046990597
+6.55716859598
+6.01401404787
+6.2733069129
+3.35193743064
+5.74848557605
+5.38666120159
+5.61900576089
+5.4719105563
+5.30053446913
+5.3839679584
+5.27942603923
+5.63850731388
+5.58234509312
+5.6056040064
+5.6173818059
+2.23683131224
+4.92853391321
+4.72750350553
+4.69776481385
+5.19198023784
+5.41536221235
+5.06152750373
+5.43768345445
+3.61590267562
+5.27854067862
+5.09898499099
+4.59332718094
+4.39743661973
+4.61970013341
+5.1396771766
+5.13555835139
+5.25084775742
+5.15820491667
+5.16162011269
+5.11414122159
+4.58644972077
+3.25230282514
+3.69915545337
+3.93891978764
+4.42646744522
+4.40994529547
+4.49542032633
+4.62244701301
+4.76896916028
+4.66153647509
+4.40769349649
+3.86695254584
+4.43498609815
+4.1935003659
+4.53979824401
+4.12585346958
+4.43730223172
+3.69686859343
+3.58316161542
+3.98342409709
+4.01987276814
+4.15560503263
+4.38776761483
+3.95607736529
+3.66760098239
+3.20095445051
+3.13213036531
+3.55348020295
+3.14688693613
+2.3684215326
+2.23610781493
+3.70415627467
+3.86569426578
+4.23582225068
+3.63475036075
+2.22978355649
+4.13493418048
+3.76912861795
+3.49143081287
+3.6032652625
+3.78958182965
+4.1531602363
+4.16433882868
+4.04694458162
+3.21557389224
+1.42531559116
+1.63500063139
+1.41997764345
+1.80226175815
+2.90190423557
+3.74158049112
+3.10403573472
+3.23561389391
+3.8023810792
+3.16476046146
+2.96368604552
+2.96509159025
+2.62767991354
+2.45109714362
+3.10792127819
+2.41891516367
+2.5344047137
+2.33385230459
+2.53480030599
+3.02394448064
+2.25379955108
+2.17852567051
+2.09970043059
+1.4859046063
+1.4712633277
+2.08141875579
+2.49537275316
+0.859779053744
+2.51222284673
+2.31069505655
+2.84295395995
+3.79320508769
+3.53669447915
+2.71647555313
+3.11091249813
+2.54658526126
+3.59419510577
+2.78374181932
+3.49900753426
+3.08017201778
+0.623259144071
+2.37326212955
+1.81061184897
+3.52834461169
+1.31240668378
+2.84138609393
+2.74713795211
+3.51088744141
+3.93162329061
+4.54877450347
+4.42667289955
+4.68326285325
+3.46303909685
+3.88597407589
+3.23326887747
+2.35502523241
+2.92158300748
+2.49480897649
+2.41722795894
+2.01769469088
+3.97514398773
+4.11568065822
+2.58022992575
+3.71126853775
+3.64647539886
+3.75000733133
+3.4253925532
+3.90378638785
+4.53396790187
+3.40470570063
+3.42598246473
+4.08290342419
+3.86227918647
+4.99400176578
+4.22648570253
+3.32099942063
+3.93930735363
+4.37050528034
+4.72791048118
+2.84215501414
+2.78555174988
+3.63859726302
+1.74051871067
+3.7324892214
+2.80987925436
+3.25344619771
+4.55302794228
+4.88673815835
+5.18035789304
+4.57106201564
+4.67706037509
+4.37800854524
+2.53727946475
+2.87181351041
+5.63863207938
+5.88915389415
+5.36989976914
+1.65890568428
+3.10139139849
+3.28960674369
+3.91159629038
+4.49514106344
+3.42728425427
+4.24563837313
+5.3955458684
+5.91116270711
+5.62110278245
+5.80430230555
+4.9274907349
+5.28935922503
+5.91353112184
+2.3597283481
+5.87064020296
+6.04705484085
+6.21663662544
+5.18425066212
+5.28922371754
+4.54812234269
+5.14815971991
+5.76274240158
+5.36163061592
+5.37818654336
+6.41126079413
+5.28372040536
+6.50787645534
+6.66373140625
+6.51780893615
+6.3531585811
+6.40904368159
+6.36901874337
+6.6781062559
+6.1744870057
+6.6242790824
+6.20906517635
+6.47542323345
+6.17293659559
+6.72620860953
+6.18038691091
+6.10290823511
+6.51302428051
+6.90476297806
+6.66008134125
+6.76046113955
+6.79442006332
+5.21909248581
+2.62816307274
+6.39430570636
+6.95050566718
+6.9985462278
+7.17153014799
+6.7444134262
+7.03611444197
+5.86875874294
+7.24440957587
+6.8175131216
+6.83581008781
+7.16764265737
+7.16811029778
+7.16224555981
+5.62991440954
+6.27944487601
+6.54983715075
+5.58667310042
+6.72323771816
+6.81490979593
+6.7822041401
+6.80038534473
+6.75087631258
+7.0604875559
+7.18692105628
+7.2424694309
+6.51202844256
+7.08876791564
+6.66977110907
+6.96442626909
+6.80376618202
+6.62785978848
+6.4767599993
+6.61483353493
+7.56123635707
+7.51456145035
+7.10375504817
+6.41187328664
+6.35545067957
+6.30688933833
+6.36526536211
+6.4490737997
+7.08165952752
+6.80818441213
+6.8042358626
+6.48726344191
+7.28106019632
+7.00857609604
+6.97243289852
+6.92858835528
+6.94839868105
+6.75672660962
+6.70828804104
+7.02341239656
+7.18908381951
+7.18728232852
+7.43114525898
+7.25410336096
+7.3513451867
+7.2846352372
+6.79146274454
+6.72632247448
+6.22697407002
+6.82947066366
+6.80171930135
+6.72564179347
+6.34946445436
+6.43041793693
+5.27501076565
+6.92945774738
+6.82312441674
+7.34556730314
+6.77604043885
+6.24605389523
+5.87268908867
+5.62921052969
+6.59607698606
+6.91844920881
+7.13830922741
+7.02792000267
+7.26727697004
+6.45864260706
+5.89753346378
+7.16045726516
+7.6624584478
+7.14398180022
+7.08201100017
+6.49681326751
+6.41599176535
+6.23001185423
+6.66454169606
+6.39466097297
+6.56982958151
+6.43534930366
+6.35029214948
+6.69633360557
+6.44387871129
+6.22488081502
+6.25180517341
+5.77595547551
+5.52998314932
+5.33766485124
+6.29758818317
+5.81437152315
+6.8220311372
+6.65856734464
+6.63092268158
+6.58310494543
+6.11733130447
+6.4112429421
+6.17461917532
+5.40787982072
+5.8475571658
+6.54671351729
+3.68699085771
+2.8339684274
+3.11551279509
+4.54241882106
+3.19385174613
+3.00178216914
+4.74613435238
+5.79286729186
+6.71349721223
+6.17962538082
+6.19563142944
+6.48082840646
+6.42754776321
+6.58356975863
+6.30102660642
+6.23392354978
+5.85750741052
+6.14915986255
+6.23898319243
+3.90717213462
+5.0132620861
+6.04021167901
+6.17044232411
+4.4199761786
+5.74647512345
+6.06243485217
+6.02344542524
+6.08811663977
+4.95789835944
+5.73683740146
+4.82558705609
+2.45285306167
+5.26014671122
+5.01390211302
+5.81657349746
+5.78347693831
+5.91477674574
+5.67655605349
+5.53509257883
+5.7098203603
+5.56860391463
+5.62155387599
+5.59066608479
+3.3642445914
+4.36534232643
+3.43445784959
+2.62523071034
+5.48997096747
+3.25128028335
+3.38739958491
+2.21839839373
+3.50963146627
+4.45353810066
+4.55614977372
+4.85084069136
+3.91919316444
+1.77691334659
+2.93499462432
+4.8596143637
+1.97057209696
+1.7241154366
+4.27579465703
+2.90612408708
+1.20632583125
+1.30601428045
+2.03880999916
+3.50005950557
+3.41205061758
+3.61239761824
+3.55650149587
+3.89640927692
+2.10236321928
+3.1460457908
+3.66845444567
+4.05394281306
+4.30856933992
+4.04394330274
+1.41625513816
+1.49841700653
+3.22681806978
+3.8548870942
+3.88055623148
+1.10586179069
+0.980720094854
+3.14977049501
+3.40888978635
+3.41698065167
+2.25386404171
+3.18699898184
+3.05979230075
+3.75133113767
+3.7376697347
+3.44428426298
+2.78627588696
+2.3839105225
+2.75006970325
+3.61704061109
+2.42990874683
+2.58247243072
+3.03142577938
+1.25056279161
+1.14630279123
+2.08631516573
+2.22679002379
+2.65526326106
+2.24746956169
+1.31236537871
+1.53856498178
+2.92979410688
+0.669904395163
+2.98900425737
+2.99386254255
+3.15549567312
+2.45048342223
+2.77732551953
+1.42174422546
+3.83682033818
+3.34176684444
+3.66434040212
+3.36430150926
+0.721982304075
+2.51331433739
+2.61415259826
+2.52024962231
+2.76171451977
+3.41631349484
+2.93898125521
+3.4908609219
+4.48407807785
+2.05012288991
+2.0941535341
+2.5771564838
+2.7903027439
+0.92462065332
+2.24928984693
+3.13832302733
+3.9582546016
+3.39699386464
+2.48379674502
+2.11963162982
+2.32824852643
+2.47352962488
+2.32432987838
+2.0465888601
+2.21713304646
+1.7424047622
+2.12617041462
+3.50592092807
+1.1667163413
+2.26095022441
+1.46472303164
+1.87208551511
+2.43088005107
+2.5508924764
+1.81386833865
+2.37732604258
+1.74522771798
+0.583790679965
+1.26975156072
+2.66861962912
+3.07723712759
+3.91522792289
+4.35180166905
+3.09396290456
+2.17337326356
+2.53545174639
+2.59568186064
+2.963335738
+2.15208355175
+3.4091940802
+3.87719416883
+3.35977830926
+2.31403505661
+0.765037515553
+0.665931553849
+1.34692987203
+2.98380241054
+3.2436268395
+3.41352825571
+2.20186135633
+1.50421334525
+3.91381812315
+4.38311323031
+3.63017783317
+1.66087854962
+1.22032134837
+2.21483550845
+2.70991674737
+4.03056672754
+3.77483062161
+4.14908712896
+4.74108763405
+3.3681709882
+1.98911047171
+4.62264215939
+5.49597174157
+4.46481384503
+3.39693608225
+4.90029587688
+5.34204817013
+4.58627124863
+2.68667101353
+2.643690917
+2.56417824604
+2.02984893975
+0.974309623781
+1.52363312425
+4.53479021473
+5.76767162638
+5.76862673574
+5.991192876
+5.85460178215
+5.99502356936
+5.69857534157
+5.72317492022
+5.81011683364
+2.08934748455
+4.07688098044
+5.27014114716
+6.20120677228
+6.18237146468
+6.14530922878
+5.94024149327
+6.22111070148
+2.11422204815
+2.39474250475
+2.93125232966
+1.79509516491
+3.34542861187
+6.35220132249
+6.49456138402
+6.54072779321
+6.71558724286
+6.58742797916
+6.8548007836
+2.41995743453
+3.65392154859
+6.04723083505
+4.98187910154
+6.76865454377
+6.33706449165
+6.3149056734
+3.50834329357
+5.82569542461
+7.10115833082
+7.12941969585
+6.9511492033
+7.24201721201
+7.03844382383
+7.20864990807
+6.63460102336
+5.63584511454
+3.20376992085
+6.00914228956
+7.13604144871
+7.23210203252
+7.34859935155
+7.35305336569
+6.11791928322
+7.06879640817
+7.08888389683
+7.13708473717
+5.58501035147
+7.28801483372
+3.427564458
+2.29037021022
+4.9983610904
+7.30515518797
+4.64993103431
+3.34375491409
+4.15792655971
+7.14624141566
+6.4964912399
+7.46251042692
+5.24735259351
+7.44135569227
+6.83215566514
+7.47807461449
+6.8568607281
+7.50915908182
+7.38989434874
+6.48279662949
+7.05272875883
+7.66111371957
+7.52566422427
+5.06248584842
+7.64336025862
+7.68816193145
+7.68109062096
+7.72725481388
+8.0548404815
+7.76353901541
+7.89927536037
+7.71037816954
+5.23521669527
+3.49272619506
+7.31757511376
+7.42484533584
+8.12298838602
+7.52823835124
+7.71124557815
+7.36755452396
+7.25902424136
+7.09272853922
+7.20155589513
+7.31412388309
+6.16880446209
+7.83174901107
+7.40434663209
+6.47202498256
+4.17622197653
+6.76139069927
+7.53550574012
+7.84470052286
+7.68416234466
+7.76913306543
+7.61911594791
+7.41531793083
+7.63258484315
+7.64454686228
+7.93080477367
+7.43875189756
+7.34973862403
+7.67884754943
+7.47524111019
+7.70637067921
+7.79750120424
+7.48146465587
+7.81764352336
+7.45805667284
+7.41331684338
+5.3935003625
+7.58008275017
+7.55866202341
+7.62332032364
+7.58271552472
+7.24466202417
+7.47990167921
+4.87807713201
+6.56450967586
+7.12773637307
+5.68258574159
+7.48753743741
+7.00724432025
+7.43407461592
+7.48404801064
+7.10263631622
+7.0695198641
+7.1940442099
+6.1573786829
+7.19640014209
+7.21080501411
+6.72154709401
+7.29969078535
+7.25603162739
+6.9223592406
+6.95919548562
+7.03415004124
+6.67355324228
+6.6236010292
+7.33528180055
+6.49931060164
+7.04154967662
+6.98262085344
+7.08996573682
+6.58986992489
+6.61482453615
+6.60415738978
+6.74672875109
+6.70148925011
+4.91937582101
+6.79585112439
+6.81583722631
+6.74390640532
+5.6836594189
+6.7385926533
+5.60704972425
+6.56907916142
+5.93642256125
+5.88886635258
+5.83192857712
+6.37458446214
+4.62538565812
+4.44088503854
+5.65780328532
+6.25186038302
+6.27965907142
+6.22367247279
+2.06870338971
+6.13502232357
+6.4828437013
+6.11367427767
+4.37361008701
+6.11197744132
+6.1440744341
+6.14488085552
+6.17471174627
+6.36619856479
+5.92449081004
+5.4970614216
+5.49492044301
+4.9658431873
+5.36798208669
+4.90977891507
+5.5057965313
+5.55761857665
+5.34972131209
+5.73443207988
+3.16200470058
+4.07412028327
+3.59904578497
+3.52408703868
+5.72382868704
+5.70897214905
+2.63236216586
+5.18093994399
+5.01720156097
+5.11549426324
+5.06069398895
+5.11014157026
+5.20868669907
+5.16766709404
+5.13191518271
+3.95648862698
+4.26982400914
+3.66424591221
+2.33262655503
+2.56677737887
+1.07096298477
+4.42188395413
+4.64136481429
+4.94488594972
+4.93799147135
+5.01799330771
+5.05725943871
+4.93148463256
+3.95968616169
+3.92041095082
+4.48449104851
+3.09524972457
+3.26910035495
+3.6007335979
+3.99303663872
+4.7333498261
+4.11425758524
+3.06247348351
+2.57101346267
+4.15431621492
+4.10091855646
+3.58719822233
+1.40654577922
+4.02519411515
+4.36824159844
+4.39852538856
+4.29906829758
+3.64992761732
+3.11867189803
+3.07003893218
+3.01513782891
+2.06584094751
+2.72644471962
+3.34312099214
+3.86712703874
+2.96013370825
+1.96316439955
+1.32253317954
+1.32155384429
+2.51269200586
+2.72243368579
+2.72717427721
+3.03794098589
+1.2343148911
+3.26935222589
+2.88103429867
+2.18692333923
+0.844408980891
+2.8912381471
+2.74012917253
+1.94885086697
+2.55994870758
+2.12835360102
+2.26282588652
+2.51629410861
+3.22671157584
+3.63711156903
+2.92004880868
+2.49963884288
+2.71035804056
+3.45381652808
+3.27767159972
+3.63870867717
+3.63649186243
+3.19461756117
+3.6689752218
+3.19934796782
+4.06382912912
+3.21055967405
+2.32436511986
+2.75786774062
+1.9623427796
+1.95718496716
+0.652368364295
+1.67822403112
+1.75258440242
+3.19989415932
+3.63351677929
+2.84567738716
+3.20494270598
+2.3826297154
+2.74759570727
+1.43354164756
+2.46776789546
+2.05115439714
+2.16961431326
+3.23810242962
+2.44818387485
+3.54964774155
+1.02997750072
+0.976427460225
+1.46264515892
+2.26951886164
+3.08308761608
+3.31763925589
+2.18968780334
+2.49685497818
+2.81298836811
+2.81882509143
+3.17786074187
+2.51407635121
+1.49357668784
+3.40776970046
+2.88246779508
+2.08900835687
+3.20475037541
+3.10619953086
+1.71073820935
+3.78690454096
+2.43330876436
+2.22911092331
+2.1553745931
+1.50354000022
+3.18449320418
+4.384048904
+4.69620704575
+5.06903697974
+4.04332509918
+3.44812853911
+3.42515511154
+3.55625688272
+1.59595131166
+2.58137717319
+4.30889086948
+4.83510307661
+4.57420432905
+3.18230813569
+5.63704743014
+5.6982725531
+5.1098522035
+3.83277835428
+5.19150646508
+4.13870563632
+3.58136130755
+3.78624281342
+4.75744488008
+5.37066275454
+4.48202127543
+5.11410011945
+3.40377141365
+3.27275841196
+3.10686612348
+2.99321099665
+5.56576940145
+5.27320458754
+5.5256138529
+3.63945345354
+4.05155843269
+5.22051900206
+5.94629917625
+6.34830730582
+6.25276837782
+6.16433437047
+5.94110583129
+3.67227775526
+4.10019142936
+5.19560143998
+4.54745372336
+5.37134139558
+5.40670176122
+5.17356249807
+5.7740175058
+6.39924458683
+6.41126956814
+6.7288532119
+5.86450864045
+5.39939156938
+1.73174965092
+4.74944542398
+3.25266495893
+6.22111359646
+6.3733128132
+6.69304237992
+6.77515717735
+6.78104526371
+6.82698686542
+6.91165003018
+6.93348490199
+7.07253043044
+7.52215051226
+7.10797939684
+5.4953598915
+6.71919700636
+6.39269511849
+6.94153319672
+7.06486395047
+4.89766630777
+6.69022031702
+2.88295465009
+0.74756873779
+2.78585916614
+7.32570568636
+7.14889823424
+7.74335433357
+7.63700408377
+7.61289271418
+7.61636194767
+7.85162743492
+7.78060306066
+7.85751358144
+7.78073867956
+7.81324398051
+7.77567692119
+7.75342331051
+7.61166467482
+7.94010906705
+7.35314176221
+7.66226682001
+7.58559702075
+7.73750373743
+7.40788813169
+7.24646956403
+7.46390212043
+7.03275452153
+7.5741307345
+6.70683559292
+7.37316998348
+7.44560001289
+7.51005624347
+7.34548210533
+3.58617024706
+7.74853006723
+6.88474841443
+7.79856041616
+7.45528345094
+8.06885621168
+7.95927623802
+7.49838109041
+6.5678787367
+7.04477955708
+7.08178259521
+7.61276320082
+7.59405452483
+7.78638830146
+7.40403422745
+7.58809351477
+7.91339683256
+6.59620351085
+7.61304674709
+7.70796171625
+7.54625006132
+7.6490745426
+7.55454311305
+6.72898081998
+5.86241220145
+7.76830646143
+6.75129038611
+8.0443961597
+7.6063961379
+7.65620145075
+7.94755239337
+7.75025372338
+7.46068324887
+7.35662873042
+7.63250398003
+7.46839018154
+7.13379646935
+7.58669491937
+7.46668992257
+7.72860371398
+7.09818699898
+7.22702145656
+6.99389102391
+6.886510121
+7.3603526084
+7.4789265261
+7.43019650926
+7.09188487336
+7.03378999372
+7.55859667677
+6.39789233011
+4.07259313968
+7.17137989316
+6.97832810009
+7.21952001637
+6.76274017989
+7.62131688579
+7.67153917066
+7.32800545734
+6.44780716028
+7.3211241677
+7.34456094875
+7.12283680948
+7.1473004572
+7.08727725182
+7.13519899288
+6.90289596324
+6.98269042972
+7.10711042965
+3.44183358774
+6.02073494079
+3.18129384132
+3.56907891296
+7.08491818708
+7.18031519639
+6.62064477931
+6.85920085549
+6.95165822033
+6.87130988554
+6.71899458668
+7.02437597879
+7.27132892067
+7.04307109846
+6.76010690908
+6.75341848556
+6.75805587292
+5.13402481608
+4.10060038336
+6.54791352755
+5.92206323062
+6.50896233553
+6.50701388842
+6.33390259017
+6.68052499817
+5.04264352344
+2.50029836453
+4.72498780845
+6.34756792861
+6.44502340461
+6.20396411353
+6.43998481006
+6.26821767762
+4.82078925762
+4.55209008457
+5.19050521153
+5.00894675515
+3.78296767521
+5.93204015296
+5.91493276878
+5.96006296011
+5.93634628572
+6.07888266055
+6.16324140587
+5.68591124115
+6.19980384572
+2.06579550667
+2.50839945074
+6.15542090685
+5.6025760666
+4.65553250589
+5.03671261678
+5.3761861826
+5.84234371745
+5.71715950592
+5.30726042484
+5.4426192787
+5.42016335305
+5.08263393841
+5.79577888844
+5.2671154948
+5.0154068372
+5.02259458391
+4.80272275197
+4.9232374699
+4.85920212933
+4.80256907
+3.96020048322
+4.12633456398
+1.99556421776
+2.07262145551
+3.39488357532
+4.00942465046
+2.29162352799
+4.48726893288
+4.86890168197
+2.56834130164
+2.69779610892
+2.52326641119
+4.73622690841
+5.05713518384
+5.05938101354
+3.63574519319
+3.55298595693
+1.10624971315
+4.31923927138
+4.15337676786
+4.39348846477
+4.61610695198
+3.4617989891
+3.42272988649
+3.51175818749
+0.995946116642
+3.46247837631
+3.17286302658
+3.64748207716
+2.37780203451
+4.16241625466
+3.35577240152
+3.90101037837
+3.67478346728
+4.3277864554
+1.7682872462
+0.87059413679
+1.66158961706
+3.96758488993
+2.91873947217
+2.86664085884
+3.89347124584
+3.25955458082
+3.47412771241
+3.72488796564
+3.37672216383
+3.29974566006
+3.20217403985
+3.57637826636
+1.70903988418
+2.77650701762
+4.12233253266
+0.934211056126
+3.48607646031
+2.55500953326
+3.07759056874
+3.36784042739
+2.23556598031
+2.0980985914
+2.62115108365
+3.05293496108
+2.93226725779
+1.7680169914
+1.39564430162
+2.6753384754
+3.19324229086
+1.12866538403
+1.90036068164
+1.81222373211
+1.77350436277
+2.17778192207
+2.11680704617
+3.16625668663
+3.33053080381
+3.40134679742
+4.09073169526
+3.78591141535
+4.11771795783
+4.42987848842
+4.09580225397
+2.98409216825
+3.62661476777
+2.81128421439
+2.80567335772
+3.32148498746
+3.32881332132
+3.96656528674
+3.31798832878
+2.16900223156
+2.37189172938
+2.52729624371
+1.92071003662
+1.62866443382
+1.24754127508
+1.71141889277
+1.08350813511
+0.812880715859
+1.68204721941
+2.1638587593
+3.35398422811
+3.13640473445
+2.64486367947
+1.88562106229
+1.65056179163
+2.07006938774
+2.74662584362
+2.6573703477
+2.74829590235
+1.50874531697
+3.05746835813
+3.98843444171
+4.02030087033
+4.21240983125
+4.56694156343
+2.33081522178
+3.35962873301
+2.84097387741
+3.81340568317
+3.92684217669
+2.71963470626
+4.50558466223
+4.69325213023
+3.59787058102
+3.20881385095
+3.36152071025
+2.29584575364
+2.56488553293
+4.86950674759
+4.61956352009
+1.41037791818
+2.75958897945
+3.63671073605
+3.09029842213
+1.95218122233
+2.94570174425
+3.12187656694
+3.20132441077
+4.01651015158
+3.7653609747
+4.51305487754
+5.1061314676
+3.54389557981
+3.48833720258
+3.798342353
+4.09423778503
+4.65875153757
+5.43093746634
+2.79176234079
+4.30125821909
+1.66169457971
+1.98846099733
+4.49446214337
+4.64500810889
+5.67486442971
+5.23446185751
+4.7071224263
+5.12532080678
+5.92701233901
+3.31246569341
+2.71386083308
+2.33827051085
+5.62016440042
+6.35131881542
+6.30804921905
+3.02078997752
+4.74818709295
+4.71864795253
+5.85147653006
+6.3747789711
+6.44466207547
+6.40507412014
+5.393168939
+4.82750367337
+6.47635899268
+6.42198206136
+6.62973049963
+4.30305320127
+2.31689322758
+5.64387749475
+5.86453776805
+5.83340246027
+6.13551574404
+6.39703234845
+6.37441598315
+6.60026844883
+6.64385446147
+6.70903720365
+5.87568650261
+4.55667066142
+6.23336250462
+4.52184920586
+6.76014174692
+6.45502533678
+4.2892517077
+4.91844845316
+6.93652118873
+6.21061882634
+6.6170290248
+6.57994635715
+5.31837879424
+4.67877414485
+6.69452884713
+7.4361578248
+7.29693298439
+7.38419377029
+7.56524961139
+7.45893770354
+6.11772579707
+7.52476449163
+6.88008325947
+7.40093370716
+7.55580361087
+7.48951067727
+7.07420945855
+6.88612822929
+7.13339964377
+7.56271613837
+7.56827437406
+7.05955626022
+6.64853570041
+7.59820845211
+7.42794831715
+6.54078244694
+7.10408436993
+7.08102752162
+7.40173810539
+5.46850722268
+3.03293951011
+4.90699129414
+7.83583009403
+7.75294014436
+7.78700468586
+7.81445867807
+8.09760851727
+7.70715570113
+8.22300346384
+8.00073204175
+7.24038873932
+7.76167620063
+7.76421888711
+7.63796214564
+7.53664904089
+7.55303669222
+7.56674889096
+7.64088113423
+7.78462505545
+7.71251927364
+7.26795207518
+7.82976148658
+7.56840168058
+7.44524570368
+7.52013290176
+7.42160938354
+5.47652136401
+7.16666617713
+7.68118227543
+7.4184066241
+7.33317557606
+6.7633914861
+7.2941555669
+7.90462141915
+7.41371180543
+7.35680443553
+7.77270801783
+7.49743260668
+7.5819036455
+7.10436183232
+7.64030995444
+7.32382145741
+7.08306159935
+7.93428166752
+7.80625201869
+7.51944093177
+7.22876551851
+7.28605529715
+7.79737261581
+7.17732042186
+7.39719695399
+7.1876989638
+7.01894592675
+6.93235813538
+5.92033501466
+6.10881519457
+6.98648362222
+4.20851678506
+6.23716097521
+5.53581624679
+7.57001235077
+7.53999633153
+7.0684905333
+6.85663943733
+6.93690747821
+7.25839423805
+7.0598559381
+6.41221690071
+7.01845864142
+7.30334492893
+7.15846556502
+6.8881378601
+7.3466513675
+7.18406682803
+6.760242119
+6.97259281745
+6.57602756407
+5.43172444851
+6.93371694333
+6.93529449946
+6.78168932766
+6.52387706197
+6.34249343586
+6.81535809479
+6.73205859293
+6.87561542329
+6.33174308302
+6.75967789479
+6.73627188922
+6.70413470242
+6.38175875069
+6.27323564117
+6.23186876955
+6.09694648473
+6.16463647784
+6.28865168557
+6.41276324892
+6.29504860959
+6.33843762132
+6.06193095326
+5.95632261876
+6.14443402986
+6.23145722165
+5.41322600836
+4.27267887637
+6.02847075711
+6.07579451143
+5.75626034639
+5.99590383981
+6.14845609708
+5.70326190572
+6.30706476587
+6.15365594068
+5.7182115092
+4.51609934495
+5.49196199588
+4.55710763506
+5.93372149979
+6.06569098532
+5.45322368228
+4.89670834671
+5.24212783398
+5.67982685333
+5.87920021446
+5.58145903861
+4.96948544236
+3.46480021935
+2.53321937136
+4.49378241727
+2.12334817875
+2.31403677388
+2.75333600861
+3.0080256467
+5.44629759212
+5.09153614063
+5.49894405229
+5.22456754341
+5.05476524843
+5.2464657345
+5.39043707354
+5.41726512227
+4.73130150621
+4.36309646718
+4.70048930101
+3.40321808217
+3.83151968583
+4.35434571776
+4.09724974674
+3.63141191021
+3.98894944329
+4.39393635355
+4.61190475343
+4.25556288563
+4.57767625035
+4.39691262941
+4.6452905688
+4.72136824969
+4.75028082064
+4.68705535511
+4.46265509468
+4.46467422461
+4.43876966178
+3.80675337111
+3.89295402197
+4.1219764932
+4.31507755077
+3.94516474374
+3.72915478415
+3.11691968525
+2.66051690687
+3.10270099825
+2.67236012699
+1.26281951378
+2.89507256975
+2.53029401418
+3.73494151045
+2.40447406786
+2.63488226174
+1.47860039264
+1.96350002916
+1.15766273638
+3.75311247102
+2.90650118091
+2.94106025604
+2.48694889439
+3.26293726874
+0.53870248543
+2.50078021014
+2.61284202768
+1.99857198605
+2.63637785822
+2.55221847627
+2.89092496053
+2.49402797104
+2.32808572387
+1.42889913035
+0.659597038794
+2.78893047829
+1.81955017845
+2.00384482589
+2.78485059851
+2.37644530182
+2.26762127305
+2.579463771
+3.05282963029
+3.30116235849
+1.97195396682
+3.1632742413
+3.19151340281
+3.49872564122
+3.15093503667
+3.27603956837
+3.16381727519
+3.29063712104
+0.746756837635
+3.12720388654
+2.92219167966
+3.70874266181
+2.40689996009
+2.30919876068
+3.01773499485
+3.98340480884
+2.80292721403
+2.99170723753
+3.94460237338
+3.30823526017
+2.66763145134
+2.77159388734
+3.0483538032
+3.56802159609
+3.07352990443
+3.42789817763
+3.88208416908
+1.59263946207
+1.46225656372
+1.79925226371
+3.63685252089
+3.31683395611
+2.85265618489
+2.94740107236
+3.57914177499
+2.2916682296
+4.14774744006
+3.58926871268
+3.20975214033
+3.3816183293
+4.63715722234
+2.02841279038
+2.96034423359
+3.17893299561
+3.30752817696
+2.9399012801
+2.88756852804
+3.23189151717
+0.909678273113
+2.77122995255
+2.76760553772
+3.58770316701
+4.34851204204
+4.72571733197
+4.88764151233
+1.77574419057
+2.26274814239
+2.997234912
+4.40675004225
+1.91920487683
+4.08911706953
+4.34511792161
+3.50165127902
+3.11132912404
+3.46506886533
+4.57066748452
+5.18781333066
+5.41574728295
+4.20069639623
+3.75269766848
+4.15013060185
+2.60445118144
+4.13278835766
+4.49559323224
+5.2274604952
+5.82373513001
+5.68036304835
+5.94470274207
+5.77804275014
+5.58590135959
+4.96943899386
+5.16185163898
+5.46950123302
+4.59058406785
+4.40692229977
+3.77410129848
+1.8700537639
+4.08703747138
+4.36530146674
+3.70170379895
+3.38552872736
+3.96674483919
+4.99828421509
+4.34743014476
+5.77376436672
+5.94988528947
+5.83049529529
+6.51498527537
+6.64740411124
+5.98968178346
+5.79686833257
+6.1630705542
+5.93377422397
+5.96421610362
+3.88088208436
+5.45394083264
+6.01983606065
+6.40800525184
+6.05214058985
+6.75360123166
+6.38939072198
+6.40903823868
+6.49493397984
+6.35163490145
+6.57425885064
+6.39940161662
+7.02059396132
+5.57705035395
+4.85708492891
+7.16674254007
+7.05771197594
+7.384826993
+4.41212544009
+3.35610235262
+7.11065953545
+6.82041396273
+6.30152549896
+6.83664813791
+7.21999969564
+7.4243035751
+7.38882082906
+6.48966692259
+7.5281250089
+3.12141156338
+3.48431594411
+5.80406921937
+6.90522718776
+6.52574111496
+7.17105209458
+7.34638515719
+6.94242484078
+6.84060265875
+7.25152332816
+7.22090773317
+7.02523026308
+7.31760998596
+7.85093450202
+7.61943779094
+7.11737248119
+7.60421346581
+7.46400274439
+7.85480731822
+7.79442255162
+7.93842614561
+7.84027378982
+7.98545488896
+7.82002057833
+7.56756268292
+7.92378966799
+7.5526963152
+7.749989038
+7.81232785738
+7.38675848409
+7.84105626459
+7.88268581227
+7.17808022249
+7.87379924183
+7.78108534776
+8.17697452631
+7.62120314034
+7.38715476389
+4.17398421776
+7.98465196599
+7.87172935685
+7.91271473536
+7.86749572462
+8.13577703559
+7.7774481608
+8.00369335442
+8.12333482298
+7.45429874458
+8.43327363911
+6.79830876617
+7.97111620006
+7.29640636814
+8.44771835502
+7.87670728084
+7.88122931975
+7.99749211886
+7.54387794952
+7.48854810572
+7.94422261779
+7.97809140829
+5.18588086182
+7.88228928299
+7.82197527491
+7.72120223097
+7.90978680292
+7.84163558226
+8.18804194593
+7.83244965685
+8.32180101335
+8.04740334731
+7.81615096089
+7.84651061059
+7.54288579435
+8.00435591452
+7.96320748224
+7.74117482572
+7.36381228735
+6.74527513586
+8.22718791297
+7.11623612431
+8.37574903661
+7.93556182226
+7.82629417703
+7.78201829574
+7.85205839702
+7.64779826166
+7.37864956941
+7.54492429919
+7.42754591409
+7.39233467493
+7.14484194019
+7.08199756282
+7.34486432449
+7.25492748663
+6.99640988808
+7.38472206878
+4.27972349097
+6.97887817962
+7.26244073692
+7.20720352519
+7.0812559525
+5.28216935324
+6.9739551028
+6.77506849785
+7.15769847993
+6.77418687619
+7.03778595924
+6.54193529446
+6.94772159741
+6.96651658919
+6.7713456712
+6.66235274253
+6.79812526504
+6.41092144816
+6.35840230325
+6.40516178399
+2.39195367434
+3.38391442437
+6.96012699753
+6.98328396904
+6.55347579008
+6.47911425218
+6.53141932036
+6.87885010406
+6.6172289978
+6.75972031988
+6.50600207008
+6.25406118468
+6.05027116912
+3.00374710217
+4.26877784333
+6.52664801714
+6.33252720415
+6.54933750296
+6.4075033453
+6.02668941866
+6.23704936218
+5.93308882605
+5.84467399593
+6.12331589719
+6.09816494872
+5.75888360041
+6.04023538457
+5.94347730462
+6.04954304203
+5.64126038576
+5.56811443602
+6.03359794542
+5.95898738737
+5.86552897759
+5.8788280117
+5.81270637949
+1.90069846022
+1.64885526872
+2.15537123772
+5.62918812948
+5.60633621449
+4.57762790343
+5.6768138784
+4.27524484747
+4.75161123203
+4.75543183133
+4.1811203319
+1.92777829093
+5.7067871255
+4.38404483346
+5.41601933983
+4.67113309603
+1.4936010015
+3.56996195327
+3.53705787943
+3.78393743538
+3.73433286881
+1.14681797435
+5.00237142162
+4.53105799772
+4.89845320718
+4.30884491527
+4.9906467448
+4.62534987374
+3.16658883114
+3.1168706666
+3.37133051789
+3.89900506066
+1.22285400326
+2.09049605848
+4.71474078239
+4.69650238721
+4.77964042122
+2.4870417392
+3.98048519817
+4.25933930347
+2.78319020061
+3.38243654976
+3.77496781704
+3.22949309733
+3.31240712368
+2.48889505965
+1.72422114442
+0.943082119454
+2.20237389343
+3.87313805519
+3.84563702099
+3.84804637064
+3.94389576815
+4.03966707521
+3.73921586782
+3.66995328115
+2.20653894534
+3.25981726428
+2.67263994432
+2.62718956902
+2.83044653809
+2.79733617736
+3.34836109527
+1.91444558706
+2.38013178879
+3.15874328511
+3.59168719013
+3.53065038146
+3.21532146672
+3.85841924623
+3.68960605587
+3.91613914645
+3.94312293935
+4.11361719689
+3.49979823477
+2.94770931374
+1.91809994103
+1.26546677261
+3.37293205982
+3.47012994833
+0.782556248811
+2.71533453395
+2.9152474713
+3.1913903986
+3.51466137386
+2.9329162267
+3.09968020068
+1.17939601255
+3.20331852497
+3.42308218027
+2.95967437099
+1.46604069909
+4.39229836088
+1.88237431517
+3.53281646398
+2.91132766639
+2.53221808701
+2.65813461263
+3.33201687286
+3.75532033008
+4.35869033457
+3.17397495689
+2.34186457381
+2.24895670482
+1.05355479404
+3.10146519342
+2.70243255438
+1.11778640109
+1.56268794594
+2.84297088404
+2.8658245362
+2.71857443037
+2.68552221287
+3.73941407148
+3.11062039695
+2.04024594988
+2.72444481828
+2.27405944092
+1.0660518342
+1.79975455456
+2.68118414323
+2.94270270238
+2.34260060897
+2.02876894889
+3.42893435247
+2.74705133327
+2.33897025564
+2.77482781963
+2.87977829025
+3.56427509635
+1.43965202255
+3.03544109246
+2.39811242246
+2.39167665363
+2.54415189124
+2.93986487861
+3.02473094534
+4.10890514888
+4.459278374
+4.92687214165
+3.90735559667
+4.0318945313
+1.20915650192
+4.01032151537
+4.71760031925
+4.4500951637
+3.1057799548
+5.36671194487
+5.05905956143
+3.38185120451
+4.37661987817
+4.09146779224
+4.6041997212
+3.79769650487
+4.05599254042
+5.06999222019
+5.40741922464
+4.96048950687
+5.21000496774
+5.40121743416
+5.49371985674
+1.52293570683
+3.523424376
+3.70309371371
+4.82171947825
+5.84476862899
+4.85797799405
+5.58028353438
+6.24115956685
+5.87610467826
+6.31712518392
+5.4952233005
+6.10066426265
+5.95484300398
+2.89658000106
+5.73473745828
+6.12928004829
+5.1429164865
+6.48735748231
+6.21212519778
+6.43729678733
+5.05922440237
+4.57667350513
+3.71506335132
+4.40569382869
+4.56114608679
+5.4878099978
+1.94990045119
+6.51269349082
+5.88151589291
+5.30023953767
+4.71768156522
+5.53608785819
+6.4783508017
+5.97611976689
+4.59209637377
+6.27840317292
+6.7786360112
+6.7696282363
+6.87081527307
+6.70246492081
+6.93770227355
+6.6565314856
+6.63339720958
+7.06214491333
+7.03040274426
+6.80753745754
+6.75322801662
+6.88934521379
+5.18051294331
+2.30750306539
+3.39889351106
+6.7943813742
+6.68286911953
+5.60738759816
+6.21814445376
+7.61011791644
+7.50456603811
+6.55177195717
+7.20991366162
+7.2531579019
+7.4364895919
+7.34716411435
+6.34638095051
+6.59012889186
+7.12584725807
+7.13505655662
+7.10044423198
+7.25276519978
+7.51152364638
+7.69433458736
+7.58408342125
+7.39158412515
+7.34238926045
+7.34692917758
+7.08436227388
+7.2810871258
+7.31935597819
+7.41036301709
+6.83737235226
+4.89358516618
+7.5224168132
+7.53588214828
+7.75543164949
+7.47565347422
+7.22497502433
+7.28000778615
+7.47564616427
+6.73453345261
+7.60727846388
+7.07072546325
+5.13242041753
+6.35272892445
+7.32436370422
+7.47876738701
+6.56503617338
+7.17975957216
+6.85554129395
+7.27308778733
+6.95888024503
+7.25523019252
+7.26075083804
+7.64982882818
+7.15609825973
+7.36765193995
+7.27753655381
+7.48890087355
+7.28953641219
+7.17972044009
+7.3088546712
+7.13341759141
+7.19715970875
+6.91938228838
+6.8145298593
+6.41084117163
+6.85323359707
+6.98392820091
+7.16248912431
+7.46579155334
+6.94301356007
+5.2888264228
+6.66388625567
+6.81604377224
+7.21126047908
+6.87444962365
+7.31451567419
+6.88888473314
+6.61934170374
+6.86451537862
+6.61796505415
+6.69124420987
+6.460542079
+6.81751735693
+6.62354490008
+6.75563187681
+7.22218257285
+7.0203768858
+7.03313288178
+6.91737715651
+6.42709165193
+6.28631155966
+6.25687148427
+5.97725729498
+5.66944797258
+6.11994979842
+5.76735835494
+5.40302888613
+5.09397394406
+5.64527481076
+5.84851354464
+6.49412653775
+5.75732575346
+5.98647461048
+5.96052429792
+5.81925355126
+6.11926220848
+5.99833018978
+5.99336548241
+5.49988519435
+5.36865719131
+6.58564972854
+5.99073143115
+6.14117904562
+5.77874009426
+6.11272032491
+6.37883234139
+6.19939524705
+6.12317668885
+6.18877654414
+6.02240193482
+5.61136505004
+6.14959217242
+5.92400788986
+5.73924022008
+5.71115644893
+5.69036870795
+5.84731119183
+5.91359958951
+5.67193088781
+5.45886387979
+5.27318039194
+5.62305936822
+5.90198058351
+4.29642798198
+6.29121627993
+5.78841826151
+5.92073946728
+5.96151896388
+4.68782798749
+4.45602882899
+4.39329287434
+5.7574495674
+5.21449548217
+5.63415484352
+5.56754676521
+5.48545237466
+5.45534211548
+5.61903690413
+5.65642812803
+5.72704977537
+5.64420345877
+4.96975816217
+5.56755240826
+5.25988639949
+3.81575599119
+4.76140567489
+5.44444507726
+4.97881470617
+4.71988558261
+5.23651633963
+5.2992904062
+5.35344625215
+5.2216567078
+5.32828889527
+5.35742785805
+5.15719965362
+5.21324434231
+4.96783621761
+4.50693208938
+5.25170790328
+5.08792219039
+4.98008874818
+4.2844149632
+3.03149694532
+1.32343721736
+1.22193520774
+4.85054936054
+3.77340814172
+4.03291297425
+4.17048337016
+4.47075025385
+4.67920166771
+4.23316738665
+4.16847763597
+4.26998664752
+4.29127949642
+4.03412672191
+3.43697965919
+2.98996151684
+3.35247836595
+3.50508298583
+3.489303138
+3.66086662259
+4.00540631399
+4.61438540727
+2.54086627593
+3.09140365434
+3.3401725652
+4.08100447978
+3.1947059133
+3.65698528396
+4.34038390588
+4.01636322328
+3.08592090655
+2.78890756434
+1.74445423686
+1.77374895241
+3.74763359653
+3.37012139617
+3.01364202513
+3.16032549925
+3.285690881
+2.81644521806
+3.64027167722
+1.92002387558
+2.48701751432
+2.30870367579
+2.36421682516
+3.816318935
+3.86491691139
+4.26480218991
+4.3360890496
+4.2813239065
+3.42108470618
+3.9579424524
+0.781264864436
+2.5139250889
+2.39866428487
+2.43081381386
+2.41272571989
+3.24471786865
+2.04903100558
+1.681974883
+1.76983260027
+3.09398111619
+2.47270772316
+1.47312251731
+3.19829941238
+2.70293863692
+2.24977316902
+0.599118648986
+3.29702221807
