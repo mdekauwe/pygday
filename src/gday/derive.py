@@ -15,17 +15,24 @@ def nc_ratio(carbon_val, nitrogen_val):
     carbon_val : float
         C value
     nitrogen_val: float
-        N value
+        N value#
 
     Returns:
     --------
     value : float
         N:C ratio
     """
-    if carbon_val <= 0.0:
-        raise ValueError("Invalid C value (negative or zero)")
+    if float_lt(carbon_val, 0.0):
+        # Note, previously the else branch was set to 1E6...presumably this 
+        # was a hack to deal with the scenario for example where 
+        # self.state.metabsurf and self.state.metabsurfn both start at zero.  
+        # This was fine as this ratio isn't used in the code. Since I have 
+        # commented out these diagnostics we shouldn't end up here unless there 
+        # really is an error!!
+        raise ValueError("Dianostic N:C has invalid values, probably zero?")
+    
     return nitrogen_val / carbon_val
-
+      
 class Derive(object):
     def __init__(self, control, params, state, fluxes, met_data):
         """
@@ -67,22 +74,25 @@ class Derive(object):
 
         # c/n ratios, most of these are just diagnostics, and not used.
         self.state.rootnc = nc_ratio(self.state.root, self.state.rootn)
-
+        
         # just messing with what might happen if canopy directly took up N
         #cnu = 0.48 * ndep
         #self.state.shootn += cnu
-
+        
         self.state.shootnc = nc_ratio(self.state.shoot, self.state.shootn)
-        branchnc = nc_ratio(self.state.branch, self.state.branchn)
-        stemnc = nc_ratio(self.state.stem, self.state.stemn)
-        structsurfnc = nc_ratio(self.state.structsurf, self.state.structsurfn)
-        metabsurfnc = nc_ratio(self.state.metabsurf, self.state.metabsurfn)
-        structsoilnc = nc_ratio(self.state.structsoil, self.state.structsoiln)
-        metabsoilnc = nc_ratio(self.state.metabsoil, self.state.metabsoiln)
-        activesoilnc = nc_ratio(self.state.activesoil, self.state.activesoiln)
-        slowsoilnc = nc_ratio(self.state.slowsoil, self.state.slowsoiln)
-        passivesoilnc = nc_ratio(self.state.passivesoil, self.state.passivesoiln)
-
+        
+        # Diagnostic N:C
+        #branchnc = nc_ratio(self.state.branch, self.state.branchn)
+        #stemnc = nc_ratio(self.state.stem, self.state.stemn)
+        #structsurfnc = nc_ratio(self.state.structsurf, self.state.structsurfn)
+        #metabsurfnc = nc_ratio(self.state.metabsurf, self.state.metabsurfn)
+        #structsoilnc = nc_ratio(self.state.structsoil, self.state.structsoiln)
+        #metabsoilnc = nc_ratio(self.state.metabsoil, self.state.metabsoiln)
+        #activesoilnc = nc_ratio(self.state.activesoil, self.state.activesoiln)
+        #slowsoilnc = nc_ratio(self.state.slowsoil, self.state.slowsoiln)
+        #passivesoilnc = nc_ratio(self.state.passivesoil, self.state.passivesoiln)
+        
+        
         # SLA (m2 onesided/kg DW)
         self.state.sla = (self.state.lai / const.M2_AS_HA *
                             const.KG_AS_TONNES *
