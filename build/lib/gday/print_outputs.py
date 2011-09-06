@@ -184,14 +184,18 @@ class PrintOutput(object):
         if project_day == 1:
             self.write_daily_file_headers()
         try:
-            state_vars = [i for i in self.print_opts if hasattr(self.state, i)]
-            flux_vars = [i for i in self.print_opts if hasattr(self.fluxes, i)]
-            
             self.odaily.write("%s %s %s " % (project_day, year, doy))
-            self.odaily.writelines("%s " % (getattr(self.state, i)) \
-                                    for i in state_vars)
-            self.odaily.writelines("%s " % (getattr(self.fluxes, i)) \
-                                    for i in flux_vars)
+            for var in self.print_opts:
+                try:
+                    if hasattr(self.state, var):
+                        value = getattr(self.state, var)
+                        self.odaily.write("%s " % value)
+                    else:
+                        value = getattr(self.fluxes, var)
+                        self.odaily.write("%s " % value)
+                except AttributeError:
+                    err_msg = "Error accessing var to print: %s" % var
+                    raise AttributeError, err_msg
             self.odaily.write("\n")
         except IOError:
             raise IOError("Error writing file: %s" % self.odaily)
