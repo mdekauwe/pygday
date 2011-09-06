@@ -236,11 +236,15 @@ class Gday(object):
                     self.fluxes.ceaten * (1. - self.params.fracfaeces))
 
     def correct_rate_constants(self, output=False):
-        """ adjust rate constants for the number of days in years
-        """
+        """ adjust rate constants for the number of days in years """
         if output == False:
             for i in self.time_constants:
                 exec("%s%s /= %f" % ("self.params.", i, const.NDAYS_IN_YR))
+                
+            #if output == False:
+            #(setattr(self.params, i, getattr(self.params, i)/const.NDAYS_IN_YR) for i in self.time_constants)
+                
+                
         else:
             for i in self.time_constants:
                 exec("%s%s *= %f" % ("self.params.", i, const.NDAYS_IN_YR))
@@ -303,5 +307,5 @@ def profile_main():
 
 if __name__ == "__main__":
 
-    main()
-    #profile_main()
+    #main()
+    profile_main()

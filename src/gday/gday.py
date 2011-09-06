@@ -138,7 +138,7 @@ class Gday(object):
         self.date = self.simulation_start_date()
 
         self.time_constants = ['rateuptake', 'rateloss', 'retransmob',
-                                'fdecay','fdecaydry', 'rdecay',' rdecaydry',
+                                'fdecay','fdecaydry', 'rdecay', 'rdecaydry',
                                 'bdecay', 'wdecay', 'kdec1', 'kdec2', 'kdec3',
                                 'kdec4', 'kdec5', 'kdec6', 'kdec7', 'nuptakez']
         self.correct_rate_constants(output=False)
@@ -236,14 +236,16 @@ class Gday(object):
                     self.fluxes.ceaten * (1. - self.params.fracfaeces))
 
     def correct_rate_constants(self, output=False):
-        """ adjust rate constants for the number of days in years
-        """
+        """ adjust rate constants for the number of days in years """
         if output == False:
             for i in self.time_constants:
-                exec("%s%s /= %f" % ("self.params.", i, const.NDAYS_IN_YR))
+                setattr(self.params, i, getattr(self.params, i) / 
+                        const.NDAYS_IN_YR) 
         else:
             for i in self.time_constants:
-                exec("%s%s *= %f" % ("self.params.", i, const.NDAYS_IN_YR))
+                setattr(self.params, i, getattr(self.params, i) * 
+                        const.NDAYS_IN_YR)
+                
 
 def cmdline_parser():
     """ Parse the command line for user options
