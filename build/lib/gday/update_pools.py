@@ -1,4 +1,4 @@
-""" Update model C and N pools or state """
+""" Update model C and N pools """
 
 import constants as const
 from utilities import float_eq, float_ne, float_lt, float_le, float_gt, float_ge

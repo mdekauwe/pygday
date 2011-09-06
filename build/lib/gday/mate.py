@@ -111,8 +111,8 @@ class Mate(object):
             Method calculates GPP, NPP and Ra.
         """
         # local var for tidyness
-        am, pm = self.am, self.pm # morning/afternoon
-        temp, par, vpd, ca = self.get_met_data(day)
+        (am, pm) = self.am, self.pm # morning/afternoon
+        (temp, par, vpd, ca) = self.get_met_data(day)
         
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(temp)
@@ -129,20 +129,11 @@ class Mate(object):
         # store value as needed in water balance calculation
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
-        # Generally under low PAR photosynthesis is limited by the rate of 
-        # electron transport in the light reactions. Whereas at high PAR 
-        # photosynthesis is limited by rubisco. So leaves growing in the shade 
-        # would achieve no gain investing in rubisco, therefore have low Vcmax. 
-        # Sunlit leaves have high Vcmax to maximise the rate of photosynthsis.
-        # Further, if rubisco is low, there is no need to have extra
-        # chlorophyll to trap light, therefore low Vcmax is twinned with low
-        # Jmax.
-        
         # Rubisco-limited rate of photosynthesis
-        ac = [self.ac(ci[k], gamma_star[k], km[k], vcmax[k]) for k in am, pm]
+        ac = [self.aclim(ci[k], gamma_star[k], km[k], vcmax[k]) for k in am, pm]
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
-        aj = [self.aj(jmax[k], ci[k], gamma_star[k]) for k in am, pm]
+        aj = [self.ajlim(jmax[k], ci[k], gamma_star[k]) for k in am, pm]
         
         # Note that these are gross photosynthetic rates.
         asat = [min(aj[k], ac[k]) for k in am, pm]
@@ -164,7 +155,6 @@ class Mate(object):
                                     const.MOLE_C_TO_GRAMS_C)
         self.fluxes.gpp_gCm2 = self.fluxes.npp_gCm2 / self.params.cue
 
-
         # tonnes hectare-1 day-1
         self.fluxes.npp = (self.fluxes.npp_gCm2 * const.G_AS_TONNES /
                             const.M2_AS_HA)
@@ -172,7 +162,6 @@ class Mate(object):
 
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
-
 
     def get_met_data(self, day):
         """ Grab the days met data out of the structure and return day values.
@@ -213,7 +202,7 @@ class Mate(object):
         elif self.control.co2_conc == 1:
             ca = self.met_data['ele_co2'][day]
 
-        return temp, par, vpd, ca
+        return (temp, par, vpd, ca)
 
     def calculate_co2_compensation_point(self, temp):
         """ CO2 compensation point in the absence of mitochondrial respiration
@@ -321,7 +310,7 @@ class Mate(object):
     
         return [self.arrh(vcmax25, self.params.eav, temp[k]) for k in am, pm]
     
-    def ac(self, ci, gamma_star, km, vcmax):
+    def aclim(self, ci, gamma_star, km, vcmax):
         """Morning and afternoon calcultion of photosynthesis when Rubisco
         activity is limiting, Ac.
 
@@ -345,7 +334,7 @@ class Mate(object):
         """
         return max(0.0, (ci - gamma_star) * vcmax) / (ci + km)
 
-    def aj(self, jmax, ci, gamma_star):
+    def ajlim(self, jmax, ci, gamma_star):
         """Morning and afternoon calcultion of photosynthesis when
         ribulose-1,5-bisphosphate (RuBP)-regeneration is limiting
 
@@ -400,7 +389,11 @@ class Mate(object):
             incident photosyntetically active radiation
         daylen : float
             length of day in hours.
-
+        alpha : float
+            quantum yield (mol mol-1)
+        theta : float
+            curvature of photosynthetic light response curve 
+        
         Returns:
         -------
         lue : float
@@ -429,7 +422,6 @@ class Mate(object):
             gg = 0.16666666667 * sum(g)
 
             lue = self.params.alpha * gg * math.pi
-
         else:
             lue = 0.0
 
@@ -444,7 +436,7 @@ class Mate(object):
         kc : float
             pre-exponential factor
         ea : float
-            activation energy
+            the exponential rate of rise of the func
         tair : float
             air temperature [degC]
 
@@ -455,8 +447,8 @@ class Mate(object):
 
         """
         return (kc * math.exp(ea * (tair - 25.0) / const.RGAS /
-                (tair + const.ABSZERO) / (25.0 + const.ABSZERO)))
-
+                (tair + const.DEG_TO_KELVIN) / (25.0 + const.DEG_TO_KELVIN)))
+    
     def jmaxt(self, tair, jmax25):
         """ Calculates the temperature dependences of Jmax
 
@@ -473,8 +465,8 @@ class Mate(object):
             temperature dependence on Jmax
 
         """
-        tref = 25.0 + const.ABSZERO
-        tk = tair + const.ABSZERO
+        tref = 25.0 + const.DEG_TO_KELVIN
+        tk = tair + const.DEG_TO_KELVIN
         arg1 = self.arrh(jmax25, self.params.eaj, tair)
         arg2 = (1.0 + math.exp((self.params.delsj * tref - self.params.edj) /
                 const.RGAS / tref))
