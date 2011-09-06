@@ -13,7 +13,6 @@
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/gday.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/litter_production.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/mate.py
-/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/nmineralisation.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/plant_growth.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/plant_production_mcmurtrie.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/print_outputs.py
@@ -38,7 +37,6 @@
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/gday.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/litter_production.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/mate.pyc
-/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/nmineralisation.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/plant_growth.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/plant_production_mcmurtrie.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/print_outputs.pyc

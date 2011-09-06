@@ -58,8 +58,8 @@ class PlantGrowth(object):
         self.mt = Mate(self.control, self.params, self.state, self.fluxes,
                             self.met_data)
 
-    def calculate_net_c_prodn(self, day, date, fdecay, rdecay):
-        """Evolve plant state"
+    def grow(self, day, date, fdecay, rdecay):
+        """Evolve plant state, photosynthesis, distribute N and C"
 
         Parameters:
         -----------
@@ -99,7 +99,7 @@ class PlantGrowth(object):
         self.nitrogen_distribution(wood_nc, fdecay, rdecay, allocfrac)
         self.carbon_distribution(allocfrac, nitfac)
         self.update_plant_state(fdecay, rdecay)
-
+         
     def calculate_ncwood_ratios(self, nitfac):
         """ Estimate the N:C ratio in the branch and stem. Option to vary
         the N:C ratio of the stem following Jeffreys (1999) or keep it a fixed
@@ -258,7 +258,7 @@ class PlantGrowth(object):
         # N lost from system through leaching and gaseous emissions
         # - a clear assumption using fixed rate constant across the year
         self.fluxes.nloss = self.params.rateloss * self.state.inorgn
-
+    
         # total nitrogen to allocate (tn/ha/day)
         ntot = self.fluxes.nuptake + retrans
 
@@ -355,7 +355,7 @@ class PlantGrowth(object):
             raise AttributeError('Unknown N uptake assumption')
         
         return nuptake
-        
+    
     def carbon_distribution(self, allocfrac, nitfac):
         """ C distribution - allocate available C through system
 
