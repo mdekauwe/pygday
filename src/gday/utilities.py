@@ -9,17 +9,6 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (09.03.2011)"
 __email__   = "mdekauwe@gmail.com"
 
-class Bunch(object):
-    """ group a few variables together
-
-    advantage is that it avoids the need for dictionary syntax, taken from the
-    python cookbook; although nothing to guard against python reserved words
-
-    >>> point = Bunch(datum=y, squared=y*y, coord=x)
-    """
-    def __init__(self, **kwds):
-        self.__dict__.update(kwds)
-
 def float_eq(arg1, arg2, tol=1E-14):
     """arg1 == arg2"""
     return math.fabs(arg1 - arg2) < tol + tol * math.fabs(arg2)
