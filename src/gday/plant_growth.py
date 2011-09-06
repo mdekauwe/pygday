@@ -3,7 +3,7 @@
 import math
 
 import constants as const
-from utilities import float_eq, float_lt, float_gt, Bunch, day_length
+from utilities import float_eq, float_lt, float_gt, day_length
 from bewdy import Bewdy
 from plant_production_mcmurtrie import PlantProdModel
 from water_balance import WaterBalance, WaterLimitedNPP
@@ -92,12 +92,13 @@ class PlantGrowth(object):
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
 
         # figure out allocation fractions for C
-        allocfrac = self.allocate_carbon(nitfac)
+        (alleaf, alroot, albranch, alstem) = self.allocate_carbon(nitfac)
 
         # Distribute new C and N through the system
-        wood_nc = self.calculate_ncwood_ratios(nitfac)
-        self.nitrogen_distribution(wood_nc, fdecay, rdecay, allocfrac)
-        self.carbon_distribution(allocfrac, nitfac)
+        (ncbnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
+        self.nitrogen_distribution(ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
+                                    alleaf, alroot, albranch, alstem)
+        self.carbon_distribution(alleaf, alroot, albranch, alstem, nitfac)
         self.update_plant_state(fdecay, rdecay)
          
     def calculate_ncwood_ratios(self, nitfac):
@@ -113,9 +114,12 @@ class PlantGrowth(object):
 
         Returns:
         --------
-        wood_nc : object
-            object containing N:C ratio of branch, immobile and mobile stem
-            components
+        ncbnew : float
+            N:C ratio of branch
+        ncwimm : float
+            N:C ratio of immobile stem
+        ncwnew : float
+            N:C ratio of mobile stem
 
         References:
         ----------
@@ -143,9 +147,7 @@ class PlantGrowth(object):
 
             # New stem ring N:C at critical leaf N:C (mobile)
             ncwnew = 0.162 * self.state.shootnc - 0.00143
-
-        # group stuff just to reduce func args passed through code
-        return Bunch(ncbnew=ncbnew, ncwimm=ncwimm, ncwnew=ncwnew)
+        return (ncbnew, ncwimm, ncwnew)
 
     def carbon_production(self, date, day, daylen):
         """ Calculate GPP, NPP and plant respiration
@@ -211,8 +213,14 @@ class PlantGrowth(object):
 
         Returns:
         --------
-        allocfrac : object, float
-            allocation frac for leaf, root, branch and stem
+        alleaf : float
+            allocation fraction for shoot
+        alroot : float
+            allocation fraction for fine roots
+        albranch : float
+            allocation fraction for branches
+        alstem : float
+            allocation fraction for stem
 
         """
 
@@ -226,27 +234,34 @@ class PlantGrowth(object):
 
         alstem = 1.0 - alleaf - alroot - albranch
 
-        # group stuff just to reduce func args
-        allocfrac = Bunch(alleaf=alleaf, alroot=alroot, albranch=albranch,
-                          alstem=alstem)
+        return (alleaf, alroot, albranch, alstem)
 
-        return allocfrac
-
-    def nitrogen_distribution(self, wood_nc, fdecay, rdecay, allocfrac):
+    def nitrogen_distribution(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
+                                alleaf, alroot, albranch, alstem):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
         to the shoot and roots with flexible ratios.
 
         Parameters:
         -----------
-        wood_nc : float
-            N:C ratio for wood
+        ncbnew : float
+            N:C ratio of branch
+        ncwimm : float
+            N:C ratio of immobile stem
+        ncwnew : float
+            N:C ratio of mobile stem
         fdecay : float
             foliage decay rate
         rdecay : float
             fine root decay rate
-        allocfrac : object, float
-            allocation frac for leaf, root, branch and stem
+        alleaf : float
+            allocation fraction for shoot
+        alroot : float
+            allocation fraction for fine roots
+        albranch : float
+            allocation fraction for branches
+        alstem : float
+            allocation fraction for stem
 
         """
         # N retranslocated proportion from dying plant tissue and stored within
@@ -263,17 +278,14 @@ class PlantGrowth(object):
         ntot = self.fluxes.nuptake + retrans
 
         # allocate N to pools with fixed N:C ratios
-        self.fluxes.npbranch = (self.fluxes.npp * allocfrac.albranch *
-                                    wood_nc.ncbnew)
+        self.fluxes.npbranch = self.fluxes.npp * albranch * ncbnew
 
         # N flux into new ring (immobile component -> structrual components)
-        self.fluxes.npstemimm = (self.fluxes.npp * allocfrac.alstem *
-                                    wood_nc.ncwimm)
+        self.fluxes.npstemimm = self.fluxes.npp * alstem * ncwimm
 
         # N flux into new ring (mobile component -> can be retrans for new
         # woody tissue)
-        self.fluxes.npstemmob = (self.fluxes.npp * allocfrac.alstem *
-                                    (wood_nc.ncwnew - wood_nc.ncwimm))
+        self.fluxes.npstemmob = self.fluxes.npp * alstem * (ncwnew - ncwimm)
 
         # If we have allocated more N than we have available - cut back N prodn
         arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +
@@ -282,20 +294,16 @@ class PlantGrowth(object):
         if float_gt(arg, ntot) and not self.control.fixleafnc:
             self.fluxes.npp *= (ntot / (self.fluxes.npstemimm +
                                 self.fluxes.npstemmob + self.fluxes.npbranch))
-            self.fluxes.npbranch = (self.fluxes.npp * allocfrac.albranch *
-                                    wood_nc.ncbnew)
-            self.fluxes.npstemimm = (self.fluxes.npp * allocfrac.alstem *
-                                    wood_nc.ncwimm)
-            self.fluxes.npstemmob = (self.fluxes.npp * allocfrac.alstem *
-                                        (wood_nc.ncwnew - wood_nc.ncwimm))
+            self.fluxes.npbranch = self.fluxes.npp * albranch * ncbnew
+            self.fluxes.npstemimm = self.fluxes.npp * alstem * ncwimm
+            self.fluxes.npstemmob = self.fluxes.npp * alstem * (ncwnew - ncwimm)
 
         ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
                     self.fluxes.npstemmob)
 
         # allocate remaining N to flexible-ratio pools
-        self.fluxes.npleaf = (ntot * allocfrac.alleaf /
-                                (allocfrac.alleaf + allocfrac.alroot *
-                                self.params.ncrfac))
+        self.fluxes.npleaf = (ntot * alleaf / 
+                                (alleaf + alroot * self.params.ncrfac))
         self.fluxes.nproot = ntot - self.fluxes.npleaf
 
     def nitrogen_retrans(self, fdecay, rdecay):
@@ -356,20 +364,26 @@ class PlantGrowth(object):
         
         return nuptake
     
-    def carbon_distribution(self, allocfrac, nitfac):
+    def carbon_distribution(self, alleaf, alroot, albranch, alstem, nitfac):
         """ C distribution - allocate available C through system
 
         Parameters:
         -----------
-        allocfrac : object, float
-            allocation frac for leaf, root, branch and stem
+        alleaf : float
+            allocation fraction for shoot
+        alroot : float
+            allocation fraction for fine roots
+        albranch : float
+            allocation fraction for branches
+        alstem : float
+            allocation fraction for stem
         nitfac : float
             leaf N:C as a fraction of 'Ncmaxfyoung' (max 1.0)
         """
-        self.fluxes.cpleaf = self.fluxes.npp * allocfrac.alleaf
-        self.fluxes.cproot = self.fluxes.npp * allocfrac.alroot
-        self.fluxes.cpbranch = self.fluxes.npp * allocfrac.albranch
-        self.fluxes.cpstem = self.fluxes.npp * allocfrac.alstem
+        self.fluxes.cpleaf = self.fluxes.npp * alleaf
+        self.fluxes.cproot = self.fluxes.npp * alroot
+        self.fluxes.cpbranch = self.fluxes.npp * albranch
+        self.fluxes.cpstem = self.fluxes.npp * alstem
 
         # evaluate SLA of new foliage accounting for variation in SLA with tree
         # and leaf age (Sands and Landsberg, 2002). Assume SLA of new foliage
