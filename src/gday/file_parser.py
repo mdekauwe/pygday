@@ -107,12 +107,9 @@ class ReadUserConfigFile(LoadConfigFile):
 
 
 def read_met_forcing(fname, comment='#'):
-    """ Read the driving data.
-    Expects to find the data:
-    prjday, sw_rad, tmean, rain, vpd, tsoil
-
-    it searches for the hash tag followed by prjday in order to build the named
-    dictionary
+    """ Read the driving data into a dictionary
+    method searches for the hash tag followed by prjday in order to build the 
+    named dictionary
 
     Parameters:
     -----------
@@ -127,26 +124,22 @@ def read_met_forcing(fname, comment='#'):
         met forcing data
 
     """
-    import sys
     try:
+        data = {}
         f = open(fname, 'r')
-        lines = f.readlines()
-        f.close()
-        for line in lines:
+        for line in f:
             if 'prjday' in line:
                 var_names = line[1:].split()
-                data = {}
-                for name in var_names:
-                    data[name] = []
             elif not line.lstrip().startswith("#"):
                 values = [float(i) for i in line.split()]
                 for name, value in zip(var_names, values):
-                    data[name].append(value)
+                    data.setdefault(name, []).append(value) 
+        f.close()
     except IOError:
         raise IOError('Could not read met file: "%s"' % fname)
 
     return data
-
+    
 def adjust_object_attributes(user_dict, obj):
     """Loop through the user supplied dict and change relevant attributes
 

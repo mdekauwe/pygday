@@ -74,6 +74,8 @@ totaln = 0.0
 # N:C ratios
 rootnc = None
 shootnc = None
-
+actncslope = None
+slowncslope = None
+passncslope = None
 
 #==============================================================================#

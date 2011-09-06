@@ -474,7 +474,6 @@ class NitrogenFlows(object):
     def nfluxes_from_slow_pool(self):
         """ from slow pool """
         slowout = self.state.slowsoiln * self.params.decayrate[5]
-
         sigwt = slowout / 0.45
 
         # -> active
@@ -491,7 +490,8 @@ class NitrogenFlows(object):
                                                     self.params.decayrate[6])
 
     def calculate_ngross(self):
-        """ Gross release of organically bound N during decomposition
+        """ N mineralisation rate is given by the excess of N outflows over
+        inflows
         
         Returns:
         --------
@@ -522,25 +522,20 @@ class NitrogenFlows(object):
         nimob : float
             N immobilsed
         """
-        
         # N:C new SOM - active, slow and passive
-        arg = (self.params.nmincrit - self.params.nmin0) / self.conv
-    
-        actncslope = (self.params.actncmax - self.params.actnc0) / arg 
-        slowncslope = (self.params.slowncmax - self.params.slownc0) / arg 
-        passncslope = (self.params.passncmax - self.params.passnc0) / arg 
+        self.calculate_ncratio_slope_of_mineral_pools()
         
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
-                    (self.params.passnc0 - passncslope * self.params.nmin0 /
-                    self.conv))
+                    (self.params.passnc0 - self.state.passncslope * 
+                    self.params.nmin0 / self.conv))
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
                     self.fluxes.cactive[0]) *
-                    (self.params.slownc0 - slowncslope *
+                    (self.params.slownc0 - self.state.slowncslope *
                     self.params.nmin0 / self.conv))
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
                     sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                    self.fluxes.passive) * (self.params.actnc0 - actncslope *
-                    self.params.nmin0 / self.conv))
+                    self.fluxes.passive) * (self.params.actnc0 - 
+                    self.state.actncslope * self.params.nmin0 / self.conv))
         numer1 = arg1 + arg2 + arg3
 
 
@@ -553,12 +548,13 @@ class NitrogenFlows(object):
                     self.fluxes.passive) * self.params.actncmax)
         numer2 = arg1 + arg2 + arg3
 
-        arg1 = (self.fluxes.cactive[1] + self.fluxes.cslow[1]) * passncslope
+        arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) * 
+                self.state.passncslope)
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
-                    self.fluxes.cactive[0]) * slowncslope)
+                    self.fluxes.cactive[0]) * self.state.slowncslope)
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
                     sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                    self.fluxes.passive) * actncslope)
+                    self.fluxes.passive) * self.state.actncslope)
         denom = arg1 + arg2 + arg3
         
         # evaluate N immobilisation in new SOM
@@ -567,8 +563,30 @@ class NitrogenFlows(object):
             nimmob = numer2
         
         return nimmob
+
+    def calculate_ncratio_slope_of_mineral_pools(self):
+        """ N:C ratio of the slope 3 minerals (active, slow, passive) pools
+        
+        General equation for new soil N:C ratio vs Nmin, expressed as linear 
+        equation passing through point Nmin0, actnc0 (etc). Values can be 
+        Nmin0=0, Actnc0=Actncmin 
+         
+        if Nmin < Nmincrit:
+            New soil N:C = soil N:C (when Nmin=0) + slope * Nmin
+         
+        if Nmin > Nmincrit
+            New soil N:C = max soil N:C       
+        
+        NB N:C ratio of new passive SOM can change even if assume Passiveconst
+        
+        """
+        # N:C new SOM - active, slow and passive
+        arg = (self.params.nmincrit - self.params.nmin0) / self.conv
     
-    
-
-
-
+        self.state.actncslope = ((self.params.actncmax - self.params.actnc0) / 
+                                    arg) 
+        self.state.slowncslope = ((self.params.slowncmax - self.params.slownc0)/ 
+                                    arg) 
+        self.state.passncslope = ((self.params.passncmax - self.params.passnc0)/  
+                                    arg) 
+        

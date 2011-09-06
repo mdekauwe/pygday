@@ -3,8 +3,6 @@ import sys
 import math
 import constants as const
 
-from utilities import get_attrs
-
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (21.03.2011)"
 __email__   = "mdekauwe@gmail.com"
@@ -91,7 +89,6 @@ class PrintOutput(object):
         except IOError:
             raise IOError("Can't open %s file for write" %
                             self.out_param_fname)
-
         self.print_parameters(oparams=oparams)
 
         # tidy up
@@ -108,79 +105,64 @@ class PrintOutput(object):
 
         Parameters:
         -----------
-        oparams : string
-            output parameter filename
+        oparams : fp
+            output parameter file pointer
 
         """
+        ignore = ['actncslope', 'slowncslope', 'passncslope', 'decayrate', \
+                    'fmfaeces', 'light_interception']
+        self.dump_ini_data("[files]\n", self.files, ignore, oparams, 
+                            print_tag=False, print_files=True)
+        self.dump_ini_data("\n[params]\n", self.params, ignore, oparams, 
+                            print_tag=False, print_files=False)
+        self.dump_ini_data("\n[state]\n", self.state, ignore, oparams, 
+                            print_tag=False, print_files=False)
+        self.dump_ini_data("\n[control]\n", self.control, ignore, oparams, 
+                            print_tag=False, print_files=False)
+        self.dump_ini_data("\n[print]\n", self.print_opts, ignore, oparams, 
+                            print_tag=True, print_files=False)
+        
+    def dump_ini_data(self, ini_section_tag, obj, ignore, fp, print_tag=False,
+                        print_files=False):
+        """ Get user class attributes and exclude builitin attributes
+        Returns a list
+    
+        Parameters:
+        ----------
+        ini_section_tag : string
+            section header 
+        obj : object
+            clas object
+        ignore : list
+            variables to ignore when printing output
+        fp : fp
+            out file pointer
+        print_tag : logical
+            if true special print options
+        print_files : logical
+            if true special print files options
+        """
         try:
-            oparams.write("[files]\n")
-            files_attr = []
-
-            for attr in get_attrs(self.files):
-                attr_val = getattr(self.files, attr)
-                files_attr.append((attr, attr_val))
-            files_attr.sort()
-            for i in files_attr:
-                oparams.write("%s = %s\n" % (i[0], i[1]))
-
+            fp.write(ini_section_tag)
+            data = [i for i in dir(obj) if not i.startswith('__') \
+                    and i not in ignore]
+            data.sort()
+            if print_tag == False and print_files == False:
+                fp.writelines("%s = %s\n" % (i, getattr(obj, i)) 
+                                    for i in data)
+            elif print_tag == False and print_files == True:
+                 fp.writelines('%s = "%s"\n' % (i, getattr(obj, i)) 
+                                for i in data)
+            elif print_tag == True and print_files == False:
+                fp.writelines('%s = "%s"\n' % (i, "yes") for i in obj)
         except IOError:
-            raise IOError("Error writing params files, files section")
-
-        # don't print calculate partition coefficents as the user can't
-        # adjust these!
-        ignore = ['decayrate', 'fmfaeces', 'light_interception']
-        attributes = [i for i in get_attrs(self.params) if i not in ignore]
-        try:
-            oparams.write("\n[params]\n")
-            param_attr = []
-            for attr in attributes:
-                attr_val = getattr(self.params, attr)
-                param_attr.append((attr, attr_val))
-            param_attr.sort()
-            for i in param_attr:
-                oparams.write("%s = %s\n" % (i[0], i[1]))
-        except IOError:
-            raise IOError("Error writing params files, params section")
-
-        attributes = [i for i in get_attrs(self.state) if i not in ignore]
-        try:
-            oparams.write("\n[state]\n")
-            state_attr = []
-            for attr in attributes:
-                attr_val = getattr(self.state, attr)
-                state_attr.append((attr, attr_val))
-            state_attr.sort()
-            for i in state_attr:
-                oparams.write("%s = %s\n" % (i[0], i[1]))
-        except IOError:
-            raise IOError("Error writing params files, state section")
-
-        attributes = [i for i in get_attrs(self.control) if i not in ignore]
-        try:
-            oparams.write("\n[control]\n")
-            ctrl_attr = []
-            for attr in attributes:
-                attr_val = getattr(self.control, attr)
-                ctrl_attr.append((attr, attr_val))
-            ctrl_attr.sort()
-            for i in ctrl_attr:
-                oparams.write("%s = %s\n" % (i[0], i[1]))
-        except IOError:
-            raise IOError("Error writing params files, control section")
-
-        try:
-            oparams.write("\n[print]\n")
-            for var in self.print_opts:
-                oparams.write('%s = "%s"\n' % (var, "yes"))
-        except IOError:
-            raise IOError("Error writing params files, print section")
-
+            raise IOError("Error writing params file")
+    
     def write_daily_file_headers(self):
         """write (with comment, #) column headings"""
         try:
             self.odaily.write("%s " % '# prjday year doy')
-            for name in self.print_opts:
-                self.odaily.write("%s " % name)
+            self.odaily.writelines("%s " % (i) for i in self.print_opts)
             self.odaily.write("\n")
         except IOError:
             raise IOError("Error writing file headers to: %s" % self.odaily)
@@ -202,21 +184,17 @@ class PrintOutput(object):
         if project_day == 1:
             self.write_daily_file_headers()
         try:
+            state_vars = [i for i in self.print_opts if hasattr(self.state, i)]
+            flux_vars = [i for i in self.print_opts if hasattr(self.fluxes, i)]
+            
             self.odaily.write("%s %s %s " % (project_day, year, doy))
-            for var in self.print_opts:
-                try:
-                    if hasattr(self.state, var):
-                        value = getattr(self.state, var)
-                        self.odaily.write("%s " % value)
-                    else:
-                        value = getattr(self.fluxes, var)
-                        self.odaily.write("%s " % value)
-                except AttributeError:
-                    err_msg = "Error accessing var to print: %s" % var
-                    raise AttributeError, err_msg
+            self.odaily.writelines("%s " % (getattr(self.state, i)) \
+                                    for i in state_vars)
+            self.odaily.writelines("%s " % (getattr(self.fluxes, i)) \
+                                    for i in flux_vars)
             self.odaily.write("\n")
         except IOError:
             raise IOError("Error writing file: %s" % self.odaily)
-
+    
     def tidy_up(self):
         self.odaily.close()
