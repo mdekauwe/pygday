@@ -201,7 +201,7 @@ class PlantGrowth(object):
             raise AttributeError('Unknown assimilation model')
 
     def allocate_carbon(self, nitfac):
-        """Carbon allocation fractions.
+        """Carbon allocation fractions to move photosynthate through the plant.
         Allocations to foliage tends to decrease with stand age and wood stock
         increases. In stressed (soil/nutrient) regions fine root allocations
         increases.
@@ -391,8 +391,6 @@ class PlantGrowth(object):
         sla_new = (self.params.slazero + nitfac *
                     (self.params.slamax - self.params.slazero))
         
-        
-        
         # update leaf area [m2 m-2]
         self.state.lai += (self.fluxes.cpleaf * sla_new * const.M2_AS_HA /
                             const.KG_AS_TONNES / self.params.cfracts -
@@ -411,7 +409,6 @@ class PlantGrowth(object):
             fine root decay rate
 
         """
-
         self.state.shoot += (self.fluxes.cpleaf - self.fluxes.deadleaves -
                                 self.fluxes.ceaten)
         self.state.root += self.fluxes.cproot - self.fluxes.deadroots
