@@ -376,7 +376,9 @@ class PlantGrowth(object):
         # is linearly related to leaf N:C ratio via nitfac
         sla_new = (self.params.slazero + nitfac *
                     (self.params.slamax - self.params.slazero))
-
+        
+        
+        
         # update leaf area [m2 m-2]
         self.state.lai += (self.fluxes.cpleaf * sla_new * const.M2_AS_HA /
                             const.KG_AS_TONNES / self.params.cfracts -
@@ -456,54 +458,79 @@ class PlantGrowth(object):
 
 
 if __name__ == "__main__":
-
-    from file_parser import ConfigFileParser
+    
+    # timing...
+    import sys
+    import time
+    start_time = time.time()
+    
+    from file_parser import initialise_model_data
+    from utilities import float_lt, day_length
     import datetime
 
-    # pylint: disable=C0103
-    # pylint: disable=C0324
-    cfg_fname = "/Users/mdekauwe/src/python/GDAY_model/params/gday.cfg"
+    fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
 
-    # read in user defined variables (stored in dictionaries)
-    pars = ConfigFileParser(cfg_fname=cfg_fname)
-
-    (adj_control, adj_params, adj_state, adj_files,
-                                        adj_fluxes, forcing) = pars.main()
-
-    adj_control.assim_model = 3
-
-    year = str(adj_control.startyear)
-    month = str(adj_control.startmonth)
-    day = str(adj_control.startday)
-    datex = datetime.datetime.strptime((year + month + day), "%Y%m%d")
-
-    adj_state.lai = (adj_params.slainit * const.M2_AS_HA /
-                            const.KG_AS_TONNES / adj_params.cfracts *
-                            adj_state.shoot)
-
-
-
-    # Specific LAI (m2 onesided/kg DW)
-    adj_state.sla = adj_params.slainit
-
-    adj_control.assim_model = 3
+    (control, params, state, files,
+        fluxes, met_data,
+            print_opts) = initialise_model_data(fname, DUMP=False)
 
     # figure out photosynthesis
-    PG = PlantGrowth(adj_control, adj_params, adj_state, adj_fluxes, forcing)
+    PG = PlantGrowth(control, params, state, fluxes, met_data)
+
+    state.lai = (params.slainit * const.M2_AS_HA /
+                            const.KG_AS_TONNES / params.cfracts *
+                            state.shoot)
+
+    # Specific LAI (m2 onesided/kg DW)
+    state.sla = params.slainit
+
+
+    year = str(control.startyear)
+    month = str(control.startmonth)
+    day = str(control.startday)
+    datex = datetime.datetime.strptime((year + month + day), "%Y%m%d")
+
+    #laifname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/experiments/lai"
+    #import numpy as np
+    #laidata = np.loadtxt(laifname)
+
+    fdecay = 0.5
+    rdecay = 0.5
+    fluxes.deadleaves = 0.0
+    fluxes.ceaten = 0.0
+    fluxes.neaten = 0.0
+    fluxes.deadroots = 0.0
+    fluxes.deadbranch = 0.0         
+    fluxes.deadstems = 0.0
+    for project_day in xrange(len(met_data['prjday'])):
+
+        state.shootnc = state.shootn / state.shoot
+        state.ncontent = (state.shootnc * params.cfracts /
+                                state.sla * const.KG_AS_G)
+        daylen = day_length(datex, params.latitude)
+        state.wtfac_root = 1.0
+        #state.lai = laidata[project_day]
+
+
+        if float_lt(state.lai, params.lai_cover):
+            frac_gcover = state.lai / params.lai_cover
+        else:
+            frac_gcover = 1.0
+
+        state.light_interception = ((1.0 - math.exp(-params.kext *
+                                            state.lai / frac_gcover)) *
+                                            frac_gcover)
 
 
 
-    for i in xrange(len(forcing.doy)):
-
-        PG.grow(i, datex)
-        print adj_fluxes.gpp / const.HA_AS_M2 * const.TONNES_AS_G
+        PG.grow(project_day, datex, fdecay, rdecay)
+        print fluxes.gpp / const.HA_AS_M2 * const.TONNES_AS_G
 
 
-
-        # this is done in derive so do here
-        # Specific LAI (m2 onesided/kg DW)
-        adj_state.sla = (adj_state.lai / const.M2_AS_HA *
-                            const.KG_AS_TONNES *
-                            adj_params.cfracts / adj_state.shoot)
 
         datex += datetime.timedelta(days=1)
+    end_time = time.time()
+    sys.stderr.write("\nTotal simulation time: %.1f seconds\n\n" %
+                                                    (end_time - start_time))
+    
+    

@@ -181,28 +181,12 @@ class NitrogenPools(object):
         self.state.metabsoiln += self.nclimit(self.state.metabsoil,
                                                 self.state.metabsoiln,
                                                 1.0/25.0, 1.0/10.0)
-
-        # update pools
-        #
-        # the n:c ratios of the following pools are controlled by the n:c ratio
-        # of the mineral n pool general eqn for new soil n:c ratio vs nmin
-        # expressed as linear eqn passing thru point (nmin0, actnc0)
-        # values can be nmin0=0, actnc0= actncmin or
-        # eqm values from a previous run (see notes from bordeaux 0999)
-        # nb n:c ratio of new passive SOM can change even if assume passiveconst
-
-        conv = const.M2_AS_HA / const.G_AS_TONNES
-        actncslope = ((self.params.actncmax - self.params.actnc0) /
-                        (self.params.nmincrit - self.params.nmin0) * conv)
-        slowncslope = ((self.params.slowncmax - self.params.slownc0) /
-                        (self.params.nmincrit - self.params.nmin0) * conv)
-        passncslope = ((self.params.passncmax - self.params.passnc0) /
-                        (self.params.nmincrit - self.params.nmin0)* conv)
-
-        conv2 = const.M2_AS_HA * const.G_AS_TONNES
+        
+        # N:C of soil pools
+        arg = (self.state.inorgn - self.params.nmin0 / const.M2_AS_HA * 
+                const.G_AS_TONNES)
         # active
-        actnc = (self.params.actnc0 + actncslope *
-                    (self.state.inorgn - self.params.nmin0 / conv))
+        actnc = self.params.actnc0 + self.state.actncslope * arg
         if float_gt(actnc, self.params.actncmax):
             actnc = self.params.actncmax
 
@@ -210,8 +194,7 @@ class NitrogenPools(object):
         self.state.activesoiln += nact + fixn - lact
 
         # slow
-        slownc = (self.params.slownc0 + slowncslope*
-                    (self.state.inorgn - self.params.nmin0 / conv2))
+        slownc = self.params.slownc0 + self.state.slowncslope * arg
         if float_gt(slownc, self.params.slowncmax):
             slownc = self.params.slowncmax
 
@@ -219,8 +202,7 @@ class NitrogenPools(object):
         self.state.slowsoiln += nslo + fixn - lslo
 
         # passive
-        passnc = (self.params.passnc0 + passncslope *
-                    (self.state.inorgn - self.params.nmin0 / conv2))
+        passnc = self.params.passnc0 + self.state.passncslope * arg
         if float_gt(passnc, self.params.passncmax):
             passnc = self.params.passncmax
 

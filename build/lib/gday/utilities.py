@@ -9,25 +9,6 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (09.03.2011)"
 __email__   = "mdekauwe@gmail.com"
 
-
-def get_attrs(obj):
-    """ Get user class attributes and exclude builitin attributes
-    Returns a list
-
-    Parameters:
-    ----------
-    obj : object
-        clas object
-
-    Returns:
-    -------
-    attr list : list
-        list of attributes in a class object
-
-    """
-    return [i for i in obj.__dict__.keys()
-                if not i.startswith('__') and not i.endswith('__')]
-
 class Bunch(object):
     """ group a few variables together
 

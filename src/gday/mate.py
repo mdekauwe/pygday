@@ -414,10 +414,6 @@ class Mate(object):
                             4.0 * self.params.theta * q * x)))
             g = [f(math.sin(math.pi * i / 24.)) for i in xrange(1, 13, 2)]
 
-            #6-point Gaussian quadrature (integration)
-            #gg = (0.08566225 * (g[0 + g[5]) + 0.1803808 * (g[1] + g[4]) +
-            #        0.233957 * (g[2] + g[3]))
-
             #Trapezoidal rule - seems more accurate
             gg = 0.16666666667 * sum(g)
 
@@ -426,7 +422,8 @@ class Mate(object):
             lue = 0.0
 
         return lue
-
+    
+    
     def arrh(self, kc, ea, tair):
         """ Arrhenius function: describes the effect of temperature on enzyme 
         activity
