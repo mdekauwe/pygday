@@ -53,11 +53,12 @@ class CarbonFlows(object):
         # calculate model decay rates
         self.calculate_decay_rates(project_day)
 
-        # plant litter inputs
-        lnleaf, lnroot = self.ligin_nratio()
+        # plant litter inputs to the metabolic and structural pools determined 
+        # by ratio of lignin/N ratio 
+        (lnleaf, lnroot) = self.ligin_nratio()
         self.params.fmleaf = self.metafract(lnleaf)
         self.params.fmroot = self.metafract(lnroot)
-        #print self.metafract(lnleaf), lnleaf
+       
         # input from faeces
         self.flux_from_grazers()
 
@@ -68,9 +69,14 @@ class CarbonFlows(object):
     
     
     def calculate_decay_rates(self, project_day):
-        """ Model decay rates - temperature dependency (i.e. increase with temp)
-        [See section A8 in Comins and McMurtrie 1993].
-
+        """ Model decay rates - decomposition rates have a strong temperature 
+        and moisture dependency. Note same temperature is assumed for all 3 
+        SOM pools, found by Knorr et al (2005) to be untrue
+        
+        References:
+        -----------
+        Knorr et al. (2005) Nature, 433, 298-301.
+    
         Parameters:
         -----------
         project_day : int
@@ -80,7 +86,6 @@ class CarbonFlows(object):
         # temperature factor for decomposition
         tempact = self.soil_temp_factor(project_day)
         
-
         # decay rate of surface structural pool
         self.params.decayrate[0] = (self.params.kdec1 *
                                         math.exp(-3. * self.params.ligshoot) *
@@ -152,7 +157,8 @@ class CarbonFlows(object):
             self.fluxes.faecesc = 0.0
 
     def ligin_nratio(self):
-        """ first equation section A7, Comins and McMurtrie, 1993
+        """ Estimate Lignin/N ratio, as this dictates the how plant litter is 
+        seperated between metabolic and structural pools.
 
         Returns:
         --------
@@ -399,7 +405,7 @@ class NitrogenFlows(object):
         self.nfluxes_from_passive_pool()
         
         # gross N mineralisation 
-        self.fluxes.ngross = self.calculate_ngross()
+        self.fluxes.ngross = self.calculate_nmineralisation()
 
         # calculate N immobilisation
         self.fluxes.nimmob = self.calculate_nimmobilisation()
@@ -559,9 +565,9 @@ class NitrogenFlows(object):
         self.fluxes.npassive = (self.state.passivesoiln *
                                                     self.params.decayrate[6])
 
-    def calculate_ngross(self):
-        """ N mineralisation rate is given by the excess of N outflows over
-        inflows
+    def calculate_nmineralisation(self):
+        """ N gross mineralisation rate is given by the excess of N outflows 
+        over inflows
         
         Returns:
         --------

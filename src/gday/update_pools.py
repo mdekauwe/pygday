@@ -182,7 +182,8 @@ class NitrogenPools(object):
                                                 self.state.metabsoiln,
                                                 1.0/25.0, 1.0/10.0)
         
-        # N:C of soil pools
+        # N:C of the SOM pools increases linearly btw prescribed min and max 
+        # values as the Nconc of the soil increases.
         arg = (self.state.inorgn - self.params.nmin0 / const.M2_AS_HA * 
                 const.G_AS_TONNES)
         # active
