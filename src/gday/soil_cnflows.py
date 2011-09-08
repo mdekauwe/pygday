@@ -7,8 +7,9 @@ Slow pool -> resistant plant material, turnover time of 20-50 yrs.
 Passive pool -> very resistant to decomp, turnover time of > 400 yrs.
 """
 
+import math
+
 import constants as const
-from decomp import DecompFactors
 from utilities import float_eq, float_lt, float_le, float_gt, float_ge
 
 __author__  = "Martin De Kauwe"
@@ -40,10 +41,6 @@ class CarbonFlows(object):
         self.state = state
         self.met_data = met_data
 
-        # decomposition rates depend on soil moisture and temperature
-        self.dc = DecompFactors(self.control, self.params, self.state,
-                                self.fluxes, self.met_data)
-
     def calculate_cflows(self, project_day):
         """ C from decomposing litter -> active, slow and passive SOM pools.
 
@@ -54,7 +51,7 @@ class CarbonFlows(object):
 
         """
         # calculate model decay rates
-        self.dc.decay_rates(project_day)
+        self.calculate_decay_rates(project_day)
 
         # plant litter inputs
         lnleaf, lnroot = self.ligin_nratio()
@@ -68,8 +65,81 @@ class CarbonFlows(object):
         self.cfluxes_from_struct_pool()
         self.cfluxes_from_metabolic_pool()
         self.cfluxes_from_passive_pool()
+    
+    
+    def calculate_decay_rates(self, project_day):
+        """ Model decay rates - temperature dependency (i.e. increase with temp)
+        [See section A8 in Comins and McMurtrie 1993].
+
+        Parameters:
+        -----------
+        project_day : int
+            current simulation day (index)
+
+        """
+        # temperature factor for decomposition
+        tempact = self.soil_temp_factor(project_day)
+        
+
+        # decay rate of surface structural pool
+        self.params.decayrate[0] = (self.params.kdec1 *
+                                        math.exp(-3. * self.params.ligshoot) *
+                                        tempact * self.state.wtfac_tsoil)
+
+        # decay rate of surface metabolic pool
+        self.params.decayrate[1] = (self.params.kdec2 * tempact * 
+                                        self.state.wtfac_tsoil)
 
 
+        # decay rate of soil structural pool
+        self.params.decayrate[2] = (self.params.kdec3 *
+                                        math.exp(-3. * self.params.ligroot) *
+                                        tempact * self.state.wtfac_tsoil)
+
+        # decay rate of soil metabolic pool
+        self.params.decayrate[3] = (self.params.kdec4 * tempact * 
+                                        self.state.wtfac_tsoil)
+
+        # decay rate of active pool
+        self.params.decayrate[4] = (self.params.kdec5 *
+                                        (1.0 - 0.75 * self.params.finesoil) *
+                                        tempact * self.state.wtfac_tsoil)
+                                        
+        # decay rate of slow pool
+        self.params.decayrate[5] = (self.params.kdec6 * tempact * 
+                                        self.state.wtfac_tsoil)
+
+        # decay rate of passive pool
+        self.params.decayrate[6] = (self.params.kdec7 * tempact * 
+                                        self.state.wtfac_tsoil)
+
+    def soil_temp_factor(self, project_day):
+        """Soil-temperature activity factor (A9).
+
+        Parameters:
+        -----------
+        project_day : int
+            current simulation day (index)
+
+        Returns:
+        --------
+        tfac : float
+            soil temperature factor [degC]
+
+        """
+        tsoil = self.met_data['tsoil'][project_day]
+
+        if float_gt(tsoil, 0.0):
+            tfac = (0.0326 + 0.00351 * tsoil**1.652 - (tsoil / 41.748)**7.19)
+            if float_lt(tfac, 0.0):
+                tfac = 0.0
+        else:
+            # negative number cannot be raised to a fractional power
+            # number would need to be complex
+            tfac = 0.0
+
+        return tfac
+    
     def flux_from_grazers(self):
         """ Input from faeces """
         if self.control.grazing:

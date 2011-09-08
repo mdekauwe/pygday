@@ -28,7 +28,7 @@ class Gday(object):
 
     GDAY simulates C, N and water cycling between the plant and the soil. The
     model is structured into three plant pools (foliage, wood and fine roots),
-    four litter pools (above/below metaolic and structural litter) and three
+    four litter pools (above/below metabolic and structural litter) and three
     soil organic matter (SOM) pools with varying turnover rates (active, slow
     and passive). An adapted implementation of the CENTURY model simulates soil
     carbon and nutrient dynamics. There is an additional simple soil water
