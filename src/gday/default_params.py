@@ -158,7 +158,7 @@ a1 = 0.0
 #============== Not publicly accessible to the user ==========================#
 
 # decay rates
-decayrate = [0.0] * 7 # Decay rates
+decayrate = [None] * 7
 
 # metabolic pool C fractions
 fmfaeces = 0.0

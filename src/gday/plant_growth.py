@@ -272,10 +272,9 @@ class PlantGrowth(object):
         self.fluxes.nuptake = self.calculate_nuptake()
         
         # N lost from system through leaching and gaseous emissions
-        # - a clear assumption using fixed rate constant across the year
         self.fluxes.nloss = self.params.rateloss * self.state.inorgn
     
-        # total nitrogen to allocate (tn/ha/day)
+        # total nitrogen to allocate 
         ntot = self.fluxes.nuptake + retrans
 
         # allocate N to pools with fixed N:C ratios
@@ -335,7 +334,8 @@ class PlantGrowth(object):
         return arg1 + arg2
     
     def calculate_nuptake(self):
-        """ N uptake from the soil 
+        """ N uptake from the soil, note as it stands root biomass does not
+        affect N uptake.
         
         Returns:
         --------
