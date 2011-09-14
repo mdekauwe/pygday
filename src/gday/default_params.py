@@ -59,8 +59,7 @@ ligfaeces        = 0.25 #Faeces lignin as fractn of biomass
 faecescn         = 25.0 #Faeces C:N ratio
 fractosoil       = 0.85 #Fractn of grazed N recycled to soil:faeces+urine
 
-#nitrogen cycling params
-#ninflow          = 0.016         #Atmospheric N input (t/ha/yr) (/yr)
+#nitrogen cycling paramsa
 rateuptake       = 5.7            #rate of N uptake from mineral N pool (/yr) from here? http://face.ornl.gov/Finzi-PNAS.pdf
 rateloss         = 0.5            #Rate of N loss from mineral N pool (/yr)
 fretrans         = 0.5            #foliage n retranslocation fraction
@@ -80,8 +79,8 @@ ncbnew_crit      = 0.003          #new branch N C at critical leaf N C
 ncrfac           = 0.8            #N:C of root prodn / N:C c of leaf prodn
 ageold           = 1000.0         #Plant age when max leaf N C ratio is lowest
 ageyoung         = 0.0            #Plant age when max leaf N C ratio is highest
-ncmaxfyoung      = 0.04           #max N:C ratio of foliage in young stand
-ncmaxfold        = 0.04           #max N:C ratio of foliage in old stand
+ncmaxfyoung      = 0.04           #max N:C ratio of foliage in young stand, if the same as old=no effect
+ncmaxfold        = 0.04           #max N:C ratio of foliage in old stand, if the same as young=no effect
 ncmaxr           = 0.03           #max N:C ratio of roots
 retransmob       = 0.0            #Fraction stem mobile N retranscd (/yr)
 fhw              = 0.8            # n:c ratio of stemwood - immobile pool and new ring
@@ -144,7 +143,6 @@ displace_ratio   = 0.78   # Value for coniferous forest from Jarvis et al 1976, 
 
 
 vpd = 0.5
-age = 0.0       #Initial stand age (years)
 nuptakez = 0.0  # (1/yr)
 passivesoilz = 1.0  # constant vals
 passivesoilnz = 1.0 # constant vals
@@ -166,5 +164,6 @@ fmleaf = 0.0
 fmroot = 0.0
 faecesn = 0.0
 
+magic_n = 1.0
 
 #==============================================================================#

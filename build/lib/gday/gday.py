@@ -28,7 +28,7 @@ class Gday(object):
 
     GDAY simulates C, N and water cycling between the plant and the soil. The
     model is structured into three plant pools (foliage, wood and fine roots),
-    four litter pools (above/below metaolic and structural litter) and three
+    four litter pools (above/below metabolic and structural litter) and three
     soil organic matter (SOM) pools with varying turnover rates (active, slow
     and passive). An adapted implementation of the CENTURY model simulates soil
     carbon and nutrient dynamics. There is an additional simple soil water
@@ -162,7 +162,7 @@ class Gday(object):
 
         # calculate initial C:N ratios and zero annual flux sums
         de.derive_vals_from_state(1, self.date, INIT=True)
-
+        
         for project_day in xrange(len(self.met_data['prjday'])):
 
             # litterfall rate: C and N fluxes
@@ -203,7 +203,7 @@ class Gday(object):
 
         # house cleaning, close ouput files
         self.pr.tidy_up()
-
+        
     def simulation_start_date(self):
         """ figure out when the simulation starts
 

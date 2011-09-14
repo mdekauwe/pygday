@@ -134,13 +134,15 @@ class PlantGrowth(object):
         # fixed N:C in the stemwood
         if self.control.fixed_stem_nc == 1:
             # n:c ratio of stemwood - immobile pool and new ring
+            #self.params.ncwimm_crit = 0.0
+            #self.params.ncwimm = 0.0
             ncwimm = (self.params.ncwimm + nitfac *
                         (self.params.ncwimm_crit - self.params.ncwimm))
-
+            
             # New stem ring N:C at critical leaf N:C (mobile)
             ncwnew = (self.params.ncwnew + nitfac *
                         (self.params.ncwnew_crit - self.params.ncwnew))
-
+            ncwnew = 0.0
         # vary stem N:C based on reln with foliage, see Jeffreys.
         else:
             ncwimm = (0.0282 * self.state.shootnc + 0.000234) * self.params.fhw
@@ -224,17 +226,17 @@ class PlantGrowth(object):
             allocation fraction for stem
 
         """
-
         alleaf = (self.params.callocf + nitfac *
                     (self.params.callocf_crit - self.params.callocf))
+    
         alroot = (self.params.callocr + nitfac *
                     (self.params.callocr_crit - self.params.callocr))
 
         albranch = (self.params.callocb + nitfac *
                     (self.params.callocb_crit - self.params.callocb))
-
+        
         alstem = 1.0 - alleaf - alroot - albranch
-
+    
         return (alleaf, alroot, albranch, alstem)
 
     def nitrogen_distribution(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
@@ -330,7 +332,7 @@ class PlantGrowth(object):
         arg2 = (self.params.wretrans * self.params.wdecay *
                     self.state.stemnmob + self.params.retransmob *
                     self.state.stemnmob)
-
+        
         return arg1 + arg2
     
     def calculate_nuptake(self):
@@ -429,11 +431,12 @@ class PlantGrowth(object):
 
         # maximum leaf n:c ratio is function of stand age
         #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
+        age_effect = ((self.state.age - self.params.ageyoung) / 
+                        (self.params.ageold - self.params.ageyoung))
+        
         ncmaxf = (self.params.ncmaxfyoung - (self.params.ncmaxfyoung -
-                    self.params.ncmaxfold) *
-                    (self.params.age - self.params.ageyoung) /
-                    (self.params.ageold - self.params.ageyoung))
-
+                    self.params.ncmaxfold) * age_effect)
+               
         if float_lt(ncmaxf, self.params.ncmaxfold):
             ncmaxf = self.params.ncmaxfold
 

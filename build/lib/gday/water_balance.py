@@ -461,7 +461,7 @@ class WaterBalance(object):
                 self.params.wcapac_root)
         return max(0.0, arg)
 
-    def calculate_soil_water_fac(self, topsoil=False):
+    def calculate_soil_water_fac(self):
         """ Estimate a relative water availability factor [0..1]
 
         A drying soil results in physiological stress that can induce stomatal
@@ -475,31 +475,25 @@ class WaterBalance(object):
         * van Genuchten (1981) Soil Sci. Soc. Am. J, 44, 892--898.
         * Wang and Leuning (1998) Ag Forest Met, 91, 89-111.
 
-        Parameters:
-        -----------
-        topsoil : logical, optional
-            flag to define whether calculation is for the topsoil or the entire
-            root zone.
-
         Returns:
         --------
-        wtfac : float
-            water availability factor [0,1]
-
+        wtfac_tsoil : float
+            water availability factor for the top soil [0,1]
+        wtfac_root : float
+            water availability factor for the root zone [0,1]    
         """
         # turn into fraction...
-        if topsoil == False:
-            smc = self.state.pawater_root / self.params.wcapac_root
-        else:
-            smc = self.state.pawater_tsoil / self.params.wcapac_topsoil
+        smc_root = self.state.pawater_root / self.params.wcapac_root
+        smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
 
         # Calculate a soil moisture availability factor, used to adjust
         # ci/ca ratio in the face of limited water supply.
-        arg1 = smc - self.params.fwpmin
-        arg2 = self.params.fwpmax - self.params.fwpmin
-        wtfac = arg1 / arg2
+        arg = self.params.fwpmax - self.params.fwpmin
+        wtfac_tsoil = (smc_topsoil - self.params.fwpmin) / arg
+        wtfac_root = (smc_root - self.params.fwpmin) / arg
 
-        return clip(wtfac, min=0.0, max=1.0)
+        return (clip(wtfac_tsoil, min=0.0, max=1.0), 
+                clip(wtfac_root, min=0.0, max=1.0))
 
 
 

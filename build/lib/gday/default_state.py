@@ -49,7 +49,7 @@ sla = None
 light_interception = None
 ncontent = None
 wtfac_root = None
-
+wtfac_tsoil = None
 
 nepsum = 0.0
 nppsum = 0.0

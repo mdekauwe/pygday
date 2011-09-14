@@ -69,9 +69,8 @@ class Derive(object):
             logical defining whether it is the first day of the simulation
 
         """
-
-        ndep = self.met_data['ndep'][day]
-
+        ndep = self.met_data['ndep'][day] * self.params.magic_n
+        
         # c/n ratios, most of these are just diagnostics, and not used.
         self.state.rootnc = nc_ratio(self.state.root, self.state.rootn)
         
