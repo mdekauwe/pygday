@@ -134,15 +134,13 @@ class PlantGrowth(object):
         # fixed N:C in the stemwood
         if self.control.fixed_stem_nc == 1:
             # n:c ratio of stemwood - immobile pool and new ring
-            #self.params.ncwimm_crit = 0.0
-            #self.params.ncwimm = 0.0
             ncwimm = (self.params.ncwimm + nitfac *
                         (self.params.ncwimm_crit - self.params.ncwimm))
             
             # New stem ring N:C at critical leaf N:C (mobile)
             ncwnew = (self.params.ncwnew + nitfac *
                         (self.params.ncwnew_crit - self.params.ncwnew))
-            ncwnew = 0.0
+            
         # vary stem N:C based on reln with foliage, see Jeffreys.
         else:
             ncwimm = (0.0282 * self.state.shootnc + 0.000234) * self.params.fhw
