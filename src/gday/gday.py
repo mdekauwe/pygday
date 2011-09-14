@@ -7,6 +7,7 @@ description.
 #import ipdb
 import sys
 import datetime
+import calendar
 
 import constants as const
 from file_parser import initialise_model_data
@@ -142,7 +143,7 @@ class Gday(object):
                                 'bdecay', 'wdecay', 'kdec1', 'kdec2', 'kdec3',
                                 'kdec4', 'kdec5', 'kdec6', 'kdec7', 'nuptakez']
         self.correct_rate_constants(output=False)
-
+        
     def run_sim(self):
         """ Run model simulation! """
 
@@ -162,7 +163,7 @@ class Gday(object):
 
         # calculate initial C:N ratios and zero annual flux sums
         de.derive_vals_from_state(1, self.date, INIT=True)
-
+        
         for project_day in xrange(len(self.met_data['prjday'])):
 
             # litterfall rate: C and N fluxes
@@ -188,9 +189,10 @@ class Gday(object):
                 self.pr.save_daily_output(project_day + 1, self.date)
 
             self.increment_date()
-
+            
+            
             #print self.fluxes.transpiration
-            #print self.fluxes.gpp_gCm2
+            print self.fluxes.gpp_gCm2
             #print self.state.stemn * 100.0
 
         if self.control.print_options == 1:
@@ -203,7 +205,7 @@ class Gday(object):
 
         # house cleaning, close ouput files
         self.pr.tidy_up()
-
+        
     def simulation_start_date(self):
         """ figure out when the simulation starts
 
@@ -222,6 +224,15 @@ class Gday(object):
         """ move date object on a day, assumes daily date will need to adapt
 
         """
+        # Total number of days in year
+        if calendar.isleap(self.date.year):
+            yr_days = 366.
+        else:
+            yr_days = 365.
+        
+        #Required so max leaf & root N:C can depend on Age 
+        self.state.age += 1.0 / yr_days
+        
         self.date += datetime.timedelta(days=1)
 
     def calculate_nep(self):

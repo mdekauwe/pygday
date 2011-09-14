@@ -134,13 +134,15 @@ class PlantGrowth(object):
         # fixed N:C in the stemwood
         if self.control.fixed_stem_nc == 1:
             # n:c ratio of stemwood - immobile pool and new ring
+            #self.params.ncwimm_crit = 0.0
+            #self.params.ncwimm = 0.0
             ncwimm = (self.params.ncwimm + nitfac *
                         (self.params.ncwimm_crit - self.params.ncwimm))
-
+            
             # New stem ring N:C at critical leaf N:C (mobile)
             ncwnew = (self.params.ncwnew + nitfac *
                         (self.params.ncwnew_crit - self.params.ncwnew))
-
+            ncwnew = 0.0
         # vary stem N:C based on reln with foliage, see Jeffreys.
         else:
             ncwimm = (0.0282 * self.state.shootnc + 0.000234) * self.params.fhw
@@ -184,7 +186,8 @@ class PlantGrowth(object):
 
         # Calculate the soil moisture availability factors [0,1] in the topsoil
         # and the entire root zone
-        self.state.wtfac_root = self.wb.calculate_soil_water_fac(topsoil=False)
+        (self.state.wtfac_tsoil, 
+            self.state.wtfac_root) = self.wb.calculate_soil_water_fac()
 
         # Estimate photosynthesis using an empirical model
         if self.control.assim_model >=0 and self.control.assim_model <= 4:
@@ -223,17 +226,17 @@ class PlantGrowth(object):
             allocation fraction for stem
 
         """
-
         alleaf = (self.params.callocf + nitfac *
                     (self.params.callocf_crit - self.params.callocf))
+    
         alroot = (self.params.callocr + nitfac *
                     (self.params.callocr_crit - self.params.callocr))
 
         albranch = (self.params.callocb + nitfac *
                     (self.params.callocb_crit - self.params.callocb))
-
+        
         alstem = 1.0 - alleaf - alroot - albranch
-
+    
         return (alleaf, alroot, albranch, alstem)
 
     def nitrogen_distribution(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
@@ -271,10 +274,9 @@ class PlantGrowth(object):
         self.fluxes.nuptake = self.calculate_nuptake()
         
         # N lost from system through leaching and gaseous emissions
-        # - a clear assumption using fixed rate constant across the year
         self.fluxes.nloss = self.params.rateloss * self.state.inorgn
     
-        # total nitrogen to allocate (tn/ha/day)
+        # total nitrogen to allocate 
         ntot = self.fluxes.nuptake + retrans
 
         # allocate N to pools with fixed N:C ratios
@@ -330,11 +332,12 @@ class PlantGrowth(object):
         arg2 = (self.params.wretrans * self.params.wdecay *
                     self.state.stemnmob + self.params.retransmob *
                     self.state.stemnmob)
-
+        
         return arg1 + arg2
     
     def calculate_nuptake(self):
-        """ N uptake from the soil 
+        """ N uptake from the soil, note as it stands root biomass does not
+        affect N uptake.
         
         Returns:
         --------

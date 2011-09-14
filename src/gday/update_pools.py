@@ -126,7 +126,7 @@ class NitrogenPools(object):
             project day of simulation
         """
 
-        ndep = self.met_data['ndep'][day]
+        ndep = self.met_data['ndep'][day] * self.params.magic_n
 
         # net source fluxes.
         nstsu = self.fluxes.nresid[0]  # s surf

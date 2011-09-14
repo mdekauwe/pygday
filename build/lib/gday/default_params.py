@@ -59,8 +59,7 @@ ligfaeces        = 0.25 #Faeces lignin as fractn of biomass
 faecescn         = 25.0 #Faeces C:N ratio
 fractosoil       = 0.85 #Fractn of grazed N recycled to soil:faeces+urine
 
-#nitrogen cycling params
-#ninflow          = 0.016         #Atmospheric N input (t/ha/yr) (/yr)
+#nitrogen cycling paramsa
 rateuptake       = 5.7            #rate of N uptake from mineral N pool (/yr) from here? http://face.ornl.gov/Finzi-PNAS.pdf
 rateloss         = 0.5            #Rate of N loss from mineral N pool (/yr)
 fretrans         = 0.5            #foliage n retranslocation fraction
@@ -158,7 +157,7 @@ a1 = 0.0
 #============== Not publicly accessible to the user ==========================#
 
 # decay rates
-decayrate = [0.0] * 7 # Decay rates
+decayrate = [None] * 7
 
 # metabolic pool C fractions
 fmfaeces = 0.0
@@ -166,5 +165,6 @@ fmleaf = 0.0
 fmroot = 0.0
 faecesn = 0.0
 
+magic_n = 1.0
 
 #==============================================================================#

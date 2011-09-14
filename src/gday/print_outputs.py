@@ -52,10 +52,7 @@ class PrintOutput(object):
         except IOError:
             raise IOError("Can't open %s file for write" % self.odaily)
 
-        # stuff not to print out!
-        self.ignore_state = ["activesoil", "activesoiln"]
-
-
+       
     def save_default_parameters(self):
         """ Print default model state, control and param files.
 
@@ -90,7 +87,7 @@ class PrintOutput(object):
             raise IOError("Can't open %s file for write" %
                             self.out_param_fname)
         self.print_parameters(oparams=oparams)
-
+        
         # tidy up
         oparams.close()
 
@@ -111,7 +108,7 @@ class PrintOutput(object):
         """
         ignore = ['actncslope', 'slowncslope', 'passncslope', 'decayrate', \
                     'fmfaeces', 'light_interception', 'wtfac_tsoil', \
-                    'wtfac_root']
+                    'wtfac_root', 'activesoil', 'activesoiln']
         self.dump_ini_data("[files]\n", self.files, ignore, oparams, 
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, oparams, 
