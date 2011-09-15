@@ -53,6 +53,8 @@ wtfac_tsoil = None
 
 nepsum = 0.0
 nppsum = 0.0
+age = 0.0                               #Current stand age (years)
+
 
 #============== Not publicly accessible to the user ==========================#
 # total plant, soil, litter and system carbon

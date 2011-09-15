@@ -7,6 +7,7 @@ description.
 #import ipdb
 import sys
 import datetime
+import calendar
 
 import constants as const
 from file_parser import initialise_model_data
@@ -142,7 +143,7 @@ class Gday(object):
                                 'bdecay', 'wdecay', 'kdec1', 'kdec2', 'kdec3',
                                 'kdec4', 'kdec5', 'kdec6', 'kdec7', 'nuptakez']
         self.correct_rate_constants(output=False)
-
+        
     def run_sim(self):
         """ Run model simulation! """
 
@@ -176,19 +177,22 @@ class Gday(object):
             nf.calculate_nflows()
 
             self.fluxes.nep = self.calculate_nep()
-
+            
             # soil model - update pools
             (cact, cslo, cpas) = cpl.calculate_cpools()
             npl.calculate_npools(cact, cslo, cpas, project_day)
 
             # calculate C:N ratios and increment annual flux sums
             de.derive_vals_from_state(project_day, self.date)
-
+            
+            print self.state.plantc, self.state.soilc
+            
             if self.control.print_options == 0:
                 self.pr.save_daily_output(project_day + 1, self.date)
 
             self.increment_date()
-
+            
+            
             #print self.fluxes.transpiration
             #print self.fluxes.gpp_gCm2
             #print self.state.stemn * 100.0
@@ -222,6 +226,15 @@ class Gday(object):
         """ move date object on a day, assumes daily date will need to adapt
 
         """
+        # Total number of days in year
+        if calendar.isleap(self.date.year):
+            yr_days = 366.
+        else:
+            yr_days = 365.
+        
+        #Required so max leaf & root N:C can depend on Age 
+        self.state.age += 1.0 / yr_days
+        
         self.date += datetime.timedelta(days=1)
 
     def calculate_nep(self):

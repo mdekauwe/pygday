@@ -121,6 +121,11 @@ class Mate(object):
         jmax = self.calculate_jmax_parameter(temp, N0)
         vcmax = self.calculate_vcmax_parameter(temp, N0)
         
+        # alpha calc from McM 2008, varies with Co2. Value here is to high
+        # due to gamma_star value. Ask Belinda why we use a fixed alpha
+        #gamma_star_avg = sum(gamma_star) / 2.0
+        #print 0.07 * (ca -  gamma_star_avg) / (ca + 2.0 *  gamma_star_avg)
+       
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
@@ -135,10 +140,13 @@ class Mate(object):
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
         aj = [self.ajlim(jmax[k], ci[k], gamma_star[k]) for k in am, pm]
         
-        # Note that these are gross photosynthetic rates.
+        # Note that these are gross photosynthetic rates. Response to elevated
+        # [CO2] is reduced if N declines, but increases as gs declines.
         asat = [min(aj[k], ac[k]) for k in am, pm]
         
-        # LUE, calculation is performed for morning and afternnon periods
+        # GPP is assumed to be proportional to APAR, where the LUE defines the
+        # slope of this relationship. LUE, calculation is performed for morning 
+        # and afternnon periods
         lue = [self.epsilon(asat[k], par, daylen) for k in am, pm]
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
@@ -151,15 +159,15 @@ class Mate(object):
             self.fluxes.apar = par_mol * self.state.light_interception
 
         # gC m-2 d-1
-        self.fluxes.npp_gCm2 = (self.fluxes.apar * lue_avg * self.params.cue *
-                                    const.MOLE_C_TO_GRAMS_C)
-        self.fluxes.gpp_gCm2 = self.fluxes.npp_gCm2 / self.params.cue
-
+        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
+                                const.MOLE_C_TO_GRAMS_C)
+        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        
         # tonnes hectare-1 day-1
-        self.fluxes.npp = (self.fluxes.npp_gCm2 * const.G_AS_TONNES /
-                            const.M2_AS_HA)
-        self.fluxes.gpp = self.fluxes.npp / self.params.cue
-
+        conv = const.G_AS_TONNES / const.M2_AS_HA
+        self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
+        self.fluxes.npp = self.fluxes.npp_gCm2 * conv
+        
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
 
@@ -265,7 +273,8 @@ class Mate(object):
                 (1.0 - math.exp(-self.params.kext * self.state.lai)))
     
     def calculate_jmax_parameter(self, temp, N0):
-        """ Max rate of electron transport, Jmax. 
+        """ Calculate the maximum RuBP regeneration rate for light-saturated 
+        leaves at the top of the canopy (proportional to leaf-N content). 
 
         Parameters:
         ----------
@@ -379,12 +388,12 @@ class Mate(object):
                 (self.params.g1 * self.state.wtfac_root + math.sqrt(vpd))))
 
     def epsilon(self, amax, par, daylen):
-        """ Integrate LUE using method from Sands 1995, 1996.
+        """ Canopy scale LUE using method from Sands 1995, 1996.
 
         Parameters:
         ----------
         amax : float
-            light-saturated rate of photosynthesis
+            photosynthetic rate at the top of the canopy
         par : float
             incident photosyntetically active radiation
         daylen : float
@@ -405,6 +414,8 @@ class Mate(object):
         * Sands, P. J. (1995) Australian Journal of Plant Physiology, 22, 601-14.
 
         """
+        
+        
         if float_gt(amax, 0.0):
             q = (math.pi * self.params.kext * self.params.alpha * par /
                     (2.0 * daylen * const.HRS_TO_SECS * amax))
@@ -509,7 +520,7 @@ if __name__ == "__main__":
     #import numpy as np
     #laidata = np.loadtxt(laifname)
 
-    
+    control.co2_conc = 0
     
     for project_day in xrange(len(met_data['prjday'])):
 

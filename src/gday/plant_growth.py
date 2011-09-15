@@ -141,7 +141,9 @@ class PlantGrowth(object):
             ncwnew = (self.params.ncwnew + nitfac *
                         (self.params.ncwnew_crit - self.params.ncwnew))
             
-        # vary stem N:C based on reln with foliage, see Jeffreys.
+        # vary stem N:C based on reln with foliage, see Jeffreys. Jeffreys 1999
+        # showed that N:C ratio of new wood increases with foliar N:C ratio,
+        # modelled here based on evidence as a linear function.
         else:
             ncwimm = (0.0282 * self.state.shootnc + 0.000234) * self.params.fhw
 
@@ -204,8 +206,9 @@ class PlantGrowth(object):
     def allocate_carbon(self, nitfac):
         """Carbon allocation fractions to move photosynthate through the plant.
         Allocations to foliage tends to decrease with stand age and wood stock
-        increases. In stressed (soil/nutrient) regions fine root allocations
-        increases.
+        increases (Makela and Hari, 1986; Cannell and Dewar, 1994; 
+        Magnani et al, 2000). In stressed (soil/nutrient) regions fine root 
+        allocations increases.
 
         Parameters:
         -----------
@@ -222,7 +225,10 @@ class PlantGrowth(object):
             allocation fraction for branches
         alstem : float
             allocation fraction for stem
-
+        
+        References:
+        -----------
+        
         """
         alleaf = (self.params.callocf + nitfac *
                     (self.params.callocf_crit - self.params.callocf))
@@ -271,7 +277,9 @@ class PlantGrowth(object):
         
         self.fluxes.nuptake = self.calculate_nuptake()
         
-        # N lost from system through leaching and gaseous emissions
+        # N lost from system is proportional to the inorganic N pool, where the
+        # rate constant empirically defines gaseous and leaching losses, see
+        # McMurtrie et al. 2001.
         self.fluxes.nloss = self.params.rateloss * self.state.inorgn
     
         # total nitrogen to allocate 
@@ -466,7 +474,7 @@ class PlantGrowth(object):
                 extrar = self.fluxes.nuptake - extras
 
             self.state.rootn -= extrar
-            self.fluxes.nuptake -= extrar #/ self.fluxes.deltay
+            self.fluxes.nuptake -= extrar 
 
 
 

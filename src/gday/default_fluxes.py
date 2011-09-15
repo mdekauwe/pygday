@@ -22,10 +22,11 @@ hetero_resp = None
 nuptake = None
 nloss = None
 npassive = None # n passive -> active
-ngross = None   # N gross mineralisation
+ngrossmin = None   # N gross mineralisation
 nimmob = None   # N immobilisation in SOM
 nlittrelease = None # N rel litter = struct + metab
 activelossf = None # frac of active C -> CO2
+ninflow = None # Ninflow e.g. ndep
 
 # water fluxes
 wue = 0.0
