@@ -69,15 +69,10 @@ class Derive(object):
             logical defining whether it is the first day of the simulation
 
         """
-        ndep = self.met_data['ndep'][day] * self.params.magic_n
+        self.fluxes.ninflow = self.met_data['ndep'][day] * self.params.magic_n
         
         # c/n ratios, most of these are just diagnostics, and not used.
         self.state.rootnc = nc_ratio(self.state.root, self.state.rootn)
-        
-        # just messing with what might happen if canopy directly took up N
-        #cnu = 0.48 * ndep
-        #self.state.shootn += cnu
-        
         self.state.shootnc = nc_ratio(self.state.shoot, self.state.shootn)
         
         # Diagnostic N:C
@@ -141,7 +136,8 @@ class Derive(object):
                                         const.M2_AS_HA)
 
             # N Net mineralisation, i.e. excess of N outflows over inflows
-            self.fluxes.nmineralisation = (ndep + self.fluxes.ngross -
+            self.fluxes.nmineralisation = (self.fluxes.ninflow + 
+                                            self.fluxes.ngrossmin -
                                             self.fluxes.nimmob +
                                             self.fluxes.nlittrelease)
 

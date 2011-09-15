@@ -125,9 +125,6 @@ class NitrogenPools(object):
         day : integer
             project day of simulation
         """
-
-        ndep = self.met_data['ndep'][day] * self.params.magic_n
-
         # net source fluxes.
         nstsu = self.fluxes.nresid[0]  # s surf
         nstsl = self.fluxes.nresid[1]  # s soil
@@ -215,7 +212,7 @@ class NitrogenPools(object):
         # Daily increment of soil inorganic N pool, diff btw in and effluxes
         # (grazer urine n goes directly into inorganic pool) nb inorgn may be
         # unstable if rateuptake is large
-        self.state.inorgn += ((self.fluxes.ngross + ndep +
+        self.state.inorgn += ((self.fluxes.ngrossmin + self.fluxes.ninflow +
                                 self.fluxes.nurine - self.fluxes.nimmob -
                                 self.fluxes.nloss - self.fluxes.nuptake) +
                                 self.fluxes.nlittrelease)

@@ -71,11 +71,13 @@ class CarbonFlows(object):
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
         and moisture dependency. Note same temperature is assumed for all 3 
-        SOM pools, found by Knorr et al (2005) to be untrue
+        SOM pools, found by Knorr et al (2005) to be untrue. N mineralisation
+        depends on top soil moisture (most variable) (Connell et al. 1995)
         
         References:
         -----------
         Knorr et al. (2005) Nature, 433, 298-301.
+        Connell et al. (1995) Biol. Fert. Soils, 20, 213-220.
     
         Parameters:
         -----------
@@ -405,7 +407,7 @@ class NitrogenFlows(object):
         self.nfluxes_from_passive_pool()
         
         # gross N mineralisation 
-        self.fluxes.ngross = self.calculate_nmineralisation()
+        self.fluxes.ngrossmin = self.calculate_nmineralisation()
 
         # calculate N immobilisation
         self.fluxes.nimmob = self.calculate_nimmobilisation()

@@ -177,14 +177,16 @@ class Gday(object):
             nf.calculate_nflows()
 
             self.fluxes.nep = self.calculate_nep()
-
+            
             # soil model - update pools
             (cact, cslo, cpas) = cpl.calculate_cpools()
             npl.calculate_npools(cact, cslo, cpas, project_day)
 
             # calculate C:N ratios and increment annual flux sums
             de.derive_vals_from_state(project_day, self.date)
-
+            
+            #print self.state.plantc, self.state.soilc
+            
             if self.control.print_options == 0:
                 self.pr.save_daily_output(project_day + 1, self.date)
 
