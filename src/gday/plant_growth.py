@@ -254,7 +254,8 @@ class PlantGrowth(object):
         return (alleaf, alroot, albranch, alstem, alroot_exudate)
 
     def nitrogen_distribution(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
-                                alleaf, alroot, albranch, alstem):
+                                alleaf, alroot, albranch, alstem, 
+                                alroot_exudate):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
         to the shoot and roots with flexible ratios.
@@ -283,7 +284,8 @@ class PlantGrowth(object):
             allocation fraction for branches
         alstem : float
             allocation fraction for stem
-
+        alroot_exudate : float
+            allocation fraction for root exudation
         """
         # N retranslocated proportion from dying plant tissue and stored within
         # the plant
@@ -310,9 +312,8 @@ class PlantGrowth(object):
         self.fluxes.npstemmob = self.fluxes.npp * alstem * (ncwnew - ncwimm)
         
         # N flux into root exudation, see McMurtrie et al. 2000
-        self.fluxes.rootexudate = (self.fluxes.npp * alroot_exudate * 
-                                    self.param.vxfix)
-        
+        self.fluxes.nrootexudate = (self.fluxes.npp * alroot_exudate * 
+                                    self.params.vxfix)
         
         # If we have allocated more N than we have available - cut back N prodn
         arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +

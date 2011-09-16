@@ -137,7 +137,8 @@ class Derive(object):
 
             # N Net mineralisation, i.e. excess of N outflows over inflows
             self.fluxes.nmineralisation = (self.fluxes.ninflow + 
-                                            self.fluxes.ngrossmin -
+                                            self.fluxes.ngrossmin +
+                                            self.fluxes.nrootexudate -
                                             self.fluxes.nimmob +
                                             self.fluxes.nlittrelease)
 
