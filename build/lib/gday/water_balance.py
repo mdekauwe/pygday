@@ -465,7 +465,8 @@ class WaterBalance(object):
         """ Estimate a relative water availability factor [0..1]
 
         A drying soil results in physiological stress that can induce stomatal
-        closure and reduce transpiration.
+        closure and reduce transpiration. Further N mineralisation depends on 
+        top soil moisture.
 
         References:
         -----------

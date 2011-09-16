@@ -185,7 +185,7 @@ class Gday(object):
             # calculate C:N ratios and increment annual flux sums
             de.derive_vals_from_state(project_day, self.date)
             
-            print self.state.plantc, self.state.soilc
+            #print self.state.plantc, self.state.soilc
             
             if self.control.print_options == 0:
                 self.pr.save_daily_output(project_day + 1, self.date)
@@ -194,7 +194,7 @@ class Gday(object):
             
             
             #print self.fluxes.transpiration
-            #print self.fluxes.gpp_gCm2
+            print self.fluxes.gpp_gCm2
             #print self.state.stemn * 100.0
 
         if self.control.print_options == 1:
