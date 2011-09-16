@@ -124,8 +124,9 @@ class Mate(object):
         # alpha calc from McM 2008, varies with Co2. Value here is to high
         # due to gamma_star value. Ask Belinda why we use a fixed alpha
         #gamma_star_avg = sum(gamma_star) / 2.0
-        #print 0.07 * (ca -  gamma_star_avg) / (ca + 2.0 *  gamma_star_avg)
-       
+        #self.params.alpha =  0.07 * ((ca -  gamma_star_avg) / (ca + 2.0 *  gamma_star_avg))
+        
+        #print self.params.alpha, gamma_star, 
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
@@ -546,7 +547,7 @@ if __name__ == "__main__":
         #print state.shootn
         M.calculate_photosynthesis(project_day, daylen)
 
-        print fluxes.gpp_gCm2
+        #print fluxes.gpp_gCm2
 
 
 

@@ -69,7 +69,7 @@ bretrans         = 0.0            #branch n retranslocation fraction
 wretrans         = 0.0            #mobile wood N retranslocation fraction
 uo = 2.737850787E-4 # Supply rate of available N (0.01 kg N m-2 yr-1 to t/ha/day)
 kr = 0.5 # N uptake coefficent (0.05 kg C m-2 to 0.5 tonnes/ha)
-vxfix            = 0.005          # N fixation per unit rhizodeposition
+vxfix            = 0.005          # N fixation per unit rhizodeposition (tonnes N tonnes-1 C)
 #set nitrogen allocation parameters
 ncwnew           = 0.003          #New stem ring N:C at zero leaf N:C (mobile)
 ncwnew_crit      = 0.003          #New stem ring N:C at critical leaf N:C (mob)

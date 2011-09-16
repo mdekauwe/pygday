@@ -1,7 +1,7 @@
 """
 G'DAY default fluxes
 
-Read into the model unless the user changes these at runtime with definitions
+Read into the model unless the user changes these at runtime with definitions 
 in the .INI file
 
 """
@@ -48,6 +48,7 @@ nproot = None
 npbranch = None
 npstemimm = None
 npstemmob = None
+nrootexudate = None
 
 # dying stuff
 deadleaves = None   # Leaf litter C production (t/ha/yr)
@@ -74,7 +75,7 @@ nstruct = [None] * 4  # Nsurf struct -> slow, Nsurf struct -> active, Nsoil stru
 
 
 # C flows to the air
-co2_to_air = [None] * 7
+co2_to_air = [None] * 7 
 
 cactive = [None] * 2 # C active -> slow/passive
 nactive = [None] * 2 # N active -> slow/passive
@@ -88,3 +89,5 @@ cmetab = [None] * 2 # C surf metab and C soil metab -> active
 cica_avg = None # used in water balance, only when running mate model
 nmineralisation = None
 apar = None
+
+rabove = 0.0

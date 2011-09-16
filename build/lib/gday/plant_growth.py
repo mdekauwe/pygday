@@ -92,12 +92,14 @@ class PlantGrowth(object):
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
 
         # figure out allocation fractions for C
-        (alleaf, alroot, albranch, alstem) = self.allocate_carbon(nitfac)
+        (alleaf, alroot, albranch, alstem, 
+            alroot_exudate) = self.allocate_carbon(nitfac)
 
         # Distribute new C and N through the system
         (ncbnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
         self.nitrogen_distribution(ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
-                                    alleaf, alroot, albranch, alstem)
+                                    alleaf, alroot, albranch, alstem, 
+                                    alroot_exudate)
         self.carbon_distribution(alleaf, alroot, albranch, alstem, nitfac)
         self.update_plant_state(fdecay, rdecay)
          
@@ -141,7 +143,9 @@ class PlantGrowth(object):
             ncwnew = (self.params.ncwnew + nitfac *
                         (self.params.ncwnew_crit - self.params.ncwnew))
             
-        # vary stem N:C based on reln with foliage, see Jeffreys.
+        # vary stem N:C based on reln with foliage, see Jeffreys. Jeffreys 1999
+        # showed that N:C ratio of new wood increases with foliar N:C ratio,
+        # modelled here based on evidence as a linear function.
         else:
             ncwimm = (0.0282 * self.state.shootnc + 0.000234) * self.params.fhw
 
@@ -204,8 +208,9 @@ class PlantGrowth(object):
     def allocate_carbon(self, nitfac):
         """Carbon allocation fractions to move photosynthate through the plant.
         Allocations to foliage tends to decrease with stand age and wood stock
-        increases. In stressed (soil/nutrient) regions fine root allocations
-        increases.
+        increases (Makela and Hari, 1986; Cannell and Dewar, 1994; 
+        Magnani et al, 2000). In stressed (soil/nutrient) regions fine root 
+        allocations increases.
 
         Parameters:
         -----------
@@ -222,7 +227,12 @@ class PlantGrowth(object):
             allocation fraction for branches
         alstem : float
             allocation fraction for stem
-
+        alroot_exudate : float
+            allocation fraction for root exudate 
+       
+        References:
+        -----------
+        McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
         alleaf = (self.params.callocf + nitfac *
                     (self.params.callocf_crit - self.params.callocf))
@@ -233,16 +243,27 @@ class PlantGrowth(object):
         albranch = (self.params.callocb + nitfac *
                     (self.params.callocb_crit - self.params.callocb))
         
-        alstem = 1.0 - alleaf - alroot - albranch
-    
-        return (alleaf, alroot, albranch, alstem)
+        
+        # Remove some of the allocation to wood and instead allocate it to
+        # root exudation. Following McMurtrie et al. 2000
+        alroot_exudate = self.params.callocrx
+        
+        # allocate remainder to stem
+        alstem = 1.0 - alleaf - alroot - albranch - alroot_exudate
+        
+        return (alleaf, alroot, albranch, alstem, alroot_exudate)
 
     def nitrogen_distribution(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
-                                alleaf, alroot, albranch, alstem):
+                                alleaf, alroot, albranch, alstem, 
+                                alroot_exudate):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
         to the shoot and roots with flexible ratios.
-
+        
+        References:
+        -----------
+        McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
+        
         Parameters:
         -----------
         ncbnew : float
@@ -263,7 +284,8 @@ class PlantGrowth(object):
             allocation fraction for branches
         alstem : float
             allocation fraction for stem
-
+        alroot_exudate : float
+            allocation fraction for root exudation
         """
         # N retranslocated proportion from dying plant tissue and stored within
         # the plant
@@ -271,7 +293,9 @@ class PlantGrowth(object):
         
         self.fluxes.nuptake = self.calculate_nuptake()
         
-        # N lost from system through leaching and gaseous emissions
+        # N lost from system is proportional to the inorganic N pool, where the
+        # rate constant empirically defines gaseous and leaching losses, see
+        # McMurtrie et al. 2001.
         self.fluxes.nloss = self.params.rateloss * self.state.inorgn
     
         # total nitrogen to allocate 
@@ -286,7 +310,11 @@ class PlantGrowth(object):
         # N flux into new ring (mobile component -> can be retrans for new
         # woody tissue)
         self.fluxes.npstemmob = self.fluxes.npp * alstem * (ncwnew - ncwimm)
-
+        
+        # N flux into root exudation, see McMurtrie et al. 2000
+        self.fluxes.nrootexudate = (self.fluxes.npp * alroot_exudate * 
+                                    self.params.vxfix)
+        
         # If we have allocated more N than we have available - cut back N prodn
         arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +
                 self.fluxes.npbranch)
@@ -305,7 +333,7 @@ class PlantGrowth(object):
         self.fluxes.npleaf = (ntot * alleaf / 
                                 (alleaf + alroot * self.params.ncrfac))
         self.fluxes.nproot = ntot - self.fluxes.npleaf
-
+        
     def nitrogen_retrans(self, fdecay, rdecay):
         """ Nitrogen retranslocated from senesced plant matter.
         Constant rate of n translocated from mobile pool
@@ -385,7 +413,7 @@ class PlantGrowth(object):
         self.fluxes.cproot = self.fluxes.npp * alroot
         self.fluxes.cpbranch = self.fluxes.npp * albranch
         self.fluxes.cpstem = self.fluxes.npp * alstem
-
+        
         # evaluate SLA of new foliage accounting for variation in SLA with tree
         # and leaf age (Sands and Landsberg, 2002). Assume SLA of new foliage
         # is linearly related to leaf N:C ratio via nitfac
@@ -466,7 +494,7 @@ class PlantGrowth(object):
                 extrar = self.fluxes.nuptake - extras
 
             self.state.rootn -= extrar
-            self.fluxes.nuptake -= extrar #/ self.fluxes.deltay
+            self.fluxes.nuptake -= extrar 
 
 
 
