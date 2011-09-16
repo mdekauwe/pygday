@@ -212,10 +212,10 @@ class NitrogenPools(object):
         # Daily increment of soil inorganic N pool, diff btw in and effluxes
         # (grazer urine n goes directly into inorganic pool) nb inorgn may be
         # unstable if rateuptake is large
-        self.state.inorgn += ((self.fluxes.ngrossmin + self.fluxes.ninflow +
-                                self.fluxes.nurine - self.fluxes.nimmob -
-                                self.fluxes.nloss - self.fluxes.nuptake) +
-                                self.fluxes.nlittrelease)
+        self.state.inorgn += ((self.fluxes.ngrossmin + self.fluxes.ninflow + 
+                                self.fluxes.nrootexudate + self.fluxes.nurine - 
+                                self.fluxes.nimmob - self.fluxes.nloss - 
+                                self.fluxes.nuptake) + self.fluxes.nlittrelease)
 
 
     def nclimit(self, cpool, npool, ncmin, ncmax):
