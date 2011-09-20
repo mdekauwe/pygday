@@ -169,11 +169,19 @@ class NitrogenPools(object):
                                                     self.state.structsoiln,
                                                     1.0/self.params.structcn,
                                                     1.0/self.params.structcn)
+        
+       
         self.state.metabsurfn += nmtsu - lmtsu
+        
+        
+        #print self.state.metabsurf, self.state.metabsurfn, 1.0/25.0, 1.0/10.0, self.nclimit(self.state.metabsurf,
+        #                                        self.state.metabsurfn,
+        #                                        1.0/25.0, 1.0/10.0)
+        
         self.state.metabsurfn += self.nclimit(self.state.metabsurf,
                                                 self.state.metabsurfn,
                                                 1.0/25.0, 1.0/10.0)
-
+        
         self.state.metabsoiln += nmtsl - lmtsl
         self.state.metabsoiln += self.nclimit(self.state.metabsoil,
                                                 self.state.metabsoiln,
@@ -241,12 +249,14 @@ class NitrogenPools(object):
         """
         nmax = cpool * ncmax
         nmin = cpool * ncmin
-
-        if float_gt(npool, nmax):  #release
+        
+        if npool > nmax:
+        #if float_gt(npool, nmax):  #release
             rel = npool - nmax
             self.fluxes.nlittrelease += rel
             return -rel
-        elif float_lt(npool, nmin):   #fix
+        elif npool > nmin:   #fix
+        #elif float_lt(npool, nmin):   #fix
             fix = nmin - npool
             self.fluxes.nlittrelease -= fix
             return fix

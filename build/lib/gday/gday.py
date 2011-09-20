@@ -163,7 +163,7 @@ class Gday(object):
 
         # calculate initial C:N ratios and zero annual flux sums
         de.derive_vals_from_state(1, self.date, INIT=True)
-        
+       
         for project_day in xrange(len(self.met_data['prjday'])):
 
             # litterfall rate: C and N fluxes
@@ -194,9 +194,15 @@ class Gday(object):
             
             
             #print self.fluxes.transpiration
-            print self.fluxes.gpp_gCm2
+            #print self.fluxes.gpp_gCm2
             #print self.state.stemn * 100.0
-
+            print self.state.soilc, self.state.plantc, self.fluxes.nep, \
+                    self.state.activesoil, self.state.slowsoil, \
+                    self.state.passivesoil, self.state.root, \
+                    self.state.shoot, self.state.stem, self.state.branch,\
+                    self.state.metabsurf, self.state.metabsoil,\
+                    self.state.metabsurfn, self.state.metabsoiln
+            
         if self.control.print_options == 1:
             # need to save initial SLA to current one!
             self.params.slainit = (self.state.lai / const.M2_AS_HA *

@@ -306,10 +306,9 @@ class CarbonFlows(object):
     def cfluxes_from_metabolic_pool(self):
         """C fluxes from metabolic pools """
 
-        # surf -> act
-
+        # surface metabolic pool -> active soil pool
         self.fluxes.cmetab[0] = (self.state.metabsurf *
-                                        self.params.decayrate[1] * 0.45)
+                                    self.params.decayrate[1] * 0.45)
         self.fluxes.co2_to_air[2] = (self.state.metabsurf *
                                     self.params.decayrate[1] * 0.55)
 
@@ -454,6 +453,7 @@ class NitrogenFlows(object):
         nsurf = (self.fluxes.deadleafn + self.fluxes.deadbranchn *
                     self.params.brabove + self.fluxes.deadstemn +
                     self.params.faecesn)
+        #print nsurf
         nsoil = (self.fluxes.deadrootn + self.fluxes.deadbranchn *
                     (1. - self.params.brabove))
 
@@ -471,6 +471,7 @@ class NitrogenFlows(object):
         """
 
         # constant structural input n:c as per century
+        
         if not self.control.strfloat:
             # dead plant -> structural
 
@@ -480,12 +481,13 @@ class NitrogenFlows(object):
             # soil
             self.fluxes.nresid[1] = self.fluxes.cresid[1] / self.params.structcn
 
-            # if not enough n for structural, all available goes to structural
+            # if not enough N for structural, all available goes to structural
             if float_gt(self.fluxes.nresid[0], nsurf):
                 self.fluxes.nresid[0] = nsurf
             if float_gt(self.fluxes.nresid[1], nsoil):
                 self.fluxes.nresid[1] = nsoil
         else:
+            
             # structural input n:c is a fraction of metabolic
             cwgtsu = (self.fluxes.cresid[0] * self.params.structrat +
                         self.fluxes.cresid[2])
