@@ -29,7 +29,7 @@ passiveconst = 0       # hold passive pool at passivesoil
 print_options = 1      # 0=every timestep, 1=end of run
 grazing = 0            # Is foliage grazed 0=No, 1=Yes
 use_eff_nc = 0         # use constant leaf n:c for  metfrac s
-strfloat = 0           # Structural pool input N:C floats
+strfloat = 0           # Structural pool input N:C varies=1, fixed=0
 use_leuning = 0
 co2_conc = 0           # 0=ambient, 1=elevated
 fixed_stem_nc = 1      # 1=fixed stem N:C, 0=vary stem N:C with foliage

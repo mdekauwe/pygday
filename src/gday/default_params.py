@@ -103,14 +103,14 @@ metfrac0         = 0.85           #litter metabolic fraction
 metfrac1         = -0.018         #litter metabolic fraction
 structrat        = 0.0            #structural input n:c as fraction of metab
 
-#set decomposition parameters
-kdec1            = 3.965571    #surface structural decay rate (1/yr)
-kdec2            = 14.61       #surface metabolic decay rate (1/yr)
-kdec3            = 4.904786   #soil structural decay rate (1/yr)
+#set decomposition parameters - converted from yr to day in model!
+kdec1            = 3.965571       #surface structural decay rate (1/yr)
+kdec2            = 14.61          #surface metabolic decay rate (1/yr)
+kdec3            = 4.904786       #soil structural decay rate (1/yr)
 kdec4            = 18.262499      #soil metabolic decay rate(1/yr)
-kdec5            = 7.305        #active pool decay rate (1/yr)
-kdec6            = 0.198279    #slow pool decay rate (1/yr)
-kdec7            = 0.006783    #passive pool decay rate (1/yr)
+kdec5            = 7.305          #active pool decay rate (1/yr)
+kdec6            = 0.198279       #slow pool decay rate (1/yr)
+kdec7            = 0.006783       #passive pool decay rate (1/yr)
 
 # Set N:C ratios of soil pools [units: g/m2]
 actncmax         = 0.333333  #Active pool N:C ratio of new SOM - maximum [units: g/m2]

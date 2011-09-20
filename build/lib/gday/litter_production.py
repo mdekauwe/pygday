@@ -53,6 +53,7 @@ class LitterProduction(object):
 
         # litter production
         self.fluxes.deadleaves = fdecay * self.state.shoot
+        
         self.fluxes.deadroots = rdecay * self.state.root   # ditto
         self.fluxes.deadbranch = self.params.bdecay * self.state.branch
         self.fluxes.deadstems = self.params.wdecay * self.state.stem

@@ -148,15 +148,14 @@ class NitrogenPools(object):
 
         # net n release implied by separation of litter into structural
         # & metabolic
-        # n:c of struct litter = 1/150
-        # n:c of metab litter = 1/25 to 1/10
-        # update pools.
         #
         # the following pools only fix or release n at their limiting n:c
-        # values. Conformity with the limiting range is achieved in a single
-        # step.
-
+        # values. 
+        
+        # N released or fixed from the N inorganic pool is incremented with
+        # each call to nclimit and stored in self.fluxes.nlittrelease
         self.fluxes.nlittrelease = 0.0
+        
         self.state.structsurfn += nstsu - lstsu
         if not self.control.strfloat:
             self.state.structsurfn += self.nclimit(self.state.structsurf,
@@ -169,11 +168,12 @@ class NitrogenPools(object):
                                                     self.state.structsoiln,
                                                     1.0/self.params.structcn,
                                                     1.0/self.params.structcn)
+        
         self.state.metabsurfn += nmtsu - lmtsu
         self.state.metabsurfn += self.nclimit(self.state.metabsurf,
                                                 self.state.metabsurfn,
                                                 1.0/25.0, 1.0/10.0)
-
+       
         self.state.metabsoiln += nmtsl - lmtsl
         self.state.metabsoiln += self.nclimit(self.state.metabsoil,
                                                 self.state.metabsoiln,
@@ -217,7 +217,6 @@ class NitrogenPools(object):
                                 self.fluxes.nimmob - self.fluxes.nloss - 
                                 self.fluxes.nuptake) + self.fluxes.nlittrelease)
 
-
     def nclimit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
         the  N:C ratio of a litter pool within the range 'ncmin' to 'ncmax'.
@@ -241,10 +240,10 @@ class NitrogenPools(object):
         """
         nmax = cpool * ncmax
         nmin = cpool * ncmin
-
+    
         if float_gt(npool, nmax):  #release
             rel = npool - nmax
-            self.fluxes.nlittrelease += rel
+            self.fluxes.nlittrelease += rel 
             return -rel
         elif float_lt(npool, nmin):   #fix
             fix = nmin - npool

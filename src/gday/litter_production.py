@@ -60,7 +60,7 @@ class LitterProduction(object):
         # litter N:C ratios, roots and shoot
         ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
         ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
-
+        
         # N in litter production
         self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
         self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
