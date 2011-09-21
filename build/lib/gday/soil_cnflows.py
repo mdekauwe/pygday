@@ -395,8 +395,6 @@ class NitrogenFlows(object):
 
         # remaining n goes to metabolic pools
         self.fluxes.nresid[2] = nsurf - self.fluxes.nresid[0]
-        
-        #print '*', nsurf - self.fluxes.nresid[0], nsurf,  self.fluxes.nresid[0]
         self.fluxes.nresid[3] = nsoil - self.fluxes.nresid[1]
 
         # SOM nitrogen effluxes.  These are assumed to have the source n:c
@@ -408,7 +406,7 @@ class NitrogenFlows(object):
         self.nfluxes_from_passive_pool()
         
         # gross N mineralisation 
-        self.fluxes.ngrossmin = self.calculate_nmineralisation()
+        self.fluxes.ngross = self.calculate_nmineralisation()
 
         # calculate N immobilisation
         self.fluxes.nimmob = self.calculate_nimmobilisation()
@@ -455,7 +453,7 @@ class NitrogenFlows(object):
         nsurf = (self.fluxes.deadleafn + self.fluxes.deadbranchn *
                     self.params.brabove + self.fluxes.deadstemn +
                     self.params.faecesn)
-        #print nsurf
+        
         nsoil = (self.fluxes.deadrootn + self.fluxes.deadbranchn *
                     (1. - self.params.brabove))
 
@@ -483,8 +481,7 @@ class NitrogenFlows(object):
             # soil
             self.fluxes.nresid[1] = self.fluxes.cresid[1] / self.params.structcn
 
-            # if not enough n for structural, all available goes to structural
-            #print self.fluxes.nresid[0], nsurf
+            # if not enough N for structural, all available goes to structural
             if float_gt(self.fluxes.nresid[0], nsurf):
                 self.fluxes.nresid[0] = nsurf
             if float_gt(self.fluxes.nresid[1], nsoil):

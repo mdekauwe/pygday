@@ -74,6 +74,15 @@ class CarbonPools(object):
                                     self.fluxes.co2_to_air[2]))
         self.state.metabsoil += (cmtsl - (self.fluxes.cmetab[1] +
                                     self.fluxes.co2_to_air[3]))
+        # When nothing is being added to the metabolic pools, there is the 
+        # potential scenario with the way the model works for tiny bits to be
+        # removed with each timestep. Effectively with time this value which is
+        # zero can end up becoming zero but to a silly decimal place, so just
+        # to avoid confusion round it back to zero.
+        #self.state.metabsoil = round(self.state.metabsoil, 64)
+        #self.state.metabsurf = round(self.state.metabsurf, 64)
+        
+        
         self.state.activesoil += (cact - (self.fluxes.cactive[0] +
                                     self.fluxes.cactive[1] +
                                     self.fluxes.co2_to_air[4]))
@@ -148,15 +157,14 @@ class NitrogenPools(object):
 
         # net n release implied by separation of litter into structural
         # & metabolic
-        # n:c of struct litter = 1/150
-        # n:c of metab litter = 1/25 to 1/10
-        # update pools.
         #
         # the following pools only fix or release n at their limiting n:c
-        # values. Conformity with the limiting range is achieved in a single
-        # step.
-
+        # values. 
+        
+        # N released or fixed from the N inorganic pool is incremented with
+        # each call to nclimit and stored in self.fluxes.nlittrelease
         self.fluxes.nlittrelease = 0.0
+        
         self.state.structsurfn += nstsu - lstsu
         if not self.control.strfloat:
             self.state.structsurfn += self.nclimit(self.state.structsurf,
@@ -170,22 +178,22 @@ class NitrogenPools(object):
                                                     1.0/self.params.structcn,
                                                     1.0/self.params.structcn)
         
-       
         self.state.metabsurfn += nmtsu - lmtsu
-        
-        
-        #print self.state.metabsurf, self.state.metabsurfn, 1.0/25.0, 1.0/10.0, self.nclimit(self.state.metabsurf,
-        #                                        self.state.metabsurfn,
-        #                                        1.0/25.0, 1.0/10.0)
-        
         self.state.metabsurfn += self.nclimit(self.state.metabsurf,
                                                 self.state.metabsurfn,
                                                 1.0/25.0, 1.0/10.0)
-        
+       
         self.state.metabsoiln += nmtsl - lmtsl
         self.state.metabsoiln += self.nclimit(self.state.metabsoil,
                                                 self.state.metabsoiln,
                                                 1.0/25.0, 1.0/10.0)
+        # When nothing is being added to the metabolic pools, there is the 
+        # potential scenario with the way the model works for tiny bits to be
+        # removed with each timestep. Effectively with time this value which is
+        # zero can end up becoming zero but to a silly decimal place, so just
+        # to avoid confusion round it back to zero.
+        #self.state.metabsoiln = round(self.state.metabsoiln, 64)
+        #self.state.metabsurfn = round(self.state.metabsurfn, 64)
         
         # N:C of the SOM pools increases linearly btw prescribed min and max 
         # values as the Nconc of the soil increases.
@@ -193,6 +201,7 @@ class NitrogenPools(object):
                 const.G_AS_TONNES)
         # active
         actnc = self.params.actnc0 + self.state.actncslope * arg
+        
         if float_gt(actnc, self.params.actncmax):
             actnc = self.params.actncmax
 
@@ -220,11 +229,10 @@ class NitrogenPools(object):
         # Daily increment of soil inorganic N pool, diff btw in and effluxes
         # (grazer urine n goes directly into inorganic pool) nb inorgn may be
         # unstable if rateuptake is large
-        self.state.inorgn += ((self.fluxes.ngrossmin + self.fluxes.ninflow + 
+        self.state.inorgn += ((self.fluxes.ngross + self.fluxes.ninflow + 
                                 self.fluxes.nrootexudate + self.fluxes.nurine - 
                                 self.fluxes.nimmob - self.fluxes.nloss - 
                                 self.fluxes.nuptake) + self.fluxes.nlittrelease)
-
 
     def nclimit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
@@ -249,14 +257,12 @@ class NitrogenPools(object):
         """
         nmax = cpool * ncmax
         nmin = cpool * ncmin
-        
-        if npool > nmax:
-        #if float_gt(npool, nmax):  #release
+    
+        if float_gt(npool, nmax):  #release
             rel = npool - nmax
-            self.fluxes.nlittrelease += rel
+            self.fluxes.nlittrelease += rel 
             return -rel
-        elif npool > nmin:   #fix
-        #elif float_lt(npool, nmin):   #fix
+        elif float_lt(npool, nmin):   #fix
             fix = nmin - npool
             self.fluxes.nlittrelease -= fix
             return fix

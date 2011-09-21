@@ -131,17 +131,17 @@ class PlantGrowth(object):
         """
         # n:c ratio of new branch wood
         ncbnew = (self.params.ncbnew + nitfac *
-                    (self.params.ncbnew_crit - self.params.ncbnew))
+                    (self.params.ncbnew - self.params.ncbnewz))
 
         # fixed N:C in the stemwood
         if self.control.fixed_stem_nc == 1:
             # n:c ratio of stemwood - immobile pool and new ring
             ncwimm = (self.params.ncwimm + nitfac *
-                        (self.params.ncwimm_crit - self.params.ncwimm))
+                        (self.params.ncwimm - self.params.ncwimmz))
             
             # New stem ring N:C at critical leaf N:C (mobile)
             ncwnew = (self.params.ncwnew + nitfac *
-                        (self.params.ncwnew_crit - self.params.ncwnew))
+                        (self.params.ncwnew - self.params.ncwnewz))
             
         # vary stem N:C based on reln with foliage, see Jeffreys. Jeffreys 1999
         # showed that N:C ratio of new wood increases with foliar N:C ratio,
@@ -235,13 +235,13 @@ class PlantGrowth(object):
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
         alleaf = (self.params.callocf + nitfac *
-                    (self.params.callocf_crit - self.params.callocf))
+                    (self.params.callocf - self.params.callocfz))
     
         alroot = (self.params.callocr + nitfac *
-                    (self.params.callocr_crit - self.params.callocr))
+                    (self.params.callocr - self.params.callocrz))
 
         albranch = (self.params.callocb + nitfac *
-                    (self.params.callocb_crit - self.params.callocb))
+                    (self.params.callocb - self.params.callocbz))
         
         
         # Remove some of the allocation to wood and instead allocate it to

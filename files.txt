@@ -7,7 +7,6 @@
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/default_fluxes.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/default_params.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/default_state.py
-/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/derive.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/file_parser.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/gday.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/litter_production.py
@@ -29,7 +28,6 @@
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/default_fluxes.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/default_params.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/default_state.pyc
-/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/derive.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/file_parser.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/gday.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/litter_production.pyc
