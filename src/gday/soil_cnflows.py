@@ -406,7 +406,7 @@ class NitrogenFlows(object):
         self.nfluxes_from_passive_pool()
         
         # gross N mineralisation 
-        self.fluxes.ngrossmin = self.calculate_nmineralisation()
+        self.fluxes.ngross = self.calculate_nmineralisation()
 
         # calculate N immobilisation
         self.fluxes.nimmob = self.calculate_nimmobilisation()
@@ -453,7 +453,7 @@ class NitrogenFlows(object):
         nsurf = (self.fluxes.deadleafn + self.fluxes.deadbranchn *
                     self.params.brabove + self.fluxes.deadstemn +
                     self.params.faecesn)
-        #print nsurf
+        
         nsoil = (self.fluxes.deadrootn + self.fluxes.deadbranchn *
                     (1. - self.params.brabove))
 

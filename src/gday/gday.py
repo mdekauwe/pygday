@@ -194,12 +194,8 @@ class Gday(object):
             #print self.fluxes.gpp_gCm2
             #print self.state.stemn * 100.0
             
-            #print self.state.soilc, self.state.plantc, self.fluxes.nep, \
-            #        self.state.activesoil, self.state.slowsoil, \
-            #        self.state.passivesoil, self.state.root, \
-            #        self.state.shoot, self.state.stem, self.state.branch,\
-            #        self.state.metabsurf, self.state.metabsoil,\
-            #        self.state.metabsurfn, self.state.metabsoiln
+            #print self.state.soilc, self.state.plantc, self.fluxes.nep
+                    
             
         if self.control.print_options == 1:
             # need to save initial SLA to current one!
@@ -211,7 +207,7 @@ class Gday(object):
 
         # house cleaning, close ouput files
         self.pr.tidy_up()
-        
+       
     def simulation_start_date(self):
         """ figure out when the simulation starts
 
@@ -276,11 +272,11 @@ class Gday(object):
             logical defining whether it is the first day of the simulation
 
         """
-        self.fluxes.ninflow = self.met_data['ndep'][day] * self.params.magic_n
+        self.fluxes.ninflow = self.met_data['ndep'][day]
         
         # c/n ratios, most of these are just diagnostics, and not used.
-        self.state.rootnc = nc_ratio(self.state.root, self.state.rootn)
-        self.state.shootnc = nc_ratio(self.state.shoot, self.state.shootn)
+        self.state.rootnc = nc_ratio(self.state.root, self.state.rootn, "Cr")
+        self.state.shootnc = nc_ratio(self.state.shoot, self.state.shootn, "Cf")
         
         # Diagnostic N:C
         #branchnc = nc_ratio(self.state.branch, self.state.branchn)
@@ -341,7 +337,7 @@ class Gday(object):
 
             # N Net mineralisation, i.e. excess of N outflows over inflows
             self.fluxes.nmineralisation = (self.fluxes.ninflow + 
-                                            self.fluxes.ngrossmin +
+                                            self.fluxes.ngross +
                                             self.fluxes.nrootexudate -
                                             self.fluxes.nimmob +
                                             self.fluxes.nlittrelease)
@@ -362,7 +358,7 @@ class Gday(object):
             # soil decomposition rate=flux/pool
             #soildecomp = coutsoil / self.state.soilc
 
-def nc_ratio(carbon_val, nitrogen_val):
+def nc_ratio(carbon_val, nitrogen_val, pool):
     """Calculate nitrogen:carbon ratios
 
     Parameters:
@@ -384,7 +380,9 @@ def nc_ratio(carbon_val, nitrogen_val):
         # This was fine as this ratio isn't used in the code. Since I have 
         # commented out these diagnostics we shouldn't end up here unless there 
         # really is an error!!
-        raise ValueError("Dianostic N:C has invalid values, probably zero?")
+        msg = "Dianostic for %s pool N:C has invalid values C:%s, N:%s" % \
+                (pool, carbon_val, nitrogen_val)
+        raise ValueError(msg)
     return nitrogen_val / carbon_val
       
 def cmdline_parser():

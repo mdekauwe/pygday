@@ -72,7 +72,7 @@ class Bewdy(object):
         Nothing
             Method calculates GPP, NPP and Ra.
         """
-        (temp, sw_rad, ca) = self.get_met_data(day)
+        (temp, sw_rad, ca, vpd) = self.get_met_data(day)
         
         # presumably conversion to seconds
         daylength = daylen * const.HRS_TO_SECS * 1E-6
@@ -86,7 +86,7 @@ class Bewdy(object):
         diffuse_rad = (sw_rad / daylength / 0.235 *
                         (1.0 - self.params.direct_frac))
         
-        (quantum_yield, rho) = self.calculate_bewdy_params(temp, ca)
+        (quantum_yield, rho) = self.calculate_bewdy_params(temp, ca, vpd)
 
         b = quantum_yield * self.params.kext * direct_rad * leaf_absorptance
         s = quantum_yield * self.params.kext * diffuse_rad * leaf_absorptance
@@ -142,10 +142,11 @@ class Bewdy(object):
             ca = self.met_data['amb_co2'][day]
         elif self.control.co2_conc == 1:
             ca = self.met_data['ele_co2'][day]
+        vpd = self.met_data['vpd_avg'][day]
+        
+        return temp, sw_rad, ca, vpd
 
-        return temp, sw_rad, ca
-
-    def calculate_bewdy_params(self, temp, ca):
+    def calculate_bewdy_params(self, temp, ca, vpd):
         """ Calculates BEWDY model parameters
 
         Estimate the quantum yield (alpha) of absorbed radiation and rho, the
@@ -168,6 +169,8 @@ class Bewdy(object):
         ca : float
             atmospheric co2, depending on flag set in param file this will be
             ambient or elevated. [umol mol-1]
+        vpd : float
+            vpd [kPa]
 
         Returns:
         --------
@@ -186,7 +189,7 @@ class Bewdy(object):
         jmax, vcmax = self.jmax_and_vcmax_func(temp)
 
         # co2 concentration of intercellular air spaces
-        ci = self.intercellular_co2_conc(gamma_star, ca)
+        ci = self.intercellular_co2_conc(gamma_star, ca, vpd)
 
         # quantum yield of absorbed radiation
         quantum_yield = self.calculate_quantum_yield(ci, gamma_star)
@@ -335,7 +338,7 @@ class Bewdy(object):
         return jmax, vcmax
 
 
-    def intercellular_co2_conc(self, gamma_star, ca):
+    def intercellular_co2_conc(self, gamma_star, ca, vpd):
         """ Calculate Ci, intercellular CO2 concentration
 
         Parameters:
@@ -345,7 +348,8 @@ class Bewdy(object):
         ca : float
             atmospheric co2, depending on flag set in param file this will be
             ambient or elevated.
-
+        vpd : float
+            vpd [kPa]
         Returns:
         --------
         ci : float
@@ -353,7 +357,7 @@ class Bewdy(object):
         """
         if self.control.use_leuning == 1:
             ci = (ca - (ca - gamma_star) * 
-                    (1.0 + self.params.vpd / self.params.d0) * 1.6 /
+                    (1.0 + vpd / self.params.d0) * 1.6 /
                     self.params.a1)
         else:
             # assume CO2 conc in the intercellular air spaces, ci is a constant

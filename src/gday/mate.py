@@ -383,6 +383,7 @@ class Mate(object):
         -----------
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
+        #print self.params.g1 * self.state.wtfac_root
         return (1.0 - ((1.6 * math.sqrt(vpd)) /
                 (self.params.g1 * self.state.wtfac_root + math.sqrt(vpd))))
 
