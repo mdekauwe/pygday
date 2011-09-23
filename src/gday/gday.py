@@ -160,7 +160,7 @@ class Gday(object):
 
         # calculate initial C:N ratios and zero annual flux sums
         self.derive(1, self.date, INIT=True)
-       
+        
         for project_day in xrange(len(self.met_data['prjday'])):
 
             # litterfall rate: C and N fluxes
@@ -194,7 +194,7 @@ class Gday(object):
             #print self.fluxes.gpp_gCm2
             #print self.state.stemn * 100.0
             
-            #print self.state.soilc, self.state.plantc, self.fluxes.nep
+            print self.state.soilc, self.state.plantc, self.fluxes.nep
                     
             
         if self.control.print_options == 1:
@@ -420,7 +420,10 @@ def main():
     fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
     G = Gday(fname)
     G.run_sim()
-
+    
+    G = Gday(fname)
+    G.run_sim()
+    
     end_time = time.time()
     sys.stderr.write("\nTotal simulation time: %.1f seconds\n\n" %
                                                     (end_time - start_time))
