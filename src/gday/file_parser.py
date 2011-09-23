@@ -40,7 +40,14 @@ def initialise_model_data(fname, DUMP=True):
         meteorological forcing data
 
     """
-
+    # if this code is run in a monte carlo fashion python doesn't reimport the
+    # modules with each instances! Force it to
+    reload(default_fluxes)
+    reload(s)
+    reload(c)
+    reload(fi)
+    reload(p)
+    
     R = ReadUserConfigFile(fname)
     config_dict = R.load_files()
     (user_control, user_params, user_state,
@@ -48,9 +55,9 @@ def initialise_model_data(fname, DUMP=True):
 
     # get driving data
     forcing_data = read_met_forcing(fname=user_files['met_fname'])
-
-
-
+    
+   
+    
     # read in default modules and then adjust these
     if DUMP == False:
         params = adjust_object_attributes(user_params, p)

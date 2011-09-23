@@ -271,7 +271,8 @@ class WaterBalance(object):
         # gs = gc, a reasonable assumption if lai up near 3 I think
         gc = self.fluxes.gs
 
-        self.fluxes.transpiration = P.calc_evaporation(vpd, wind, gc,
+        (self.fluxes.transpiration, 
+            self.fluxes.ga_gc_ratio) = P.calc_evaporation(vpd, wind, gc,
                                                         net_rad, avg_temp,
                                                         daylen, press)
 
@@ -692,6 +693,9 @@ class PenmanMonteith(object):
         ga = self.calc_canopy_boundary_conductance(wind_speed)
         #ga = self.calc_aerodynamic_conductance(wind_speed)
 
+        ga_gc_ratio = ga / gc
+        
+        
 
         #print gc/math.log(vpd)
 
@@ -716,7 +720,7 @@ class PenmanMonteith(object):
         else:
             et = 0.0
 
-        return et
+        return et, ga_gc_ratio
 
     def calc_canopy_boundary_conductance(self, wind_speed):
         """ Canopy boundary layer conductance for momentum, i.e. 1/ra
@@ -750,7 +754,7 @@ class PenmanMonteith(object):
         #wind_speed = self.adj_wind_speed_2_screen(wind_speed, canht)
         # roughness length [m]
         z0 = self.dz0v_dh * self.canht
-
+        
         # zero plan displacement height [m]
         d = self.displace_ratio * self.canht
 

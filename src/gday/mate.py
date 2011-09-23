@@ -114,6 +114,9 @@ class Mate(object):
         (am, pm) = self.am, self.pm # morning/afternoon
         (temp, par, vpd, ca) = self.get_met_data(day)
         
+        
+        
+        
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(temp)
         gamma_star_avg = sum(gamma_star) / 2.0
@@ -122,11 +125,13 @@ class Mate(object):
         jmax = self.calculate_jmax_parameter(temp, N0)
         vcmax = self.calculate_vcmax_parameter(temp, N0)
         
+        
         # Quantum yield of photosynthesis from McMurtrie 2008
         alpha = 0.07 * ((ca -  gamma_star_avg) / (ca + 2.0 *  gamma_star_avg))
        
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
+        #print self.params.g1 * self.state.wtfac_root, self.state.wtfac_root
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         ci = [i * ca for i in cica]
 
@@ -383,7 +388,6 @@ class Mate(object):
         -----------
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
-        #print self.params.g1 * self.state.wtfac_root
         return (1.0 - ((1.6 * math.sqrt(vpd)) /
                 (self.params.g1 * self.state.wtfac_root + math.sqrt(vpd))))
 
@@ -495,8 +499,8 @@ if __name__ == "__main__":
     from utilities import float_lt, day_length
     import datetime
 
-    fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
-
+    #fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
+    fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
     (control, params, state, files,
         fluxes, met_data,
             print_opts) = initialise_model_data(fname, DUMP=False)
@@ -523,8 +527,15 @@ if __name__ == "__main__":
     control.co2_conc = 0
     
     for project_day in xrange(len(met_data['prjday'])):
-
+        
+        #state.shootn = 0.072422739989 
+        #state.shoot = 6.54133760655 
+        #state.lai = 6.01803059803/2
+        
         state.shootnc = state.shootn / state.shoot
+        
+        
+        
         state.ncontent = (state.shootnc * params.cfracts /
                                 state.sla * const.KG_AS_G)
         daylen = day_length(datex, params.latitude)

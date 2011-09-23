@@ -91,3 +91,4 @@ nmineralisation = None
 apar = None
 
 rabove = 0.0
+ga_gc_ratio = None
