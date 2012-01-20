@@ -100,7 +100,8 @@ class PlantGrowth(object):
         self.nitrogen_distribution(ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
                                     alleaf, alroot, albranch, alstem, 
                                     alroot_exudate)
-        self.carbon_distribution(alleaf, alroot, albranch, alstem, nitfac)
+        self.carbon_distribution(alleaf, alroot, albranch, alstem, 
+                                 alroot_exudate, nitfac)
         self.update_plant_state(fdecay, rdecay)
          
     def calculate_ncwood_ratios(self, nitfac):
@@ -250,7 +251,8 @@ class PlantGrowth(object):
         
         # allocate remainder to stem
         alstem = 1.0 - alleaf - alroot - albranch - alroot_exudate
-        
+        #print alleaf, alroot, albranch, alstem
+        #sys.exit()
         return (alleaf, alroot, albranch, alstem, alroot_exudate)
 
     def nitrogen_distribution(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, 
@@ -317,17 +319,20 @@ class PlantGrowth(object):
         
         # If we have allocated more N than we have available - cut back N prodn
         arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +
-                self.fluxes.npbranch)
+                self.fluxes.npbranch + self.fluxes.nrootexudate)
 
         if float_gt(arg, ntot) and not self.control.fixleafnc:
             self.fluxes.npp *= (ntot / (self.fluxes.npstemimm +
-                                self.fluxes.npstemmob + self.fluxes.npbranch))
+                                self.fluxes.npstemmob + self.fluxes.npbranch + 
+                                self.fluxes.nrootexudate))
             self.fluxes.npbranch = self.fluxes.npp * albranch * ncbnew
             self.fluxes.npstemimm = self.fluxes.npp * alstem * ncwimm
             self.fluxes.npstemmob = self.fluxes.npp * alstem * (ncwnew - ncwimm)
-
+            self.fluxes.nrootexudate = (self.fluxes.npp * alroot_exudate * 
+                                        self.params.vxfix)
+            
         ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
-                    self.fluxes.npstemmob)
+                    self.fluxes.npstemmob + self.fluxes.nrootexudate)
 
         # allocate remaining N to flexible-ratio pools
         self.fluxes.npleaf = (ntot * alleaf / 
@@ -393,7 +398,8 @@ class PlantGrowth(object):
         
         return nuptake
     
-    def carbon_distribution(self, alleaf, alroot, albranch, alstem, nitfac):
+    def carbon_distribution(self, alleaf, alroot, albranch, alstem, 
+                            alroot_exudate, nitfac):
         """ C distribution - allocate available C through system
 
         Parameters:
@@ -408,11 +414,44 @@ class PlantGrowth(object):
             allocation fraction for stem
         nitfac : float
             leaf N:C as a fraction of 'Ncmaxfyoung' (max 1.0)
+        
+        References:
+        -----------
+        
+        * Hale, M. G. et al. (1981) Factors affecting root exudation and 
+          significance for the rhizosphere ecoystems. Biological and chemical 
+          interactions in the rhizosphere. Stockholm. Sweden: Ecological 
+          Research Committee of NFR. pg. 43--71.
+        * Lambers, J. T. and Poot, P. (2003) Structure and Functioning of 
+          Cluster Roots and Plant Responses to Phosphate Deficiency.
+        * Martin, J. K. and Puckjeridge, D. W. (1982) Carbon flow through the 
+          rhizosphere of wheat crops in South Australia. The cyclcing of carbon,
+          nitrogen, sulpher and phosphorous in terrestrial and aquatic
+          ecosystems. Canberra: Australian Academy of Science. pg 77--82.
+        * McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
+        
+        Also see:
+        * Rovira, A. D. (1969) Plant Root Exudates. Botanical Review, 35, 
+          pg 35--57.
         """
         self.fluxes.cpleaf = self.fluxes.npp * alleaf
         self.fluxes.cproot = self.fluxes.npp * alroot
         self.fluxes.cpbranch = self.fluxes.npp * albranch
         self.fluxes.cpstem = self.fluxes.npp * alstem
+    
+        # C flux into root exudation, see McMurtrie et al. 2000. There is no 
+        # reference given for the 0.15 in McM, however 14c work by Hale et al and
+        # Martin and Puckeridge suggest values range between 10-20% of NPP. So
+        # presumably this is where this values of 0.15 (i.e. the average) comes
+        # from
+        self.fluxes.cprootexudate = self.fluxes.npp * alroot_exudate
+        
+        # rhizresp = 0.5, unless changed of course! 1/3--2/3 of C
+        # fixed by plants is respired, so assuming a value of 0.5, i.e. the avg.
+        # (Lambers and Poot, 2003)
+        self.fluxes.microbial_resp = (self.fluxes.cprootexudate * 
+                                        self.params.rhizresp)
+        self.fluxes.cprootexudate -= self.fluxes.microbial_resp
         
         # evaluate SLA of new foliage accounting for variation in SLA with tree
         # and leaf age (Sands and Landsberg, 2002). Assume SLA of new foliage
@@ -425,7 +464,7 @@ class PlantGrowth(object):
                             const.KG_AS_TONNES / self.params.cfracts -
                             (self.fluxes.deadleaves + self.fluxes.ceaten) *
                             self.state.lai / self.state.shoot)
-
+        
 
     def update_plant_state(self, fdecay, rdecay):
         """ Daily change in C content

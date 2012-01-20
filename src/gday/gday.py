@@ -189,12 +189,28 @@ class Gday(object):
 
             self.increment_date()
             
+            #print self.fluxes.gpp_gCm2
+            #print self.fluxes.gpp_gCm2 , self.fluxes.transpiration
+            #print self.fluxes.transpiration
             
+            #print self.fluxes.gpp_gCm2, self.met_data['amb_co2'][project_day]
+            #print self.state.shootn, self.state.rootn, self.state.branchn, self.state.stemnimm, self.state.stemnmob
+            #print self.fluxes.gpp_gCm2, self.fluxes.gs
+            
+            
+            #print self.fluxes.gpp_gCm2
+            
+            #print self.date.year, self.date.month, self.state.pawater_root / self.params.wcapac_root * 100
+            
+            #print self.date.year, self.date.day, self.state.ncontent, self.state.lai
             #print self.fluxes.transpiration
             #print self.fluxes.gpp_gCm2
+            #print self.params.g1 * self.state.wtfac_root, self.state.pawater_root / self.params.wcapac_root,self.fluxes.npp_gCm2 / self.fluxes.transpiration  
             #print self.state.stemn * 100.0
             
-            print self.state.soilc, self.state.plantc, self.fluxes.nep
+            #print self.params.g1 * self.state.wtfac_root, self.fluxes.npp_gCm2 / self.fluxes.transpiration
+            
+            #print self.state.soilc, self.state.plantc, self.fluxes.nep
                     
             
         if self.control.print_options == 1:
@@ -418,9 +434,6 @@ def main():
 
 
     fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
-    G = Gday(fname)
-    G.run_sim()
-    
     G = Gday(fname)
     G.run_sim()
     

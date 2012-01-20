@@ -1,1332 +1,4017 @@
-5c5,6
-< from utilities import float_gt, float_eq, clip
----
-> from utilities import float_gt, float_eq
-> from misc_funcs import clip
-17c18
-< 
----
->     
-19c20
-< 
----
->     
-22c23
-<     * McMurtrie, R. (1990) Water/nutrient interactions affecting the
----
->     * McMurtrie, R. (1990) Water/nutrient interactions affecting the 
-25c26
-< 
----
->     
-27,42c28,29
-<     def __init__(self, control, params, state, fluxes, met_data):
-<         """
-<         Parameters
-<         ----------
-<         control : integers, object
-<             model control flags
-<         params: floats, object
-<             model parameters
-<         state: floats, object
-<             model state
-<         fluxes : floats, object
-<             model fluxes
-<         met_data : floats, dictionary
-<             meteorological forcing data
-< 
-<         """
----
->     def __init__(self, control, params, state, fluxes, met_data): 
->         
-48,60c35,38
-< 
-<     def calculate_water_balance(self, day, daylen):
-<         """ Calculate water balance
-< 
-<         Parameters:
-<         ----------
-<         day : int
-<             project day.
-<         daylen : float
-<             length of day in hours.
-< 
-<         """
-< 
----
->         
->     def calculate_water_balance(self, day, daylen): 
->         """ Calculate water balance """
->         
-62,64c40,56
-<         (leaf_temp, rain, sw_rad,
-<             vpd, wind, net_rad, ca, press) = self.get_met_data(day, daylen)
-< 
----
->         leaf_temp = self.met_data['tair'][day]     
->         rainfall = self.met_data['rain'][day]
->         sw_rad = self.met_data['sw_rad'][day]  
->         vpd = self.met_data['vpd_avg'][day] # daytime average
->         wind = self.met_data['wind'][day]
->         net_rad = self.calc_radiation(leaf_temp, sw_rad, daylen)
->         if self.control.co2_conc == 0:
->             co2 = self.met_data['amb_co2'][day]
->         elif self.control.co2_conc == 1:
->             co2 = self.met_data['ele_co2'][day]
->         
->         if ('atmos_press' in self.met_data and not 
->             self.met_data['atmos_press'] is None):
->             press = self.met_data['atmos_press'][day]
->         else:
->             press = None # use method below to calculate pressure
->         
-68c60
-<             self.calc_wue(vpd, ca)
----
->             self.calc_wue(vpd, co2)
-71,73c63,65
-<             self.calc_transpiration_penmon(vpd, net_rad, leaf_temp, wind,
-<                                                 ca, daylen, press)
-<             self.calc_wue(vpd, ca)
----
->             self.calc_transpiration_penmon(vpd, net_rad, leaf_temp, wind, 
->                                                 co2, daylen, press)
->             self.calc_wue(vpd, co2)
-76,79c68,71
-<             self.calc_wue(vpd, ca)
-< 
-<         self.calc_infiltration(rain)
-<         self.fluxes.soil_evap = self.calc_soil_evaporation(leaf_temp, net_rad,
----
->             self.calc_wue(vpd, co2)
->         
->         self.calc_infiltration(rainfall)
->         self.fluxes.soil_evap = self.calc_soil_evaporation(leaf_temp, net_rad, 
-81c73
-<         self.fluxes.et = (self.fluxes.transpiration + self.fluxes.soil_evap +
----
->         self.fluxes.et = (self.fluxes.transpiration + self.fluxes.soil_evap + 
-83,84c75,76
-< 
-< 
----
->     
->         
-87,137c79,80
-< 
-<     def get_met_data(self, day, daylen):
-<         """ Grab the days met data out of the structure and return day values.
-< 
-<         Parameters:
-<         ----------
-<         day : int
-<             project day.
-<         daylen : float
-<             length of day in hours.
-< 
-<         Returns:
-<         -------
-<         leaf_temp : float
-<             average daytime temperature [degC]
-<         rain : float
-<             rainfall [mm d-1]
-<         sw_rad : float
-<             sw down radiation [mj m-2 day-1]
-<         vpd : float
-<             average daily vpd [kPa]
-<         ca : float
-<             atmospheric co2, depending on flag set in param file this will be
-<             ambient or elevated. [umol mol-1]
-<         wind : float
-<             average daily wind speed [mm s-1]
-<         press : float
-<             average daytime pressure [kPa]
-< 
-<         """
-<         leaf_temp = self.met_data['tair'][day]
-<         rain = self.met_data['rain'][day]
-<         sw_rad = self.met_data['sw_rad'][day]
-<         vpd = self.met_data['vpd_avg'][day] # daytime average
-<         wind = self.met_data['wind'][day]
-<         net_rad = self.calc_radiation(leaf_temp, sw_rad, daylen)
-< 
-<         if self.control.co2_conc == 0:
-<             ca = self.met_data['amb_co2'][day]
-<         elif self.control.co2_conc == 1:
-<             ca = self.met_data['ele_co2'][day]
-< 
-<         if ('atmos_press' in self.met_data and not
-<             self.met_data['atmos_press'] is None):
-<             press = self.met_data['atmos_press'][day]
-<         else:
-<             press = None # use method below to calculate pressure
-< 
-<         return (leaf_temp, rain, sw_rad, vpd, wind, net_rad, ca, press)
-< 
-<     def calc_wue(self, vpd, ca):
----
->        
->     def calc_wue(self, vpd, co2):
-139c82
-< 
----
->         
-141,149d83
-< 
-<         Parameters:
-<         -----------
-<         vpd : float
-<             average daily vpd [kPa]
-<         ca : float
-<             atmospheric co2, depending on flag set in param file this will be
-<             ambient or elevated. [umol mol-1]
-< 
-155,156c89,90
-<                 # WUE Power law dependence on co2, Pepper et al 2005.
-<                 co2_ratio = (ca / self.params.ambient_co2)
----
->                 # WUE Power law dependence on co2, Pepper et al 2005. 
->                 co2_ratio = (co2 / self.params.ambient_co2)
-158c92
-< 
----
->             
-163c97
-<         elif self.control.wue_model == 1 and self.control.assim_model == 7:
----
->         elif self.control.wue_model == 1 and self.control.model_number == 7:
-165,166c99,100
-<             self.fluxes.wue = (conv * 1000.0 * (ca * const.UMOL_TO_MOL *
-<                                 (1.0 - self.fluxes.cica_avg) /
----
->             self.fluxes.wue = (conv * 1000.0 * (co2 * const.UMOL_TO_MOL * 
->                                 (1.0 - self.fluxes.cica_avg) / 
-168c102
-<                         #if self.fluxes.wue > 20.0: self.fluxes.wue = 20.0    # FIX THIS!!!
----
-> 			#if self.fluxes.wue > 20.0: self.fluxes.wue = 20.0    # FIX THIS!!!
-170c104
-< 
----
->             
-172,173c106,107
-<             self.fluxes.wue = (self.params.wue0 * 0.27273 / vpd *
-<                                 ca / self.params.ambient_co2)
----
->             self.fluxes.wue = (self.params.wue0 * 0.27273 / vpd * 
->                                 co2 / self.params.ambient_co2)      
-174a109
->             # Does this needs units adjusting?
-178c113
-<                 self.fluxes.wue = (self.fluxes.gpp_gCm2 /
----
->                 self.fluxes.wue = (self.fluxes.gpp_gCm2 / 
-182,183c117,118
-< 
-<     def calc_infiltration(self, rain):
----
->             
->     def calc_infiltration(self, rainfall):
-185c120
-< 
----
->         
-187,195c122,124
-<         and therefore canopy storage capacity (wetloss). Interception is
-<         likely to be ("more") erroneous if a canopy is subject to frequent daily
-<         rainfall I would suggest.
-< 
-<         Parameters:
-<         -------
-<         rain : float
-<             rainfall [mm d-1]
-< 
----
->         and therefore canopy storage capacity (wetloss). Interception is 
->         likely to be erroneous if a canopy is subject to frequent daily 
->         rainfall I would guess.
-197,198c126,127
-< 
-<         if float_gt(rain, 0.0):
----
->     
->         if float_gt(rainfall, 0.0):
-200c129
-<             self.fluxes.interception = clip(self.fluxes.interception,
----
->             self.fluxes.interception = clip(self.fluxes.interception, 
-202,204c131,133
-<                                             max=rain)
-< 
-<             self.fluxes.erain = (rain * self.params.rfmult -
----
->                                             max=rainfall)
->             
->             self.fluxes.erain = (rainfall * self.params.rfmult - 
-209,210c138,139
-< 
-< 
----
->     
->     
-213c142
-< 
----
->         
-215,216c144,145
-<             self.fluxes.transpiration = self.fluxes.gpp_gCm2 / self.fluxes.wue
-<         else:
----
->             self.fluxes.transpiration = self.fluxes.gpp_gCm2 / self.fluxes.wue 
->         else: 
-218c147
-< 
----
->         
-221,231c150
-<         units (mm/day)
-< 
-<         Parameters:
-<         -----------
-<         tavg : float
-<             average daytime temp [degC]
-<         net_rad : float
-<             net radiation [mj m-2 day-1]
-<         press : float
-<             average daytime pressure [kPa]
-< 
----
->         units (mm/day) 
-236,237c155,156
-< 
-<     def calc_transpiration_penmon(self, vpd, net_rad, avg_temp, wind, ca,
----
->         
->     def calc_transpiration_penmon(self, vpd, net_rad, avg_temp, wind, co2, 
-240,259c159
-<         units mm/day
-< 
-<         Parameters:
-<         -----------
-<         vpd : float
-<             average daily vpd [kPa]
-<         net_rad : float
-<             net radiation [mj m-2 day-1]
-<         avg_temp : float
-<             average daytime temp [degC]
-<         wind : float
-<             average daily wind speed [mm s-1]
-<         ca : float
-<             atmospheric co2, depending on flag set in param file this will be
-<             ambient or elevated. [umol mol-1]
-<         daylen : float
-<             daylength in hours
-<         press : float
-<             average daytime pressure [kPa]
-< 
----
->         units mm/day 
-265,269c165,169
-< 
-<         self.fluxes.gs = self.calc_stomatal_conductance(press, avg_temp,
-<                                                             vpd, ca, daylen)
-< 
-< 
----
->             
->         self.fluxes.gs = self.calc_stomatal_conductance(press, avg_temp, 
->                                                             vpd, co2, daylen)
->         
->         
-273,276c173,175
-< 
-<         (self.fluxes.transpiration, 
-<             self.fluxes.ga_gc_ratio) = P.calc_evaporation(vpd, wind, gc,
-<                                                         net_rad, avg_temp,
----
->         
->         self.fluxes.transpiration = P.calc_evaporation(vpd, wind, gc, 
->                                                         net_rad, avg_temp, 
-278,279c177,178
-< 
-<     def calc_stomatal_conductance(self, press, avg_temp, vpd, ca, daylen):
----
->         
->     def calc_stomatal_conductance(self, press, avg_temp, vpd, co2, daylen):
-283c182
-< 
----
->         
-285,306c184
-<         References:
-<         -----------
-<         * Jones (1992) Plants and microclimate, pg 56 + Appendix 3
-< 
-<         Parameters:
-<         -----------
-<         vpd : float
-<             average daily vpd [kPa]
-<         avg_temp : float
-<             average daytime temp [degC]
-<         vpd : float
-<             vapour pressure def [kPa]
-<         ca : float
-<             atmospheric co2, depending on flag set in param file this will be
-<             ambient or elevated. [umol mol-1]
-<         daylen : float
-<             daylength in hours
-< 
-<         Returns:
-<         --------
-<         gs : float
-<             stomatal conductance [m s-1]
----
->         see Jones (1992) Plants and microclimate, pg 56 + Appendix 3
-309,310c187,188
-<         tconv = 1.0 / (60.0 * 60.0 * daylen)
-<         gpp_umol_m2_sec = (self.fluxes.gpp_gCm2 * const.GRAMS_C_TO_MOLE_C *
----
->         tconv = 1.0 / (60.0 * 60.0 * daylen) 
->         gpp_umol_m2_sec = (self.fluxes.gpp_gCm2 * const.GRAMS_C_TO_MOLE_C * 
-312c190
-< 
----
->     
-314,315c192,193
-<         co2_umol_mol = ca
-< 
----
->         co2_umol_mol = co2
->         
-318,319c196,197
-<         gs_mol_m2_sec = arg1 * arg2
-< 
----
->         gs_mol_m2_sec = arg1 * arg2 
->         
-321,323c199,201
-<         conv = ((const.RGAS * (avg_temp + const.DEG_TO_KELVIN)) /
-<                 (press * const.KPA_2_PA))
-< 
----
->         conv = ((const.RGAS * (avg_temp + const.DEG_TO_KELVIN)) / 
->                 (press * const.KPA_2_PA))    
->         
-325,326c203,204
-<         return gs_mol_m2_sec * const.MOL_TO_MILLIMOLES * conv * const.MM_TO_M
-< 
----
->         return gs_mol_m2_sec * const.MOL_TO_MILLIMOLES * conv * const.MM_TO_M 
->         
-330,332c208
-< 
-<         References:
-<         -----------
----
->         
-335,349d210
-< 
-<         Parameters:
-<         -----------
-<         avg_temp : float
-<             average daytime temp [degC]
-<         sw_rad : float
-<             sw down radiation [mj m-2 d-1]
-<         daylen : float
-<             daylength in hours
-< 
-<         Returns:
-<         --------
-<         net_rad : float
-<             net radiation [mj m-2 day-1]
-< 
-353c214
-<         # units: mj/m2/d
----
->         # units: mj/m2/d 
-355c216
-< 
----
->         
-357,361c218,222
-< 
-<         # Surface radiation is reduced by overstory LAI cover. This empirical
-<         # fit comes from Ritchie (1972) and is formed by a fit between the LAI
-<         # of 5 crops types and the fraction of observed net radiation at the
-<         # surface. Whilst the LAI does cover a large range, nominal 0–6, there
----
->         
->         # Surface radiation is reduced by overstory LAI cover. This empirical 
->         # fit comes from Ritchie (1972) and is formed by a fit between the LAI 
->         # of 5 crops types and the fraction of observed net radiation at the 
->         # surface. Whilst the LAI does cover a large range, nominal 0–6, there 
-366c227
-< 
----
->         
-368,369c229,230
-< 
-< 
----
->     
->     
-373c234
-< 
----
->         
-375,376c236,237
-<         radiation term is scaled for the canopy cover passed to this func and
-<         the impact of soil wetness is accounted for in the wtfac term. As the
----
->         radiation term is scaled for the canopy cover passed to this func and 
->         the impact of soil wetness is accounted for in the wtfac term. As the 
-378c239
-< 
----
->         
-380,383c241,244
-< 
-<         * When plant provides shade for the soil surface, evaporation will not
-<         be the same as bare soil evaporation. Wind speed, net radiation and VPD
-<         will all belowered in proportion to the canopy density. Following
----
->     
->         * When plant provides shade for the soil surface, evaporation will not 
->         be the same as bare soil evaporation. Wind speed, net radiation and VPD 
->         will all belowered in proportion to the canopy density. Following 
-386,388c247,249
-< 
-<         These assumptions are based on work with crops and whether this holds
-<         for tree shading where the height from the soil to the base of the
----
->     
->         These assumptions are based on work with crops and whether this holds 
->         for tree shading where the height from the soil to the base of the 
-390,394c251
-< 
-<         units = (mm/day)
-< 
-<         References:
-<         -----------
----
->         
-396,410c253,254
-< 
-<         Parameters:
-<         -----------
-<         avg_temp : float
-<             average daytime temp [degC]
-<         net_rad : float
-<             net radiation [mj m-2 day-1]
-<         press : float
-<             average daytime pressure [kPa]
-< 
-<         Returns:
-<         --------
-<         soil_evap : float
-<             soil evaporation [mm d-1]
-< 
----
->         
->         units = (mm/day) 
-414,415c258,259
-< 
-<         # if the available soil moisture is low the soil evaporation needs to
----
->         
->         # if the available soil moisture is low the soil evaporation needs to 
-417,418c261,262
-<         wtfac = (((self.state.pawater_tsoil / self.params.wcapac_topsoil) -
-<                     self.params.fwpmin) /
----
->         wtfac = (((self.state.pawater_tsoil / self.params.wcapac_topsoil) - 
->                     self.params.fwpmin) / 
-420c264
-< 
----
->         
-423c267
-< 
----
->         
-425,426c269,270
-<         """ Calculate root and top soil plant available water
-< 
----
->         """ Calculate root and top soil plant available water 
->         
-432,433c276,277
-<         self.state.pawater_root += (self.fluxes.erain -
-<                                         self.fluxes.transpiration -
----
->         self.state.pawater_root += (self.fluxes.erain - 
->                                         self.fluxes.transpiration - 
-435c279
-<         self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
----
->         self.state.pawater_root = clip(self.state.pawater_root, min=0.0, 
-437c281
-< 
----
->         
-439,441c283,285
-<         self.state.pawater_tsoil += (self.fluxes.erain -
-<                                         self.fluxes.transpiration *
-<                                         self.params.fractup_soil -
----
->         self.state.pawater_tsoil += (self.fluxes.erain - 
->                                         self.fluxes.transpiration * 
->                                         self.params.fractup_soil - 
-443c287
-< 
----
->                                
-446c290
-< 
----
->         
-448,451c292,294
-<         """ In reality this is a combined drainage and runoff calculation, i.e.
-<         "outflow"
-< 
-<         There is no drainage out of the "bucket" soil therefore this will be
----
->         """ In reality this is a combined drainage and runoff calculation.
->         
->         There is no drainage out of the "bucket" soil therefore this will be 
-453,458d295
-< 
-<         Returns:
-<         --------
-<         outflow : float
-<             outflow [mm d-1]
-< 
-460,461c297,298
-<         arg = (self.state.pawater_root + self.fluxes.erain -
-<                 self.fluxes.et - self.fluxes.soil_evap -
----
->         arg = (self.state.pawater_root + self.fluxes.erain - 
->                 self.fluxes.et - self.fluxes.soil_evap - 
-464,501c301,302
-< 
-<     def calculate_soil_water_fac(self):
-<         """ Estimate a relative water availability factor [0..1]
-< 
-<         A drying soil results in physiological stress that can induce stomatal
-<         closure and reduce transpiration. Further N mineralisation depends on 
-<         top soil moisture.
-< 
-<         References:
-<         -----------
-<         * Pepper et al. (2008) Functional Change Biology, 35, 493-508
-< 
-<         But similarly see:
-<         * van Genuchten (1981) Soil Sci. Soc. Am. J, 44, 892--898.
-<         * Wang and Leuning (1998) Ag Forest Met, 91, 89-111.
-< 
-<         Returns:
-<         --------
-<         wtfac_tsoil : float
-<             water availability factor for the top soil [0,1]
-<         wtfac_root : float
-<             water availability factor for the root zone [0,1]    
-<         """
-<         # turn into fraction...
-<         smc_root = self.state.pawater_root / self.params.wcapac_root
-<         smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
-< 
-<         # Calculate a soil moisture availability factor, used to adjust
-<         # ci/ca ratio in the face of limited water supply.
-<         arg = self.params.fwpmax - self.params.fwpmin
-<         wtfac_tsoil = (smc_topsoil - self.params.fwpmin) / arg
-<         wtfac_root = (smc_root - self.params.fwpmin) / arg
-< 
-<         return (clip(wtfac_tsoil, min=0.0, max=1.0), 
-<                 clip(wtfac_root, min=0.0, max=1.0))
-< 
-< 
-< 
----
-> 	    
-> 	    
-504,505c305,306
-< 
-<     Water limited growth depends on the maximum rate of which water can
----
->     
->     Water limited growth depends on the maximum rate of which water can 
-507,521c308,309
-<     """
-<     def __init__(self, control, params, state, fluxes):
-<         """
-<         Parameters
-<         ----------
-<         control : integers, object
-<             model control flags
-<         params: floats, object
-<             model parameters
-<         state: floats, object
-<             model state
-<         fluxes : floats, object
-<             model fluxes
-< 
-<         """
----
->     """    
->     def __init__(self, control, params, state, fluxes): 
-526c314
-< 
----
->     
-529c317
-< 
----
->         
-532,537d319
-< 
-<         Parameters:
-<         -----------
-<         option : integer
-<             model option
-< 
-548,549c330,331
-< 
-<     def monteith_rescap_model(self):
----
->             
->     def monteith_rescap_model(self):        
-551,552c333,334
-< 
-<         light or water limited and this depends on the plants ability to
----
->         
->         light or water limited and this depends on the plants ability to 
-555c337
-< 
----
->     
-561,564c343,346
-< 
-<         growth_water_lim = (self.fluxes.wue * self.params.extraction /
-<                                 100.0 * rootz * self.state.pawater_root)
-< 
----
->             
->         growth_water_lim = (self.fluxes.wue * self.params.extraction / 
->                                 100.0 * rootz * self.state.pawater_root)  
->         
-568c350
-< 
----
->         
-571c353
-< 
----
->     
-574,575c356,362
-<         self.fluxes.npp *= self.state.wtfac_root
-< 
----
->         wtfac = (((self.state.pawater_root / self.params.wcapac_root) - 
->                     self.params.fwpmin) / 
->                     (self.params.fwpmax - self.params.fwpmin))
->         
->         # limit growth, make sure wtfac is scaled btw 0 and 1 
->         self.fluxes.npp *= clip(wtfac, min=0.0, max=1.0)
->         
-578c365
-< 
----
->         
-580c367
-< 
----
->         
-582c369
-<         # the original code has this setup identical to the biomass model, are
----
->         # the original code has this setup identical to the biomass model, are 
-586c373
-< 
----
->     
-589c376
-< 
----
->     
-593c380
-<     (1/gc). If the surface is wet then there is a further water vapour flux
----
->     (1/gc). If the surface is wet then there is a further water vapour flux 
-595,597c382,384
-< 
-<     Assumes inputs are measured at a 2m screen height, though you can change
-<     this with the the class initialisation. I have ignored the soil heat
----
->     
->     Assumes inputs are measured at a 2m screen height, though you can change 
->     this with the the class initialisation. I have ignored the soil heat 
-599c386
-< 
----
->     
-601c388
-< 
----
->     
-603,607c390,395
-< 
-<     References:
-<     -----------
-<     * Monteith and Unsworth (1990) Principles of Environmental
-<       Physics, pg. 247. Although I have removed the soil heat flux as G'DAY calculates soil evaporation seperately.
----
->     
->     Refs
->     ====
->     * Monteith and Unsworth (1990) Principles of Environmental 
->     Physics, pg. 247. Although I have removed the soil heat flux as G'DAY 
->     calculates soil evaporation seperately.
-609,617c397,405
-<       Agronomy Journal, 81, 650-662.
-<     * Allen et al. (1998) Crop evapotranspiration - Guidelines for computing
-<       crop water requirements - FAO Irrigation and drainage paper 56.
-<       http://www.fao.org/docrep/X0490E/x0490e00.htm#Contents. PDF in bibtex lib.
-<     * Harrison (1963) Fundamentals concepts and definitions relating to
-<       humidity. In Wexler, A. (Ed.) Humidity and moisture. Vol 3, Reinhold
-<       Publishing Co., New York, NY, USA.
-<     * Dawes and Zhang (2011) Waves - An integrated energy and water balance model
-<       http://www.clw.csiro.au/products/waves/downloads/chap3.pdf
----
->     Agronomy Journal, 81, 650-662.
->     * Allen et al. (1998) Crop evapotranspiration - Guidelines for computing 
->     crop water requirements - FAO Irrigation and drainage paper 56. 
->     http://www.fao.org/docrep/X0490E/x0490e00.htm#Contents. PDF in bibtex lib.
->     * Harrison (1963) Fundamentals concepts and definitions relating to 
->     humidity. In Wexler, A. (Ed.) Humidity and moisture. Vol 3, Reinhold 
->     Publishing Co., New York, NY, USA. 
->     Dawes and Zhang (2011) Waves - An integrated energy and water balance model
->     http://www.clw.csiro.au/products/waves/downloads/chap3.pdf
-622,647c410,415
-< 
-<         """
-<         Parameters:
-<         -----------
-<         cp : float
-<             specific heat of dry air [MJ kg-1 degC-1]
-<         vk : float
-<             von karman's constant [unitless]
-<         epsilon : float
-<             ratio molecular weight of water vap/dry air
-<         zele_sea : float
-<             elevation above sea level [m]
-<         canht : float
-<             canopy height [m]
-<         dz0v_dh : float
-<             rate change of roughness for momentum with height
-<         displace_ratio : float
-<             zero plain displacement height
-< 
-<         """
-< 
-<         self.cp = cp
-<         self.vk = vk
-< 
-<         self.epsilon = epsilon
-<         self.zele_sea = zele_sea
----
->     
->         self.cp = cp             # specific heat of dry air [MJ kg-1 degC-1]
->         self.vk = vk             # von karman's constant [unitless]
->         
->         self.epsilon = epsilon   # ratio molecular weight of water vap/dry air
->         self.zele_sea = zele_sea # elevation above sea level [m]
-650,651c418,419
-<         self.canht = canht
-<         self.dz0v_dh = dz0v_dh
----
->         self.canht = canht       # [m]
->         self.dz0v_dh = dz0v_dh   # rate chg of roughness for momentum with ht
-653c421
-< 
----
->         
-655,657c423,425
-<         self.z0h_z0m = 0.1
-< 
-<     def calc_evaporation(self, vpd, wind_speed, gc, net_rad,
----
->         self.z0h_z0m = 0.1       
->         
->     def calc_evaporation(self, vpd, wind_speed, gc, net_rad, 
-659,682c427,436
-< 
-<         """
-<         Parameters:
-<         -----------
-<         vpd : float
-<             vapour pressure def [kPa]
-<         wind_speed : float
-<             average daytime wind speed [m s-1]
-<         gc : float
-<             canopy conductance [m s-1]
-<         net_rad : float
-<             net radiation [mj m-2 day-1]
-<         tavg : float
-<             daytime average temperature [degC]
-<         daylen : float
-<             daylength in hours
-<         press : float
-<             average daytime pressure [kPa]
-< 
-<         Returns:
-<         --------
-<         et : float
-<             evapotranspiration [mm d-1]
-< 
----
->         
->         """ 
->         units: 
->         wind_speed -> [m s-1]
->         net_rad -> [MJ m-2 d-1]
->         press -> [kPa]
->         et -> [mm d-1]
->         gc -> [m s-1]
->         tavg -> [degC]
->         vpd -> [kPa]
-687c441
-< 
----
->        
-692c446
-< 
----
->         
-695,697d448
-< 
-<         ga_gc_ratio = ga / gc
-<         
-699,702d449
-< 
-<         #print gc/math.log(vpd)
-< 
-< 
-704,706c451,453
-<         #e = slope / gamma # chg of latent heat relative to sensible heat of air
-<         #omega = (e + 1.0) / (e + 1.0 + (ga / gc))
-< 
----
->         e = slope / gamma # chg of latent heat relative to sensible heat of air
->         omega = (e + 1.0) / (e + 1.0 + (ga / gc))
->         
-709,710c456,457
-<         #fs = 1.0 - omega
-< 
----
->         fs = 1.0 - omega
->         
-712c459
-< 
----
->         
-714,715c461,462
-<         tconv = (60.0 * 60.0 * daylen)
-< 
----
->         tconv = (60.0 * 60.0 * daylen) 
->         
-718c465
-<             arg2 = slope + gamma * (1.0 + ga / gc)
----
->             arg2 = slope + gamma * (1.0 + ga / gc) 
-722,724c469,471
-< 
-<         return et, ga_gc_ratio
-< 
----
->         
->         return et
->     
-726,727c473,474
-<         """ Canopy boundary layer conductance for momentum, i.e. 1/ra
-< 
----
->         """ Canopy boundary layer conductance for momentum, i.e. 1/ra 
->         
-729,730c476,477
-<         above the canopy is determined by aerodynamic conductance. Key
-<         assumption is that roughness length for momentum and for heat are
----
->         above the canopy is determined by aerodynamic conductance. Key 
->         assumption is that roughness length for momentum and for heat are 
-732,736c479,481
-< 
-<         Notes:
-<         ------
-<         'Estimates of ga for pine canopies from LAI of 3 to 6 vary from
-<         3.5 to 1.1 mol m-2 s-1  (Kelliher et al., 1993; Juang et al., 2007).'
----
->         
->         'Estimates of ga for pine canopies from LAI of 3 to 6 vary from 
->         3.5 to 1.1 mol m-2 s-1	(Kelliher et al., 1993; Juang et al., 2007).' 
-739,740c484,485
-<         References:
-<         ------------
----
->         
->         units: m s-1
-742,752d486
-< 
-<         Parameters:
-<         -----------
-<         wind_speed : float
-<             average daytime wind speed [m s-1]
-< 
-<         Returns:
-<         --------
-<         ga : float
-<             canopy boundary layer conductance [m s-1]
-< 
-757c491
-< 
----
->         
-760,765c494,499
-< 
-<         arg1 = self.vk**2 * wind_speed
-<         arg2 = (math.log((self.canht - d) / z0))**2
-< 
-<         return arg1 / arg2
-< 
----
->         
->         arg1 = self.vk**2 * wind_speed 
->         arg2 = (math.log((self.canht - d) / z0))**2       
->         
->         return arg1 / arg2 
->         
-767,768c501,502
-<         """ (bulk) aerodynamic conductance
-< 
----
->         """ (bulk) aerodynamic conductance, units: m s-1
->         
-771,788c505,509
-< 
-<         References:
-<         -----------
-<         * Monteith and Unsworth (1990), pg. 248. Note this in the inverted form
-<           of what is in Monteith (ga = 1 / ra)
-<         * Allen et al. (1989) pg. 651.
-<         * Gash et al. (1999) Ag forest met, 94, 149-158.
-< 
-<         Parameters:
-<         -----------
-<         wind_speed : float
-<             average daytime wind speed [m s-1]
-< 
-<         Returns:
-<         --------
-<         ga : float
-<             canopy boundary layer conductance [m s-1]
-< 
----
->         
->         Monteith and Unsworth (1990), pg. 248. Note this in the inverted form
->         of what is in Monteith (ga = 1 / ra)
->         Allen et al. (1989) pg. 651.
->         Gash et al. (1999) Ag forest met, 94, 149-158.
-789a511
->         
-792c514
-< 
----
->         
-795c517
-< 
----
->         
-798c520
-< 
----
->         
-801c523
-< 
----
->         
-804,805c526,527
-<         arg2 = (math.log((self.canht - d) / z0m) *
-<                     math.log((self.canht - d) / z0h))
----
->         arg2 = (math.log((self.canht - d) / z0m) * 
->                     math.log((self.canht - d) / z0h)) 
-807,808c529,530
-<         #arg2 = (math.log((self.canht - d) / z0m) + math.log(z0m / z0h))
-< 
----
->         #arg2 = (math.log((self.canht - d) / z0m) + math.log(z0m / z0h)) 
->         
-810,811c532,533
-< 
-< 
----
->         
->     
-813c535
-<         """ Standard PM expects wind speed at a 2m height, need to adjust
----
->         """ Standard PM expects wind speed at a 2m height, need to adjust 
-815,819c537,539
-< 
-<         References:
-<         -----------
-<         * Bos et al (2009) Water Requirements for Irrigation and the
-<           Environment, pg. 29
----
->         
->         * Bos et al (2009) Water Requirements for Irrigation and the 
->         Environment, pg. 29
-821,831c541,543
-<           Aerodynamic_resistance.html
-< 
-<         Parameters:
-<         -----------
-<         wind_speed : float
-<             wind speed [m s-1]
-< 
-<         Returns:
-<         --------
-<         wind_speed : float
-<             adjusted wind speed for height [m s-1]
----
->             Aerodynamic_resistance.html
->         
->         units: m s-1
-835c547
-< 
----
->     
-838,849c550,551
-< 
-<         Parameters:
-<         -----------
-<         tavg : float
-<             average daytime temperature
-< 
-<         Returns:
-<         --------
-<         slope : float
-<             slope of saturation vapour pressure curve [kPa degC-1]
-< 
-<         """
----
->         
->         units: kPa degC-1 """
-854c556
-< 
----
->     
-856c558
-<         """ Psychrometric constant ratio of specific heat of moist air at
----
->         """ Psychrometric constant ratio of specific heat of moist air at 
-858,874c560,562
-< 
-<         References:
-<         -----------
-<         * Eqn 8 from FAO paper, Allen et al. 1998.
-< 
-<         Parameters:
-<         -----------
-<         lambdax : float
-<              latent heat of water vaporization [MJ kg-1]
-<         press : float
-<             average daytime pressure [kPa]
-< 
-<         Returns:
-<         --------
-<         gamma : float
-<             pyschrometric_constant [kPa degC-1]
-< 
----
->         Eqn 8 from FAO paper, Allen et al. 1998.
->         
->         units: kPa degC-1
-877c565
-< 
----
->         
-879,889c567,570
-<         """ Pressure exerted by the weight of earth's atmosphere.
-< 
-<         References:
-<         -----------
-<         * Eqn 7 from FAO paper, Allen et al. 1998.
-< 
-<         Returns:
-<         --------
-<         press : float
-<             modelled average daytime pressure [kPa]
-< 
----
->         """ Pressure exerted by the weight of earth's atmosphere. 
->         Eqn 7 from FAO paper, Allen et al. 1998.
->         
->         units: kPa
-892c573
-< 
----
->     
-894,899c575,576
-<         """ After Harrison (1963), should roughly = 2.45 MJ kg-1
-< 
-<         Returns:
-<         -----------
-<         lambdax : float
-<              latent heat of water vaporization [MJ kg-1]
----
->         """ After Harrison (1963), should roughly = 2.45 MJ kg-1 
->         * units: MJ kg-1 
-902c579
-< 
----
->     
-906,916c583,584
-<         is a better reference
-< 
-<         Parameters:
-<         -----------
-<         tavg : float
-<             average daytime temperature [degC]
-< 
-<         Returns:
-<         --------
-<         density : float
-<             density of air [kg m-3]
----
->         is a better reference 
->         units: kg m-3
-919c587
-< 
----
->         
-921c589
-<     """
----
->     """ 
-924,928c592,598
-< 
-<     References
-<     ----------
-<     * Monteith and Unsworth (1990) Principles of Environmental
-<       Physics, pg. 185-187.
----
->     
->     units: mm day-1
->     
->     Refs
->     ====
->     * Monteith and Unsworth (1990) Principles of Environmental 
->     Physics, pg. 185-187. 
-930c600
-< 
----
->     
-932,948c602
-<         """ Equilibrium evaporation
-< 
-<         Parameters:
-<         -----------
-<         net_rad : float
-<             net radiation [mj m-2 day-1]
-<         tavg : float
-<             daytime average temperature [degC]
-<         press : float
-<             average daytime pressure [kPa]
-< 
-<         Returns:
-<         --------
-<         soil_evap : float
-<             bare soil evaporation [mm day-1]
-< 
-<         """
----
->         """ Equilibrium evaporation """
-951c605
-< 
----
->             
-955c609
-< 
----
->         
-960,962c614,616
-< 
-<     """
-<     Calculate ET using Priestley Taylor, "potenial evaporation", i.e.
----
->     
->     """ 
->     Calculate ET using Priestley Taylor, "potenial evaporation", i.e. 
-966c620
-< 
----
->     
-969c623,625
-< 
----
->     
->     units: mm day-1
->     
-971c627
-<     Quoted range from literature for value is 1.2-1.3, although I have seen
----
->     Quoted range from literature for value is 1.2-1.3, although I have seen 
-974,980c630,636
-< 
-< 
-<     References:
-<     -----------
-<     * Priestley and Taylor (1972) On the assessment of surface heat flux and
-<       evaporation using large-scale parameters. Monthly Weather Review, 100,
-<       81-82.
----
->     
->     
->     Refs
->     ====
->     * Priestley and Taylor (1972) On the assessment of surface heat flux and 
->     evaporation using large-scale parameters. Monthly Weather Review, 100,
->     81-82.
-982c638
-< 
----
->     
-984,1000c640
-<         """
-<         Parameters:
-<         -----------
-<         net_rad : float
-<             net radiation [mj m-2 day-1]
-<         tavg : float
-<             daytime average temperature [degC]
-<         press : float
-<             average daytime pressure [kPa]
-<         pt_coeff : float, optional
-<             Priestley-Taylor coefficient
-< 
-<         Returns:
-<         --------
-<         transpiration : float
-<             transpiration [mm day-1]
-<         """
----
->         
-1004c644
-< 
----
->         
-1005a646,647
->         
->     
+1997 1.57168457661
+1997 2.86602321522
+1997 4.3402661218
+1997 4.8679102073
+1997 4.1678921689
+1997 3.94132623542
+1997 3.09321329747
+1997 2.65258967297
+1997 1.34173346834
+1997 3.08193738287
+1997 2.05783306879
+1997 2.23981515484
+1997 2.29367005312
+1997 2.38030578088
+1997 2.64345597805
+1997 3.58130172414
+1997 1.80469052066
+1997 1.84130373906
+1997 1.79703509258
+1997 2.80092265543
+1997 3.20668159223
+1997 3.18389452546
+1997 3.7715197375
+1997 2.22406863371
+1997 3.37576471223
+1997 2.88106975495
+1997 2.26818480233
+1997 2.85109827714
+1997 3.03428273692
+1997 1.9925949934
+1997 2.33694146381
+1997 4.17627843531
+1997 4.02473953563
+1997 2.96919039521
+1997 2.51034221264
+1997 2.84397958468
+1997 3.24674525868
+1997 3.8452802781
+1997 2.29228727367
+1997 2.18656567708
+1997 2.43447704338
+1997 2.7037445742
+1997 2.84744393427
+1997 2.14653452179
+1997 2.20379239386
+1997 3.70251017554
+1997 3.61761249244
+1997 3.81469348094
+1997 4.14745988908
+1997 3.81529450325
+1997 3.22101468263
+1997 3.5774459449
+1997 3.47445263519
+1997 3.84170277962
+1997 3.18090308068
+1997 4.13200496883
+1997 2.99167311145
+1997 5.83731593493
+1997 5.08231211318
+1997 5.56192897896
+1997 5.54858934249
+1997 4.42866007981
+1997 3.79507877724
+1997 5.51261694525
+1997 5.12321685469
+1997 4.47618515153
+1997 4.94865085989
+1997 5.38042105331
+1997 6.52409391709
+1997 6.2979728968
+1997 5.22310171729
+1997 5.11956372006
+1997 4.3001177277
+1997 4.80543064293
+1997 4.10164730156
+1997 5.05680208167
+1997 5.9938260494
+1997 2.50916512707
+1997 4.72747294339
+1997 6.18951000494
+1997 7.32764985195
+1997 5.40281517751
+1997 5.28509622862
+1997 4.97045382037
+1997 7.1135635344
+1997 6.49854414224
+1997 6.07218071572
+1997 7.80646152879
+1997 7.23129056076
+1997 5.62530886003
+1997 6.13007671095
+1997 6.47195520734
+1997 7.19421036454
+1997 7.05801141822
+1997 6.93940941834
+1997 6.08931857965
+1997 8.21383714014
+1997 6.80648888823
+1997 6.70608549621
+1997 4.93065379307
+1997 6.71115120993
+1997 4.82896423771
+1997 6.35902543211
+1997 5.89026172762
+1997 7.03801899397
+1997 7.59092298586
+1997 5.60387760057
+1997 5.61977544031
+1997 5.42687796881
+1997 6.99227186777
+1997 6.8753009539
+1997 4.30577930085
+1997 4.09910410381
+1997 5.83800243445
+1997 6.29101358219
+1997 6.1430647599
+1997 4.32018945723
+1997 4.81666848704
+1997 6.24038096519
+1997 8.01225793025
+1997 8.15932745602
+1997 7.84312872978
+1997 6.11790851862
+1997 7.73616526784
+1997 7.93314371217
+1997 8.39709625371
+1997 8.46174586069
+1997 8.51641102925
+1997 8.11955445755
+1997 7.11221836866
+1997 7.84417451244
+1997 8.35288683874
+1997 8.64086201231
+1997 8.46621668328
+1997 9.0009082641
+1997 7.7409770475
+1997 8.38962402363
+1997 8.71532143709
+1997 9.08504258552
+1997 8.91897976663
+1997 8.88911504046
+1997 8.36413862885
+1997 8.86832207493
+1997 9.12551466861
+1997 8.50413031077
+1997 7.68205195333
+1997 7.69326161515
+1997 8.1183653959
+1997 8.33535551447
+1997 8.81628250264
+1997 9.64762220773
+1997 8.9615378648
+1997 8.76166212258
+1997 4.38098265133
+1997 6.76690268068
+1997 8.63091774423
+1997 4.92882607807
+1997 6.36952345409
+1997 5.84564023899
+1997 6.02408452424
+1997 9.03902934302
+1997 7.29772509989
+1997 6.62076194753
+1997 6.93019780506
+1997 7.45570036269
+1997 9.13042930357
+1997 9.51387198537
+1997 9.42025202501
+1997 9.95626309096
+1997 9.74680668287
+1997 9.80098083035
+1997 10.0988583163
+1997 9.74483233365
+1997 10.0368721866
+1997 9.63009115591
+1997 9.8949368779
+1997 9.75788982953
+1997 6.3235989627
+1997 7.04594770079
+1997 8.64743500032
+1997 7.38951998897
+1997 5.89261562863
+1997 7.89229302026
+1997 9.710886463
+1997 8.50113026316
+1997 9.44249660095
+1997 7.48469061279
+1997 8.92075628312
+1997 8.88695625269
+1997 9.00302091445
+1997 6.7989273552
+1997 9.49333887608
+1997 8.43958911386
+1997 8.92024896443
+1997 8.67967139782
+1997 9.12124681212
+1997 9.97868875098
+1997 9.9440951979
+1997 8.60258361825
+1997 8.07147685092
+1997 9.88772503857
+1997 6.74022569856
+1997 9.4050231828
+1997 6.5648592012
+1997 7.37329695678
+1997 8.51749701159
+1997 8.93964347974
+1997 6.81753400437
+1997 7.97287543782
+1997 7.4937270593
+1997 5.45090944418
+1997 7.83828280148
+1997 9.20053863088
+1997 8.79544679628
+1997 8.8175952303
+1997 9.14855695279
+1997 9.16331075676
+1997 8.94243241021
+1997 9.16387127663
+1997 8.66044768774
+1997 8.78651937572
+1997 8.38843631125
+1997 8.86213816458
+1997 8.34077440418
+1997 8.58229924929
+1997 8.66404873689
+1997 8.65080742814
+1997 8.24348009224
+1997 8.41698101893
+1997 8.45590235846
+1997 8.43563734456
+1997 5.94404951558
+1997 6.78051093973
+1997 8.36997989509
+1997 8.14906202106
+1997 7.88776732548
+1997 7.7113492
+1997 7.9848392572
+1997 7.93908422807
+1997 7.99674988007
+1997 6.86848756704
+1997 7.44093459112
+1997 6.74200539547
+1997 8.20544872442
+1997 8.33110964875
+1997 8.17380938753
+1997 7.32417851937
+1997 7.3829023337
+1997 6.91191073093
+1997 7.36201755447
+1997 5.21277578987
+1997 5.94487139133
+1997 6.4547183543
+1997 6.32580655143
+1997 7.79946184274
+1997 8.21298850306
+1997 7.79113706459
+1997 7.89130281409
+1997 8.00520779112
+1997 7.75768524268
+1997 7.47726655442
+1997 7.96744144123
+1997 7.79800278792
+1997 7.06296884593
+1997 6.67778764176
+1997 7.08635049333
+1997 2.93211707879
+1997 5.16998121134
+1997 6.83184630187
+1997 6.39296498119
+1997 4.28996929504
+1997 7.09626771226
+1997 6.93130568247
+1997 6.77030247197
+1997 5.85681483743
+1997 6.05485621813
+1997 6.75972720059
+1997 6.70302241203
+1997 6.89170940358
+1997 6.77163073707
+1997 6.77956647949
+1997 7.22407711043
+1997 5.75547379262
+1997 6.73175975005
+1997 6.26835107688
+1997 6.3876968124
+1997 6.70314940393
+1997 4.54184737304
+1997 4.6814639863
+1997 2.39741722383
+1997 2.27035102118
+1997 2.94634060356
+1997 5.39461476703
+1997 5.13209337596
+1997 4.54638818062
+1997 4.1662684597
+1997 3.24448115873
+1997 4.21608374207
+1997 3.16775048657
+1997 3.47390023871
+1997 3.90899339765
+1997 3.98808411396
+1997 4.83292096004
+1997 2.95987572187
+1997 4.04139750331
+1997 4.73130750399
+1997 4.47006282546
+1997 4.29692813976
+1997 3.57859875862
+1997 2.74431128843
+1997 2.38535931145
+1997 3.38173258788
+1997 4.3646278919
+1997 4.07159224156
+1997 3.23268494329
+1997 3.7144474836
+1997 1.67797628873
+1997 2.45943557318
+1997 3.6988198619
+1997 3.0432845246
+1997 2.72849259997
+1997 2.94395599812
+1997 3.44375132121
+1997 3.64536829568
+1997 2.36909876697
+1997 4.06344898027
+1997 4.02626741493
+1997 3.17061984225
+1997 2.88644120647
+1997 3.45120510946
+1997 3.83188401433
+1997 4.00184153317
+1997 4.19159085883
+1997 2.4985049601
+1997 3.91407549283
+1997 2.91503313445
+1997 2.26608382599
+1997 2.48802977447
+1997 2.91737592146
+1997 2.45717447115
+1997 2.51464690279
+1997 2.1391099345
+1997 1.96518181257
+1997 2.09698416356
+1997 2.10850181814
+1997 2.23150430659
+1997 2.05502928128
+1997 1.90307883679
+1997 2.79487861249
+1997 3.24076774839
+1997 3.35736779026
+1997 3.42852031227
+1997 3.57308978719
+1997 2.47617391337
+1997 2.90633279682
+1997 1.96172147383
+1997 2.69281702712
+1997 2.16335276031
+1997 2.73860475438
+1997 3.36705513218
+1997 2.00038397892
+1997 2.55562947163
+1997 1.72023229348
+1997 2.44177619065
+1997 2.49584172985
+1998 2.24421741252
+1998 3.24275366802
+1998 3.94437990187
+1998 4.12025620055
+1998 4.29060458482
+1998 3.23155628661
+1998 2.85118115846
+1998 2.55062161842
+1998 4.07363042719
+1998 3.38931687019
+1998 3.49616365663
+1998 3.58567904645
+1998 3.42738321014
+1998 2.62809461304
+1998 2.02636015421
+1998 2.42133930698
+1998 2.56495911856
+1998 2.89872251559
+1998 2.02763269248
+1998 3.00180974349
+1998 2.85016894482
+1998 2.29878380522
+1998 2.22521108188
+1998 2.5076449851
+1998 3.08216703778
+1998 3.31060103974
+1998 2.06797460833
+1998 2.7785323002
+1998 4.18491206151
+1998 4.15900765362
+1998 3.35482525337
+1998 3.27988662869
+1998 3.52176764592
+1998 2.78730343576
+1998 2.6730103091
+1998 2.71950631336
+1998 2.93357135517
+1998 2.53775383731
+1998 3.54024396472
+1998 1.98562458674
+1998 3.70928803713
+1998 4.04434769208
+1998 5.13427248417
+1998 2.62493978024
+1998 3.92599814852
+1998 3.32759027479
+1998 3.58488597679
+1998 6.21772469287
+1998 1.44626586649
+1998 4.19812913254
+1998 4.94096412469
+1998 4.4397189219
+1998 4.21076071191
+1998 2.85597062889
+1998 4.91244165189
+1998 5.39711078148
+1998 5.10575653699
+1998 3.55432767555
+1998 5.60257819593
+1998 4.85772701368
+1998 4.74921318544
+1998 3.76239773154
+1998 3.88560595075
+1998 4.29128969283
+1998 4.41160617903
+1998 5.40435589467
+1998 5.72091986329
+1998 5.81477417533
+1998 4.08963260979
+1998 3.347720125
+1998 3.01821635153
+1998 3.64374149052
+1998 5.80662719686
+1998 4.96238514181
+1998 3.60488896206
+1998 3.03890420725
+1998 3.68099424305
+1998 6.43709336767
+1998 6.64504738762
+1998 4.14152761913
+1998 4.79302526671
+1998 4.73453739783
+1998 5.50246953322
+1998 5.23465299518
+1998 6.77024165214
+1998 7.97301456585
+1998 7.81390133191
+1998 7.84394690042
+1998 7.97256975427
+1998 8.09456467494
+1998 6.27732650212
+1998 7.89327144281
+1998 5.3290622892
+1998 3.96591936129
+1998 6.04072835231
+1998 6.73250693807
+1998 7.28574379228
+1998 8.3477806354
+1998 7.41735448282
+1998 4.82237497859
+1998 6.11120856125
+1998 6.85944334626
+1998 7.42680395508
+1998 3.70734280845
+1998 8.73873541918
+1998 7.92223041523
+1998 6.17171009518
+1998 4.54014548831
+1998 5.69116591868
+1998 7.51810865595
+1998 7.31747711548
+1998 4.78307214245
+1998 6.81309062843
+1998 8.02894572326
+1998 8.6954301489
+1998 8.68590994894
+1998 6.0712870933
+1998 6.91452350218
+1998 7.58208810822
+1998 6.38472690167
+1998 7.02227532164
+1998 7.88598155447
+1998 8.23494080573
+1998 8.14305904985
+1998 8.44375855482
+1998 8.91564682011
+1998 6.03600383299
+1998 8.64197737129
+1998 9.34897506254
+1998 7.14474870923
+1998 7.3492626917
+1998 6.8345350873
+1998 7.06568959236
+1998 9.03078747388
+1998 8.98620501444
+1998 9.31666874432
+1998 9.27092749519
+1998 9.44919560963
+1998 8.99371170565
+1998 8.74562159273
+1998 9.18267694725
+1998 8.60149716324
+1998 6.69721809745
+1998 7.91522364523
+1998 9.93146576915
+1998 9.78859343986
+1998 9.74283553396
+1998 9.27010189289
+1998 10.2669251037
+1998 10.0065297174
+1998 10.0310390013
+1998 9.89983273957
+1998 9.86426534027
+1998 9.57876808918
+1998 8.01666976947
+1998 7.47876556262
+1998 6.10036159022
+1998 8.46934594064
+1998 9.23293767594
+1998 6.44397337483
+1998 8.89778089807
+1998 9.78824062112
+1998 10.1582604969
+1998 10.1010227087
+1998 9.81581785737
+1998 9.8257261767
+1998 9.3821421825
+1998 9.90659037108
+1998 9.43860883058
+1998 8.56161761014
+1998 9.57917547051
+1998 9.31898678326
+1998 9.78216335248
+1998 9.94284491821
+1998 9.72896562228
+1998 9.66192744309
+1998 8.95543647876
+1998 8.50888434271
+1998 8.95478835786
+1998 9.07209762964
+1998 9.41126893816
+1998 9.19625066634
+1998 8.80051454874
+1998 9.32864089779
+1998 9.02804856117
+1998 9.7480078728
+1998 9.65589731341
+1998 9.28649120757
+1998 8.13472166719
+1998 9.02511081706
+1998 9.17527560663
+1998 8.9531177615
+1998 8.5743478608
+1998 8.71550164817
+1998 9.01168491719
+1998 8.95727759391
+1998 8.48103883232
+1998 8.7598647135
+1998 8.33817104514
+1998 8.0122681441
+1998 8.13211313216
+1998 8.30758858781
+1998 7.90395638438
+1998 8.78352305649
+1998 8.84714389915
+1998 9.07650928034
+1998 8.64354097256
+1998 6.005669866
+1998 8.43125375885
+1998 8.29273919456
+1998 8.14233061779
+1998 7.76311515012
+1998 8.6997106133
+1998 8.90616912876
+1998 8.62144471375
+1998 8.48997428182
+1998 8.50738713509
+1998 8.63380354593
+1998 7.2515348031
+1998 8.05383479563
+1998 8.38159284402
+1998 6.84899428827
+1998 8.36187667158
+1998 8.18822631902
+1998 7.91964397102
+1998 7.73977240886
+1998 7.46150748947
+1998 7.79803384259
+1998 8.00883501506
+1998 7.61104604054
+1998 8.34037462
+1998 8.23047691526
+1998 7.97511731051
+1998 7.70209961768
+1998 7.25746429128
+1998 7.59426746757
+1998 7.28606986373
+1998 6.69638535349
+1998 5.94873854746
+1998 7.22090569681
+1998 6.81827525144
+1998 7.46629669188
+1998 7.15144134228
+1998 7.36781183252
+1998 7.10238213297
+1998 4.52099068283
+1998 7.58002305929
+1998 8.19249107837
+1998 7.85107954151
+1998 7.76509602796
+1998 6.31393764602
+1998 7.27230383749
+1998 7.71969348763
+1998 7.71427578523
+1998 7.4529252581
+1998 7.58178588349
+1998 7.97914202677
+1998 7.95468811694
+1998 8.02244025415
+1998 7.52197434102
+1998 7.52355353931
+1998 7.2492788763
+1998 7.43871467706
+1998 6.28942146279
+1998 7.89125716672
+1998 7.37058174569
+1998 6.81274157934
+1998 6.91601496787
+1998 6.88155264779
+1998 6.84571023876
+1998 6.81604343634
+1998 6.20071470621
+1998 6.80902573352
+1998 6.98287236373
+1998 6.41401010352
+1998 6.50938315796
+1998 4.72239130002
+1998 4.36039187053
+1998 3.87034871069
+1998 6.12453506834
+1998 5.25513601384
+1998 6.4033247871
+1998 6.30600547419
+1998 6.37928928144
+1998 6.17366529655
+1998 6.11395723414
+1998 6.17118562075
+1998 5.83406339451
+1998 5.72265826259
+1998 5.83769754422
+1998 6.0854507748
+1998 6.05371301664
+1998 6.2605208028
+1998 4.43980404059
+1998 4.3186632693
+1998 4.5198120949
+1998 5.1165322113
+1998 5.6080594784
+1998 5.32187750783
+1998 5.18641507477
+1998 5.50282995893
+1998 6.03770529327
+1998 5.36348975295
+1998 5.77564087631
+1998 5.26080905328
+1998 4.60646804739
+1998 2.8056402948
+1998 3.21301651904
+1998 3.65714538338
+1998 3.39523683624
+1998 3.39229592879
+1998 3.1105202231
+1998 4.59166165661
+1998 4.84059838524
+1998 4.25338514535
+1998 4.1795189566
+1998 3.14649916063
+1998 3.18468551177
+1998 5.03235499176
+1998 4.07589612889
+1998 5.41684431492
+1998 4.11611231338
+1998 4.14112642753
+1998 4.53233933104
+1998 3.8380657376
+1998 3.52795620717
+1998 4.42302905381
+1998 4.92239019702
+1998 4.23795597512
+1998 3.88206566277
+1998 3.95088763933
+1998 4.12829058859
+1998 4.60683869299
+1998 4.62268427482
+1998 4.89684671599
+1998 4.2459654522
+1998 4.73308719405
+1998 4.77471267731
+1998 4.35930014312
+1998 5.20406785772
+1998 5.26029322169
+1998 4.47297573534
+1998 3.09706308689
+1998 3.01182445211
+1998 3.0494740041
+1998 2.12087212817
+1998 1.99764061921
+1998 3.01871855321
+1998 2.68574477084
+1998 3.29701904243
+1998 2.10056820607
+1998 2.89954941222
+1998 2.83173245101
+1998 3.56714421091
+1998 3.50643559115
+1998 2.92460639498
+1998 1.40342951148
+1998 1.83472674193
+1998 1.99398346706
+1998 2.00521508757
+1998 2.62119339139
+1998 3.1361527763
+1998 2.16364745045
+1998 2.66932818024
+1998 2.34848346106
+1999 2.43758660973
+1999 1.57244385885
+1999 2.58609340452
+1999 2.04499419129
+1999 1.71287164735
+1999 2.16144119521
+1999 3.22977288798
+1999 2.26827430269
+1999 2.82496536908
+1999 2.26750747234
+1999 2.92285990981
+1999 4.00741898229
+1999 3.8392357967
+1999 3.67518891371
+1999 3.47933709208
+1999 3.41068157697
+1999 3.39294916349
+1999 3.83957397394
+1999 3.89953300361
+1999 4.00826160388
+1999 3.89922222646
+1999 3.5666936279
+1999 4.36154778274
+1999 3.09271037167
+1999 3.94202042263
+1999 3.58344053917
+1999 3.96265222376
+1999 5.16772134282
+1999 4.73886649891
+1999 3.56636213269
+1999 2.6480360398
+1999 2.09600727891
+1999 3.13692090321
+1999 4.45841774961
+1999 4.52885867274
+1999 4.15282475121
+1999 4.61053269738
+1999 4.68474343718
+1999 4.97018096376
+1999 3.98472083458
+1999 5.42308988113
+1999 4.85647136868
+1999 4.93212463635
+1999 2.94024412865
+1999 2.79247482889
+1999 3.86554934077
+1999 4.64671229696
+1999 4.7412420333
+1999 3.27817443159
+1999 2.98212679504
+1999 3.82569632087
+1999 3.1575944338
+1999 2.75435888346
+1999 2.23727995269
+1999 2.93462638665
+1999 2.57871879288
+1999 4.01787774972
+1999 4.5229902527
+1999 3.30625220207
+1999 4.10366894443
+1999 5.00445027483
+1999 4.79177989429
+1999 3.92523932882
+1999 4.02978251792
+1999 5.61010058319
+1999 3.9467496157
+1999 3.29298102307
+1999 2.07973872263
+1999 3.30769831243
+1999 4.19726690574
+1999 4.5430039684
+1999 3.31368588436
+1999 1.12464583801
+1999 3.47046591604
+1999 5.22894662508
+1999 6.6212653594
+1999 7.1827846058
+1999 5.3802902854
+1999 5.43458412322
+1999 4.10380065637
+1999 5.07392718841
+1999 5.5710391113
+1999 5.33192106996
+1999 5.22531237124
+1999 4.76918064282
+1999 5.10106386106
+1999 6.25500141022
+1999 6.76287374724
+1999 6.53989622675
+1999 6.28160760065
+1999 4.64678863577
+1999 7.63162991454
+1999 6.96407780511
+1999 7.66024230669
+1999 6.45734594688
+1999 4.6787427717
+1999 8.02382138095
+1999 8.09912606866
+1999 8.35281940385
+1999 8.06338610073
+1999 5.81701327023
+1999 7.29730899253
+1999 6.56331084375
+1999 7.13227661443
+1999 4.77174396998
+1999 7.59745139398
+1999 6.20546232854
+1999 6.0399015731
+1999 6.97843650181
+1999 7.98698715488
+1999 7.98815924744
+1999 8.43065031935
+1999 8.22494225451
+1999 7.21127544544
+1999 7.511350353
+1999 6.07215154114
+1999 8.62585093793
+1999 2.90727648513
+1999 3.06837218923
+1999 5.27277134829
+1999 6.92858602434
+1999 7.47339683164
+1999 8.26610307793
+1999 8.63672814162
+1999 6.96755727462
+1999 8.66994286023
+1999 8.81571314774
+1999 8.94328848694
+1999 9.13847565854
+1999 9.18934633404
+1999 9.22440895669
+1999 9.14752516962
+1999 8.68882997114
+1999 3.79756530736
+1999 8.28531292855
+1999 8.62012214309
+1999 8.06659245692
+1999 9.11076752988
+1999 8.18303268347
+1999 9.04817531063
+1999 8.80245404727
+1999 9.147824711
+1999 9.34254170232
+1999 9.07729653073
+1999 8.24637791812
+1999 7.64584067077
+1999 9.42110189106
+1999 9.09178302263
+1999 9.02745581319
+1999 9.16990317567
+1999 9.19887596391
+1999 9.47817193928
+1999 9.61095536548
+1999 9.17493631843
+1999 9.53126289152
+1999 9.47556841492
+1999 9.15700412648
+1999 9.21277546984
+1999 8.73616238478
+1999 8.74785968289
+1999 9.1740479934
+1999 6.97802795337
+1999 9.56615650858
+1999 8.7948694988
+1999 9.22011301519
+1999 6.22719607706
+1999 4.49362333517
+1999 7.07414865776
+1999 9.70833084526
+1999 9.18391122401
+1999 4.4085678175
+1999 6.17687656477
+1999 6.32822363619
+1999 9.80074924141
+1999 9.6051569052
+1999 7.41093164978
+1999 8.25816555339
+1999 9.54533935494
+1999 9.78987108692
+1999 9.76411498176
+1999 6.47644327136
+1999 9.17517027
+1999 9.85942965361
+1999 9.92165262044
+1999 9.759131376
+1999 9.05966317514
+1999 9.01123660034
+1999 9.24207425345
+1999 9.19551208798
+1999 8.86873444854
+1999 9.26315936252
+1999 5.19433077163
+1999 3.89540275554
+1999 4.30877359527
+1999 5.86516750821
+1999 8.93892026511
+1999 9.56709162715
+1999 9.27006849661
+1999 9.09877593935
+1999 9.21552321665
+1999 8.80276762749
+1999 9.72129024112
+1999 9.3957038605
+1999 8.66503145001
+1999 9.56085325306
+1999 9.18518819587
+1999 8.53861725318
+1999 8.89376875146
+1999 8.54341433711
+1999 8.89950011505
+1999 8.11867823128
+1999 7.43634893714
+1999 7.78590607056
+1999 8.57904854827
+1999 8.60580210615
+1999 8.60573590392
+1999 8.00604725928
+1999 8.03224803921
+1999 7.35846419055
+1999 7.62281206691
+1999 8.0405882887
+1999 8.53537853585
+1999 7.68226673707
+1999 7.84604379851
+1999 7.79582550925
+1999 7.43152016358
+1999 8.61055863396
+1999 8.58961779484
+1999 8.33795109749
+1999 7.94521245193
+1999 7.85377228371
+1999 6.86156702874
+1999 8.42400487958
+1999 8.10705538794
+1999 8.26388863514
+1999 7.84015724853
+1999 7.69164159297
+1999 8.50107494915
+1999 8.50121322131
+1999 8.31383284179
+1999 7.85616895868
+1999 8.0045298216
+1999 7.77570293798
+1999 7.68237688039
+1999 7.88874789411
+1999 7.84605972687
+1999 6.4251965139
+1999 2.63799205146
+1999 6.70459867019
+1999 8.25963212665
+1999 8.44786857217
+1999 7.64068468693
+1999 8.11349421883
+1999 7.69872743694
+1999 7.86839135666
+1999 7.9447584759
+1999 5.61543370218
+1999 2.15945596128
+1999 6.90113091526
+1999 7.3288682989
+1999 7.18041006684
+1999 7.32831539502
+1999 7.49685544947
+1999 6.02203013546
+1999 6.32943665971
+1999 6.48408637959
+1999 6.99272554108
+1999 7.21433947197
+1999 7.26892379343
+1999 4.05345337836
+1999 2.44844518722
+1999 3.37691932358
+1999 6.44447343316
+1999 6.40834055287
+1999 6.70160415997
+1999 7.01610189186
+1999 5.00238517579
+1999 5.72973379452
+1999 5.90545457795
+1999 6.08767899841
+1999 6.04562961173
+1999 5.84009512648
+1999 4.0104467083
+1999 5.22617648129
+1999 5.80423952321
+1999 2.69272579924
+1999 5.97906458192
+1999 5.48052845567
+1999 6.05807865712
+1999 1.85056297212
+1999 5.99763797049
+1999 4.29569348765
+1999 2.25271959212
+1999 5.06704624199
+1999 5.12599506965
+1999 4.4325052664
+1999 4.07004318757
+1999 4.21303826546
+1999 4.78529289935
+1999 5.22291146437
+1999 4.69654295754
+1999 4.95639266094
+1999 5.2458109139
+1999 5.80378029324
+1999 5.43981488741
+1999 5.17488863065
+1999 3.78355845156
+1999 3.90173412757
+1999 4.4957709806
+1999 5.15799360993
+1999 5.06557398521
+1999 4.31991413216
+1999 5.15632825521
+1999 5.3219291833
+1999 3.83880088381
+1999 3.93982180667
+1999 4.79962944145
+1999 5.25866605835
+1999 4.13410282275
+1999 3.66493978136
+1999 3.2869057161
+1999 3.49108213795
+1999 4.15566649869
+1999 4.67437761761
+1999 4.62643775088
+1999 4.71265136881
+1999 4.77190531523
+1999 3.23152544195
+1999 3.4150633854
+1999 1.53027616511
+1999 4.04739563606
+1999 4.02806517137
+1999 3.49602292377
+1999 2.7138023094
+1999 2.40051856894
+1999 2.9901329725
+1999 3.68753209818
+1999 4.39150447424
+1999 4.27626093968
+1999 3.40734462616
+1999 3.10750936231
+1999 3.22336572829
+1999 3.64098725699
+1999 3.00110245041
+1999 3.31008031253
+1999 2.60445106284
+1999 2.08253733551
+1999 4.61152054278
+1999 3.5616691255
+1999 3.22865494283
+1999 3.04276648269
+1999 3.06300359315
+1999 2.21337371895
+1999 1.97181204818
+1999 1.69308617019
+1999 1.77398072358
+1999 2.57533694034
+1999 2.05678837226
+1999 2.01040012703
+1999 2.70929119734
+1999 2.76208879663
+1999 2.58100844388
+1999 2.77858679363
+1999 3.27389547886
+1999 3.84460747531
+2000 3.54296428872
+2000 3.53316882199
+2000 3.65885029304
+2000 1.94453010969
+2000 2.82985283273
+2000 2.6634386705
+2000 3.40605544936
+2000 2.86611083032
+2000 1.46189619656
+2000 3.40785215789
+2000 4.15687871043
+2000 3.41156638646
+2000 3.97464151897
+2000 2.42171210722
+2000 2.35139184461
+2000 3.7065365288
+2000 2.75221225938
+2000 0.521835066605
+2000 1.98695275491
+2000 2.50132404726
+2000 2.03340527162
+2000 1.92160166975
+2000 1.51950828905
+2000 1.82061319575
+2000 2.05117035921
+2000 2.08962228321
+2000 1.97897301217
+2000 2.16455454566
+2000 2.19665392905
+2000 1.00562096889
+2000 2.47766093536
+2000 2.47554762693
+2000 2.60976438466
+2000 3.18099142846
+2000 3.26345666506
+2000 3.14920950891
+2000 3.37509274709
+2000 3.94922149427
+2000 3.41384581754
+2000 3.35288658034
+2000 4.16673604561
+2000 4.68127528354
+2000 0.973455710585
+2000 1.44951329475
+2000 3.84947481508
+2000 3.94217658825
+2000 4.40815910521
+2000 3.87526670696
+2000 1.93864594691
+2000 4.11045800887
+2000 3.60793488991
+2000 3.49473915957
+2000 3.56617939194
+2000 4.06372041037
+2000 4.7582959132
+2000 5.33106300601
+2000 4.85421451004
+2000 4.30636555071
+2000 4.69405186365
+2000 4.51895684161
+2000 4.91333093594
+2000 4.57311746682
+2000 4.355906449
+2000 3.37223459731
+2000 4.80893168755
+2000 5.21625233979
+2000 5.2692692323
+2000 5.72044216389
+2000 5.62254756062
+2000 5.78281414411
+2000 5.63376534868
+2000 4.60218597063
+2000 3.91188091303
+2000 4.44627478941
+2000 5.28728696929
+2000 3.5999203707
+2000 5.83987199271
+2000 3.89362786776
+2000 3.93957057489
+2000 1.89536009547
+2000 4.02431091223
+2000 4.11334639424
+2000 5.56744437929
+2000 6.05810877615
+2000 7.3484811465
+2000 7.40004246522
+2000 4.18651387617
+2000 6.06019609164
+2000 5.72780158329
+2000 4.61647620532
+2000 6.48245568931
+2000 6.58225381814
+2000 4.68124928413
+2000 6.55214581471
+2000 4.99351718394
+2000 5.64177018616
+2000 7.22895515227
+2000 7.77361207521
+2000 5.42211469835
+2000 5.63420261797
+2000 7.15503482034
+2000 7.7105403954
+2000 7.27264989782
+2000 2.19337589806
+2000 3.31349038263
+2000 4.33793002374
+2000 8.07796065621
+2000 7.7784697078
+2000 3.41584937788
+2000 7.64406971975
+2000 7.97542801545
+2000 7.83920512348
+2000 6.18050941212
+2000 7.28049578351
+2000 6.01813854037
+2000 2.88302376735
+2000 5.41479538915
+2000 6.4581822837
+2000 1.95724474255
+2000 6.8828424406
+2000 8.25910150076
+2000 8.25913639366
+2000 7.08648554668
+2000 8.84307943243
+2000 8.59298785797
+2000 8.7193760714
+2000 8.77544024795
+2000 8.86763972751
+2000 8.86045416145
+2000 9.00485066532
+2000 8.85281339744
+2000 8.58270327626
+2000 8.60349640481
+2000 9.04635071533
+2000 9.17033377489
+2000 8.52356429919
+2000 8.53553592641
+2000 8.45194513664
+2000 9.13664003768
+2000 9.0599498474
+2000 9.18110305689
+2000 6.95772682591
+2000 9.52019413154
+2000 7.74330675311
+2000 9.45503857266
+2000 8.62298317154
+2000 9.16766671636
+2000 8.82916312253
+2000 6.47588752666
+2000 5.71026220808
+2000 7.63264893965
+2000 9.12037308259
+2000 9.0236072878
+2000 9.08295852048
+2000 9.46894556218
+2000 7.426547975
+2000 4.33334001556
+2000 9.14808107131
+2000 9.30035799968
+2000 9.47242533772
+2000 9.35004314464
+2000 9.4192227787
+2000 9.38367240056
+2000 8.92119146
+2000 8.99356256078
+2000 9.30991142539
+2000 9.66110143031
+2000 9.88746733771
+2000 9.64892634077
+2000 9.62528709975
+2000 8.61322768769
+2000 5.78840051608
+2000 9.05153056697
+2000 8.9520057047
+2000 9.56853182448
+2000 9.64716762938
+2000 9.68000257313
+2000 9.90777892228
+2000 9.46245862667
+2000 7.33725370207
+2000 6.62842836784
+2000 9.65939872509
+2000 9.45793900637
+2000 9.69239726765
+2000 9.3732548702
+2000 9.20715488116
+2000 9.3205523338
+2000 9.84317389026
+2000 9.57324584253
+2000 9.3342211368
+2000 9.44196029109
+2000 9.35857313328
+2000 9.0453214461
+2000 7.63223310246
+2000 6.7820082989
+2000 9.22731166546
+2000 9.64888668274
+2000 9.34543658395
+2000 9.40734724323
+2000 9.18925532524
+2000 9.25953741791
+2000 8.77709994232
+2000 7.91825838098
+2000 7.76719657911
+2000 5.9617859552
+2000 4.80541661044
+2000 4.14072832726
+2000 6.82966605481
+2000 9.60678714888
+2000 9.69216045179
+2000 9.70007249139
+2000 10.0980084914
+2000 8.62898182813
+2000 8.88466596212
+2000 9.55986986387
+2000 8.22958325445
+2000 8.65972779572
+2000 8.823455657
+2000 9.13234158192
+2000 8.7948668076
+2000 9.43599144376
+2000 9.18186499981
+2000 9.15380364132
+2000 9.10063039376
+2000 9.06932722814
+2000 6.88428423139
+2000 8.63222497879
+2000 8.55229539993
+2000 8.61997022189
+2000 8.80026503251
+2000 8.11030948431
+2000 8.74923258378
+2000 7.49932278338
+2000 8.20117809909
+2000 8.30462364961
+2000 8.09388934207
+2000 7.44675910405
+2000 8.45371159388
+2000 8.70431948848
+2000 6.48170754321
+2000 7.97350004511
+2000 7.27091229103
+2000 5.07546871124
+2000 7.4381158019
+2000 8.32836674035
+2000 6.60989568865
+2000 5.86982225983
+2000 3.4363631583
+2000 2.51371380128
+2000 5.61607108813
+2000 6.93109206042
+2000 7.99406363309
+2000 8.20493383303
+2000 7.80378882458
+2000 8.07866838252
+2000 7.73754994305
+2000 8.01997178328
+2000 6.27779767412
+2000 8.02950240412
+2000 6.24336491794
+2000 5.9591638669
+2000 2.92918095157
+2000 7.12504045453
+2000 7.74894396695
+2000 6.95505391097
+2000 4.27614858982
+2000 4.64126980279
+2000 7.8142071695
+2000 2.88080880497
+2000 4.80370357551
+2000 6.30843008243
+2000 6.45329127132
+2000 6.07297469639
+2000 6.31491545568
+2000 5.91665558879
+2000 6.9239264933
+2000 7.19055247847
+2000 7.20661463695
+2000 7.13661176664
+2000 6.88739276246
+2000 5.95874172497
+2000 3.25179829414
+2000 4.13666688703
+2000 4.76846539942
+2000 5.38786472929
+2000 5.79959877841
+2000 5.92466313701
+2000 6.14730870096
+2000 6.01564226183
+2000 6.16081374048
+2000 5.87189778142
+2000 5.50638486278
+2000 5.76868562859
+2000 5.32726610222
+2000 5.38789676108
+2000 6.19679312941
+2000 5.40203169521
+2000 4.78714372578
+2000 5.71159696255
+2000 5.33437482296
+2000 5.8870884526
+2000 5.77227159923
+2000 4.61719723378
+2000 4.56066602857
+2000 4.57821187019
+2000 4.60074404757
+2000 4.70705709126
+2000 4.89719354508
+2000 4.21264113478
+2000 4.82898211682
+2000 4.14252336084
+2000 2.50450343647
+2000 4.48167751502
+2000 2.86151462493
+2000 5.27573958481
+2000 4.31385003564
+2000 4.04749965019
+2000 4.05172131111
+2000 3.88316277536
+2000 3.27889813961
+2000 2.58745206825
+2000 3.045812099
+2000 2.50370388518
+2000 0.838517984822
+2000 2.33215748748
+2000 2.5064336689
+2000 2.51429917296
+2000 2.89524615145
+2000 2.62551749869
+2000 1.09349042053
+2000 2.44198190892
+2000 3.74651485578
+2000 3.69201508066
+2000 3.32934508222
+2000 3.28424625409
+2000 2.93610542825
+2000 1.7923135044
+2000 2.1414490119
+2000 2.56126306268
+2000 2.99701414393
+2000 2.43547441078
+2000 3.04029904518
+2000 3.50939649855
+2000 3.02414347803
+2000 1.53931841328
+2000 1.94057745685
+2000 3.60024170713
+2000 2.37211749119
+2000 1.71964409352
+2000 3.02773273454
+2000 1.90810512248
+2000 2.92400829822
+2000 2.27049010656
+2000 1.32068545254
+2000 1.92469099647
+2000 2.16579542084
+2000 2.43008864986
+2000 1.9016265575
+2000 2.60813281167
+2000 2.04288587263
+2000 1.8471887052
+2000 2.26890328425
+2000 2.23465657613
+2000 2.22258497493
+2000 1.90849304417
+2000 2.14562221264
+2001 2.35695922513
+2001 2.30708478083
+2001 2.05182032716
+2001 2.48752329386
+2001 2.44597616005
+2001 3.12425369371
+2001 3.28337970167
+2001 2.36932433324
+2001 2.52996967217
+2001 3.08947722429
+2001 3.61060902226
+2001 2.92796106612
+2001 3.33783049364
+2001 2.25184196923
+2001 3.89267027468
+2001 3.52272170283
+2001 2.83291133335
+2001 1.57941398875
+2001 2.49995668842
+2001 1.43766356462
+2001 2.61664952832
+2001 2.74968395997
+2001 2.89389889514
+2001 3.4785371323
+2001 2.95297941098
+2001 2.77175785071
+2001 3.79608093595
+2001 3.38439263073
+2001 3.54860784994
+2001 4.73927994892
+2001 4.87848743553
+2001 3.23212985918
+2001 3.330004429
+2001 2.86291785697
+2001 2.63157143276
+2001 3.82533004281
+2001 3.77607143225
+2001 4.54076659985
+2001 4.43333501663
+2001 5.0536706509
+2001 5.18521349863
+2001 3.33700616479
+2001 1.46662221492
+2001 3.80514268075
+2001 2.25757354956
+2001 3.50634197182
+2001 3.92918206166
+2001 4.19724485911
+2001 2.87691814927
+2001 3.58978817614
+2001 5.10414746071
+2001 4.01693644783
+2001 1.59711287086
+2001 3.64708763488
+2001 4.38539230244
+2001 2.19760391735
+2001 5.84444588062
+2001 4.75421843317
+2001 4.13270743047
+2001 4.4139410626
+2001 4.89624904839
+2001 2.77884857595
+2001 2.31500230954
+2001 4.2938290713
+2001 3.03371263562
+2001 3.84244073889
+2001 4.34818860022
+2001 4.77562578773
+2001 4.0702455607
+2001 5.08190636654
+2001 4.86816637189
+2001 6.57815213262
+2001 6.11941657016
+2001 1.91353334323
+2001 2.51579232423
+2001 5.5237652432
+2001 4.81521450229
+2001 4.84621175174
+2001 2.74853512672
+2001 3.22821837635
+2001 5.72032602084
+2001 5.97436741159
+2001 6.51577915881
+2001 4.90540837946
+2001 4.53866222538
+2001 3.95912924174
+2001 4.64374752369
+2001 2.28612637719
+2001 6.39631061149
+2001 6.26866218023
+2001 2.7414102143
+2001 5.69720566856
+2001 4.90955650159
+2001 4.63237775318
+2001 6.21604145299
+2001 7.34972649572
+2001 7.95857442278
+2001 8.15150570334
+2001 8.05750672271
+2001 7.90041455683
+2001 6.68566825391
+2001 8.00759880382
+2001 7.64089769912
+2001 8.05438200798
+2001 6.26043678511
+2001 7.29225556635
+2001 4.53077772925
+2001 5.09540418504
+2001 6.25883746444
+2001 6.64609554435
+2001 7.91416732736
+2001 8.4612466104
+2001 8.68453907344
+2001 8.67585235776
+2001 5.16626668516
+2001 6.81038301292
+2001 7.87587868307
+2001 8.5443642843
+2001 7.37730299065
+2001 7.97139168332
+2001 8.59369611031
+2001 8.66454980941
+2001 8.66769002369
+2001 8.62209734865
+2001 8.61162121748
+2001 7.60543175613
+2001 8.20262575638
+2001 7.87182608154
+2001 8.60003547189
+2001 8.63917289672
+2001 8.86067547298
+2001 8.84949023493
+2001 8.62482615886
+2001 8.37249071734
+2001 6.93436740525
+2001 4.99990952514
+2001 4.36828340063
+2001 8.6733025905
+2001 9.26890450486
+2001 7.97363121636
+2001 7.34119336914
+2001 8.75126106488
+2001 9.06987015937
+2001 9.03616631974
+2001 8.6445386627
+2001 8.14252834717
+2001 9.09398151629
+2001 6.09130306403
+2001 8.98062392282
+2001 9.37912635504
+2001 8.78457945963
+2001 4.6256434071
+2001 9.51620548235
+2001 9.6077817517
+2001 9.24998622887
+2001 9.85950508056
+2001 9.92366991954
+2001 8.70742352868
+2001 8.71959032644
+2001 9.41147840431
+2001 9.4871988541
+2001 9.1823959354
+2001 9.50069498114
+2001 8.92870678022
+2001 6.08116759625
+2001 9.35446778681
+2001 9.85093171563
+2001 9.6245828074
+2001 9.73544351018
+2001 9.47004486999
+2001 9.80055380967
+2001 9.84243892825
+2001 10.1153011455
+2001 9.37568593406
+2001 9.83240596979
+2001 9.44910221929
+2001 9.91559277113
+2001 10.1600839972
+2001 9.87094828496
+2001 10.1282714639
+2001 10.188360984
+2001 9.73913892059
+2001 9.89362680814
+2001 8.53437592513
+2001 9.66244787978
+2001 10.1118091381
+2001 9.81211609072
+2001 9.6561308374
+2001 7.30752994576
+2001 9.59930121222
+2001 9.7705207798
+2001 9.80041045274
+2001 9.43966265022
+2001 7.65710967105
+2001 9.25011155767
+2001 9.19038592403
+2001 8.83188616169
+2001 9.10194832391
+2001 8.02414516967
+2001 8.48336592142
+2001 9.33927330509
+2001 9.19343316809
+2001 9.12574077373
+2001 9.08010242684
+2001 9.1002672755
+2001 9.29520194772
+2001 7.58454900804
+2001 5.50731975395
+2001 6.16123712339
+2001 5.78968474765
+2001 7.17478082444
+2001 9.33592245205
+2001 8.55328744625
+2001 9.43242574322
+2001 8.91315501704
+2001 8.51272090493
+2001 9.17342955039
+2001 9.24089665815
+2001 9.06297781256
+2001 8.98686757534
+2001 8.598535045
+2001 8.69763341803
+2001 9.47059093184
+2001 8.98805129766
+2001 7.75383436595
+2001 9.15261245278
+2001 8.91263129807
+2001 9.12307515924
+2001 8.58500069442
+2001 5.88525478981
+2001 8.44045676895
+2001 8.50950959647
+2001 8.66432176865
+2001 8.45138725557
+2001 8.37296372568
+2001 8.2472725896
+2001 8.62865539065
+2001 8.52718051945
+2001 8.45900313461
+2001 8.28032177977
+2001 8.24861779826
+2001 6.34315382425
+2001 8.41985330587
+2001 5.18269208465
+2001 8.05212110329
+2001 6.58766089432
+2001 6.97149451828
+2001 8.47699521148
+2001 8.34918371359
+2001 8.20147147706
+2001 8.17323822706
+2001 7.19230279107
+2001 8.01645784316
+2001 8.18149698982
+2001 7.83059882464
+2001 7.47530228715
+2001 5.89485180112
+2001 6.83723862475
+2001 7.01315752068
+2001 6.93897536678
+2001 6.87623941821
+2001 6.98213689198
+2001 6.9735650733
+2001 7.67621915083
+2001 7.29423834438
+2001 7.59104326918
+2001 3.68783428682
+2001 6.38686398377
+2001 5.93987958741
+2001 6.49183703495
+2001 6.0096099282
+2001 5.80510558536
+2001 5.88072247088
+2001 5.95755068698
+2001 6.6689764892
+2001 6.72491294067
+2001 6.77243454793
+2001 6.70947006736
+2001 2.56022332817
+2001 5.18465172691
+2001 4.90093732052
+2001 4.89055399967
+2001 5.78176368859
+2001 6.19784788017
+2001 5.72225231952
+2001 6.28723523595
+2001 4.02976834728
+2001 5.86331006564
+2001 5.67965521304
+2001 4.78892041553
+2001 4.51084138297
+2001 5.04402790174
+2001 5.86334055156
+2001 5.98364709609
+2001 6.29605998345
+2001 6.1511979244
+2001 6.25489324695
+2001 6.26999193108
+2001 5.00421642594
+2001 3.49176973625
+2001 3.85151812954
+2001 4.04635738717
+2001 4.84159952807
+2001 4.7822614051
+2001 5.06708167026
+2001 5.27081731006
+2001 5.67512244526
+2001 5.15305340055
+2001 4.68296276363
+2001 3.99771731653
+2001 5.08962207637
+2001 4.9111010242
+2001 4.98436300018
+2001 4.6751814968
+2001 4.85540188348
+2001 3.85187021662
+2001 3.64846371367
+2001 4.24418713332
+2001 4.42092951841
+2001 4.70067630879
+2001 4.92093926609
+2001 4.21186118728
+2001 4.03241180446
+2001 3.52339569823
+2001 3.22283314255
+2001 3.67918344266
+2001 3.40052961253
+2001 2.69750777015
+2001 2.50222720006
+2001 4.1580495138
+2001 4.34329752257
+2001 4.85690042451
+2001 4.07285123975
+2001 2.4849678117
+2001 4.6423858615
+2001 4.10929882259
+2001 3.65381581514
+2001 3.94758649198
+2001 4.34048991665
+2001 4.70982154197
+2001 4.80174327643
+2001 4.59725584049
+2001 3.55554665473
+2001 1.70693959455
+2001 1.9328964978
+2001 1.70046364361
+2001 2.12668387615
+2001 3.23717323425
+2001 4.00788852026
+2001 3.25850757148
+2001 3.57124289919
+2001 4.12704651065
+2001 3.40279249541
+2001 3.23801408909
+2001 3.10703149183
+2001 2.72678414398
+2001 2.70634142134
+2001 3.40556709055
+2001 2.56447501965
+2001 2.63396808318
+2001 2.46154099059
+2001 2.71205356156
+2001 3.23685775756
+2001 2.40826394673
+2001 2.38140557713
+2002 2.26059414292
+2002 1.69423687934
+2002 1.67522148606
+2002 2.1706290876
+2002 2.58909901989
+2002 1.06512357415
+2002 2.69827872671
+2002 2.44209258604
+2002 3.06372461099
+2002 4.14549941357
+2002 3.84120209868
+2002 2.89255768889
+2002 3.3082449126
+2002 2.74839384311
+2002 3.75546684832
+2002 2.96979626154
+2002 3.72037370795
+2002 3.41261875277
+2002 0.790341344059
+2002 2.60377031605
+2002 2.10830570758
+2002 3.69701155298
+2002 1.59201508953
+2002 3.19353088856
+2002 3.12132635671
+2002 3.60065657234
+2002 4.2084820381
+2002 5.17235898759
+2002 5.14935874246
+2002 5.56083754566
+2002 3.88690572142
+2002 4.55042807124
+2002 3.51759834899
+2002 2.59871450813
+2002 3.06402734746
+2002 2.62703077512
+2002 2.67291186812
+2002 2.34236795251
+2002 4.1612176895
+2002 4.43432282102
+2002 2.94875195196
+2002 3.99901510469
+2002 3.80789053405
+2002 4.05615218161
+2002 3.67378854423
+2002 4.14651117067
+2002 4.94082965269
+2002 3.66615857435
+2002 3.61669177806
+2002 4.30417121296
+2002 4.35548710907
+2002 5.66306320594
+2002 4.49805264668
+2002 3.66687565133
+2002 4.12294310373
+2002 4.65449165169
+2002 5.31023448842
+2002 3.15500734044
+2002 2.92298787589
+2002 3.75966237882
+2002 2.08853487584
+2002 4.15536373453
+2002 3.05148107862
+2002 3.39240716949
+2002 4.84889641907
+2002 5.50876059602
+2002 5.95748547695
+2002 5.09466233363
+2002 5.20611698784
+2002 4.65045345455
+2002 2.95775532325
+2002 3.33619562387
+2002 6.32164342348
+2002 6.98142372712
+2002 6.48001036397
+2002 1.99892908036
+2002 3.54149888299
+2002 3.75877888668
+2002 4.41215642842
+2002 5.08205423708
+2002 3.74382945899
+2002 4.46235556841
+2002 6.09310984898
+2002 7.02218348149
+2002 6.66608757826
+2002 6.29372277463
+2002 5.22743055927
+2002 6.11863140293
+2002 6.96173341239
+2002 2.76529315233
+2002 6.55347191072
+2002 7.19275464158
+2002 7.53215537808
+2002 5.59856052321
+2002 5.65228477457
+2002 4.89583026499
+2002 5.46191149539
+2002 6.65915102078
+2002 6.27825491615
+2002 6.00911503212
+2002 7.44715758764
+2002 5.96810820423
+2002 7.81006796083
+2002 8.23615715851
+2002 8.12917779573
+2002 8.07262211496
+2002 8.09293350625
+2002 8.1529387747
+2002 8.55186160625
+2002 7.4516585621
+2002 8.14648208097
+2002 7.37621517896
+2002 7.35689165166
+2002 7.01647573223
+2002 7.84219460244
+2002 6.9506965879
+2002 7.04042324178
+2002 7.79121631847
+2002 8.77163436236
+2002 7.91992641391
+2002 8.31419894399
+2002 8.29345463516
+2002 5.86418094101
+2002 3.11213446015
+2002 7.21483074586
+2002 8.35484549412
+2002 8.64590540468
+2002 9.01180850942
+2002 8.72598414495
+2002 9.06159812893
+2002 6.67244512601
+2002 8.84905183384
+2002 8.67574859486
+2002 7.83455737169
+2002 8.55944428307
+2002 8.7219139184
+2002 8.99011081316
+2002 6.33084171508
+2002 6.88173071213
+2002 7.29115403389
+2002 6.18600835504
+2002 7.64719425091
+2002 8.29948982429
+2002 8.54759580897
+2002 8.74693081918
+2002 8.49089538884
+2002 8.98175631144
+2002 9.01071182481
+2002 8.98427966206
+2002 7.90516317663
+2002 9.04826633208
+2002 8.60497953503
+2002 8.83387565939
+2002 8.98340648484
+2002 8.57484563759
+2002 8.44109707499
+2002 8.54071996916
+2002 9.12990916738
+2002 9.15540544232
+2002 8.64555827396
+2002 8.31827965204
+2002 8.42696221408
+2002 8.30479349107
+2002 8.23716752622
+2002 8.07906279199
+2002 9.34486312687
+2002 8.66506712802
+2002 8.76999627625
+2002 8.06434727078
+2002 8.90139262081
+2002 8.84238097732
+2002 8.95514543828
+2002 8.58202334427
+2002 8.79631731761
+2002 8.80558471549
+2002 8.74871505404
+2002 8.76986046843
+2002 8.73257250121
+2002 8.8772076031
+2002 9.32312216556
+2002 9.28006644222
+2002 9.11535791755
+2002 9.1933245508
+2002 8.63717058389
+2002 8.5980882055
+2002 7.98208280942
+2002 8.99083475192
+2002 8.49998734392
+2002 8.64079899252
+2002 8.21420056457
+2002 8.12368662807
+2002 5.95078318962
+2002 8.74891637045
+2002 8.36259535615
+2002 8.75227395388
+2002 8.14660811086
+2002 8.20469289991
+2002 7.59741289294
+2002 7.12602672806
+2002 8.50191310058
+2002 8.69885966593
+2002 9.01224061578
+2002 8.82268451928
+2002 8.79636525029
+2002 7.40959142651
+2002 6.60234700482
+2002 8.49827658225
+2002 9.56028590517
+2002 9.08416403085
+2002 9.26191638928
+2002 8.51759337283
+2002 8.35279273801
+2002 8.13442998325
+2002 8.64649539281
+2002 8.43073495063
+2002 8.47812799411
+2002 8.35254334606
+2002 8.08382755723
+2002 8.60236541609
+2002 8.20748884047
+2002 7.80554543415
+2002 7.93251801997
+2002 7.43895702714
+2002 7.22439074622
+2002 6.96036147005
+2002 7.98883183745
+2002 7.02658138427
+2002 8.25055652141
+2002 8.52441115914
+2002 8.57593503258
+2002 8.49087657799
+2002 7.95396644677
+2002 8.12678996756
+2002 7.82183744936
+2002 7.06723924297
+2002 7.4982576927
+2002 8.29739323761
+2002 4.06986568378
+2002 3.12871552917
+2002 3.46040832995
+2002 5.05802566615
+2002 3.54304237851
+2002 3.33441963003
+2002 5.28948996602
+2002 6.70094786263
+2002 8.1658722865
+2002 7.86972568007
+2002 8.07621376516
+2002 8.05631426065
+2002 7.96012226379
+2002 8.00486654144
+2002 7.78636751057
+2002 7.82345215338
+2002 7.63840989118
+2002 7.5980532411
+2002 7.51753488889
+2002 4.29826757959
+2002 5.61466043647
+2002 7.07754783366
+2002 7.59563057879
+2002 4.95712750413
+2002 6.92998017781
+2002 7.23601269252
+2002 7.4091414682
+2002 7.65019486394
+2002 5.74729218304
+2002 6.95784119163
+2002 5.61639939348
+2002 2.72191080257
+2002 6.13538652974
+2002 5.81565595259
+2002 6.91151016316
+2002 6.6445930936
+2002 7.13722681244
+2002 6.95314815794
+2002 6.97982506962
+2002 6.99627349165
+2002 7.02579643548
+2002 6.70035834921
+2002 6.67253342922
+2002 3.79687135741
+2002 4.90639998928
+2002 3.82277413923
+2002 2.9278927881
+2002 6.53124630953
+2002 3.60766437821
+2002 3.84695056387
+2002 2.60511055327
+2002 3.96021029943
+2002 4.78842166023
+2002 4.76059244889
+2002 5.32706809777
+2002 4.38534774765
+2002 2.10182548465
+2002 3.35203199241
+2002 5.29309116335
+2002 2.30510619193
+2002 2.03699860604
+2002 4.79280850601
+2002 3.29710826334
+2002 1.44024625657
+2002 1.5809211808
+2002 2.40477327428
+2002 3.82251793113
+2002 3.65434562945
+2002 3.77390528127
+2002 3.82944745455
+2002 4.22986124914
+2002 2.47069225465
+2002 3.52590022016
+2002 3.86343206528
+2002 4.30702054288
+2002 4.72638222874
+2002 4.56145028048
+2002 1.56645767123
+2002 1.74093593531
+2002 3.57084730922
+2002 4.05836521996
+2002 4.1905809525
+2002 1.31956830197
+2002 1.19936712215
+2002 3.31251630998
+2002 3.59624255147
+2002 3.66173710046
+2002 2.60068693792
+2002 3.50467107808
+2002 3.24699177325
+2002 4.03557937599
+2002 4.06841183062
+2002 3.71869709549
+2002 3.08637248161
+2002 2.53403528758
+2002 2.96837971672
+2002 3.92378996144
+2002 2.6065957456
+2002 2.80660373
+2002 3.13701707953
+2002 1.45724881743
+2002 1.3895820198
+2002 2.27665963302
+2002 2.3278821791
+2002 2.81581454569
+2002 2.5018201043
+2002 1.56857398534
+2002 1.81233216485
+2002 3.16633725634
+2002 0.842377636727
+2002 3.28099297666
+2002 3.17673750606
+2002 3.43323290582
+2002 2.63932417475
+2002 3.04291239438
+2002 1.71873100982
+2002 4.16933875658
+2002 3.50748177943
+2002 3.87140798807
+2002 3.58956662753
+2002 0.898973898492
+2002 2.75196919495
+2002 2.77236278777
+2002 2.59283876041
+2002 2.92305961955
+2002 3.51605560662
+2002 3.14384892209
+2002 3.90480761198
+2003 4.90027291924
+2003 2.39682183808
+2003 2.43521506264
+2003 2.71785012327
+2003 2.90747603508
+2003 1.12748369826
+2003 2.41288495905
+2003 3.44914716941
+2003 4.46564131089
+2003 3.66751382057
+2003 2.60774603123
+2003 2.28502083094
+2003 2.49369188344
+2003 2.70097148482
+2003 2.47797893023
+2003 2.2517978245
+2003 2.3590285297
+2003 1.83557815608
+2003 2.22758177879
+2003 3.70901629562
+2003 1.4285582389
+2003 2.41749911039
+2003 1.62682977244
+2003 1.96496473839
+2003 2.51904124844
+2003 2.75298553433
+2003 1.99331950004
+2003 2.56669495127
+2003 2.06856271794
+2003 0.74693339691
+2003 1.54414027201
+2003 2.98181125464
+2003 3.38128777128
+2003 4.37720221961
+2003 4.76461758244
+2003 3.34352638474
+2003 2.38434184008
+2003 2.82812120337
+2003 2.80721963348
+2003 3.12889922278
+2003 2.48937709075
+2003 3.61823813788
+2003 4.04907543135
+2003 3.62183956848
+2003 2.61759601571
+2003 0.945944019518
+2003 0.847197760197
+2003 1.59622814826
+2003 3.22388915489
+2003 3.47879018824
+2003 3.78785124518
+2003 2.55414271788
+2003 1.81929840988
+2003 4.42423279025
+2003 4.72502701566
+2003 3.96901734832
+2003 1.96321409219
+2003 1.49083519841
+2003 2.53107011382
+2003 3.09339669545
+2003 4.46465671011
+2003 3.97837897548
+2003 4.43541407987
+2003 5.22299281482
+2003 3.79528719873
+2003 2.33975625169
+2003 5.03131826207
+2003 6.31482511846
+2003 4.78060201509
+2003 3.661579769
+2003 5.56475386856
+2003 6.16473852863
+2003 5.04318562003
+2003 3.08269298624
+2003 3.07309401282
+2003 2.9350588865
+2003 2.33679389404
+2003 1.18178693035
+2003 1.85759266845
+2003 5.09838707768
+2003 6.59090068077
+2003 6.57860418762
+2003 6.84607071686
+2003 7.00713777231
+2003 7.2463644914
+2003 6.42204257207
+2003 6.50441664889
+2003 6.72700464919
+2003 2.49853855254
+2003 4.40927010486
+2003 5.99644564313
+2003 7.50487181048
+2003 7.49825226704
+2003 7.54243102411
+2003 6.70887099483
+2003 7.02031910851
+2003 2.52333872979
+2003 2.82481651626
+2003 3.38461268969
+2003 2.17194701474
+2003 3.83898524456
+2003 7.45608079429
+2003 7.51232074917
+2003 7.73908416001
+2003 8.03116112765
+2003 8.14136068712
+2003 8.25792125457
+2003 2.87414056449
+2003 4.19258670664
+2003 6.8364188671
+2003 5.52204650151
+2003 7.89749193475
+2003 7.17917455328
+2003 7.26787427686
+2003 4.02562947825
+2003 6.42681388623
+2003 8.29973343383
+2003 8.61600556868
+2003 8.65974991849
+2003 8.89057759987
+2003 8.5731469378
+2003 8.81453038033
+2003 7.52573229952
+2003 6.24386530685
+2003 3.73437963536
+2003 6.74851241055
+2003 8.57510323354
+2003 9.15202573276
+2003 9.05162336978
+2003 9.28599877001
+2003 7.25332467195
+2003 9.04803885408
+2003 8.78296559164
+2003 8.72706409466
+2003 6.25517364258
+2003 8.50532870046
+2003 3.93329051648
+2003 2.69790720271
+2003 5.62161555866
+2003 8.69849089623
+2003 5.16400445433
+2003 3.85603989694
+2003 4.69414019542
+2003 8.1598645069
+2003 7.31137323408
+2003 9.13663188348
+2003 5.84056694767
+2003 8.99334266518
+2003 7.66162096437
+2003 9.16688213666
+2003 7.78309601898
+2003 9.1590256867
+2003 8.80106002221
+2003 7.48012235171
+2003 8.14091388661
+2003 9.6170099978
+2003 9.32859626067
+2003 5.58357163111
+2003 9.10033095563
+2003 9.76092845578
+2003 9.70825571003
+2003 9.88009811434
+2003 9.82686088916
+2003 9.52668718156
+2003 10.0187579742
+2003 9.40803224881
+2003 5.79639428867
+2003 3.87298824558
+2003 8.60981911313
+2003 8.66481233492
+2003 9.55547958829
+2003 8.99669070213
+2003 9.52618723312
+2003 9.53907962816
+2003 9.42228731102
+2003 9.34518278672
+2003 9.39438442803
+2003 9.46307763763
+2003 7.13029664952
+2003 9.82259007992
+2003 9.48148698681
+2003 7.35369532818
+2003 4.61150659759
+2003 7.81113813646
+2003 9.63403614362
+2003 10.1024703372
+2003 9.86040781609
+2003 9.6045131373
+2003 9.90524195354
+2003 9.57464869809
+2003 9.73234464978
+2003 9.8947216242
+2003 9.99629829289
+2003 8.98114562878
+2003 8.60016501715
+2003 9.45956938718
+2003 9.57052257551
+2003 9.73390354786
+2003 9.81293761694
+2003 8.91376681815
+2003 9.83468285707
+2003 9.31551322336
+2003 9.45995326882
+2003 5.9886417107
+2003 9.47819092377
+2003 9.47624102403
+2003 9.58509213174
+2003 9.80411544196
+2003 9.33101103254
+2003 9.27198639074
+2003 5.40169700083
+2003 7.6165966294
+2003 8.53718760908
+2003 6.32711520736
+2003 9.1483063588
+2003 8.3634979598
+2003 8.9555169437
+2003 8.97855960453
+2003 8.45577285312
+2003 8.19040633714
+2003 8.74180965303
+2003 7.02124259559
+2003 8.78413856464
+2003 8.79583723039
+2003 8.05611469535
+2003 9.02571786166
+2003 9.16289466456
+2003 8.24010437609
+2003 8.57897283627
+2003 8.47656288025
+2003 7.87012987738
+2003 8.01085410572
+2003 9.13441346408
+2003 7.69953611535
+2003 8.81535432366
+2003 8.80462335195
+2003 8.76008542525
+2003 8.48698941847
+2003 8.55539395131
+2003 8.42319791354
+2003 8.60105940042
+2003 8.64201837706
+2003 5.50853854448
+2003 8.23548178092
+2003 8.58198953963
+2003 8.41955282717
+2003 6.5851511965
+2003 8.16545528839
+2003 6.33268058038
+2003 7.87344553563
+2003 6.72083490597
+2003 6.79520124196
+2003 6.66817421467
+2003 7.68533700106
+2003 5.17422310828
+2003 4.96058853099
+2003 6.66961557605
+2003 7.5445454631
+2003 7.74482587612
+2003 7.4985843062
+2003 2.34166613748
+2003 7.59330413141
+2003 8.00548483347
+2003 7.45303268304
+2003 4.87279592399
+2003 7.46364621119
+2003 7.40834020391
+2003 7.40717771038
+2003 7.49915368883
+2003 7.67087558361
+2003 6.87315579657
+2003 5.98700580617
+2003 6.02765783694
+2003 5.47304955377
+2003 5.80110304776
+2003 5.18907726374
+2003 6.33972460283
+2003 6.27256044178
+2003 6.05497794395
+2003 6.56445895929
+2003 3.54284164973
+2003 4.53472322635
+2003 4.01198377516
+2003 3.95799687711
+2003 6.7569339413
+2003 6.65993780084
+2003 2.95475099408
+2003 5.76390481877
+2003 5.46333233003
+2003 5.6477817746
+2003 5.45408549427
+2003 5.64397600377
+2003 5.89213607118
+2003 6.02100282565
+2003 5.64199639995
+2003 4.22520187115
+2003 4.40902768842
+2003 4.08218356644
+2003 2.64520730778
+2003 2.86419453907
+2003 1.30063021059
+2003 4.73156443738
+2003 5.11312253114
+2003 5.65876688413
+2003 5.82040941172
+2003 5.90148230661
+2003 5.85032487963
+2003 5.63757900938
+2003 4.43692269174
+2003 4.42122973703
+2003 5.09605947303
+2003 3.47679991029
+2003 3.51101855918
+2003 3.72218361573
+2003 4.27578843427
+2003 5.6546078077
+2003 4.59387266137
+2003 3.27176294772
+2003 2.93430386174
+2003 4.61296446857
+2003 4.62096537451
+2003 4.01678116533
+2003 1.59310024417
+2003 4.27409127973
+2003 4.97296209257
+2003 5.02366940928
+2003 4.76699595469
+2003 4.06281701167
+2003 3.29040065419
+2003 3.23401756051
+2003 3.34329153218
+2003 2.31351509544
+2003 2.90203798893
+2003 3.50816203399
+2003 4.16065061694
+2003 3.11295191347
+2003 2.18947566277
+2003 1.57833639052
+2003 1.5832985697
+2003 2.75347683031
+2003 2.8413371455
+2003 2.83744969128
+2003 3.1916302165
+2003 1.5046920672
+2003 3.53357239945
+2003 2.99934198459
+2003 2.42172854512
+2003 1.05328897152
+2003 3.00757087974
+2003 2.97870417368
+2003 2.29558434616
+2003 2.7912616296
+2003 2.37674727773
+2003 2.42536843265
+2003 2.63659328512
+2003 3.37550582765
+2003 3.86459883018
+2003 3.26734284907
+2003 2.64213740622
+2003 2.84177452776
+2003 3.54405775876
+2003 3.36274728758
+2003 3.84389908889
+2003 4.04379552158
+2003 3.35362908009
+2004 3.8967741895
+2004 3.52852578259
+2004 4.53965698724
+2004 3.60329886791
+2004 2.60570711494
+2004 3.01086720528
+2004 2.10353595299
+2004 2.13681146196
+2004 0.829532817458
+2004 1.85511285008
+2004 1.83709072675
+2004 3.41520534999
+2004 3.93993837955
+2004 3.04618840492
+2004 3.52576252568
+2004 2.55788170322
+2004 2.90231076263
+2004 1.72140033426
+2004 2.6328051693
+2004 2.1736776748
+2004 2.30297851256
+2004 3.35066149621
+2004 2.6661583127
+2004 3.77797597971
+2004 1.24036111558
+2004 1.16367138145
+2004 1.69930599661
+2004 2.46697876913
+2004 3.22480342608
+2004 3.54707256697
+2004 2.34341522134
+2004 2.64645520658
+2004 2.99039716004
+2004 3.15611250631
+2004 3.40069462761
+2004 2.77299914109
+2004 1.79145023656
+2004 3.73615135828
+2004 3.05696622896
+2004 2.37109841105
+2004 3.51939055251
+2004 3.41133994998
+2004 2.05621549683
+2004 3.99317955461
+2004 2.78453993941
+2004 2.55437794813
+2004 2.35588209006
+2004 1.76203334116
+2004 3.39277390004
+2004 4.67546777416
+2004 5.1319588486
+2004 5.49811455935
+2004 4.25679019117
+2004 3.74141884595
+2004 3.8139237577
+2004 3.84998982488
+2004 1.90774231112
+2004 2.8991826196
+2004 4.53226346272
+2004 5.09846162001
+2004 5.0054440037
+2004 3.58279068693
+2004 6.56424016078
+2004 6.85106186426
+2004 6.00273705704
+2004 4.34385055374
+2004 5.75465191024
+2004 4.49807056351
+2004 3.81205652365
+2004 4.11445345025
+2004 5.00690954683
+2004 5.86840135234
+2004 4.81784211673
+2004 5.55650010567
+2004 3.88971074926
+2004 3.71461599936
+2004 3.51360082013
+2004 3.3992499366
+2004 5.93463432257
+2004 5.73328253239
+2004 6.00264641178
+2004 3.9151604705
+2004 4.29498730499
+2004 5.72835751381
+2004 6.92095241733
+2004 7.4881815923
+2004 7.56751242921
+2004 6.87025038469
+2004 6.50476505903
+2004 4.11497065023
+2004 4.60284517845
+2004 5.66263112194
+2004 5.01507158648
+2004 5.79685468984
+2004 5.89348475228
+2004 5.52792000127
+2004 6.41551557978
+2004 7.77602128874
+2004 7.6583135408
+2004 7.89712504995
+2004 6.59766235103
+2004 5.94408036125
+2004 2.09869472924
+2004 5.31973647105
+2004 3.77140789264
+2004 7.0386407024
+2004 7.49108116084
+2004 8.01983928953
+2004 8.37473763398
+2004 8.46110668703
+2004 8.57947240484
+2004 8.59109772099
+2004 8.62210874514
+2004 8.7976373145
+2004 9.19819965373
+2004 8.55418744889
+2004 6.12114192526
+2004 7.59099419978
+2004 7.16622011881
+2004 8.26081281664
+2004 8.26362065222
+2004 5.42436034024
+2004 7.50481085712
+2004 3.3910511882
+2004 0.892617388928
+2004 3.48245539358
+2004 9.15605304134
+2004 9.16925847051
+2004 9.64634644517
+2004 9.33140328135
+2004 9.54080789447
+2004 9.49511118649
+2004 9.76695152104
+2004 9.51543944725
+2004 9.68330117356
+2004 9.66796313658
+2004 9.80727099989
+2004 9.56019925116
+2004 9.62564355524
+2004 9.40179957468
+2004 9.85427255985
+2004 9.50187886689
+2004 9.68228581857
+2004 9.4773992876
+2004 9.72173622715
+2004 9.52831112438
+2004 9.35380608412
+2004 9.1719891089
+2004 8.87453228754
+2004 9.69133051
+2004 7.66378275632
+2004 9.02515091659
+2004 9.6139675071
+2004 9.37704189326
+2004 9.38608107564
+2004 4.0313488683
+2004 9.19751045509
+2004 7.9212897335
+2004 9.53389101351
+2004 9.01606384548
+2004 9.98074039954
+2004 10.0421839872
+2004 9.74030137932
+2004 7.41402767064
+2004 8.22256133317
+2004 8.40802311381
+2004 9.22866664041
+2004 9.16281597418
+2004 9.57302428778
+2004 9.53952672967
+2004 9.83907165662
+2004 9.92223999557
+2004 7.72559453644
+2004 9.23395284385
+2004 9.34780523737
+2004 8.79315189265
+2004 9.21627711892
+2004 8.91958509777
+2004 7.85029234649
+2004 6.54604332452
+2004 9.68127434532
+2004 7.87825103527
+2004 9.64286302048
+2004 9.33649550039
+2004 9.11002486473
+2004 9.70189276265
+2004 9.89914623815
+2004 9.74839540075
+2004 9.56144893006
+2004 9.84708190983
+2004 9.58107047913
+2004 9.2854747382
+2004 9.64909605291
+2004 9.29679305263
+2004 9.79047236601
+2004 9.12529703372
+2004 9.50375115101
+2004 9.01883074398
+2004 8.70814135299
+2004 8.71585672271
+2004 9.18080877064
+2004 9.23026414455
+2004 8.98684183899
+2004 8.81026716812
+2004 9.22651747771
+2004 7.4282958879
+2004 4.48933504687
+2004 8.61006960697
+2004 8.37608745601
+2004 8.50252920958
+2004 7.70034006366
+2004 9.29399153488
+2004 9.48971799896
+2004 8.94439578287
+2004 7.40763188728
+2004 8.7819596942
+2004 9.27791088871
+2004 8.81997801944
+2004 8.52331022582
+2004 8.60415578116
+2004 8.7346049044
+2004 8.58024175399
+2004 8.76986186325
+2004 8.87505017992
+2004 3.7906966905
+2004 6.78915315602
+2004 3.53659163661
+2004 3.98232816251
+2004 8.43567025155
+2004 8.71000289532
+2004 7.90439971383
+2004 8.6449095042
+2004 8.72568176321
+2004 8.50454965229
+2004 8.16776887829
+2004 8.41515512355
+2004 8.92646001077
+2004 8.54469737911
+2004 8.17053528904
+2004 8.23868562837
+2004 8.33728770418
+2004 5.73225243333
+2004 4.49363187938
+2004 8.04734606926
+2004 6.82048769479
+2004 8.11643016945
+2004 7.77753349442
+2004 7.58616158077
+2004 8.21157902784
+2004 5.62473121473
+2004 2.71096875065
+2004 5.20750160177
+2004 7.82991845741
+2004 7.94896216257
+2004 7.34062649881
+2004 7.6940808904
+2004 7.24661259914
+2004 5.38276198715
+2004 5.05208470205
+2004 5.81267630708
+2004 5.691917813
+2004 4.2552948659
+2004 6.81684504686
+2004 6.58142451783
+2004 6.87708178845
+2004 7.20921017924
+2004 7.48817221662
+2004 7.42950280104
+2004 6.49461756144
+2004 7.1914374568
+2004 2.2809423226
+2004 2.74335379368
+2004 7.22901453987
+2004 6.33848208169
+2004 5.21177444455
+2004 5.66630752201
+2004 6.02408161382
+2004 6.80375047317
+2004 6.34397336101
+2004 5.83206558988
+2004 6.08409065193
+2004 6.14033027749
+2004 5.64156894758
+2004 6.74634843931
+2004 5.78613902057
+2004 5.60163702272
+2004 5.60923288328
+2004 5.29592162374
+2004 5.39956926795
+2004 5.29019601309
+2004 5.1650411355
+2004 4.43350467821
+2004 4.64302329351
+2004 2.31775313879
+2004 2.40951317663
+2004 3.81081878789
+2004 4.38899119881
+2004 2.67708981727
+2004 4.96624925783
+2004 5.29798444295
+2004 2.9692984466
+2004 3.09936416723
+2004 2.89264698479
+2004 5.39817120883
+2004 6.09671515679
+2004 6.02167193971
+2004 4.0632170752
+2004 4.00808436797
+2004 1.31755643207
+2004 4.57959629067
+2004 4.46817501464
+2004 4.9289209913
+2004 5.02434421698
+2004 3.62142005679
+2004 3.50092294274
+2004 3.74181420123
+2004 1.16979309132
+2004 3.75771177785
+2004 3.31730376614
+2004 3.71533323442
+2004 2.66880737102
+2004 4.43437677325
+2004 3.74592873422
+2004 4.37310739124
+2004 4.12429798522
+2004 4.80433340114
+2004 2.07124371837
+2004 1.0321859531
+2004 1.89898167157
+2004 4.35248040479
+2004 3.05875793958
+2004 3.08664420725
+2004 4.15645929044
+2004 3.49145277031
+2004 3.67522132788
+2004 4.13993862912
+2004 3.52933185125
+2004 3.48719681019
+2004 3.3306224985
+2004 3.75262500156
+2004 2.01243409876
+2004 3.11526747394
+2004 4.54339179699
+2004 1.14847406842
+2004 3.85285905635
+2004 2.90703085844
+2004 3.32385846043
+2004 3.56299008707
+2004 2.43219893367
+2004 2.22294138487
+2004 2.66968278215
+2004 3.17921292547
+2004 3.05928750607
+2004 2.00497090413
+2004 1.50512144315
+2004 2.85204307514
+2004 3.43461550341
+2004 1.31015851378
+2004 2.13194569129
+2004 2.01886927456
+2004 1.97755203036
+2004 2.32673588091
+2004 2.22304777685
+2004 3.36461710592
+2004 3.64714458725
+2004 3.63939383546
+2005 4.56735184221
+2005 4.11644913305
+2005 4.46881634291
+2005 5.03497188186
+2005 4.56114470324
+2005 3.34924188605
+2005 3.94495498053
+2005 3.11771437603
+2005 3.09607745209
+2005 3.61718215056
+2005 3.60102581026
+2005 4.35097169033
+2005 3.7142890029
+2005 2.58372399922
+2005 2.59002284117
+2005 2.72181806986
+2005 2.0872433074
+2005 1.71977262589
+2005 1.40904912383
+2005 1.9572081972
+2005 1.32754693583
+2005 1.01818188922
+2005 1.81433901865
+2005 2.24369403711
+2005 3.49327969076
+2005 3.47672046088
+2005 2.90807561713
+2005 2.03280052627
+2005 1.8205300049
+2005 2.34162926857
+2005 2.95794324974
+2005 2.84965882599
+2005 2.96125225992
+2005 1.81079083709
+2005 3.30461674019
+2005 4.20885544249
+2005 4.24816883363
+2005 4.49527960998
+2005 5.07457425956
+2005 2.69550850784
+2005 3.73541706895
+2005 3.0413694397
+2005 3.95603031337
+2005 4.19687367075
+2005 3.1612781436
+2005 4.84586459599
+2005 5.12508198473
+2005 3.80510437721
+2005 3.46142794427
+2005 3.4849629341
+2005 2.65993543207
+2005 2.96545264519
+2005 5.17527854721
+2005 4.92327904844
+2005 1.71731722014
+2005 3.00214387153
+2005 3.75255197972
+2005 3.3347729366
+2005 2.27045413923
+2005 3.22371988494
+2005 3.37267436879
+2005 3.37890689398
+2005 4.16232639181
+2005 4.10991068135
+2005 4.77012964355
+2005 5.80189825071
+2005 4.17776279864
+2005 3.68969253602
+2005 3.99343558749
+2005 4.28192480325
+2005 5.00648181133
+2005 6.05009668386
+2005 3.20565087727
+2005 4.54856999391
+2005 2.02257006432
+2005 2.33622550737
+2005 4.7029213897
+2005 4.85486423025
+2005 6.1048974485
+2005 5.49612945527
+2005 5.11074800036
+2005 5.70848056395
+2005 6.4371254688
+2005 3.82584729973
+2005 3.18205812902
+2005 2.76921847292
+2005 6.09922183518
+2005 7.36538193717
+2005 7.23864087104
+2005 3.47601315925
+2005 5.29606537684
+2005 5.35634809514
+2005 6.53835306963
+2005 7.44946944403
+2005 7.6291850987
+2005 7.69945482729
+2005 6.03159506644
+2005 5.36804391137
+2005 7.30222309959
+2005 7.37526415058
+2005 7.78779145398
+2005 4.86710296086
+2005 2.7614108705
+2005 6.14013365648
+2005 6.36089635273
+2005 6.37735465953
+2005 6.97968237327
+2005 7.59394006796
+2005 7.7899875909
+2005 8.12810540395
+2005 8.3460487779
+2005 8.03414481895
+2005 6.47026751139
+2005 5.00997791324
+2005 6.82045949768
+2005 5.04875957007
+2005 7.51898485532
+2005 7.11974973861
+2005 4.87656681673
+2005 5.4942651331
+2005 7.78542941403
+2005 6.88657075717
+2005 7.32851571375
+2005 7.22733481469
+2005 5.87119895113
+2005 5.27133513373
+2005 7.78940747594
+2005 8.85363167605
+2005 8.91335664924
+2005 8.77793516771
+2005 9.09661277283
+2005 9.35800794605
+2005 6.85723889849
+2005 9.06476018994
+2005 8.10082816821
+2005 8.79886173347
+2005 8.98862348886
+2005 9.03587120148
+2005 7.95884523311
+2005 7.72073149305
+2005 8.17701459734
+2005 9.16005544253
+2005 9.24536458729
+2005 7.75463094815
+2005 7.42962245948
+2005 9.2942029448
+2005 9.26580612664
+2005 7.61420144633
+2005 8.66827155282
+2005 8.38922290038
+2005 8.77937095546
+2005 6.10666828512
+2005 3.46889822381
+2005 5.48686474052
+2005 9.3161312638
+2005 9.57573448484
+2005 9.88036504453
+2005 9.72640686727
+2005 9.71399685201
+2005 9.09554085924
+2005 10.1506616792
+2005 9.90270821293
+2005 8.66854326443
+2005 9.54045471754
+2005 9.73629278747
+2005 9.96634982958
+2005 9.70187371588
+2005 9.36209152453
+2005 9.20927579945
+2005 9.39391591759
+2005 9.32322089361
+2005 9.29759710713
+2005 9.18362932886
+2005 9.60577047615
+2005 9.39592471726
+2005 9.16783349662
+2005 8.95792408209
+2005 8.8733894378
+2005 6.0976842201
+2005 8.3517955109
+2005 9.70939192057
+2005 9.39282275277
+2005 9.02580747826
+2005 7.98391307658
+2005 8.61509860823
+2005 9.75620025707
+2005 9.3675147955
+2005 8.90307003574
+2005 9.42220927303
+2005 9.53739842218
+2005 9.52207072306
+2005 8.35986758751
+2005 9.56757026476
+2005 8.81533712505
+2005 8.22339837892
+2005 9.75927225512
+2005 9.76172050032
+2005 9.48284907902
+2005 9.12920920226
+2005 9.31147276331
+2005 9.68800536285
+2005 9.21689716624
+2005 9.27954560134
+2005 9.20262861273
+2005 8.68713173207
+2005 8.92211557763
+2005 7.72542604489
+2005 7.86865573097
+2005 8.86371876227
+2005 4.64722965636
+2005 7.03490983008
+2005 6.16919126049
+2005 9.26347953014
+2005 9.36875803438
+2005 9.0198400203
+2005 8.83980952043
+2005 8.76835801024
+2005 9.17954945516
+2005 8.51426029487
+2005 7.63568164487
+2005 8.17946759398
+2005 8.88133170893
+2005 9.0082112424
+2005 8.79287218197
+2005 9.1512118568
+2005 8.76179218509
+2005 8.71764654945
+2005 8.66882276078
+2005 7.64013276741
+2005 6.15167031441
+2005 8.30502707401
+2005 8.73352999994
+2005 8.74493326267
+2005 8.38322601106
+2005 7.3079567211
+2005 8.33316439023
+2005 8.35667547941
+2005 8.39158625737
+2005 7.59110696168
+2005 8.40536615184
+2005 8.21144459116
+2005 8.28768135784
+2005 8.24794492259
+2005 7.91539794532
+2005 7.92769801764
+2005 7.91710978966
+2005 7.62999256766
+2005 7.9904832237
+2005 7.91685356348
+2005 7.67238494195
+2005 7.77760148705
+2005 7.38064412421
+2005 7.45732472611
+2005 7.68850302305
+2005 7.52586593483
+2005 6.29006177837
+2005 4.78847771092
+2005 7.64001440825
+2005 7.49811889345
+2005 7.17735717278
+2005 7.49794394665
+2005 7.43672933515
+2005 6.99726674582
+2005 7.54276042493
+2005 7.39458703332
+2005 7.11826811755
+2005 5.12162547357
+2005 6.54826027233
+2005 5.21712181413
+2005 7.33006272493
+2005 7.36388761592
+2005 6.46248696804
+2005 5.67736796308
+2005 6.16047458325
+2005 6.74064962693
+2005 6.91865660479
+2005 6.62232733731
+2005 5.7183130737
+2005 3.80323414816
+2005 2.76108750559
+2005 4.99947239566
+2005 2.40322090158
+2005 2.65185707244
+2005 3.1226615285
+2005 3.4071455361
+2005 6.16911574293
+2005 5.70430442066
+2005 6.40729250456
+2005 5.67889419035
+2005 5.43204434843
+2005 6.06911279211
+2005 6.38731826955
+2005 6.45296824313
+2005 5.22991392812
+2005 4.86516992087
+2005 4.94882568607
+2005 3.69611602627
+2005 4.12906017776
+2005 4.52865693868
+2005 4.17732039354
+2005 3.86014222358
+2005 4.07944544007
+2005 4.71108052742
+2005 5.05652910174
+2005 4.63102915933
+2005 5.03214778129
+2005 4.70322010057
+2005 5.14927527758
+2005 5.32953404372
+2005 5.38326289221
+2005 5.32161588507
+2005 5.04676023695
+2005 5.20000396445
+2005 4.84409916558
+2005 3.86862103766
+2005 4.09187213938
+2005 4.45890200852
+2005 4.95952980346
+2005 4.40881864718
+2005 4.27474646145
+2005 3.32926427192
+2005 2.7706147985
+2005 3.14403389283
+2005 2.97329705805
+2005 1.514119387
+2005 3.18880131542
+2005 2.73602434178
+2005 4.0676994281
+2005 2.59878373551
+2005 2.71277706707
+2005 1.73458389013
+2005 2.24265602127
+2005 1.30423539159
+2005 3.99769008162
+2005 3.23468267291
+2005 3.1766169335
+2005 2.70240451035
+2005 3.59596692831
+2005 0.684331098953
+2005 2.64846966246
+2005 2.69239803863
+2005 2.24236618935
+2005 2.78764493468
+2005 2.70736729842
+2005 3.03991214754
+2005 2.74917186439
+2005 2.48882882885
+2005 1.63028088698
+2005 0.836043307655
+2005 2.9935549918
+2005 2.10911519445
+2005 2.26984252768
+2005 2.90595867815
+2005 2.46756884598
+2005 2.39746920987
+2005 2.6840323165
+2005 3.17957896868
+2005 3.43502594675
+2005 2.26195525425
+2005 3.48066718893
+2005 3.35511628281
+2005 3.69822061263
+2005 3.50474481098
+2005 3.41526183373
+2005 3.42071835996
+2006 3.48727364502
+2006 0.922297132647
+2006 3.46459331062
+2006 3.26852014783
+2006 3.94279791382
+2006 2.62943113095
+2006 2.45025879578
+2006 3.21446969721
+2006 4.27674799886
+2006 3.13502805869
+2006 3.34073646267
+2006 4.36644401725
+2006 3.73585115108
+2006 3.00563355803
+2006 2.98732088697
+2006 3.2378115575
+2006 3.97209282321
+2006 3.5577856243
+2006 3.5319109389
+2006 4.08912435043
+2006 1.87880083631
+2006 1.76387516965
+2006 2.12774854695
+2006 4.05384679321
+2006 3.63041265431
+2006 3.03284098415
+2006 3.07699224443
+2006 3.76815515897
+2006 2.62800346665
+2006 4.50528524484
+2006 3.88599245024
+2006 3.32868612338
+2006 3.60928826403
+2006 5.18808442218
+2006 2.33810756287
+2006 3.22782269535
+2006 3.33895566711
+2006 3.62303187869
+2006 3.15787254117
+2006 3.11563047478
+2006 3.33723704165
+2006 1.13982220514
+2006 3.01375605118
+2006 2.93484457426
+2006 3.78326864706
+2006 4.60861656325
+2006 5.19098754279
+2006 5.4985249624
+2006 2.11029193028
+2006 2.47371045857
+2006 3.28185717063
+2006 4.69083459875
+2006 2.29621829669
+2006 4.44476860397
+2006 4.66330453192
+2006 3.7883973922
+2006 3.45649514068
+2006 3.59296513315
+2006 5.07666795732
+2006 5.9511344076
+2006 6.40994158888
+2006 4.58364833524
+2006 3.9981545373
+2006 4.36580746026
+2006 3.04465387366
+2006 4.44487665103
+2006 4.71459728384
+2006 5.91026087596
+2006 6.7919039493
+2006 6.46692762163
+2006 7.04250337345
+2006 6.8989270713
+2006 6.41253308445
+2006 5.36780201384
+2006 5.61853798517
+2006 5.79966492237
+2006 4.88868154688
+2006 4.66512038225
+2006 4.07058001772
+2006 2.2410823425
+2006 4.39207591744
+2006 4.62573371532
+2006 4.09826768221
+2006 3.75472675792
+2006 4.27539399116
+2006 5.29763365105
+2006 4.78969293399
+2006 6.22473857359
+2006 6.57523624947
+2006 6.59653528481
+2006 7.69126109806
+2006 7.85696897268
+2006 6.95955745064
+2006 6.25247610444
+2006 7.03941639851
+2006 6.74202402107
+2006 7.18565711969
+2006 4.36769555145
+2006 5.89942790996
+2006 6.47592682976
+2006 7.25059284017
+2006 6.91338093747
+2006 8.09585822853
+2006 7.54666245058
+2006 8.19903242565
+2006 8.11509606794
+2006 6.88458368873
+2006 7.4403567601
+2006 6.93883827285
+2006 8.42975020506
+2006 6.36770042017
+2006 5.39929381614
+2006 8.36147062486
+2006 8.58230386794
+2006 9.04537842707
+2006 5.00725669415
+2006 3.91054545255
+2006 8.13760984971
+2006 7.56005990903
+2006 6.87408838718
+2006 7.81995152172
+2006 8.39303577381
+2006 9.01206390256
+2006 9.08385257005
+2006 7.37980299199
+2006 9.40116269364
+2006 3.66689134887
+2006 4.04508163585
+2006 6.43764262487
+2006 7.6552073016
+2006 7.47767621957
+2006 8.09570665994
+2006 8.58877904509
+2006 7.54589047394
+2006 7.60961251226
+2006 8.20210374169
+2006 8.31432016313
+2006 7.74070446811
+2006 8.55165643236
+2006 9.33396777068
+2006 9.35312631361
+2006 8.35746013846
+2006 8.94533355047
+2006 8.93367010809
+2006 9.77045616737
+2006 9.77631868984
+2006 9.99312046905
+2006 9.9112766696
+2006 9.95296118583
+2006 9.80821548072
+2006 9.32837028514
+2006 9.85779586511
+2006 9.11886618217
+2006 9.17586536449
+2006 9.60796237634
+2006 8.43235583667
+2006 9.0473696507
+2006 9.51776161012
+2006 8.41226829584
+2006 9.70324995521
+2006 9.76491267899
+2006 9.67678240823
+2006 8.59862273111
+2006 8.6162911385
+2006 4.64196949433
+2006 9.9358216765
+2006 9.72969513272
+2006 9.89670571705
+2006 9.93613721677
+2006 10.1765236274
+2006 10.0514395901
+2006 10.2202401977
+2006 10.2162029448
+2006 8.83550655344
+2006 10.1711587949
+2006 7.71947948078
+2006 9.12248703965
+2006 8.28675747128
+2006 10.4149950912
+2006 10.0492775135
+2006 9.99214218732
+2006 9.93904633124
+2006 9.72776755405
+2006 9.69309063807
+2006 10.0220458746
+2006 9.99681439798
+2006 5.75252887836
+2006 9.49463377333
+2006 9.39846200073
+2006 9.38655904328
+2006 9.84122609873
+2006 9.90615309218
+2006 10.3395790323
+2006 9.7424820605
+2006 10.292546899
+2006 10.0661485119
+2006 10.1436420606
+2006 10.003955479
+2006 9.80100122028
+2006 10.2251234491
+2006 9.93104211624
+2006 9.66634095576
+2006 9.00112784672
+2006 7.58055449139
+2006 10.0079508164
+2006 8.05073236599
+2006 10.0104292307
+2006 10.0356482328
+2006 9.94602947534
+2006 9.78770457217
+2006 9.96224043626
+2006 9.78242066473
+2006 9.49735761759
+2006 9.70729943244
+2006 9.50197584432
+2006 9.58906799725
+2006 9.00741525839
+2006 8.6941917401
+2006 9.0300561883
+2006 9.0774595324
+2006 8.47594338318
+2006 9.19206027344
+2006 4.71536936337
+2006 8.25350031292
+2006 8.87863735328
+2006 8.79664340856
+2006 8.71752549032
+2006 5.99520218514
+2006 8.79441933381
+2006 8.0601074164
+2006 8.81519964841
+2006 8.51878582515
+2006 8.68399460961
+2006 7.51257812493
+2006 8.55202730132
+2006 8.57552285649
+2006 8.44662596856
+2006 8.40668076431
+2006 8.47948329945
+2006 8.30225439291
+2006 8.15165017046
+2006 7.83690184762
+2006 2.61033783271
+2006 3.83783856393
+2006 8.4907479152
+2006 8.57629182643
+2006 7.49070255564
+2006 7.44772134703
+2006 7.56757264359
+2006 7.98266925943
+2006 7.78207118699
+2006 8.09407949414
+2006 8.0196313542
+2006 7.51203666716
+2006 6.89238198465
+2006 3.4168015132
+2006 4.74208943769
+2006 7.74952812801
+2006 7.45546515057
+2006 7.81608629582
+2006 7.86434211404
+2006 7.13701993912
+2006 7.15274599236
+2006 6.50235990959
+2006 6.62229345975
+2006 7.53241999072
+2006 7.68303675059
+2006 6.56348604165
+2006 6.77420283503
+2006 6.71628088882
+2006 7.18274763132
+2006 6.12414985941
+2006 6.10260465442
+2006 6.95942168103
+2006 6.81608301684
+2006 6.94857052369
+2006 7.15497314201
+2006 7.24536806804
+2006 2.2394341278
+2006 1.95791942962
+2006 2.48387723271
+2006 6.38707378466
+2006 6.53034009402
+2006 5.07874102289
+2006 6.57048559839
+2006 4.5451470293
+2006 4.82895615121
+2006 4.83218017794
+2006 4.42628558124
+2006 2.23247524268
+2006 6.74782447126
+2006 4.89108197752
+2006 6.29068552038
+2006 4.9206060222
+2006 1.7955688031
+2006 3.84335161185
+2006 3.68870882864
+2006 3.93180963926
+2006 3.90836223141
+2006 1.40800688069
+2006 5.58257629924
+2006 4.91228803997
+2006 5.48764486458
+2006 4.74287635246
+2006 5.61164544264
+2006 4.99662838874
+2006 3.31080105342
+2006 3.23899056488
+2006 3.44908982264
+2006 4.00139670922
+2006 1.46740456375
+2006 2.44594265599
+2006 5.19584780401
+2006 5.48044501198
+2006 5.44192842478
+2006 2.86919824107
+2006 4.31942153321
+2006 4.6223807162
+2006 3.1548368339
+2006 3.7530171463
+2006 3.94920176931
+2006 3.4547199331
+2006 3.45887330084
+2006 2.79424708686
+2006 2.020702451
+2006 1.16248931007
+2006 2.52715254114
+2006 4.117092104
+2006 4.06052298592
+2006 4.01253772264
+2006 4.1783849913
+2006 4.41136548072
+2006 4.17285263952
+2006 4.11130077524
+2006 2.45755840608
+2006 3.45582220468
+2006 2.93918187542
+2006 2.88824094749
+2006 2.89764836502
+2006 2.97035197449
+2006 3.59228994392
+2006 2.0131168448
+2006 2.41410464089
+2006 3.28335911847
+2006 3.73827519105
+2006 3.63908853715
+2006 3.53579968795
+2006 4.04057795215
+2006 3.98774449326
+2006 4.21130239118
+2006 4.22261396107
+2006 4.64082080703
+2006 3.82388676871
+2006 3.05758656249
+2006 2.22593857258
+2006 1.51134240911
+2006 3.74638405616
+2006 3.69251776019
+2006 0.967548012291
+2006 3.09334701462
+2006 3.06885386312
+2006 3.24545197772
+2006 3.60294191825
+2006 3.21148334758
+2006 3.48594516562
+2007 1.36012607359
+2007 3.37484933666
+2007 3.53116482175
+2007 3.29413181533
+2007 1.67329045846
+2007 4.88671645295
+2007 2.21297838523
+2007 3.94978177864
+2007 3.02742960301
+2007 2.68441854915
+2007 2.73423653633
+2007 3.62285597486
+2007 4.14624049309
+2007 4.84326147907
+2007 3.57427312136
+2007 2.72795873634
+2007 2.4239938871
+2007 1.28342715797
+2007 3.31557030863
+2007 2.90445981559
+2007 1.3648650981
+2007 1.85965385981
+2007 3.04552346706
+2007 3.05841681858
+2007 2.92440418593
+2007 2.79739022891
+2007 3.97329885909
+2007 3.44542980395
+2007 2.15446165044
+2007 2.8631470726
+2007 2.43357447013
+2007 1.32072764865
+2007 2.10488827885
+2007 2.8846260285
+2007 3.0908073335
+2007 2.47518528665
+2007 2.12912491953
+2007 3.75032040351
+2007 2.92530376744
+2007 2.47543506752
+2007 2.95442245263
+2007 3.02435878455
+2007 3.81561546691
+2007 1.7578789093
+2007 3.2524876234
+2007 2.53220692349
+2007 2.56666721568
+2007 2.68276808403
+2007 3.1284044275
+2007 3.1270784198
+2007 4.48320930307
+2007 5.03231815974
+2007 5.57575199809
+2007 4.18236221562
+2007 4.22223369804
+2007 1.49664771671
+2007 4.35955863916
+2007 4.9281918358
+2007 4.7200333689
+2007 3.51945496945
+2007 6.07863188824
+2007 5.52243243074
+2007 3.69611388753
+2007 4.69232479552
+2007 4.43774924362
+2007 5.14456090275
+2007 4.09489424776
+2007 4.34285134268
+2007 5.56650455116
+2007 5.99177448028
+2007 5.3260964893
+2007 6.02234648209
+2007 6.37566814224
+2007 6.55392279571
+2007 1.87062892885
+2007 3.8083837866
+2007 3.94595883441
+2007 5.00372324576
+2007 6.73800180185
+2007 5.42218901567
+2007 6.30717895635
+2007 7.46012576363
+2007 7.07503083674
+2007 7.89757822953
+2007 6.23890608961
+2007 7.29320049231
+2007 7.36370807357
+2007 3.41704183715
+2007 6.29579348258
+2007 7.07702543217
+2007 5.81796060929
+2007 7.8726748372
+2007 7.53941722864
+2007 8.04437333778
+2007 5.4616347933
+2007 4.8608781982
+2007 4.01762399472
+2007 4.70113797819
+2007 4.85676540002
+2007 5.80896244307
+2007 2.36020857569
+2007 7.58253331339
+2007 6.51872821847
+2007 5.95900437397
+2007 5.25537438633
+2007 6.05884602274
+2007 7.5226217199
+2007 6.58420451683
+2007 5.06310595267
+2007 7.00642343103
+2007 7.95999165325
+2007 8.17336840523
+2007 8.49227112732
+2007 8.14312310147
+2007 8.63479858797
+2007 8.17041730054
+2007 7.99123547101
+2007 8.41022365873
+2007 8.71239447298
+2007 8.58815687782
+2007 8.66439266672
+2007 8.67671665227
+2007 5.80643765437
+2007 2.74260777053
+2007 3.93508916461
+2007 7.59522348369
+2007 7.48555653711
+2007 6.27297131452
+2007 7.00783933699
+2007 9.02230569501
+2007 9.26461522584
+2007 7.54668397572
+2007 8.25520686027
+2007 8.39669138945
+2007 9.0255664412
+2007 9.05719679901
+2007 7.12046101708
+2007 7.32611417128
+2007 8.20734614677
+2007 8.68005331285
+2007 8.99923831956
+2007 8.74212211111
+2007 9.13700384825
+2007 9.37849785115
+2007 9.29245289186
+2007 9.17935554305
+2007 9.25471254677
+2007 9.23690292477
+2007 9.13921845325
+2007 9.2115577588
+2007 9.21178493164
+2007 9.33908534436
+2007 8.35902012714
+2007 5.44904993028
+2007 9.58317674033
+2007 9.65270874156
+2007 9.55592125585
+2007 9.4010359103
+2007 9.30971833389
+2007 9.46477035592
+2007 9.47660465066
+2007 7.81788357405
+2007 9.25099424265
+2007 8.19124447963
+2007 5.78447696224
+2007 7.18174673006
+2007 8.63995293353
+2007 9.37123227196
+2007 8.54797411534
+2007 9.25889909411
+2007 8.00430913973
+2007 9.35978036317
+2007 9.08209347303
+2007 9.04195468629
+2007 9.00527924619
+2007 9.37595464851
+2007 9.25296559492
+2007 9.46694903088
+2007 9.18428182592
+2007 9.53092983521
+2007 9.04791335331
+2007 9.30306810615
+2007 9.12295847224
+2007 8.89296191379
+2007 9.09916767592
+2007 8.87108470511
+2007 8.68964973134
+2007 8.07789143789
+2007 8.6814227472
+2007 9.08248423461
+2007 9.08183241781
+2007 9.24353659551
+2007 9.1141636875
+2007 6.2121676248
+2007 8.28925200208
+2007 8.48430990671
+2007 9.22666089773
+2007 8.71784332028
+2007 9.06918096057
+2007 8.90162193402
+2007 7.99338569503
+2007 8.64572961042
+2007 8.31947963423
+2007 8.44757053867
+2007 7.95178373945
+2007 8.43715887972
+2007 8.24914814007
+2007 8.71489005824
+2007 8.84598793502
+2007 8.72753979833
+2007 8.62838889
+2007 8.63746845394
+2007 8.32001134427
+2007 8.00053223973
+2007 7.9800598745
+2007 7.70975685179
+2007 7.19531561663
+2007 7.82832603261
+2007 7.38525473821
+2007 7.03759316379
+2007 6.55118491327
+2007 7.27832382911
+2007 6.97783591762
+2007 8.16594744232
+2007 7.55034897644
+2007 7.87929316142
+2007 7.57246135512
+2007 7.39710788299
+2007 7.38959815466
+2007 7.85983668472
+2007 7.42788686335
+2007 7.11212970726
+2007 7.16119504942
+2007 8.10520425917
+2007 7.09927760916
+2007 7.69778451718
+2007 7.38628838054
+2007 7.59360798706
+2007 7.89342555315
+2007 7.90786092404
+2007 7.72583536496
+2007 7.79379772086
+2007 7.7307955958
+2007 6.92512086704
+2007 7.80997301797
+2007 7.3689243869
+2007 7.27170947076
+2007 7.35571711914
+2007 7.28874770243
+2007 7.42255088697
+2007 7.47496044702
+2007 7.22389757347
+2007 6.83274396853
+2007 6.81544951962
+2007 7.27444008755
+2007 7.22254966778
+2007 4.88944700821
+2007 7.74910370708
+2007 6.68389365274
+2007 6.91396250144
+2007 7.00516058706
+2007 5.30631849124
+2007 5.10386639392
+2007 4.95701186921
+2007 7.20582741222
+2007 6.78085956076
+2007 7.16592994935
+2007 6.96677488235
+2007 6.95128955779
+2007 6.77133297688
+2007 7.29851278458
+2007 6.9530116758
+2007 6.77595120178
+2007 6.73674679561
+2007 5.80927080243
+2007 6.57230888885
+2007 6.37516810732
+2007 4.28166309356
+2007 5.5564580343
+2007 6.67643576372
+2007 6.31805854614
+2007 5.88544350454
+2007 6.72670104891
+2007 5.85424757413
+2007 5.90401062106
+2007 5.76406155142
+2007 6.15465955913
+2007 6.20712821106
+2007 5.95272960556
+2007 6.28971916193
+2007 5.77044713344
+2007 5.25237782738
+2007 6.26153960638
+2007 5.90329175584
+2007 5.88645227339
+2007 4.98902731106
+2007 3.33380337925
+2007 1.56019863467
+2007 1.42310359021
+2007 5.482063561
+2007 4.08750107992
+2007 4.18906104321
+2007 4.33350442144
+2007 4.82813520263
+2007 5.31279016592
+2007 4.61199205844
+2007 4.45926876567
+2007 4.52286909716
+2007 4.57718695858
+2007 4.42979251894
+2007 3.57685034996
+2007 3.1390226899
+2007 3.55883351726
+2007 3.72432604634
+2007 3.55791276677
+2007 3.92054085643
+2007 4.45151014755
+2007 5.16481512673
+2007 3.03583161881
+2007 3.28401166192
+2007 3.48461341767
+2007 4.33669079654
+2007 3.59600629813
+2007 4.02022933335
+2007 4.90139822216
+2007 4.53959469415
+2007 3.31580289826
+2007 2.89388970554
+2007 2.04412372223
+2007 2.10350176431
+2007 4.14151170386
+2007 3.49309309321
+2007 3.24171865381
+2007 3.37776990916
+2007 3.45834473943
+2007 3.06185395822
+2007 3.87196403142
+2007 2.19084101964
+2007 2.74896526705
+2007 2.46838155992
+2007 2.57747092245
+2007 4.23663054698
+2007 4.3594117487
+2007 4.94651917554
+2007 4.86814788585
+2007 5.01419405029
+2007 3.89737106031
+2007 4.27945146436
+2007 0.984585660483
+2007 2.74912354375
+2007 2.53503381826
+2007 2.48421155224
+2007 2.63541669712
+2007 3.38477648921
+2007 2.36878770485
+2007 1.9950832296
+2007 2.04982455513
+2007 3.23647963905
+2007 2.74569786924
+2007 1.77319371132
+2007 3.40502746645
+2007 3.03369330393
+2007 2.54245096613
+2007 0.73921906991
+2007 3.49259664103

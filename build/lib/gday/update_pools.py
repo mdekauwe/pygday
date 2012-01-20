@@ -49,15 +49,15 @@ class CarbonPools(object):
         cpas : float
             C source flux from the passive pool
         """
-
+        
         # net source fluxes
         cstsu = self.fluxes.cresid[0] # s surf
         cstsl = self.fluxes.cresid[1] # s soil
         cmtsu = self.fluxes.cresid[2] # m surf
         cmtsl = self.fluxes.cresid[3] # m soil
-        cact = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
+        cact = (self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
                     sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                     self.fluxes.passive))
+                     self.fluxes.passive)
         cslo = (self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
                     self.fluxes.cactive[0])
         cpas = (self.fluxes.cactive[1] + self.fluxes.cslow[1] )
@@ -233,7 +233,9 @@ class NitrogenPools(object):
                                 self.fluxes.nrootexudate + self.fluxes.nurine - 
                                 self.fluxes.nimmob - self.fluxes.nloss - 
                                 self.fluxes.nuptake) + self.fluxes.nlittrelease)
-
+        
+        
+        
     def nclimit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
         the  N:C ratio of a litter pool within the range 'ncmin' to 'ncmax'.

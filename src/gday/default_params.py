@@ -56,6 +56,7 @@ fracfaeces       = 0.3   #Fractn of grazd C that ends up in faeces (0..1)
 ligfaeces        = 0.25  #Faeces lignin as fractn of biomass
 faecescn         = 25.0  #Faeces C:N ratio
 fractosoil       = 0.85  #Fractn of grazed N recycled to soil:faeces+urine
+rhizresp         = 0.5   #0.33-0.67 C translocated from shoot to root is respired, so assume a value of 0.5 based on Lambers and Poot 2003.
 
 #nitrogen cycling paramsa
 rateuptake       = 5.7            #rate of N uptake from mineral N pool (/yr) from here? http://face.ornl.gov/Finzi-PNAS.pdf

@@ -267,7 +267,8 @@ class CarbonFlows(object):
                                 self.fluxes.faecesc * self.params.fmfaeces)
 
         # -> into metabolic soil
-        self.fluxes.cresid[3] = self.fluxes.deadroots * self.params.fmroot
+        self.fluxes.cresid[3] = (self.fluxes.deadroots * self.params.fmroot + 
+                                    self.fluxes.cprootexudate)
 
 
         # switch off production flows
@@ -352,7 +353,8 @@ class CarbonFlows(object):
                                     self.params.decayrate[6] * 0.55)
 
         # total co2 production
-        self.fluxes.hetero_resp = sum(self.fluxes.co2_to_air)
+        self.fluxes.hetero_resp = (sum(self.fluxes.co2_to_air) + 
+                                        self.fluxes.microbial_resp)
 
 
         # insert following line so value of resp obeys c conservn if fix
