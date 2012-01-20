@@ -41,6 +41,7 @@ cpleaf = None
 cproot = None
 cpbranch = None
 cpstem = None
+cprootexudate = None
 
 # daily N production
 npleaf = None
@@ -91,4 +92,4 @@ nmineralisation = None
 apar = None
 
 rabove = 0.0
-ga_gc_ratio = None
+microbial_resp = 0.0

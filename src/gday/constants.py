@@ -42,3 +42,9 @@ MOL_TO_MILLIMOLES = 1000.0
 KPA_2_PA = 1000.0
 PPM_VOL_2_MOL_MOL = 1E-6
 MJ_TO_MOL = 4.6
+
+
+
+# Converts conductance from units of mol m-2 s-1 to m s-1 at 25 degC
+# See Jones Appendix 3 or Diaz et al 2007.
+CONV_CONDUCT = 0.0245

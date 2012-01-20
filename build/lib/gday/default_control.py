@@ -33,3 +33,4 @@ strfloat = 0           # Structural pool input N:C varies=1, fixed=0
 use_leuning = 0
 co2_conc = 0           # 0=ambient, 1=elevated
 fixed_stem_nc = 1      # 1=fixed stem N:C, 0=vary stem N:C with foliage
+calc_gbl = 0           # calculate leaf boundary conductance, 0=No, 1=Yes

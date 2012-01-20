@@ -114,9 +114,6 @@ class Mate(object):
         (am, pm) = self.am, self.pm # morning/afternoon
         (temp, par, vpd, ca) = self.get_met_data(day)
         
-        
-        
-        
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(temp)
         gamma_star_avg = sum(gamma_star) / 2.0
@@ -125,14 +122,14 @@ class Mate(object):
         jmax = self.calculate_jmax_parameter(temp, N0)
         vcmax = self.calculate_vcmax_parameter(temp, N0)
         
-        
         # Quantum yield of photosynthesis from McMurtrie 2008
         alpha = 0.07 * ((ca -  gamma_star_avg) / (ca + 2.0 *  gamma_star_avg))
        
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
-        #print self.params.g1 * self.state.wtfac_root, self.state.wtfac_root
+        #print self.params.g1 * self.state.wtfac_root, self.state.pawater_root
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
+        
         ci = [i * ca for i in cica]
 
         # store value as needed in water balance calculation
@@ -208,7 +205,8 @@ class Mate(object):
             # convert MJ m-2 d-1 to -> umol m-2 day-1
             conv = const.RAD_TO_PAR * const.MJ_TO_MOL * const.MOL_TO_UMOL
             par = self.met_data['sw_rad'][day] * conv
-
+        
+        
         if self.control.co2_conc == 0:
             ca = self.met_data['amb_co2'][day]
         elif self.control.co2_conc == 1:
@@ -269,7 +267,6 @@ class Mate(object):
         """ Assumption leaf N declines exponentially through the canopy. Input N
         is top of canopy (N0) 
         """
-        
         # old leaf N calculation
         #jmax25 = self.params.jmaxn * self.state.ncontent
         #vcmax25 = self.params.vcmaxn * self.state.ncontent
@@ -557,7 +554,7 @@ if __name__ == "__main__":
         #print state.shootn
         M.calculate_photosynthesis(project_day, daylen)
 
-        print fluxes.gpp_gCm2
+        print datex.year, fluxes.gpp_gCm2
 
 
 
