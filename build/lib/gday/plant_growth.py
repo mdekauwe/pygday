@@ -191,7 +191,10 @@ class PlantGrowth(object):
         # and the entire root zone
         (self.state.wtfac_tsoil, 
             self.state.wtfac_root) = self.wb.calculate_soil_water_fac()
-
+        
+        
+        
+        
         # Estimate photosynthesis using an empirical model
         if self.control.assim_model >=0 and self.control.assim_model <= 4:
             self.pp.calculate_photosynthesis(day)

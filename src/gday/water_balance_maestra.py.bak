@@ -1,10 +1,20 @@
-# -*- coding: UTF-8 -*-
+"""
+Link against MAESTRA to do the transpiration calculations...
+
+"""
 
 import math
 
 from utilities import float_gt, float_eq, clip
 import constants as const
 import sys
+
+
+sys.path.append("/Users/mdekauwe/src/fortran/maestra")
+import physiol
+import utils
+import maestcom as m
+
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (10.02.2011)"
@@ -57,12 +67,12 @@ class WaterBalance(object):
             length of day in hours.
 
         """
+
         # met forcing
-        (tavg, rain, sw_rad, vpd, wind, net_rad, ca, 
-         press, amb_co2, net_rad_am, net_rad_pm, vpd_am,
-         vpd_pm, temp_am, temp_pm, 
-         wind_am, wind_pm) = self.get_met_data(day, daylen)
-        
+        (leaf_temp, rain, sw_rad,
+            vpd, wind, net_rad, ca, 
+            press, amb_co2) = self.get_met_data(day, daylen)
+
         # calculate water fluxes
         if self.control.trans_model == 0:
             # transpiration calculated from WUE...
@@ -70,19 +80,25 @@ class WaterBalance(object):
             self.calc_transpiration()
         elif self.control.trans_model == 1:
             
-            #self.calc_transpiration_penmon(vpd, net_rad, tavg, wind,
-            #                                    ca, daylen, press)
-            self.calc_transpiration_penmon_am_pm(net_rad_am, net_rad_pm, wind, ca, daylen, 
-                                                 press, vpd_am, vpd_pm, 
-                                                 temp_am, temp_pm, 
-                                                 wind_am, wind_pm)
+            
+            
+            
+            slope = (utils.satur(leaf_temp + 0.1) - utils.satur(leaf_temp)) / 0.1
+            print slope
+            
+            
+            
+            
+            sys.exit()
+            self.calc_transpiration_penmon(vpd, net_rad, leaf_temp, wind,
+                                                ca, daylen, press)
             self.calc_wue(vpd, ca, amb_co2)
         elif self.control.trans_model == 2:
-            self.calc_transpiration_priestay(net_rad, tavg, press)
+            self.calc_transpiration_priestay(net_rad, leaf_temp, press)
             self.calc_wue(vpd, ca, amb_co2)
 
         self.calc_infiltration(rain)
-        self.fluxes.soil_evap = self.calc_soil_evaporation(tavg, net_rad,
+        self.fluxes.soil_evap = self.calc_soil_evaporation(leaf_temp, net_rad,
                                                             press)
         self.fluxes.et = (self.fluxes.transpiration + self.fluxes.soil_evap +
                             self.fluxes.interception)
@@ -103,7 +119,7 @@ class WaterBalance(object):
 
         Returns:
         -------
-        tavg : float
+        leaf_temp : float
             average daytime temperature [degC]
         rain : float
             rainfall [mm d-1]
@@ -120,25 +136,16 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-        tavg = self.met_data['tair'][day]
-        temp_am, temp_pm = self.met_data['tam'][day], self.met_data['tpm'][day]
-        sw_rad_am, sw_rad_pm = self.met_data['sw_rad_am'][day], self.met_data['sw_rad_pm'][day]
+        leaf_temp = self.met_data['tair'][day]
         rain = self.met_data['rain'][day]
         sw_rad = self.met_data['sw_rad'][day]
         vpd = self.met_data['vpd_avg'][day] # daytime average
         wind = self.met_data['wind'][day]
-        net_rad = self.calc_radiation(tavg, sw_rad, daylen)
-        net_rad_am = self.calc_radiation(temp_am, sw_rad_am, daylen/2.0)
-        net_rad_pm = self.calc_radiation(temp_pm, sw_rad_pm, daylen/2.0)
-        vpd_am, vpd_pm =self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]
-        temp_am, temp_pm = self.met_data['tam'][day], self.met_data['tpm'][day]
-        wind_am, wind_pm = self.met_data['wind_am'][day], self.met_data['wind_pm'][day]
-        
+        net_rad = self.calc_radiation(leaf_temp, sw_rad, daylen)
+
         if self.control.co2_conc == 0:
-            #ca = 385.0
             ca = self.met_data['amb_co2'][day]
         elif self.control.co2_conc == 1:
-            #ca = 550.0
             ca = self.met_data['ele_co2'][day]
         amb_co2 = self.met_data['amb_co2'][day]
         
@@ -149,9 +156,7 @@ class WaterBalance(object):
         else:
             press = None # use method below to calculate pressure
 
-        return (tavg, rain, sw_rad, vpd, wind, net_rad, ca, press, amb_co2,
-                net_rad_am, net_rad_pm, vpd_am, vpd_pm, temp_am, temp_pm, 
-                wind_am, wind_pm)
+        return (leaf_temp, rain, sw_rad, vpd, wind, net_rad, ca, press, amb_co2)
 
     def calc_wue(self, vpd, ca, amb_co2):
         """water use efficiency
@@ -181,7 +186,7 @@ class WaterBalance(object):
             else:
                 self.fluxes.wue = 0.0
         elif self.control.wue_model == 1 and self.control.assim_model == 7:
-            conv = const.MOL_C_TO_GRAMS_C / const.MOL_WATER_TO_GRAMS_WATER
+            conv = const.MOLE_C_TO_GRAMS_C / const.MOLE_WATER_TO_GRAMS_WATER
             self.fluxes.wue = (conv * 1000.0 * (ca * const.UMOL_TO_MOL *
                                 (1.0 - self.fluxes.cica_avg) /
                                 (1.6 * vpd / 101.0)))
@@ -245,7 +250,7 @@ class WaterBalance(object):
         tavg : float
             average daytime temp [degC]
         net_rad : float
-            net radiation [mj m-2 s-1]
+            net radiation [mj m-2 day-1]
         press : float
             average daytime pressure [kPa]
 
@@ -254,7 +259,7 @@ class WaterBalance(object):
         self.fluxes.transpiration = P.calc_evaporation(net_rad, tavg, press,
                                                         pt_coeff=1.26)
 
-    def calc_transpiration_penmon(self, vpd, net_rad, tavg, wind, ca,
+    def calc_transpiration_penmon(self, vpd, net_rad, avg_temp, wind, ca,
                                         daylen, press):
         """ Calculate canopy transpiration using the Penman-Monteith equation.
         units mm/day
@@ -264,53 +269,11 @@ class WaterBalance(object):
         vpd : float
             average daily vpd [kPa]
         net_rad : float
-            net radiation [mj m-2 s-1]
-        tavg : float
+            net radiation [mj m-2 day-1]
+        avg_temp : float
             average daytime temp [degC]
         wind : float
-            average daily wind speed [m s-1]
-        ca : float
-            atmospheric co2, depending on flag set in param file this will be
-            ambient or elevated. [umol mol-1]
-        daylen : float
-            daylength in hours
-        press : float
-            average daytime pressure [kPa]
-
-        """
-        
-        P = PenmanMonteith(canht=self.params.canht, dz0v_dh=self.params.dz0v_dh,
-                            displace_ratio=self.params.displace_ratio)
-        
-        gs = self.calc_stomatal_conductance(vpd, ca, daylen, self.fluxes.gpp_gCm2,
-                                            press, tavg)
-        
-        transp = P.calc_evaporation(vpd, wind, gs, net_rad, tavg, press)
-        
-        tconv = (60.0 * 60.0 * daylen) # seconds to day
-        self.fluxes.transpiration = transp * tconv
-       
-       
-        
-    def calc_transpiration_penmon_am_pm(self, net_rad_am, net_rad_pm, wind, ca, 
-                                        daylen, press, vpd_am, vpd_pm, temp_am, 
-                                        temp_pm, wind_am, wind_pm):
-        """ Calculate canopy transpiration using the Penman-Monteith equation
-        using am and pm data.
-        units mm/day
-
-        Parameters:
-        -----------
-        vpd : float
-            average daily vpd [kPa]
-        net_rad_am : float
-            net radiation [mj m-2 s-1] (morning)
-        net_rad_pm : float
-            net radiation [mj m-2 s-1] (afternoon)
-        tavg : float
-            average daytime temp [degC]
-        wind : float
-            average daily wind speed [m s-1]
+            average daily wind speed [mm s-1]
         ca : float
             atmospheric co2, depending on flag set in param file this will be
             ambient or elevated. [umol mol-1]
@@ -322,28 +285,37 @@ class WaterBalance(object):
         """
         P = PenmanMonteith(canht=self.params.canht, dz0v_dh=self.params.dz0v_dh,
                             displace_ratio=self.params.displace_ratio)
+        if press == None:
+            press = P.calc_atmos_pressure()
+
+        self.fluxes.gs = self.calc_stomatal_conductance(vpd, ca, daylen)
+
+        # Check this gbl calc, seems to be orders of magnitude > gs???
+        if self.control.calc_gbl == 0:
+            # assume leaf boundary layer conductance plays no role.
+            gc = self.fluxes.gs
+            
+        else:
+            print "barf - don't use this!!"
+            sys.exit()
+            
+            # leaf-layer (boundary) conductance
+            if wind > 0.0:
+                gbl = self.calc_leaf_boundary_conductance(wind)
+                gc = gbl + self.fluxes.gs
+            else:
+                gbl = 0.0
+                gc = gbl + self.fluxes.gs
+            
+        self.fluxes.transpiration = P.calc_evaporation(vpd, wind, gc,
+                                                        net_rad, avg_temp,
+                                                        daylen, press, self.state.lai, avg_temp-1.5)
         
-        gs_am = self.calc_stomatal_conductance(vpd_am, ca, daylen/2.0, 
-                                                self.fluxes.gpp_am_gCm2, 
-                                                press, temp_am)
-        gs_pm = self.calc_stomatal_conductance(vpd_pm, ca, daylen/2.0, 
-                                                self.fluxes.gpp_pm_gCm2,
-                                                press, temp_am)
-        gs = (gs_am + gs_pm) / 2.0
         
-        transp_am = P.calc_evaporation(vpd_am, wind_am, gs_am, net_rad_am, 
-                                        temp_am, press)
-        transp_pm = P.calc_evaporation(vpd_pm, wind_pm, gs_pm, net_rad_pm, 
-                                        temp_pm, press)
-        
-        tconv = (60.0 * 60.0 * daylen) # seconds to day
-        self.fluxes.transpiration = (transp_am + transp_pm) / 2.0 * tconv
-        
-    def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
-        """ Calculate stomatal conductance, note assimilation rate has been
-        adjusted for water availability at this point.
-        
-        gs = g0 + (1 + g1/sqrt(D)) * A /Ca 
+    def calc_stomatal_conductance(self, vpd, ca, daylen):
+        """ gs = g1 * A / (Ca * sqrt(D))
+        Back calculate stomatal conductance, note assimilation rate has been
+        adjusted for water availability at this point
 
         units: m s-1 (conductance)
         References:
@@ -367,33 +339,48 @@ class WaterBalance(object):
         gs : float
             stomatal conductance [m s-1]
         """
-        # convert conductance to water vapour units
-        g1_c = self.params.g1 / const.RATIO_DIFF_H2O_TO_CO2
-       
-        # time unit conversion day-1 -> seconds-1
-        tconv =  1.0 / (60.0 * 60.0 * daylen)
-        gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * tconv)
-        
-        arg1 = 1.0 + (g1_c * self.state.wtfac_root) / math.sqrt(vpd)
-        arg2 = gpp_umol_m2_sec / ca # umol mol-1
-        gs_mol_m2_sec = arg1 * arg2 * const.RATIO_DIFF_H2O_TO_CO2
-        
-        # convert mol CO2 to mol H2O
+        # time unit conversion day -> seconds
+        tconv = 1.0 / (60.0 * 60.0 * daylen)
+        gpp_umol_m2_sec = (self.fluxes.gpp_gCm2 * const.GRAMS_C_TO_MOLE_C *
+                            const.MOL_TO_UMOL * tconv)
+
+        # ppm is the same as umol mol-1
+        co2_umol_mol = ca
+
+        arg1 = 1.0 + ((self.params.g1 * self.state.wtfac_root) / math.sqrt(vpd))
+        arg2 = gpp_umol_m2_sec / co2_umol_mol
+        gs_mol_m2_sec = arg1 * arg2
         self.fluxes.gs_mol_m2_sec = gs_mol_m2_sec
         
         # convert to mm s-1 and then to m s-1
-        #return (gs_mol_m2_sec * const.MOL_TO_MILLIMOLES * const.CONV_CONDUCT * 
-        #        const.MM_TO_M)
-        
-        # See Jones, 1992, appendix
-        tk = temp + const.DEG_TO_KELVIN
-        conv = const.MM_TO_M / (press / (const.RGAS * tk))
-        
-        # convert to mm s-1 to m s-1
-        return (gs_mol_m2_sec * conv) 
-   
+        return (gs_mol_m2_sec * const.MOL_TO_MILLIMOLES * const.CONV_CONDUCT * 
+                const.MM_TO_M)
     
-    def calc_radiation(self, tavg, sw_rad, daylen):
+    
+    def calc_leaf_boundary_conductance(self, wind):
+        """ leaf-layer (boundary) conductance, units: m s-1 (conductance)
+        
+        References:
+        -----------
+        * Bigelow (2001) Hydrological processes, 15, 2779-2796 
+        
+
+        Parameters:
+        -----------
+        wind : float
+            wind speed [m s-1]
+        
+        Returns:
+        --------
+        gbl : float
+            boundary layer conductance [m s-1]
+        """
+        Dv = 22.5E-6 # diffusion coeff of water vapour to the air
+        leaf_width = 0.002 # m
+            
+        return Dv / (0.004 * math.sqrt(0.002 / wind))
+    
+    def calc_radiation(self, avg_temp, sw_rad, daylen):
         """
         Estimate net radiation assuming 'clear' skies...
 
@@ -404,7 +391,7 @@ class WaterBalance(object):
 
         Parameters:
         -----------
-        tavg : float
+        avg_temp : float
             average daytime temp [degC]
         sw_rad : float
             sw down radiation [mj m-2 d-1]
@@ -414,21 +401,29 @@ class WaterBalance(object):
         Returns:
         --------
         net_rad : float
-            net radiation [mj m-2 s-1]
+            net radiation [mj m-2 day-1]
 
         """
         # Net loss of longwave radiation
         # Monteith and Unsworth '90, pg. 52, 54.
+        # units: mj/m2/d
+        net_lw = (107 - 0.3 * avg_temp) * daylen * const.WATT_HR_TO_MJ
 
-        net_lw = (107 - 0.3 * tavg) * daylen * const.WATT_HR_TO_MJ
         net_rad = max(0.0, sw_rad * (1.0 - self.params.albedo) - net_lw)
 
-        # convert units for met data
-        tconv = 1.0 / (60.0 * 60.0 * daylen)  # day-1 to seconds-1
-        
-        return net_rad * tconv # MJ m-2 s-1
+        # Surface radiation is reduced by overstory LAI cover. This empirical
+        # fit comes from Ritchie (1972) and is formed by a fit between the LAI
+        # of 5 crops types and the fraction of observed net radiation at the
+        # surface. Whilst the LAI does cover a large range, nominal 0–6, there
+        # are only 12 measurements and only three from LAI > 3. So this might
+        # not hold as well for a forest canopy?
+        # Ritchie 1972, Water Resources Research, 8, 1204-1213.
+        net_rad *= math.exp(-0.398 * self.state.lai)
 
-    def calc_soil_evaporation(self, tavg, net_rad, press):
+        return net_rad
+
+
+    def calc_soil_evaporation(self, avg_temp, net_rad, press):
         """ Use Penman eqn to calculate top soil evaporation flux at the
         potential rate.
 
@@ -457,7 +452,7 @@ class WaterBalance(object):
 
         Parameters:
         -----------
-        tavg : float
+        avg_temp : float
             average daytime temp [degC]
         net_rad : float
             net radiation [mj m-2 day-1]
@@ -471,22 +466,15 @@ class WaterBalance(object):
 
         """
         P = Penman()
-        soil_evap = P.calc_evaporation(net_rad, tavg, press)
-        
-        # Surface radiation is reduced by overstory LAI cover. This empirical
-        # fit comes from Ritchie (1972) and is formed by a fit between the LAI
-        # of 5 crops types and the fraction of observed net radiation at the
-        # surface. Whilst the LAI does cover a large range, nominal 0–6, there
-        # are only 12 measurements and only three from LAI > 3. So this might
-        # not hold as well for a forest canopy?
-        # Ritchie 1972, Water Resources Research, 8, 1204-1213.
-        
-        soil_evap *= math.exp(-0.398 * self.state.lai)
-        
+        soil_evap = P.calc_evaporation(net_rad, avg_temp, press)
+
         # if the available soil moisture is low the soil evaporation needs to
         # be reduced as well
-        soil_evap *= self.state.wtfac_tsoil
-        
+        wtfac = (((self.state.pawater_tsoil / self.params.wcapac_topsoil) -
+                    self.params.fwpmin) /
+                    (self.params.fwpmax - self.params.fwpmin))
+
+        soil_evap *= clip(wtfac, min=0.0, max=1.0)
         return soil_evap
 
     def update_water_storage(self):
@@ -561,10 +549,10 @@ class WaterBalance(object):
         arg = self.params.fwpmax - self.params.fwpmin
         wtfac_tsoil = (smc_topsoil - self.params.fwpmin) / arg
         wtfac_root = (smc_root - self.params.fwpmin) / arg
-        
+
         return (clip(wtfac_tsoil, min=0.0, max=1.0), 
                 clip(wtfac_root, min=0.0, max=1.0))
-        
+
 
 
 class WaterLimitedNPP(object):
@@ -722,21 +710,24 @@ class PenmanMonteith(object):
         # ratio of the roughness length for heat to the length for momentum
         self.z0h_z0m = 0.1
 
-    def calc_evaporation(self, vpd, wind, gs, net_rad, tavg, press):
+    def calc_evaporation(self, vpd, wind_speed, gs, net_rad,
+                            tavg, daylen, press, lai, canopy_temp):
 
         """
         Parameters:
         -----------
         vpd : float
             vapour pressure def [kPa]
-        wind : float
+        wind_speed : float
             average daytime wind speed [m s-1]
         gs : float
             stomatal conductance [m s-1]
         net_rad : float
-            net radiation [mj m-2 s-1] 
+            net radiation [mj m-2 day-1]
         tavg : float
             daytime average temperature [degC]
+        daylen : float
+            daylength in hours
         press : float
             average daytime pressure [kPa]
 
@@ -749,32 +740,46 @@ class PenmanMonteith(object):
         # if not read from met file calculate atmospheric pressure from sea lev
         if press == None:
             press = self.calc_atmos_pressure()
-        
+
         lambdax = self.calc_latent_heat_of_vapourisation(tavg)
         gamma = self.calc_pyschrometric_constant(lambdax, press)
         slope = self.calc_slope_of_saturation_vapour_pressure_curve(tavg)
         rho = self.calc_density_of_air(tavg)
+
+        ga = self.calc_atmos_boundary_layer_conductance(wind_speed)
         
-        ga = self.calc_atmos_boundary_layer_conductance(wind)
-    
+        """
+        gbl = self.calc_leaf_boundary_conductance(wind_speed, lai)
+        
+        # conductances in series, check this?
+        gc = (gbl * gc) / (gbl + gc)
+        """
+        
         # our model is a big leaf, so canopy conductance, gc = gs
         gc = gs
         
+        # decoupling coefficent, Jarvis and McNaughton, 1986
+        e = slope / gamma # chg of latent heat relative to sensible heat of air
+        omega = (e + 1.0) / (e + 1.0 + (ga / gc))
+        
+        #print omega, gc, ga
+        # Values of Fs close to 1 = high sensitivity of transpiration to changes
+        # in gs and values close to 0 indicate low sensitivity to changes in gs
+        fs = 1.0 - omega
+        
+        # converts conductance terms from seconds to days
+        tconv = (60.0 * 60.0 * daylen)
+
         if float_gt(gc, 0.0):
-            # decoupling coefficent, Jarvis and McNaughton, 1986
-            e = slope / gamma # chg of latent heat relative to sensible heat of air
-            omega = (e + 1.0) / (e + 1.0 + (ga / gc))
-            
-            arg1 = ((slope * net_rad ) + (rho * self.cp * vpd * ga))
+            arg1 = ((slope * net_rad ) + (tconv * rho * self.cp * vpd * ga))
             arg2 = slope + gamma * (1.0 + ga / gc)
             et = (arg1 / arg2) / lambdax
         else:
             et = 0.0
-            omega = 0.0
-        
+
         return et
 
-    def calc_atmos_boundary_layer_conductance(self, wind):
+    def calc_atmos_boundary_layer_conductance(self, wind_speed):
         """ atmospheric boundary layer conductance, i.e. 1/ra
 
         Transfer of heat/water vapour from evaporating surface into air
@@ -798,7 +803,7 @@ class PenmanMonteith(object):
 
         Parameters:
         -----------
-        wind : float
+        wind_speed : float
             average daytime wind speed [m s-1]
 
         Returns:
@@ -807,21 +812,64 @@ class PenmanMonteith(object):
             canopy boundary layer conductance [m s-1]
 
         """
-        #wind = self.adj_wind_speed_2_screen(wind, canht)
+        #wind_speed = self.adj_wind_speed_2_screen(wind_speed, canht)
         # roughness length [m]
         z0 = self.dz0v_dh * self.canht
         
         # zero plan displacement height [m]
         d = self.displace_ratio * self.canht
 
-        arg1 = self.vk**2 * wind
+        arg1 = self.vk**2 * wind_speed
         arg2 = (math.log((self.canht - d) / z0))**2
-        
+
         return arg1 / arg2
     
+    def calc_leaf_boundary_conductance(self, wind_speed, lai):
+        """ Leaf Boundary layer conductance
+
+        Routinue taken from TECO model code, essentially very similar to what 
+        is in the ED model too.
+
+        Parameters:
+        -----------
+        wind_speed : float
+            average daytime wind speed [m s-1]
+        lai : float
+            leaf area index
+
+        Returns:
+        --------
+        gbl : float
+            leaf boundary conductance [m s-1]
+
+        """
+        
+        # leaf-layer conductance, gbl - from ED/TECO models
+        Dh = 21.5E-6 # molecular diffusivity for heat
+        leaf_width = 0.001 # leaf width (m)
+        wind_utop = max(1.0, wind_speed)
+       
+       # set windspeed to the minimum speed to avoid zero Gb
+        if wind_utop < 0.01: 
+            wind_utop = 0.01
+        
+        # wind speed, declines exponetially with LAI
+        uz = wind_utop * math.exp(-0.5 * lai) 
+
+        # conductance from free convection [m/s]
+        gbHw = 3.0E-03 * math.sqrt(uz / leaf_width)
+
+        # forced convection 
+        grashof_num = 1.595E8 * math.fabs(tavg - canopy_temp) * leaf_width**3  
+        gbHf = (0.5 * Dh * grashof_num**0.25) / leaf_width
+
+        # total leaf conductance, m/s
+        gbl = gbHw + gbHf                  
+
+        return gbl
     
     
-    def adj_wind_speed_2_screen(self, wind):
+    def adj_wind_speed_2_screen(self, wind_speed):
         """ Standard PM expects wind speed at a 2m height, need to adjust
         observations for the height difference
 
@@ -834,7 +882,7 @@ class PenmanMonteith(object):
 
         Parameters:
         -----------
-        wind : float
+        wind_speed : float
             wind speed [m s-1]
 
         Returns:
@@ -842,8 +890,8 @@ class PenmanMonteith(object):
         wind_speed : float
             adjusted wind speed for height [m s-1]
         """
-        wind *= 4.87 / (math.log(67.8 * self.canht - 5.42))
-        return wind
+        wind_speed *= 4.87 / (math.log(67.8 * self.canht - 5.42))
+        return wind_speed
 
     def calc_slope_of_saturation_vapour_pressure_curve(self, tavg):
         """ Eqn 13 from FAO paper, Allen et al. 1998.
@@ -1015,5 +1063,3 @@ class PriestleyTaylor(PenmanMonteith):
         slope = self.calc_slope_of_saturation_vapour_pressure_curve(tavg)
 
         return (pt_coeff / lambdax) * (slope / (slope + gamma)) * net_rad
-
-

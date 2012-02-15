@@ -13,11 +13,13 @@ __email__   = "mdekauwe@gmail.com"
 class Mate(object):
     """ Model Any Terrestrial Ecosystem (MATE) model
 
-    Simulates photosyntehsis (GPP) based on Farquahar + von Caemmerer, using the
-    canopy estimate of LUE derived from the methods of Sands. MATE is connected
-    to G'DAY via LAI and leaf N content. Key feedback through soil N
-    mineralisation and plant N uptake. Plant respiration is calculated via
-    carbon-use efficiency (CUE=NPP/GPP). There is a further water limitation
+    Simulates photosynthesis (GPP) based on Sands (1995), accounting for diurnal
+    variations in irradiance and temp (am [sunrise-noon], pm[noon to sunset]) 
+    and the decline of irradiance with depth through the canopy.  
+    
+    MATE is connected to G'DAY via LAI and leaf N content. Key feedback through 
+    soil N mineralisation and plant N uptake. Plant respiration is calculated 
+    via carbon-use efficiency (CUE=NPP/GPP). There is a further water limitation
     constraint on productivity through the ci:ca ratio.
 
     References:
@@ -97,6 +99,7 @@ class Mate(object):
         (6) dirunal variation of PAR is sinusoidal.
         (7) The model makes no assumption about N within the canopy, however
             this version assumes N declines exponentially through the cnaopy.
+        (8) Leaf temperature is the same as the air temperature.
 
         Parameters:
         ----------
@@ -119,6 +122,7 @@ class Mate(object):
         gamma_star_avg = sum(gamma_star) / 2.0
         km = self.calculate_michaelis_menten_parameter(temp)
         N0 = self.calculate_leafn()
+        
         jmax = self.calculate_jmax_parameter(temp, N0)
         vcmax = self.calculate_vcmax_parameter(temp, N0)
         
@@ -127,11 +131,10 @@ class Mate(object):
        
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
-        #print self.params.g1 * self.state.wtfac_root, self.state.pawater_root
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         
         ci = [i * ca for i in cica]
-
+        
         # store value as needed in water balance calculation
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
@@ -147,7 +150,7 @@ class Mate(object):
         
         # GPP is assumed to be proportional to APAR, where the LUE defines the
         # slope of this relationship. LUE, calculation is performed for morning 
-        # and afternnon periods
+        # and afternnon periods.
         lue = [self.epsilon(asat[k], par, daylen, alpha) for k in am, pm]
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
@@ -161,14 +164,20 @@ class Mate(object):
 
         # gC m-2 d-1
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
-                                const.MOLE_C_TO_GRAMS_C)
+                                const.MOL_C_TO_GRAMS_C)
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        
+        
+        self.fluxes.gpp_am_gCm2 = ((self.fluxes.apar / 2.0) * lue[am] * 
+                                    const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_pm_gCm2 = ((self.fluxes.apar / 2.0) * lue[pm] * 
+                                    const.MOL_C_TO_GRAMS_C)
         
         # tonnes hectare-1 day-1
         conv = const.G_AS_TONNES / const.M2_AS_HA
         self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
         self.fluxes.npp = self.fluxes.npp_gCm2 * conv
-        
+    
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
 
@@ -206,12 +215,13 @@ class Mate(object):
             conv = const.RAD_TO_PAR * const.MJ_TO_MOL * const.MOL_TO_UMOL
             par = self.met_data['sw_rad'][day] * conv
         
-        
         if self.control.co2_conc == 0:
+            #ca = 385.0
             ca = self.met_data['amb_co2'][day]
         elif self.control.co2_conc == 1:
+            #ca = 550.0
             ca = self.met_data['ele_co2'][day]
-
+            
         return (temp, par, vpd, ca)
 
     def calculate_co2_compensation_point(self, temp):
@@ -385,6 +395,7 @@ class Mate(object):
         -----------
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
+        
         return (1.0 - ((1.6 * math.sqrt(vpd)) /
                 (self.params.g1 * self.state.wtfac_root + math.sqrt(vpd))))
 
