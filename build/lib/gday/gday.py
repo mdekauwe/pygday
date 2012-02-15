@@ -12,6 +12,7 @@ import calendar
 import constants as const
 from file_parser import initialise_model_data
 from plant_growth import PlantGrowth
+#from plant_growth_maestra import PlantGrowth
 from print_outputs import PrintOutput
 from litter_production import LitterProduction
 from soil_cnflows import CarbonFlows, NitrogenFlows
@@ -157,7 +158,7 @@ class Gday(object):
         cpl = CarbonPools(self.control, self.params, self.state, self.fluxes)
         npl = NitrogenPools(self.control, self.params, self.state, self.fluxes,
                             self.met_data)
-
+        
         # calculate initial C:N ratios and zero annual flux sums
         self.derive(1, self.date, INIT=True)
         
@@ -189,8 +190,8 @@ class Gday(object):
 
             self.increment_date()
             
-            #print self.fluxes.gpp_gCm2
-            #print self.fluxes.gpp_gCm2 , self.fluxes.transpiration
+            #print self.date.year, self.date.day, self.fluxes.rnet
+            #print self.fluxes.gpp_gCm2# , self.fluxes.transpiration
             #print self.fluxes.transpiration
             
             #print self.fluxes.gpp_gCm2, self.met_data['amb_co2'][project_day]

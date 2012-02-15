@@ -6,8 +6,10 @@ import constants as const
 from utilities import float_eq, float_lt, float_gt, day_length
 from bewdy import Bewdy
 from plant_production_mcmurtrie import PlantProdModel
-from water_balance import WaterBalance, WaterLimitedNPP
+#from water_balance import WaterBalance, WaterLimitedNPP
+from water_balance_maestra import WaterBalance, WaterLimitedNPP
 from mate import Mate
+import sys
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (23.02.2011)"
@@ -186,15 +188,119 @@ class PlantGrowth(object):
         self.state.light_interception = ((1.0 - math.exp(-self.params.kext *
                                             self.state.lai / frac_gcover)) *
                                             frac_gcover)
+        
+        
+        
+        sys.path.append("/Users/mdekauwe/src/fortran/maestra")
+        import physiol
+        import utils
+        import maestcom as m
+        
+        RDFIPT = 7.29966089E-02
+        TUIPT = 0.71114331
+        TDIPT = 0.16205148
+        RNET = 17.933075
+        WIND = 8.20037797E-02
+        PAR = 17.746254
+        TAIR = -0.55100000
+        
+        RH = 0.73264003
+        VPD = 157.64043
+        VMFD = 1.5811477
+        PRESS = 99700.000
+        SOILMOIST = 0.0000000
+        
+        IECO = 1
+        
+        
+        
+        TVJUP = -100.00000
+        TVJDN = -100.00000
+        THETA = 0.94999999
+        AJQ = 0.30000001
+        RD0 = 0.50000006
+        Q10F = 0.10260000
+        RTEMP = 28.000000
+        DAYRESP = 0.60000002
+        TBELOW = -100.00000
+        MODELGS = 4
+        GSREF = 0.0000000
+        I0 = 0.0000000
+        D0 = 2.66481364E-21
+        VK1 = 0.0000000
+        VK2 = 0.0000000
+        VPD1 = 0.0000000
+        VPD2 = 0.0000000
+        VMFD0 = 0.0000000
+        GSJA = 0.0000000
+        GSJB = 0.0000000
+        T0 = 0.0000000
+        TREF = 0.0000000
+        TMAX = 0.0000000
+        SMD1 = 0.0000000
+        SMD2 = 0.0000000
+        SOILDATA = 0
+        SWPEXP = 0.0000000
+        G0 = 0.0000000
+        D0L = 2.66246708E-44
+        GAMMA = 0.0000000
+        G1 = 3.0573249
+        GK = 0.0000000
+        
+        
+        
+        GSC = 3.10860965E-02
+        RD = 2.08401568E-02
+        
+        
+        print 
+        
+        
+        VPD = 157.64043
+        gsmin = 0.0
+        jmax25 = self.params.jmaxn * self.state.ncontent
+        vcmax25 = self.params.vcmaxn * self.state.ncontent
+        itermax = 0
+        nsides = 1
+        aleaf = 0.0
+        eavj = 43790.000
+        edvj = 200000.00
+        eavc = 51560.0
+        edvc = 0.0
+        delsc = 0.0
+        et = 0.0
+        fheat = 0.0
+        tleaf = 0.0
+        gbh = 0.0
+        decoup = 0.0
+        delsj = 644.43378
+        wleaf = 2.00000009E-03
+        if self.control.co2_conc == 0:
+            ca = self.met_data['amb_co2'][day]
+        elif self.control.co2_conc == 1:
+            ca = self.met_data['ele_co2'][day]
+        
+        
+        (aleaf, et, gbh, decoup, tleaf) = physiol.pstransp(RDFIPT,TUIPT,TDIPT,RNET,WIND,PAR,TAIR, ca, RH,VPD,
+                         VMFD,PRESS,SOILMOIST,jmax25, IECO, eavj, edvj, delsj,
+                         vcmax25,eavc, edvc, delsc,TVJUP,TVJDN,THETA,AJQ,RD0,
+                         Q10F,RTEMP,DAYRESP,TBELOW,MODELGS,GSREF, gsmin,I0,
+                         D0,VK1,VK2,VPD1,VPD2,VMFD0,GSJA,GSJB,T0,TREF,TMAX,
+                         SMD1,SMD2,SOILDATA,SWPEXP,G0,D0L,GAMMA,G1,GK, wleaf,
+                         nsides, itermax, GSC, aleaf, RD, et, fheat, tleaf, gbh, decoup)
+        
+        print et, aleaf, gbh, decoup, tleaf
+        sys.exit()
+        
+        
 
+        
+        sys.exit()
         # Calculate the soil moisture availability factors [0,1] in the topsoil
         # and the entire root zone
         (self.state.wtfac_tsoil, 
             self.state.wtfac_root) = self.wb.calculate_soil_water_fac()
-        
-        
-        
-        
+
         # Estimate photosynthesis using an empirical model
         if self.control.assim_model >=0 and self.control.assim_model <= 4:
             self.pp.calculate_photosynthesis(day)
