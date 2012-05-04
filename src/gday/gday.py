@@ -162,6 +162,10 @@ class Gday(object):
         # calculate initial C:N ratios and zero annual flux sums
         self.derive(1, self.date, INIT=True)
         
+        
+        self.state.pawater_root = self.params.wcapac_root
+        self.state.pawater_tsoil = self.state.pawater_tsoil
+        
         for project_day in xrange(len(self.met_data['prjday'])):
 
             # litterfall rate: C and N fluxes
@@ -190,16 +194,13 @@ class Gday(object):
 
             self.increment_date()
             
-            #print self.date.year, self.date.day, self.fluxes.rnet
-            #print self.fluxes.gpp_gCm2# , self.fluxes.transpiration
-            #print self.fluxes.transpiration
-            
-            #print self.fluxes.gpp_gCm2, self.met_data['amb_co2'][project_day]
-            #print self.state.shootn, self.state.rootn, self.state.branchn, self.state.stemnimm, self.state.stemnmob
-            #print self.fluxes.gpp_gCm2, self.fluxes.gs
-            
-            
+            #print self.state.wtfac_root
+            #print self.state.lai
             #print self.fluxes.gpp_gCm2
+            
+            
+           # print self.state.plantc, self.state.soilc, self.fluxes.nep
+            
             
             #print self.date.year, self.date.month, self.state.pawater_root / self.params.wcapac_root * 100
             

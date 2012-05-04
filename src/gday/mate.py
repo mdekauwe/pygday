@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Model Any Terrestrial Ecosystem (MATE) model. Full description below """
-
+import numpy as np
 import math
 import constants as const
 from utilities import float_eq, float_gt
@@ -77,7 +77,7 @@ class Mate(object):
         self.Kc25 = 404.9 
         self.Ko25 = 278400.0 
         self.Ec = 79430.0
-        self.Eo = 36380.0
+        self.Eo = 36830.0
         self.Egamma = 37830.0
         
     def calculate_photosynthesis(self, day, daylen):
@@ -117,22 +117,18 @@ class Mate(object):
         (am, pm) = self.am, self.pm # morning/afternoon
         (temp, par, vpd, ca) = self.get_met_data(day)
         
+        
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(temp)
-        gamma_star_avg = sum(gamma_star) / 2.0
         km = self.calculate_michaelis_menten_parameter(temp)
         N0 = self.calculate_leafn()
-        
         jmax = self.calculate_jmax_parameter(temp, N0)
         vcmax = self.calculate_vcmax_parameter(temp, N0)
+        alpha = self.calculate_quantum_efficiency(temp)
         
-        # Quantum yield of photosynthesis from McMurtrie 2008
-        alpha = 0.07 * ((ca -  gamma_star_avg) / (ca + 2.0 *  gamma_star_avg))
-       
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
-        
         ci = [i * ca for i in cica]
         
         # store value as needed in water balance calculation
@@ -151,11 +147,11 @@ class Mate(object):
         # GPP is assumed to be proportional to APAR, where the LUE defines the
         # slope of this relationship. LUE, calculation is performed for morning 
         # and afternnon periods.
-        lue = [self.epsilon(asat[k], par, daylen, alpha) for k in am, pm]
+        lue = [self.epsilon(asat[k], par, daylen, alpha[k]) for k in am, pm]
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / len(lue)
-
+        
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
         else:
@@ -240,7 +236,34 @@ class Mate(object):
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
         return [self.arrh(self.gamstar25, self.Egamma, temp[k]) for k in am, pm]
+    
+    def calculate_quantum_efficiency(self, temp):
+        """ Quantum efficiency for AM/PM periods following Sands 1996, it
+        declines linearly with increasing temperature.
 
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        alpha0 : float
+            
+        alpha1 : float
+            
+        
+        Returns:
+        -------
+        alpha : float, list [am, pm]
+            mol co2 mol-1 PAR
+        """
+        # BM - Ellsworth's table gives values 0.062 and 0.068 for upper canopy 
+        # pine, so using 0.6
+        alpha0 = 0.06  # quantum efficiency at 20 degC.
+        alpha1 = 0.016 # characterises strength of the temp dependance of alpha
+        
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        return [alpha0 * (1.0 - alpha1 * (temp[k]-20.0)) for k in am, pm]
+    
     def calculate_michaelis_menten_parameter(self, temp):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
 
@@ -282,7 +305,7 @@ class Mate(object):
         #vcmax25 = self.params.vcmaxn * self.state.ncontent
         return (self.state.ncontent * self.state.lai * self.params.kext /
                 (1.0 - math.exp(-self.params.kext * self.state.lai)))
-    
+        
     def calculate_jmax_parameter(self, temp, N0):
         """ Calculate the maximum RuBP regeneration rate for light-saturated 
         leaves at the top of the canopy (proportional to leaf-N content). 
@@ -327,7 +350,7 @@ class Mate(object):
         
         # calculate the maximum rate of Rubisco activity at 25 degC 
         vcmax25 = self.params.vcmaxn * N0
-    
+        
         return [self.arrh(vcmax25, self.params.eav, temp[k]) for k in am, pm]
     
     def aclim(self, ci, gamma_star, km, vcmax):
@@ -427,7 +450,6 @@ class Mate(object):
 
         """
         
-        
         if float_gt(amax, 0.0):
             q = (math.pi * self.params.kext * alpha * par /
                     (2.0 * daylen * const.HRS_TO_SECS * amax))
@@ -436,7 +458,7 @@ class Mate(object):
             f = (lambda x: x / (1.0 + q * x + math.sqrt((1.0 + q * x)**2.0 -
                             4.0 * self.params.theta * q * x)))
             g = [f(math.sin(math.pi * i / 24.)) for i in xrange(1, 13, 2)]
-
+            
             #Trapezoidal rule - seems more accurate
             gg = 0.16666666667 * sum(g)
 
@@ -507,7 +529,7 @@ if __name__ == "__main__":
     from utilities import float_lt, day_length
     import datetime
 
-    #fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
+    
     fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
     (control, params, state, files,
         fluxes, met_data,
@@ -534,16 +556,22 @@ if __name__ == "__main__":
 
     control.co2_conc = 0
     
+    #for project_day in xrange(365):
     for project_day in xrange(len(met_data['prjday'])):
         
         #state.shootn = 0.072422739989 
         #state.shoot = 6.54133760655 
-        #state.lai = 6.01803059803/2
+        #state.lai = 6.01803059803
+        #state.sla = 4.6
+        #params.cfracts = 0.5
+        #params.g1 = 4.8
+        #params.jmaxn = 60.0
+        #params.vcmaxn = 30.61
+        #params.theta = 0.75
+        
+        #state.shootn = 0.071 # ornl val
         
         state.shootnc = state.shootn / state.shoot
-        
-        
-        
         state.ncontent = (state.shootnc * params.cfracts /
                                 state.sla * const.KG_AS_G)
         daylen = day_length(datex, params.latitude)
@@ -561,12 +589,13 @@ if __name__ == "__main__":
                                             frac_gcover)
 
 
-
-        #print state.shootn
+        #daylen = 10.0
+       
         M.calculate_photosynthesis(project_day, daylen)
 
-        print datex.year, fluxes.gpp_gCm2
-
+        print fluxes.gpp_gCm2
+        #print fluxes.gpp / state.shootn
+         
 
 
 

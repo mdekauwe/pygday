@@ -108,7 +108,7 @@ class PrintOutput(object):
         """
         ignore = ['actncslope', 'slowncslope', 'passncslope', 'decayrate', \
                     'fmfaeces', 'light_interception', 'wtfac_tsoil', \
-                    'wtfac_root', 'activesoil', 'activesoiln']
+                    'wtfac_root']
         self.dump_ini_data("[files]\n", self.files, ignore, oparams, 
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, oparams, 

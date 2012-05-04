@@ -196,10 +196,10 @@ class Bewdy(object):
 
         # rate of carboxylation when rubiusco is limiting (Ac)
         aj = ((jmax / 4.0) * ((ci - gamma_star) / (ci + 2. * gamma_star)) *
-                const.MOLE_C_TO_GRAMS_C)
+                const.MOL_C_TO_GRAMS_C)
 
         # rate of carboxylation when RUBP regeneration is limiting (Aj)
-        ac = vcmax * ((ci - gamma_star) / (ci + km)) * const.MOLE_C_TO_GRAMS_C
+        ac = vcmax * ((ci - gamma_star) / (ci + km)) * const.MOL_C_TO_GRAMS_C
         rho = min(ac, aj)
 
         return quantum_yield, rho
@@ -384,7 +384,7 @@ class Bewdy(object):
         arg1 = self.params.alpha_j / 4.0
         arg2 = ((ci - gamma_star) / (ci + 2. * gamma_star))
 
-        return arg1 * arg2 * const.MOLE_C_TO_GRAMS_C
+        return arg1 * arg2 * const.MOL_C_TO_GRAMS_C
 
 
 

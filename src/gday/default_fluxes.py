@@ -98,3 +98,4 @@ microbial_resp = 0.0
 gpp_am_gCm2 = 0.0
 gpp_pm_gCm2 = 0.0
 gs_mol_m2_sec = 0.0
+ga_mol_m2_sec = 0.0

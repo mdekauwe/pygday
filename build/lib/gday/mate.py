@@ -77,7 +77,7 @@ class Mate(object):
         self.Kc25 = 404.9 
         self.Ko25 = 278400.0 
         self.Ec = 79430.0
-        self.Eo = 36380.0
+        self.Eo = 36830.0
         self.Egamma = 37830.0
         
     def calculate_photosynthesis(self, day, daylen):
@@ -119,16 +119,12 @@ class Mate(object):
         
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(temp)
-        gamma_star_avg = sum(gamma_star) / 2.0
         km = self.calculate_michaelis_menten_parameter(temp)
         N0 = self.calculate_leafn()
-        
         jmax = self.calculate_jmax_parameter(temp, N0)
         vcmax = self.calculate_vcmax_parameter(temp, N0)
+        alpha = self.calculate_quantum_efficiency(temp)
         
-        # Quantum yield of photosynthesis from McMurtrie 2008
-        alpha = 0.07 * ((ca -  gamma_star_avg) / (ca + 2.0 *  gamma_star_avg))
-       
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
@@ -151,7 +147,7 @@ class Mate(object):
         # GPP is assumed to be proportional to APAR, where the LUE defines the
         # slope of this relationship. LUE, calculation is performed for morning 
         # and afternnon periods.
-        lue = [self.epsilon(asat[k], par, daylen, alpha) for k in am, pm]
+        lue = [self.epsilon(asat[k], par, daylen, alpha[k]) for k in am, pm]
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / len(lue)
@@ -240,7 +236,34 @@ class Mate(object):
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
         return [self.arrh(self.gamstar25, self.Egamma, temp[k]) for k in am, pm]
+    
+    def calculate_quantum_efficiency(self, temp):
+        """ Quantum efficiency for AM/PM periods following Sands 1996, it
+        declines linearly with increasing temperature.
 
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        alpha0 : float
+            
+        alpha1 : float
+            
+        
+        Returns:
+        -------
+        alpha : float, list [am, pm]
+            mol co2 mol-1 PAR
+        """
+        # BM - Ellsworth's table gives values 0.062 and 0.068 for upper canopy 
+        # pine, so using 0.6
+        alpha0 = 0.06  # quantum efficiency at 20 degC.
+        alpha1 = 0.016 # characterises strength of the temp dependance of alpha
+        
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        return [alpha0 * (1.0 - alpha1 * (temp[k]-20.0)) for k in am, pm]
+    
     def calculate_michaelis_menten_parameter(self, temp):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
 
