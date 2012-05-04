@@ -7,7 +7,7 @@ import constants as const
 import sys
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (10.02.2011)"
+__version__ = "1.0 (02.05.2012)"
 __email__   = "mdekauwe@gmail.com"
 
 
@@ -45,7 +45,8 @@ class WaterBalance(object):
         self.control = control
         self.state = state
         self.met_data = met_data
-
+        self.delta_store = 0.0
+        
     def calculate_water_balance(self, day, daylen):
         """ Calculate water balance
 
@@ -87,10 +88,11 @@ class WaterBalance(object):
         self.fluxes.et = (self.fluxes.transpiration + self.fluxes.soil_evap +
                             self.fluxes.interception)
 
-
-        self.update_water_storage()
-        self.fluxes.runoff = self.calc_runoff()
-
+        self.fluxes.runoff = self.update_water_storage()
+       
+        #water_balance = rain - self.fluxes.et- self.fluxes.runoff - self.delta_store
+        
+        
     def get_met_data(self, day, daylen):
         """ Grab the days met data out of the structure and return day values.
 
@@ -214,19 +216,10 @@ class WaterBalance(object):
             rainfall [mm d-1]
 
         """
-
-        if float_gt(rain, 0.0):
-            self.fluxes.interception = self.state.lai * self.params.wetloss
-            self.fluxes.interception = clip(self.fluxes.interception,
-                                            min=self.fluxes.interception,
-                                            max=rain)
-
-            self.fluxes.erain = (rain * self.params.rfmult -
-                                    self.fluxes.interception)
-        else:
-            self.fluxes.interception = 0.0
-            self.fluxes.erain = 0.0
-
+        self.fluxes.erain = max(0.0, rain * self.params.rfmult -
+                                self.state.lai * self.params.wetloss)
+        self.fluxes.interception = rain * self.params.rfmult - self.fluxes.erain
+        
 
     def calc_transpiration(self):
         """ units mm/day """
@@ -326,15 +319,23 @@ class WaterBalance(object):
         gs_am = self.calc_stomatal_conductance(vpd_am, ca, daylen/2.0, 
                                                 self.fluxes.gpp_am_gCm2, 
                                                 press, temp_am)
+        gs_am_mol_m2_sec = self.fluxes.gs_mol_m2_sec
+        
         gs_pm = self.calc_stomatal_conductance(vpd_pm, ca, daylen/2.0, 
                                                 self.fluxes.gpp_pm_gCm2,
                                                 press, temp_am)
+        gs_pm_mol_m2_sec = self.fluxes.gs_mol_m2_sec
         gs = (gs_am + gs_pm) / 2.0
+        self.fluxes.gs_mol_m2_sec = (gs_am_mol_m2_sec + gs_pm_mol_m2_sec) / 2.0
+        
         
         transp_am = P.calc_evaporation(vpd_am, wind_am, gs_am, net_rad_am, 
                                         temp_am, press)
         transp_pm = P.calc_evaporation(vpd_pm, wind_pm, gs_pm, net_rad_pm, 
                                         temp_pm, press)
+        
+        ga = P.calc_atmos_boundary_layer_conductance(wind)
+        self.fluxes.ga_mol_m2_sec = ga / const.CONV_CONDUCT
         
         tconv = (60.0 * 60.0 * daylen) # seconds to day
         self.fluxes.transpiration = (transp_am + transp_pm) / 2.0 * tconv
@@ -378,7 +379,7 @@ class WaterBalance(object):
         arg2 = gpp_umol_m2_sec / ca # umol mol-1
         gs_mol_m2_sec = arg1 * arg2 * const.RATIO_DIFF_H2O_TO_CO2
         
-        # convert mol CO2 to mol H2O
+        
         self.fluxes.gs_mol_m2_sec = gs_mol_m2_sec
         
         # convert to mm s-1 and then to m s-1
@@ -420,7 +421,7 @@ class WaterBalance(object):
         # Net loss of longwave radiation
         # Monteith and Unsworth '90, pg. 52, 54.
 
-        net_lw = (107 - 0.3 * tavg) * daylen * const.WATT_HR_TO_MJ
+        net_lw = (107.0 - 0.3 * tavg) * daylen * const.WATT_HR_TO_MJ
         net_rad = max(0.0, sw_rad * (1.0 - self.params.albedo) - net_lw)
 
         # convert units for met data
@@ -490,45 +491,46 @@ class WaterBalance(object):
         return soil_evap
 
     def update_water_storage(self):
-        """ Calculate root and top soil plant available water
-
+        """ Calculate root and top soil plant available water and runoff.
+        
         Soil drainage is estimated using a "leaky-bucket" approach with two
-        soil layers. My visualisation is of 2 seperate buckets and the plant
-        available water encompasses the top soil as well.
-        """
-        # Total root zone
-        self.state.pawater_root += (self.fluxes.erain -
-                                        self.fluxes.transpiration -
-                                        self.fluxes.soil_evap)
-        self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
-                                        max=self.params.wcapac_root)
-
-        # Total soil layer
-        self.state.pawater_tsoil += (self.fluxes.erain -
-                                        self.fluxes.transpiration *
-                                        self.params.fractup_soil -
-                                        self.fluxes.soil_evap)
-
-        self.state.pawater_tsoil = clip(self.state.pawater_tsoil, min=0.0,
-                                        max=self.params.wcapac_topsoil)
-
-    def calc_runoff(self):
-        """ In reality this is a combined drainage and runoff calculation, i.e.
-        "outflow"
-
-        There is no drainage out of the "bucket" soil therefore this will be
-        termed runoff for output, treat with caution.
-
+        soil layers. In reality this is a combined drainage and runoff 
+        calculation, i.e. "outflow". There is no drainage out of the "bucket" 
+        soil. 
+        
         Returns:
         --------
         outflow : float
             outflow [mm d-1]
-
         """
-        arg = (self.state.pawater_root + self.fluxes.erain -
-                self.fluxes.et - self.fluxes.soil_evap -
-                self.params.wcapac_root)
-        return max(0.0, arg)
+        # Total root zone
+        
+        prev = self.state.pawater_root
+        self.state.pawater_root += (self.fluxes.erain -
+                                    self.fluxes.transpiration -
+                                    self.fluxes.soil_evap)
+       
+        if self.state.pawater_root > self.params.wcapac_root:
+            runoff = self.state.pawater_root - self.params.wcapac_root 
+            
+        else:
+            runoff = 0.0
+            
+        self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
+                                        max=self.params.wcapac_root)
+        
+        self.delta_store = self.state.pawater_root - prev
+       
+        # Total soil layer
+        self.state.pawater_tsoil += (self.fluxes.erain -
+                                     self.fluxes.transpiration *
+                                     self.params.fractup_soil -
+                                     self.fluxes.soil_evap)
+
+        self.state.pawater_tsoil = clip(self.state.pawater_tsoil, min=0.0,
+                                        max=self.params.wcapac_topsoil) 
+        
+        return runoff
 
     def calculate_soil_water_fac(self):
         """ Estimate a relative water availability factor [0..1]
@@ -756,7 +758,7 @@ class PenmanMonteith(object):
         rho = self.calc_density_of_air(tavg)
         
         ga = self.calc_atmos_boundary_layer_conductance(wind)
-    
+       
         # our model is a big leaf, so canopy conductance, gc = gs
         gc = gs
         
