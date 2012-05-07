@@ -7,7 +7,7 @@ import constants as const
 import sys
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (10.02.2011)"
+__version__ = "1.0 (02.05.2012)"
 __email__   = "mdekauwe@gmail.com"
 
 

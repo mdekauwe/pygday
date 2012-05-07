@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Model Any Terrestrial Ecosystem (MATE) model. Full description below """
-
+import numpy as np
 import math
 import constants as const
 from utilities import float_eq, float_gt
@@ -117,6 +117,7 @@ class Mate(object):
         (am, pm) = self.am, self.pm # morning/afternoon
         (temp, par, vpd, ca) = self.get_met_data(day)
         
+        
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(temp)
         km = self.calculate_michaelis_menten_parameter(temp)
@@ -128,7 +129,6 @@ class Mate(object):
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
-        
         ci = [i * ca for i in cica]
         
         # store value as needed in water balance calculation
@@ -151,7 +151,7 @@ class Mate(object):
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / len(lue)
-
+        
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
         else:
@@ -298,14 +298,11 @@ class Mate(object):
                 
     def calculate_leafn(self):  
         """ Assumption leaf N declines exponentially through the canopy. Input N
-        is top of canopy (N0) 
+        is top of canopy (N0). See notes and Chen et al 93, Oecologia, 93,63-69. 
         """
-        # old leaf N calculation
-        #jmax25 = self.params.jmaxn * self.state.ncontent
-        #vcmax25 = self.params.vcmaxn * self.state.ncontent
-        return (self.state.ncontent * self.state.lai * self.params.kext /
+        return ((self.state.ncontent *  self.params.kext) / 
                 (1.0 - math.exp(-self.params.kext * self.state.lai)))
-    
+        
     def calculate_jmax_parameter(self, temp, N0):
         """ Calculate the maximum RuBP regeneration rate for light-saturated 
         leaves at the top of the canopy (proportional to leaf-N content). 
@@ -350,7 +347,7 @@ class Mate(object):
         
         # calculate the maximum rate of Rubisco activity at 25 degC 
         vcmax25 = self.params.vcmaxn * N0
-    
+        
         return [self.arrh(vcmax25, self.params.eav, temp[k]) for k in am, pm]
     
     def aclim(self, ci, gamma_star, km, vcmax):
@@ -450,7 +447,6 @@ class Mate(object):
 
         """
         
-        
         if float_gt(amax, 0.0):
             q = (math.pi * self.params.kext * alpha * par /
                     (2.0 * daylen * const.HRS_TO_SECS * amax))
@@ -459,7 +455,7 @@ class Mate(object):
             f = (lambda x: x / (1.0 + q * x + math.sqrt((1.0 + q * x)**2.0 -
                             4.0 * self.params.theta * q * x)))
             g = [f(math.sin(math.pi * i / 24.)) for i in xrange(1, 13, 2)]
-
+            
             #Trapezoidal rule - seems more accurate
             gg = 0.16666666667 * sum(g)
 
@@ -530,7 +526,7 @@ if __name__ == "__main__":
     from utilities import float_lt, day_length
     import datetime
 
-    #fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
+    
     fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
     (control, params, state, files,
         fluxes, met_data,
@@ -557,16 +553,28 @@ if __name__ == "__main__":
 
     control.co2_conc = 0
     
+    npp_sum = np.zeros(0)
+    
+    #for project_day in xrange(365):
     for project_day in xrange(len(met_data['prjday'])):
         
         #state.shootn = 0.072422739989 
         #state.shoot = 6.54133760655 
-        #state.lai = 6.01803059803/2
+        #state.lai = 6.01803059803
+        #state.sla = 4.6
+        #params.cfracts = 0.5
+        #params.g1 = 4.8
+        #params.jmaxn = 60.0
+        #params.vcmaxn = 30.61
+        #params.theta = 0.75
+        
+        
+        
+        
+        
+        #state.shootn = 0.071 # ornl val
         
         state.shootnc = state.shootn / state.shoot
-        
-        
-        
         state.ncontent = (state.shootnc * params.cfracts /
                                 state.sla * const.KG_AS_G)
         daylen = day_length(datex, params.latitude)
@@ -584,16 +592,20 @@ if __name__ == "__main__":
                                             frac_gcover)
 
 
-
-        #print state.shootn
+        #daylen = 10.0
+       
         M.calculate_photosynthesis(project_day, daylen)
 
-        print datex.year, fluxes.gpp_gCm2
-
+        print fluxes.gpp_gCm2
+        #print fluxes.gpp / state.shootn
+        npp_sum = np.append(npp_sum, fluxes.gpp_gCm2*0.5) 
 
 
 
         datex += datetime.timedelta(days=1)
+    
+    #print npp_sum.sum() / (state.shootn *100)
+    
     end_time = time.time()
     sys.stderr.write("\nTotal simulation time: %.1f seconds\n\n" %
                                                     (end_time - start_time))

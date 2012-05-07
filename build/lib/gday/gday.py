@@ -196,8 +196,8 @@ class Gday(object):
             
             #print self.state.wtfac_root
             #print self.state.lai
+            #print self.date.year, self.fluxes.npp_gCm2, self.state.shootn * 100.
             #print self.fluxes.gpp_gCm2
-            
             
            # print self.state.plantc, self.state.soilc, self.fluxes.nep
             

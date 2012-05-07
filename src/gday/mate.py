@@ -298,12 +298,9 @@ class Mate(object):
                 
     def calculate_leafn(self):  
         """ Assumption leaf N declines exponentially through the canopy. Input N
-        is top of canopy (N0) 
+        is top of canopy (N0). See notes and Chen et al 93, Oecologia, 93,63-69. 
         """
-        # old leaf N calculation
-        #jmax25 = self.params.jmaxn * self.state.ncontent
-        #vcmax25 = self.params.vcmaxn * self.state.ncontent
-        return (self.state.ncontent * self.state.lai * self.params.kext /
+        return ((self.state.ncontent *  self.params.kext) / 
                 (1.0 - math.exp(-self.params.kext * self.state.lai)))
         
     def calculate_jmax_parameter(self, temp, N0):
@@ -556,6 +553,8 @@ if __name__ == "__main__":
 
     control.co2_conc = 0
     
+    npp_sum = np.zeros(0)
+    
     #for project_day in xrange(365):
     for project_day in xrange(len(met_data['prjday'])):
         
@@ -568,6 +567,10 @@ if __name__ == "__main__":
         #params.jmaxn = 60.0
         #params.vcmaxn = 30.61
         #params.theta = 0.75
+        
+        
+        
+        
         
         #state.shootn = 0.071 # ornl val
         
@@ -595,11 +598,14 @@ if __name__ == "__main__":
 
         print fluxes.gpp_gCm2
         #print fluxes.gpp / state.shootn
-         
+        npp_sum = np.append(npp_sum, fluxes.gpp_gCm2*0.5) 
 
 
 
         datex += datetime.timedelta(days=1)
+    
+    #print npp_sum.sum() / (state.shootn *100)
+    
     end_time = time.time()
     sys.stderr.write("\nTotal simulation time: %.1f seconds\n\n" %
                                                     (end_time - start_time))
