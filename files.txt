@@ -18,6 +18,7 @@
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/read_config_file.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/soil_cnflows.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/sum_annual_gpp.py
+/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/test.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/update_pools.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/utilities.py
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/water_balance.py
@@ -42,6 +43,7 @@
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/read_config_file.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/soil_cnflows.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/sum_annual_gpp.pyc
+/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/test.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/update_pools.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/utilities.pyc
 /opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/gday/water_balance.pyc
