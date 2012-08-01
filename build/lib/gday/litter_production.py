@@ -32,7 +32,7 @@ class LitterProduction(object):
         self.control = control
         self.state = state
 
-    def calculate_litter_flows(self):
+    def calculate_litter_flows(self, doy=None):
         """Various C and N litter production elements
 
         Returns:
@@ -43,37 +43,56 @@ class LitterProduction(object):
             fine root decay rate [tonnes C/ha/day]
 
         """
-
-        # Leaf litterfall rates have been found to be higher during dry periods
-        # and therefore is dependent on soil water content
-        fdecay = self.decay_in_dry_soils(self.params.fdecay,
-                                            self.params.fdecaydry)
         rdecay = self.decay_in_dry_soils(self.params.rdecay,
-                                            self.params.rdecaydry)
-
+                                         self.params.rdecaydry)
+        
         # litter production
-        self.fluxes.deadleaves = fdecay * self.state.shoot
         self.fluxes.deadroots = rdecay * self.state.root   # ditto
         self.fluxes.deadbranch = self.params.bdecay * self.state.branch
         self.fluxes.deadstems = self.params.wdecay * self.state.stem
-
-        # litter N:C ratios, roots and shoot
-        ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
-        ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
         
-        # N in litter production
-        self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
-        self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
+        if self.control.deciduous_model:
+            self.fluxes.deadleaves = (self.fluxes.lrate * 
+                                      self.state.remaining_days[doy])
+            self.fluxes.deadleafn = (self.fluxes.lnrate * 
+                                     self.state.remaining_days[doy]  * 
+                                    (1.0 - self.params.fretrans))
+            self.fluxes.deadrootn = (self.state.rootnc * 
+                                    (1.0 - self.params.rretrans) * 
+                                     self.fluxes.deadroots)
+            self.fluxes.leafretransn = (self.fluxes.lnrate * 
+                                        self.state.remaining_days[doy]  * 
+                                        self.params.fretrans)
+            fdecay = 1.0/365.25 # doesn't do anything here
+        else:
+            # Leaf litterfall rates have been found to be higher during 
+            # dry periods and therefore is dependent on soil water content
+            fdecay = self.decay_in_dry_soils(self.params.fdecay,
+                                             self.params.fdecaydry)
+            
+            # litter production
+            self.fluxes.deadleaves = fdecay * self.state.shoot
+            
+            # litter N:C ratios, roots and shoot
+            ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
+            ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
+            
+            # N in litter production
+            self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
+            self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
+            
+        
 
+        
         # N in branch litter - assuming fraction is retranslocated before
         # senescence, i.e. a fracion of nutrients is stored within the plant
         self.fluxes.deadbranchn = (self.params.bdecay * self.state.branchn *
                                     (1.0 - self.params.bretrans))
 
         # n in stemwood litter - only mobile n is retranslocated
-        self.fluxes.deadstemn = (self.params.wdecay * (self.state.stemnimm +
-                                    self.state.stemnmob *
-                                    (1.0 - self.params.wretrans)))
+        self.fluxes.deadstemn = (self.params.wdecay * 
+                                 (self.state.stemnimm + self.state.stemnmob *
+                                  (1.0 - self.params.wretrans)))
 
         # any animals at work?
         if self.control.grazing:

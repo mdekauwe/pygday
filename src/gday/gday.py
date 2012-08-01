@@ -6,18 +6,17 @@ description.
 
 #import ipdb
 import sys
-import datetime
-import calendar
-
+import math
 import constants as const
 from file_parser import initialise_model_data
 from plant_growth import PlantGrowth
-#from plant_growth_maestra import PlantGrowth
 from print_outputs import PrintOutput
 from litter_production import LitterProduction
 from soil_cnflows import CarbonFlows, NitrogenFlows
 from update_pools import CarbonPools, NitrogenPools
-from utilities import float_eq, float_lt
+from utilities import float_eq, calculate_daylength, uniq
+from phenology import Phenology
+
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (15.02.2011)"
@@ -37,41 +36,6 @@ class Gday(object):
     of as buckets as they don't have dimensions. This is in essence a port
     of the C++ code, but I am changing things at will (be warned)!
 
-    If site specific intial model pool information is not avaliable
-    (e.g from the literature), then it is recommended that you "spin up" the
-    model so that the initial pools reach a steady state.
-
-    Model expects as input (on a daily timestep): (i) PAR, (ii) mean temp,
-    (iii) rainfall and (iv) VPD. There is an external wrapper script to
-    generate an input file from tmin, tmax and par.
-
-    GPP ----->  ------------ --> Transpiration
-                |  Foliage |
-                ------------
-                ------------
-                |   Wood   |--------------------------->-----------------------
-                ------------                                                  |
-                ------------                                                  |
-                |Fine Roots| <--<--                                           |
-    CO2 <-----  ------------    | |                                           |
-                                | |                                           |
-                                | |                                           |
-                                | |                                           |
-    Nin  --> -------------- ----  |                                           |
-             | Mineral N  | <-----|---  -----------------------------         |
-    Nloss <- --------------       |     | Litter + Active Soil Pool | <-------
-                                  | --> ----------------------------- ----> CO2
-                                  | |   -----------------------------
-                                  | --> |      Slow Soil Pool       | ----> CO2
-    Rain -->  ---------- ----->---  -<- -----------------------------
-              | Soil   |            |   -----------------------------
-              | Water  |            --->|       Passive Soil Pool   | ----> CO2
-    Drain <-- ---------- --> Evap       -----------------------------
-
-    * 4 litter pools + active SOM pool are drawn together here but treated
-      seperately in the model.
-
-
     References:
     ----------
     * Comins, H. N. and McMurtrie, R. E. (1993) Ecological Applications, 3,
@@ -80,7 +44,7 @@ class Gday(object):
       873-888.
 
     """
-    def __init__(self, fname=None, chk_cmd_line=True, DUMP=False):
+    def __init__(self, fname=None, DUMP=False, spin_up=False):
 
         """ Set up model
 
@@ -103,21 +67,17 @@ class Gday(object):
             Controlling class of the model, runs things.
 
         """
-
-        # sweep the cmd line
-        if chk_cmd_line == True:
-            options, args = cmdline_parser()
-            DUMP=options.DUMP
-
+        self.day_output = [] # store daily outputs
+        
         (self.control, self.params,
             self.state, self.files,
             self.fluxes, self.met_data,
-            print_opts) = initialise_model_data(fname, DUMP=DUMP)
+            self.print_opts) = initialise_model_data(fname, DUMP=DUMP)
 
         # printing stuff
         self.pr = PrintOutput(self.params, self.state, self.fluxes,
-                                self.control, self.files, print_opts)
-
+                              self.control, self.files, self.print_opts)
+        
         # print model defaults
         if DUMP == True:
             self.pr.save_default_parameters()
@@ -125,18 +85,15 @@ class Gday(object):
 
         if self.control.print_options > 1:
             raise ValueError("Unknown output print option: %s  (try 0 or 1)" %
-                            self.control.print_options)
+                             self.control.print_options)
 
         # set initial lai -> m2/m2
         self.state.lai = (self.params.slainit * const.M2_AS_HA /
-                            const.KG_AS_TONNES / self.params.cfracts *
-                            self.state.shoot)
-
+                          const.KG_AS_TONNES / self.params.cfracts *
+                          self.state.shoot)
+        
         # Specific leaf area (m2 onesided/kg DW)
         self.state.sla = self.params.slainit
-
-        # start date of simulation
-        self.date = self.simulation_start_date()
 
         self.time_constants = ['rateuptake', 'rateloss', 'retransmob',
                                 'fdecay', 'fdecaydry', 'rdecay', 'rdecaydry',
@@ -144,128 +101,138 @@ class Gday(object):
                                 'kdec4', 'kdec5', 'kdec6', 'kdec7', 'nuptakez']
         self.correct_rate_constants(output=False)
         
-    def run_sim(self):
-        """ Run model simulation! """
-
         # class instances
-        cf = CarbonFlows(self.control, self.params, self.state, self.fluxes,
-                            self.met_data)
-        nf = NitrogenFlows(self.control, self.params, self.state, self.fluxes)
-        lf = LitterProduction(self.control, self.params, self.state,
+        self.cf = CarbonFlows(self.control, self.params, self.state, 
+                              self.fluxes, self.met_data)
+        self.nf = NitrogenFlows(self.control, self.params, self.state, 
                                 self.fluxes)
-        pg = PlantGrowth(self.control, self.params, self.state, self.fluxes,
-                            self.met_data)
-        cpl = CarbonPools(self.control, self.params, self.state, self.fluxes)
-        npl = NitrogenPools(self.control, self.params, self.state, self.fluxes,
-                            self.met_data)
+        self.lf = LitterProduction(self.control, self.params, self.state,
+                                   self.fluxes)
+        self.pg = PlantGrowth(self.control, self.params, self.state, 
+                              self.fluxes, self.met_data)
+        self.cpl = CarbonPools(self.control, self.params, self.state, 
+                               self.fluxes)
+        self.npl = NitrogenPools(self.control, self.params, self.state, 
+                                 self.fluxes, self.met_data)
+        
+        if self.control.deciduous_model:
+            self.initialise_deciduous_model()
+            self.P = Phenology(self.fluxes, self.state, 
+                                self.params.previous_ncd)
         
         # calculate initial C:N ratios and zero annual flux sums
-        self.derive(1, self.date, INIT=True)
-        
-        
+        self.day_end_calculations(0, INIT=True)
         self.state.pawater_root = self.params.wcapac_root
-        self.state.pawater_tsoil = self.state.pawater_tsoil
+        self.state.pawater_tsoil = self.params.wcapac_topsoil
+        self.spin_up = spin_up
         
-        for project_day in xrange(len(self.met_data['prjday'])):
-
-            # litterfall rate: C and N fluxes
-            (fdecay, rdecay) = lf.calculate_litter_flows()
-
-            # co2 assimilation, N uptake and loss
-            pg.grow(project_day, self.date, fdecay, rdecay)
-
-            # soil model fluxes
-            cf.calculate_cflows(project_day)
-            nf.calculate_nflows()
-
-            self.fluxes.nep = self.calculate_nep()
+    def spin_up_pools(self, tolerance=1E-03, sequence=1000):
+        """ Spin Up model plant, soil and litter pools.
+        -> Examine sequences of 1000 years and check if C pools are changing
+           or at steady state to 3 d.p.
+           
+        References:
+        ----------
+        Adapted from...
+        * Murty, D and McMurtrie, R. E. (2000) Ecological Modelling, 134, 
+          185-205, specifically page 196.
+        """
+        prev_plantc = -9999.9
+        prev_soilc = -9999.9
+        prev_litterc = -9999.9
+        while (math.fabs(prev_plantc - self.state.plantc) > tolerance and 
+               math.fabs(prev_soilc - self.state.soilc) > tolerance and 
+               math.fabs(prev_litterc - self.state.litterc) > tolerance): 
+            prev_plantc = self.state.plantc
+            prev_soilc = self.state.soilc
+            prev_litterc = self.state.litterc
+            self.run_sim() # run the model...
             
-            # soil model - update pools
-            (cact, cslo, cpas) = cpl.calculate_cpools()
-            npl.calculate_npools(cact, cslo, cpas, project_day)
-
-            # calculate C:N ratios and increment annual flux sums
-            self.derive(project_day, self.date)
+            # Have we reached a steady state?
+            sys.stderr.write("Nyears of spin: %d %f %f %F\n" % \
+                            (sequence, self.state.plantc, self.state.soilc, \
+                             self.state.litterc))
+            sequence += 1000
+        self.print_output_file()    
             
-            #print self.state.plantc, self.state.soilc
+    def run_sim(self):
+        """ Run model simulation! """
+        project_day = 0
+        for yr in uniq(self.met_data["year"]):
+            days_in_year = len([x for x in self.met_data["year"] if x == yr])
+            daylen = calculate_daylength(days_in_year, self.params.latitude)
             
-            if self.control.print_options == 0:
-                self.pr.save_daily_output(project_day + 1, self.date)
-
-            self.increment_date()
-            
-            #print self.state.wtfac_root
-            #print self.state.lai
-            #print self.date.year, self.fluxes.npp_gCm2, self.state.shootn * 100.
-            #print self.fluxes.gpp_gCm2
-            
-           # print self.state.plantc, self.state.soilc, self.fluxes.nep
-            
-            
-            #print self.date.year, self.date.month, self.state.pawater_root / self.params.wcapac_root * 100
-            
-            #print self.date.year, self.date.day, self.state.ncontent, self.state.lai
-            #print self.fluxes.transpiration
-            #print self.fluxes.gpp_gCm2
-            #print self.params.g1 * self.state.wtfac_root, self.state.pawater_root / self.params.wcapac_root,self.fluxes.npp_gCm2 / self.fluxes.transpiration  
-            #print self.state.stemn * 100.0
-            
-            #print self.params.g1 * self.state.wtfac_root, self.fluxes.npp_gCm2 / self.fluxes.transpiration
-            
-            #print self.state.soilc, self.state.plantc, self.fluxes.nep
-                    
-            
-        if self.control.print_options == 1:
-            # need to save initial SLA to current one!
-            self.params.slainit = (self.state.lai / const.M2_AS_HA *
-                                    const.KG_AS_TONNES * self.params.cfracts /
-                                    self.state.shoot)
+            if self.control.deciduous_model:
+                self.zero_annual_sums()
+                self.P.calculate_phenology_flows(daylen, self.met_data, 
+                                            days_in_year, project_day)
+            for doy in xrange(days_in_year):   
+                
+                # litterfall rate: C and N fluxes
+                (fdecay, rdecay) = self.lf.calculate_litter_flows(doy)
+                
+                # co2 assimilation, N uptake and loss
+                self.pg.grow(project_day, fdecay, rdecay, daylen[doy], doy, 
+                        float(days_in_year))
+    
+                # soil model fluxes
+                self.cf.calculate_cflows(project_day)
+                self.nf.calculate_nflows()
+                
+                # soil model - update pools
+                (cact, cslo, cpas) = self.cpl.calculate_cpools()
+                self.npl.calculate_npools(cact, cslo, cpas, project_day)
+    
+                # calculate C:N ratios and increment annual flux sums
+                self.day_end_calculations(project_day, days_in_year)
+                
+                #if self.spin_up == False:
+                #    print self.fluxes.gpp * 100, self.state.lai
+                
+                # save daily fluxes + state for daily output    
+                if self.control.print_options == 0:
+                    self.save_daily_outputs(yr, doy+1)
+                project_day += 1
+            # =============== #
+            #   END OF YEAR   #                
+            # =============== #
+            if self.control.deciduous_model:
+                self.allocate_stored_c_and_n() 
+        
+        if self.spin_up == False:
+            self.print_output_file()
+        
+    def print_output_file(self):
+        """ End of the simulation...either print the daily output file or
+        print the final state + param file. """
+        
+        # print the daily output file.
+        if self.control.print_options == 0:
+            self.pr.write_daily_outputs_file(self.day_output)
+        # print the final state
+        elif self.control.print_options == 1:
+            if not self.control.deciduous_model:
+                # need to save initial SLA to current one!
+                conv = const.M2_AS_HA * const.KG_AS_TONNES 
+                self.params.slainit = (self.state.lai / const.M2_AS_HA * 
+                                      const.KG_AS_TONNES *
+                                       self.params.cfracts /self.state.shoot)
+                
             self.correct_rate_constants(output=True)
             self.pr.save_state()
 
-        # house cleaning, close ouput files
-        self.pr.tidy_up()
        
-    def simulation_start_date(self):
-        """ figure out when the simulation starts
-
-        Returns:
-        -------
-        start date : string (date format)
-            Date string, year/month/day
-
-        """
-        year = str(self.control.startyear)
-        month = str(self.control.startmonth)
-        day = str(self.control.startday)
-        return datetime.datetime.strptime((year + month + day), "%Y%m%d")
-
-    def increment_date(self):
-        """ move date object on a day, assumes daily date will need to adapt
-
-        """
-        # Total number of days in year
-        if calendar.isleap(self.date.year):
-            yr_days = 366.
-        else:
-            yr_days = 365.
+    
+    def zero_annual_sums(self):
+        self.state.shoot = 0.0
+        self.state.shootn = 0.0
+        self.state.shootnc = 0.0
+        self.state.clabile_store = 0.0
+        self.state.aroot_uptake = 0.0
+        self.state.aretrans = 0.0
+        self.state.anloss = 0.0
+        self.state.lai = 0.0
         
-        #Required so max leaf & root N:C can depend on Age 
-        self.state.age += 1.0 / yr_days
-        
-        self.date += datetime.timedelta(days=1)
-
-    def calculate_nep(self):
-        """ carbon sink or source?
-
-        Returns:
-        --------
-        NEP : float
-            Net Ecosystem Productivity, C uptake
-        """
-        return (self.fluxes.npp - self.fluxes.hetero_resp -
-                    self.fluxes.ceaten * (1. - self.params.fracfaeces))
-
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
         if output == False:
@@ -277,62 +244,59 @@ class Gday(object):
                 setattr(self.params, i, getattr(self.params, i) * 
                         const.NDAYS_IN_YR)
     
-    def derive(self, day, date, INIT=False):
+    def day_end_calculations(self, prjday, days_in_year=None, INIT=False):
         """Calculate derived values from state variables.
 
         Parameters:
         -----------
         day : integer
             day of simulation
-        date : date format string
-            date object yr/month/day
+        
         INIT : logical
             logical defining whether it is the first day of the simulation
 
         """
-        self.fluxes.ninflow = self.met_data['ndep'][day]
+        self.fluxes.ninflow = self.met_data['ndep'][prjday]
+       
+        # update N:C of plant pools
+        if self.control.deciduous_model:
+            if float_eq(self.state.shoot, 0.0):
+                self.state.shootnc = 0.0
+            else:
+                self.state.shootnc = max(self.state.shootn / self.state.shoot, 
+                                         self.params.ncfmin)
+            self.state.rootnc = 0.02
+        else:
+            self.state.shootnc = self.state.shootn / self.state.shoot 
+            self.state.rootnc = self.state.rootn / self.state.root
         
-        # c/n ratios, most of these are just diagnostics, and not used.
-        self.state.rootnc = nc_ratio(self.state.root, self.state.rootn, "Cr")
-        self.state.shootnc = nc_ratio(self.state.shoot, self.state.shootn, "Cf")
-        
-        # Diagnostic N:C
-        #branchnc = nc_ratio(self.state.branch, self.state.branchn)
-        #stemnc = nc_ratio(self.state.stem, self.state.stemn)
-        #structsurfnc = nc_ratio(self.state.structsurf, self.state.structsurfn)
-        #metabsurfnc = nc_ratio(self.state.metabsurf, self.state.metabsurfn)
-        #structsoilnc = nc_ratio(self.state.structsoil, self.state.structsoiln)
-        #metabsoilnc = nc_ratio(self.state.metabsoil, self.state.metabsoiln)
-        #activesoilnc = nc_ratio(self.state.activesoil, self.state.activesoiln)
-        #slowsoilnc = nc_ratio(self.state.slowsoil, self.state.slowsoiln)
-        #passivesoilnc = nc_ratio(self.state.passivesoil, self.state.passivesoiln)
-        
-        # SLA (m2 onesided/kg DW)
-        self.state.sla = (self.state.lai / const.M2_AS_HA *
-                            const.KG_AS_TONNES *
-                            self.params.cfracts / self.state.shoot)
+        if self.state.lai > 0.0:
+            # SLA (m2 onesided/kg DW) -> HA/tonnes C
+            self.state.sla = (self.state.lai / const.M2_AS_HA * 
+                              const.KG_AS_TONNES * self.params.cfracts / 
+                              self.state.shoot)
 
         # total plant, soil & litter nitrogen
         self.state.soiln = (self.state.inorgn + self.state.activesoiln +
-                                self.state.slowsoiln + self.state.passivesoiln)
+                            self.state.slowsoiln + self.state.passivesoiln)
         self.state.litternag = self.state.structsurfn + self.state.metabsurfn
         self.state.litternbg = self.state.structsoiln + self.state.metabsoiln
         self.state.littern = self.state.litternag + self.state.litternbg
         self.state.plantn = (self.state.shootn + self.state.rootn +
-                                self.state.branchn + self.state.stemn)
+                             self.state.branchn + self.state.stemn)
         self.state.totaln = (self.state.plantn + self.state.littern +
-                                self.state.soiln)
+                             self.state.soiln)
 
         # total plant, soil, litter and system carbon
         self.state.soilc = (self.state.activesoil + self.state.slowsoil +
-                                self.state.passivesoil)
+                            self.state.passivesoil)
         self.state.littercag = self.state.structsurf + self.state.metabsurf
         self.state.littercbg = self.state.structsoil + self.state.metabsoil
         self.state.litterc = self.state.littercag + self.state.littercbg
         self.state.plantc = (self.state.root + self.state.shoot +
-                                self.state.stem + self.state.branch)
+                             self.state.stem + self.state.branch)
         self.state.totalc = (self.state.soilc + self.state.litterc +
-                                self.state.plantc)
+                             self.state.plantc)
 
         # optional constant passive pool
         if self.control.passiveconst != 0:
@@ -340,19 +304,9 @@ class Gday(object):
             self.state.passivesoiln = self.params.passivesoilnz
 
         if INIT == False:
-            # day of year 1-365/366
-            doy = int(date.strftime('%j'))
-            if doy == 1:
-                self.state.nepsum = (self.fluxes.nep * const.TONNES_AS_G *
-                                        const.M2_AS_HA)
-                self.state.nppsum = (self.fluxes.npp * const.TONNES_AS_G *
-                                        const.M2_AS_HA)
-            else:
-                self.state.nepsum += (self.fluxes.nep * const.TONNES_AS_G *
-                                        const.M2_AS_HA)
-                self.state.nppsum += (self.fluxes.npp * const.TONNES_AS_G *
-                                        const.M2_AS_HA)
-
+            #Required so max leaf & root N:C can depend on Age 
+            self.state.age += 1.0 / days_in_year
+            
             # N Net mineralisation, i.e. excess of N outflows over inflows
             self.fluxes.nmineralisation = (self.fluxes.ninflow + 
                                             self.fluxes.ngross +
@@ -360,69 +314,80 @@ class Gday(object):
                                             self.fluxes.nimmob +
                                             self.fluxes.nlittrelease)
 
-            # evaluate c input/output rates for mineral soil and soil+litter
-            # Not used anyway so I have commented them out, diagnostics
-            # mineral soil
-            #cinsoil = sum(self.fluxes.cstruct) + sum(self.fluxes.cmetab)
+    def initialise_deciduous_model(self):
+        # Divide up NPP based on annual allocation fractions
+        
+        self.state.c_to_alloc_shoot = (self.state.alleaf * 
+                                        self.state.clabile_store)
+        self.state.c_to_alloc_root = (self.state.alroot * 
+                                        self.state.clabile_store)
+        self.state.c_to_alloc_branch = (self.state.albranch * 
+                                        self.state.clabile_store)
+        self.state.c_to_alloc_stem = (self.state.alstem * 
+                                        self.state.clabile_store)
+        #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *    
+        #                                        self.state.clabile_store)
+        
+        # annual available N for allocation to leaf
+        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot * 
+                                        self.state.shootnc_yr)
 
-            # litter + mineral soil
-            #cinlitt = (self.fluxes.deadleaves + self.fluxes.deadroots +
-            #            self.fluxes.deadbranch + self.fluxes.deadstems)
+    def allocate_stored_c_and_n(self):
+        """ 
+        At the end of the year allocate everything for the coming year
+        based on stores from the previous year avaliable N for allocation
+        """
+        self.state.c_to_alloc_shoot = (self.state.alleaf * 
+                                        self.state.clabile_store)
+        
+        Un = self.state.aroot_uptake + self.state.aretrans
+        
+        self.state.c_to_alloc_stem = (self.params.callocw * 
+                                      (self.state.clabile_store - 
+                                       self.state.c_to_alloc_stem))
+        self.state.c_to_alloc_root = (self.state.clabile_store - 
+                                      self.state.c_to_alloc_stem - 
+                                      self.state.c_to_alloc_shoot)
+        self.state.n_to_alloc_root = (min(Un, self.state.c_to_alloc_root * 
+                                              self.state.rootnc))
+        
+        # constant N:C of foliage during the growing season(kgN kg-1C)
+        self.state.shootnc_yr = ((Un - self.state.n_to_alloc_root) / 
+                                 (self.state.c_to_alloc_shoot)) 
+        # if we want to put back a floating N:C then we need to have
+        # self.state.c_to_alloc_shoot + self.state.c_to_alloc_stem * some factor
+        
+        # annual available N for allocation to leaf
+        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot * 
+                                        self.state.shootnc_yr)    
 
-            # output from mineral soil
-            #coutsoil = (self.fluxes.co2_to_air[4] + self.fluxes.co2_to_air[5] +
-            #            self.fluxes.co2_to_air[6])
 
-            # soil decomposition rate=flux/pool
-            #soildecomp = coutsoil / self.state.soilc
 
-def nc_ratio(carbon_val, nitrogen_val, pool):
-    """Calculate nitrogen:carbon ratios
+    def save_daily_outputs(self, year, doy):
+        """ Save the daily fluxes + state in a big list.
+        
+        This should be a more efficient way to write the daily output in a 
+        single step at the end of the simulation. 
 
-    Parameters:
-    ----------
-    carbon_val : float
-        C value
-    nitrogen_val: float
-        N value#
-
-    Returns:
-    --------
-    value : float
-        N:C ratio
-    """
-    if float_lt(carbon_val, 0.0):
-        # Note, previously the else branch was set to 1E6...presumably this 
-        # was a hack to deal with the scenario for example where 
-        # self.state.metabsurf and self.state.metabsurfn both start at zero.  
-        # This was fine as this ratio isn't used in the code. Since I have 
-        # commented out these diagnostics we shouldn't end up here unless there 
-        # really is an error!!
-        msg = "Dianostic for %s pool N:C has invalid values C:%s, N:%s" % \
-                (pool, carbon_val, nitrogen_val)
-        raise ValueError(msg)
-    return nitrogen_val / carbon_val
-      
-def cmdline_parser():
-    """ Parse the command line for user options
-
-    Returns:
-    --------
-    options : object
-        various cmd line options supplied by the user
-    args : objects
-        list of arguments
-
-    """
-    from optparse import OptionParser
-
-    desc = """The G'DAY (Generic Decomposition And Yield) model)"""
-    clp = OptionParser("Usage: %prog [options] filename", description = desc)
-    clp.add_option("-d", "--dump", action="store_true", dest="DUMP",
-                    default=False, help="Dump a default .INI file")
-    options, args = clp.parse_args()
-    return options, args
-
+        Parameters:
+        -----------
+        project_day : integer
+            simulation day
+        """
+        output = [year, doy]
+        for var in self.print_opts:
+            try:
+                if hasattr(self.state, var):
+                    value = getattr(self.state, var)
+                    output.append(value)
+                else:
+                    value = getattr(self.fluxes, var)
+                    output.append(value)
+            except AttributeError:
+                err_msg = "Error accessing var to print: %s" % var
+                raise AttributeError, err_msg
+        self.day_output.append(output)
+        
 
 def main():
     """ run a test case of the gday model """
@@ -435,7 +400,9 @@ def main():
     start_time = time.time()
 
 
-    fname = "/Users/mdekauwe/src/python/pygday/params/duke_testing.cfg"
+    
+    #fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
+    fname = "test.cfg"
     G = Gday(fname)
     G.run_sim()
     

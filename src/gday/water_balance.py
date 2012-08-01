@@ -216,6 +216,7 @@ class WaterBalance(object):
             rainfall [mm d-1]
 
         """
+        
         self.fluxes.erain = max(0.0, rain * self.params.rfmult -
                                 self.state.lai * self.params.wetloss)
         self.fluxes.interception = rain * self.params.rfmult - self.fluxes.erain
@@ -344,7 +345,7 @@ class WaterBalance(object):
         """ Calculate stomatal conductance, note assimilation rate has been
         adjusted for water availability at this point.
         
-        gs = g0 + (1 + g1/sqrt(D)) * A /Ca 
+        gs = g0 + 1.6 * (1 + g1/sqrt(D)) * A / Ca 
 
         units: m s-1 (conductance)
         References:
@@ -375,7 +376,7 @@ class WaterBalance(object):
         tconv =  1.0 / (60.0 * 60.0 * daylen)
         gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * tconv)
         
-        arg1 = 1.0 + (g1_c * self.state.wtfac_root) / math.sqrt(vpd)
+        arg1 = 1.6 * (1.0 + (g1_c * self.state.wtfac_root) / math.sqrt(vpd))
         arg2 = gpp_umol_m2_sec / ca # umol mol-1
         gs_mol_m2_sec = arg1 * arg2 * const.RATIO_DIFF_H2O_TO_CO2
         
@@ -564,8 +565,11 @@ class WaterBalance(object):
         wtfac_tsoil = (smc_topsoil - self.params.fwpmin) / arg
         wtfac_root = (smc_root - self.params.fwpmin) / arg
         
+        #return 1.0, 1.0
         return (clip(wtfac_tsoil, min=0.0, max=1.0), 
                 clip(wtfac_root, min=0.0, max=1.0))
+        
+        
         
 
 

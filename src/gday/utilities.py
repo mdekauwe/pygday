@@ -1,7 +1,6 @@
 """ Various misc funcs """
 
-import datetime
-import calendar
+
 import math
 import sys
 
@@ -33,7 +32,7 @@ def float_ge(arg1, arg2, tol=1E-14):
     """arg1 >= arg2"""
     return float_gt(arg1, arg2)
 
-def day_length(date, latitude):
+def day_length(doy, yr_days, latitude):
     """ Figure out number of sunlight hours, (hours day-1)
 
     Routine from sdgvm. date is a python object, see datetime library for
@@ -53,16 +52,6 @@ def day_length(date, latitude):
 
     """
     conv = math.pi / 180.0
-
-    # day of year 1-365/366
-    doy = int(date.strftime('%j'))
-
-    # Total number of days in year
-    if calendar.isleap(date.year):
-        yr_days = 366.
-    else:
-        yr_days = 365.
-
     solar_declin = -23.4 * math.cos(conv * yr_days * (doy + 10.0) / yr_days)
     temx = -math.tan(latitude * conv) * math.tan(solar_declin * conv)
 
@@ -129,6 +118,19 @@ def clip(value, min=None, max=None):
         value = max
     return value
 
+def uniq(inlist): 
+    # order preserving
+    uniques = []
+    for item in inlist:
+        if item not in uniques:
+            uniques.append(item)
+    return uniques
+
+def calculate_daylength(yr_days, latitude):
+    daylen = []
+    for d in xrange(yr_days):
+        daylen.append(day_length(d+1, yr_days, latitude))   
+    return daylen
 
 if __name__ == '__main__':
 

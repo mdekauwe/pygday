@@ -21,9 +21,9 @@ n_crit            = 0.04           #critical leaf n/c ratio for no prod n loss, 
 ncpower           = 1.0            #n/c power for n-limitation (try 1)
 ci_ca_ratio       = 0.666667       #ci/ca ratio
 kext              = 0.5            #extinction coefficient
-slainit           = 3.9            #specific leaf area (m2/kg_biomass)
-slazero           = 3.9            #specific leaf area new fol at zero leaf N/C (m2/kg)
-slamax            = 3.9            #specofic leaf area new fol at max leaf N/C (m2/kg)
+slainit           = 3.9            #specific leaf area (m2/kg DM (biomass))
+slazero           = 3.9            #specific leaf area new fol at zero leaf N/C (m2/kg DM (biomass))
+slamax            = 3.9            #specofic leaf area new fol at max leaf N/C (m2/kg DM (biomass))
 lai_cover         = 0.5            #Onesided LAI correspdg to complete ground cover
 cfracts           = 0.5            #carbon fraction of dry biomass
 nmin              = 0.95           #minimum leaf n for +ve p/s (g/m2)
@@ -149,6 +149,10 @@ dz0v_dh          = 0.075    # Rate of change of vegetation roughness length for 
 displace_ratio   = 0.78     # Value for coniferous forest from Jarvis et al 1976, taken from Jones 1992 pg 67.
 
 
+# decid model
+callocw = 0.85173024 # annual allocation coefficient to wood 
+ncfmin = 0.0151
+previous_ncd = 17 # In the first year we don't have last years data, so I have precalculated the average of all the november-jan chilling values
 #============== Not publicly accessible to the user ==========================#
 
 # decay rates

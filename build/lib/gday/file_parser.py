@@ -135,7 +135,7 @@ def read_met_forcing(fname, comment='#'):
         data = {}
         f = open(fname, 'r')
         for line in f:
-            if 'prjday' in line:
+            if 'year' in line:
                 var_names = line[1:].split()
             elif not line.lstrip().startswith("#"):
                 values = [float(i) for i in line.split()]

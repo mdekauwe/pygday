@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Model Any Terrestrial Ecosystem (MATE) model. Full description below """
-import numpy as np
+
 import math
 import constants as const
 from utilities import float_eq, float_gt
@@ -51,7 +51,7 @@ class Mate(object):
             co2 compensation partial pressure in the absence of dark resp at 
             25 degC [umol mol-1]
         Oi : float
-            intercellular concentration of O2
+            intercellular concentration of O2 [umol mol-1]
         Kc25 : float
             Michaelis-Menten coefficents for carboxylation by Rubisco at 
             25degC [umol mol-1]
@@ -77,7 +77,7 @@ class Mate(object):
         self.Kc25 = 404.9 
         self.Ko25 = 278400.0 
         self.Ec = 79430.0
-        self.Eo = 36830.0
+        self.Eo = 36380.0   # Note there is a typo in the R mate code here...  
         self.Egamma = 37830.0
         
     def calculate_photosynthesis(self, day, daylen):
@@ -116,14 +116,14 @@ class Mate(object):
         # local var for tidyness
         (am, pm) = self.am, self.pm # morning/afternoon
         (temp, par, vpd, ca) = self.get_met_data(day)
-        
+        Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
         
         # calculate mate parameters, e.g. accounting for temp dependancy
-        gamma_star = self.calculate_co2_compensation_point(temp)
-        km = self.calculate_michaelis_menten_parameter(temp)
+        gamma_star = self.calculate_co2_compensation_point(Tk)
+        km = self.calculate_michaelis_menten_parameter(Tk)
         N0 = self.calculate_leafn()
-        jmax = self.calculate_jmax_parameter(temp, N0)
-        vcmax = self.calculate_vcmax_parameter(temp, N0)
+        jmax = self.calculate_jmax_parameter(Tk, N0)
+        vcmax = self.calculate_vcmax_parameter(Tk, N0)
         alpha = self.calculate_quantum_efficiency(temp)
         
         # calculate ratio of intercellular to atmospheric CO2 concentration.
@@ -162,8 +162,6 @@ class Mate(object):
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                 const.MOL_C_TO_GRAMS_C)
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
-        
-        
         self.fluxes.gpp_am_gCm2 = ((self.fluxes.apar / 2.0) * lue[am] * 
                                     const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_pm_gCm2 = ((self.fluxes.apar / 2.0) * lue[pm] * 
@@ -212,15 +210,13 @@ class Mate(object):
             par = self.met_data['sw_rad'][day] * conv
         
         if self.control.co2_conc == 0:
-            #ca = 385.0
             ca = self.met_data['amb_co2'][day]
         elif self.control.co2_conc == 1:
-            #ca = 550.0
             ca = self.met_data['ele_co2'][day]
             
         return (temp, par, vpd, ca)
 
-    def calculate_co2_compensation_point(self, temp):
+    def calculate_co2_compensation_point(self, Tk):
         """ CO2 compensation point in the absence of mitochondrial respiration
 
         Parameters:
@@ -235,7 +231,8 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        return [self.arrh(self.gamstar25, self.Egamma, temp[k]) for k in am, pm]
+        
+        return [self.arrh(self.gamstar25, self.Egamma, Tk[k]) for k in am, pm]
     
     def calculate_quantum_efficiency(self, temp):
         """ Quantum efficiency for AM/PM periods following Sands 1996, it
@@ -264,7 +261,7 @@ class Mate(object):
         am, pm = self.am, self.pm # morning/afternoon
         return [alpha0 * (1.0 - alpha1 * (temp[k]-20.0)) for k in am, pm]
     
-    def calculate_michaelis_menten_parameter(self, temp):
+    def calculate_michaelis_menten_parameter(self, Tk):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
 
         Parameters:
@@ -288,10 +285,10 @@ class Mate(object):
         am, pm = self.am, self.pm # morning/afternoon
         
         # Michaelis-Menten coefficents for carboxylation by Rubisco
-        Kc = [self.arrh(self.Kc25, self.Ec, temp[k]) for k in am, pm]
+        Kc = [self.arrh(self.Kc25, self.Ec, Tk[k]) for k in am, pm]
         
         # Michaelis-Menten coefficents for oxygenation by Rubisco
-        Ko = [self.arrh(self.Ko25, self.Eo, temp[k]) for k in am, pm]
+        Ko = [self.arrh(self.Ko25, self.Eo, Tk[k]) for k in am, pm]
         
         # return effectinve Michaelis-Menten coeffeicent for CO2
         return [Kc[k] * (1.0 + self.Oi / Ko[k]) for k in am, pm]
@@ -300,10 +297,15 @@ class Mate(object):
         """ Assumption leaf N declines exponentially through the canopy. Input N
         is top of canopy (N0). See notes and Chen et al 93, Oecologia, 93,63-69. 
         """
-        return ((self.state.ncontent *  self.params.kext) / 
-                (1.0 - math.exp(-self.params.kext * self.state.lai)))
+        if self.state.ncontent > 0.0:
+            # calculation for Leaf N content, top of the canopy (N0), [g m-2]                       
+            N0 = (self.state.ncontent * self.params.kext /
+                 (1.0 - math.exp(-self.params.kext * self.state.lai)))
+        else:
+            N0 = 0.0
+        return N0
         
-    def calculate_jmax_parameter(self, temp, N0):
+    def calculate_jmax_parameter(self, Tk, N0):
         """ Calculate the maximum RuBP regeneration rate for light-saturated 
         leaves at the top of the canopy (proportional to leaf-N content). 
 
@@ -321,13 +323,19 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
+        deltaS = self.params.delsj
+        Ea = self.params.eaj
+        Hd = self.params.edj
         
         # calculate the maximum rate of electron transport at 25 degC 
-        jmax25 = self.params.jmaxn * N0
+        if self.control.deciduous_model: 
+            jmax25 = 40.462 * N0 + 13.691
+        else:
+            jmax25 = self.params.jmaxn * N0
         
-        return [self.jmaxt(temp[k], jmax25) for k in am, pm]
-    
-    def calculate_vcmax_parameter(self, temp, N0):
+        return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
+        
+    def calculate_vcmax_parameter(self, Tk, N0):
         """ Max rate of electron transport, Jmax. 
 
         Parameters:
@@ -346,9 +354,12 @@ class Mate(object):
         am, pm = self.am, self.pm # morning/afternoon
         
         # calculate the maximum rate of Rubisco activity at 25 degC 
-        vcmax25 = self.params.vcmaxn * N0
+        if self.control.deciduous_model: 
+            vcmax25 = 20.497 * N0 + 8.403
+        else:
+            vcmax25 = self.params.vcmaxn * N0
         
-        return [self.arrh(vcmax25, self.params.eav, temp[k]) for k in am, pm]
+        return [self.arrh(vcmax25, self.params.eav, Tk[k]) for k in am, pm]
     
     def aclim(self, ci, gamma_star, km, vcmax):
         """Morning and afternoon calcultion of photosynthesis when Rubisco
@@ -398,7 +409,7 @@ class Mate(object):
     def calculate_ci_ca_ratio(self, vpd):
         """ Calculate the ratio of intercellular to atmos CO2 conc
 
-        Formed by substituting gs = g0 + (1 + (g1/sqrt(D))) * A/Ca into
+        Formed by substituting gs = g0 + 1.6 * (1 + (g1/sqrt(D))) * A/Ca into
         A = gs / 1.6 * (Ca - Ci) and assuming intercept (g0) = 0.
 
         Parameters:
@@ -415,9 +426,8 @@ class Mate(object):
         -----------
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
-        
-        return (1.0 - ((1.6 * math.sqrt(vpd)) /
-                (self.params.g1 * self.state.wtfac_root + math.sqrt(vpd))))
+        g1w = self.params.g1 * self.state.wtfac_root
+        return g1w / (g1w + math.sqrt(vpd))
 
     def epsilon(self, amax, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996.
@@ -446,7 +456,6 @@ class Mate(object):
         * Sands, P. J. (1995) Australian Journal of Plant Physiology, 22, 601-14.
 
         """
-        
         if float_gt(amax, 0.0):
             q = (math.pi * self.params.kext * alpha * par /
                     (2.0 * daylen * const.HRS_TO_SECS * amax))
@@ -465,58 +474,66 @@ class Mate(object):
 
         return lue
     
-    
-    def arrh(self, kc, ea, tair):
-        """ Arrhenius function: describes the effect of temperature on enzyme 
-        activity
+    def arrh(self, k25, Ea, Tk):
+        """ Temperature dependence of kinetic parameters is described by an
+        Arrhenius function
 
         Parameters:
         ----------
-        kc : float
-            pre-exponential factor
-        ea : float
-            the exponential rate of rise of the func
-        tair : float
-            air temperature [degC]
+        k25 : float
+            rate parameter value at 25 degC
+        Ea : float
+            activation energy for the parameter [kJ mol-1]
+        Tk : float
+            leaf temperature [deg K]
 
         Returns:
         -------
-        k : float
-            rate constant
-
+        kt : float
+            temperature dependence on parameter 
+        
+        References:
+        -----------
+        * Medlyn et al. 2002, PCE, 25, 1167-1179.   
         """
-        return (kc * math.exp(ea * (tair - 25.0) / const.RGAS /
-                (tair + const.DEG_TO_KELVIN) / (25.0 + const.DEG_TO_KELVIN)))
+        return k25 * math.exp((Ea * (Tk - 298.15)) / (298.15 * const.RGAS * Tk))
     
-    def jmaxt(self, tair, jmax25):
-        """ Calculates the temperature dependences of Jmax
+    def peaked_arrh(self, k25, Ea, Tk, deltaS, Hd):
+        """ Temperature dependancy approximated by peaked Arrhenius eqn, 
+        accounting for the rate of inhibition at higher temperatures. 
 
         Parameters:
         ----------
-        tair : float
-            air temperature [degC]
-        jmax25 : float
-            Jmax at 25DegC, function of leaf N
-
+        k25 : float
+            rate parameter value at 25 degC
+        Ea : float
+            activation energy for the parameter [kJ mol-1]
+        Tk : float
+            leaf temperature [deg K]
+        deltaS : float
+            entropy factor [J mol-1 K-1)
+        Hd : float
+            describes rate of decrease about the optimum temp [KJ mol-1]
+        
         Returns:
         -------
-        jmaxt : float
-            temperature dependence on Jmax
-
+        kt : float
+            temperature dependence on parameter 
+        
+        References:
+        -----------
+        * Medlyn et al. 2002, PCE, 25, 1167-1179. 
+        
         """
-        tref = 25.0 + const.DEG_TO_KELVIN
-        tk = tair + const.DEG_TO_KELVIN
-        arg1 = self.arrh(jmax25, self.params.eaj, tair)
-        arg2 = (1.0 + math.exp((self.params.delsj * tref - self.params.edj) /
-                const.RGAS / tref))
-        arg3 = (1.0 + math.exp((self.params.delsj * tk - self.params.edj) /
-                const.RGAS / tk))
+        arg1 = self.arrh(k25, Ea, Tk)
+        arg2 = 1.0 + math.exp((298.15 * deltaS - Hd) / 298.15 * const.RGAS)
+        arg3 = 1.0 + math.exp((Tk * deltaS - Hd) / Tk * const.RGAS)
+        
         return arg1 * arg2 / arg3
-
-
 
 if __name__ == "__main__":
     
+    import numpy as np
     # timing...
     import sys
     import time
