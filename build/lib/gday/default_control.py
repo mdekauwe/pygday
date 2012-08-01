@@ -10,9 +10,6 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (05.09.2011)"
 __email__   = "mdekauwe@gmail.com"
 
-startday = 1           # simulation start day
-startyear = 1998       # simulation start year
-startmonth = 1         # simulation start month
 water_model = 1        # Water balance model
 assim_model = 7        # 0-4=McM, 5+6=Bewdy, 7=mate
 wue_model = 3          #
@@ -32,5 +29,6 @@ use_eff_nc = 0         # use constant leaf n:c for  metfrac s
 strfloat = 0           # Structural pool input N:C varies=1, fixed=0
 use_leuning = 0
 co2_conc = 0           # 0=ambient, 1=elevated
-fixed_stem_nc = 1      # 1=fixed stem N:C, 0=vary stem N:C with foliage
+fixed_stem_nc = 1      # 0=vary stem N:C with foliage, 1=fixed stem N:C
 calc_gbl = 0           # calculate leaf boundary conductance, 0=No, 1=Yes
+deciduous_model = 0    # evergreen_model=0, deciduous_model=1

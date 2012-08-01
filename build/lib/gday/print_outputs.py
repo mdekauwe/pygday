@@ -1,6 +1,5 @@
 import os
-import sys
-import math
+import csv
 import constants as const
 
 __author__  = "Martin De Kauwe"
@@ -48,10 +47,11 @@ class PrintOutput(object):
 
         # daily output filename
         try:
-            self.odaily = open(self.files.out_fname, 'w')
+            self.odaily = open(self.files.out_fname, 'wb')
         except IOError:
             raise IOError("Can't open %s file for write" % self.odaily)
-
+        
+        self.day_output = []
        
     def save_default_parameters(self):
         """ Print default model state, control and param files.
@@ -107,8 +107,9 @@ class PrintOutput(object):
 
         """
         ignore = ['actncslope', 'slowncslope', 'passncslope', 'decayrate', \
-                    'fmfaeces', 'light_interception', 'wtfac_tsoil', \
-                    'wtfac_root']
+                  'fmfaeces', 'light_interception', 'wtfac_tsoil', \
+                  'wtfac_root', 'remaining_days', 'growing_days', \
+                  'leaf_out_days']
         self.dump_ini_data("[files]\n", self.files, ignore, oparams, 
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, oparams, 
@@ -156,47 +157,15 @@ class PrintOutput(object):
         except IOError:
             raise IOError("Error writing params file")
     
-    def write_daily_file_headers(self):
-        """write (with comment, #) column headings"""
-        try:
-            self.odaily.write("%s " % '# prjday year doy')
-            self.odaily.writelines("%s " % (i) for i in self.print_opts)
-            self.odaily.write("\n")
-        except IOError:
-            raise IOError("Error writing file headers to: %s" % self.odaily)
-
-    def save_daily_output(self, project_day, date):
-        """ print daily output to file
-
-        Parameters:
-        -----------
-        project_day : integer
-            simulation day
-        date : datetime object
-            format yr/mth/day
-
-        """
-        # day of year 1-365/366
-        doy = int(date.strftime('%j'))
-        year = date.year
-        if project_day == 1:
-            self.write_daily_file_headers()
-        try:
-            self.odaily.write("%s %s %s " % (project_day, year, doy))
-            for var in self.print_opts:
-                try:
-                    if hasattr(self.state, var):
-                        value = getattr(self.state, var)
-                        self.odaily.write("%s " % value)
-                    else:
-                        value = getattr(self.fluxes, var)
-                        self.odaily.write("%s " % value)
-                except AttributeError:
-                    err_msg = "Error accessing var to print: %s" % var
-                    raise AttributeError, err_msg
-            self.odaily.write("\n")
-        except IOError:
-            raise IOError("Error writing file: %s" % self.odaily)
-    
-    def tidy_up(self):
+    def write_daily_outputs_file(self, day_outputs):
+        """ Write daily outputs to a csv file """
+        header = []
+        header.extend(["year","doy"])
+        header.extend(["%s" % (var) for var in self.print_opts])
+        
+        wr = csv.writer(self.odaily, delimiter=',', quoting=csv.QUOTE_NONE, 
+                        escapechar=' ')
+        wr.writerow(header)
+        wr.writerows(day_outputs)
         self.odaily.close()
+   

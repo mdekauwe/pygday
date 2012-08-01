@@ -66,7 +66,7 @@ class CarbonFlows(object):
         self.cfluxes_from_struct_pool()
         self.cfluxes_from_metabolic_pool()
         self.cfluxes_from_passive_pool()
-    
+        self.fluxes.nep = self.calculate_nep()
     
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
@@ -90,35 +90,35 @@ class CarbonFlows(object):
         
         # decay rate of surface structural pool
         self.params.decayrate[0] = (self.params.kdec1 *
-                                        math.exp(-3. * self.params.ligshoot) *
-                                        tempact * self.state.wtfac_tsoil)
+                                    math.exp(-3. * self.params.ligshoot) *
+                                    tempact * self.state.wtfac_tsoil)
 
         # decay rate of surface metabolic pool
         self.params.decayrate[1] = (self.params.kdec2 * tempact * 
-                                        self.state.wtfac_tsoil)
+                                    self.state.wtfac_tsoil)
 
 
         # decay rate of soil structural pool
         self.params.decayrate[2] = (self.params.kdec3 *
-                                        math.exp(-3. * self.params.ligroot) *
-                                        tempact * self.state.wtfac_tsoil)
+                                    math.exp(-3. * self.params.ligroot) *
+                                    tempact * self.state.wtfac_tsoil)
 
         # decay rate of soil metabolic pool
         self.params.decayrate[3] = (self.params.kdec4 * tempact * 
-                                        self.state.wtfac_tsoil)
+                                    self.state.wtfac_tsoil)
 
         # decay rate of active pool
         self.params.decayrate[4] = (self.params.kdec5 *
-                                        (1.0 - 0.75 * self.params.finesoil) *
-                                        tempact * self.state.wtfac_tsoil)
+                                    (1.0 - 0.75 * self.params.finesoil) *
+                                    tempact * self.state.wtfac_tsoil)
                                         
         # decay rate of slow pool
         self.params.decayrate[5] = (self.params.kdec6 * tempact * 
-                                        self.state.wtfac_tsoil)
+                                    self.state.wtfac_tsoil)
 
         # decay rate of passive pool
         self.params.decayrate[6] = (self.params.kdec7 * tempact * 
-                                        self.state.wtfac_tsoil)
+                                    self.state.wtfac_tsoil)
 
     def soil_temp_factor(self, project_day):
         """Soil-temperature activity factor (A9).
@@ -176,7 +176,7 @@ class CarbonFlows(object):
             lnleaf = 1E20
         else:
             lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
-            #print lnleaf, self.params.ligshoot, self.params.cfracts, nceleaf
+            
         if float_eq(nceroot, 0.0):
             lnroot = 1E20
         else:
@@ -220,7 +220,7 @@ class CarbonFlows(object):
 
         if self.control.use_eff_nc:
             nceroot = (self.params.liteffnc * self.params.ncrfac *
-                        (1.0 - self.params.rretrans))
+                       (1.0 - self.params.rretrans))
         else:
             nceroot = ncroot
 
@@ -242,7 +242,6 @@ class CarbonFlows(object):
 
         """
         frac = self.params.metfrac0 + self.params.metfrac1 * lig2n
-        #print frac, self.params.metfrac0, self.params.metfrac1, lig2n
         if float_gt(frac, 0.0):
             return frac
         else:
@@ -251,25 +250,24 @@ class CarbonFlows(object):
     def cflux_from_plants(self):
         """ C flux from plants into soil/surface struct and metabolic pools """
         self.fluxes.cresid[0] = (self.fluxes.deadleaves *
-                                (1.0 - self.params.fmleaf) +
-                                self.fluxes.deadbranch * self.params.brabove +
-                                self.fluxes.deadstems + self.fluxes.faecesc *
-                                (1.0 - self.params.fmfaeces))
+                                 (1.0 - self.params.fmleaf) +
+                                 self.fluxes.deadbranch * self.params.brabove +
+                                 self.fluxes.deadstems + self.fluxes.faecesc *
+                                 (1.0 - self.params.fmfaeces))
 
         # -> into soil structural
         self.fluxes.cresid[1] = (self.fluxes.deadroots *
-                                (1.0 - self.params.fmroot) +
-                                self.fluxes.deadbranch *
-                                (1.0 - self.params.brabove))
+                                 (1.0 - self.params.fmroot) +
+                                 self.fluxes.deadbranch *
+                                 (1.0 - self.params.brabove))
 
         # -> into metabolic surface
         self.fluxes.cresid[2] = (self.fluxes.deadleaves * self.params.fmleaf +
-                                self.fluxes.faecesc * self.params.fmfaeces)
+                                 self.fluxes.faecesc * self.params.fmfaeces)
 
         # -> into metabolic soil
         self.fluxes.cresid[3] = (self.fluxes.deadroots * self.params.fmroot + 
-                                    self.fluxes.cprootexudate)
-
+                                 self.fluxes.cprootexudate)
 
         # switch off production flows
         if self.control.sel_noprod1:
@@ -309,15 +307,15 @@ class CarbonFlows(object):
 
         # surface metabolic pool -> active soil pool
         self.fluxes.cmetab[0] = (self.state.metabsurf *
-                                    self.params.decayrate[1] * 0.45)
+                                 self.params.decayrate[1] * 0.45)
         self.fluxes.co2_to_air[2] = (self.state.metabsurf *
-                                    self.params.decayrate[1] * 0.55)
+                                     self.params.decayrate[1] * 0.55)
 
         # soil -> act
         self.fluxes.cmetab[1] = (self.state.metabsoil *
-                                    self.params.decayrate[3] * 0.45)
+                                 self.params.decayrate[3] * 0.45)
         self.fluxes.co2_to_air[3] = (self.state.metabsoil *
-                                        self.params.decayrate[3] * 0.55)
+                                     self.params.decayrate[3] * 0.55)
 
         # c fluxes from active pool
         self.fluxes.activelossf = 0.85 - 0.68 * self.params.finesoil
@@ -340,33 +338,41 @@ class CarbonFlows(object):
         self.fluxes.cslow[1] = slowout * 0.03
         self.fluxes.co2_to_air[5] = slowout * 0.55
 
-        #print self.state.activesoil , self.params.decayrate[4]
-
 
     def cfluxes_from_passive_pool(self):
         """ C fluxes from passive pool """
 
         # -> act
         self.fluxes.passive = (self.state.passivesoil *
-                                    self.params.decayrate[6] * 0.45)
+                               self.params.decayrate[6] * 0.45)
         self.fluxes.co2_to_air[6] = (self.state.passivesoil *
-                                    self.params.decayrate[6] * 0.55)
+                                     self.params.decayrate[6] * 0.55)
 
         # total co2 production
         self.fluxes.hetero_resp = (sum(self.fluxes.co2_to_air) + 
-                                        self.fluxes.microbial_resp)
+                                   self.fluxes.microbial_resp)
 
 
         # insert following line so value of resp obeys c conservn if fix
         # passive pool
         if self.control.passiveconst != 0:
             self.fluxes.hetero_resp = (self.fluxes.hetero_resp +
-                                            self.fluxes.cactive[1] +
-                                            self.fluxes.cslow[1] -
-                                            self.state.passivesoil *
-                                            self.params.decayrate[6])
-
-
+                                       self.fluxes.cactive[1] +
+                                       self.fluxes.cslow[1] -
+                                       self.state.passivesoil *
+                                       self.params.decayrate[6])
+    def calculate_nep(self):
+        """ carbon sink or source?
+        
+        Returns:
+        --------
+        NEP : float
+            Net Ecosystem Productivity, C uptake
+        """
+        return (self.fluxes.npp - self.fluxes.hetero_resp -
+                    self.fluxes.ceaten * (1. - self.params.fracfaeces))
+                    
+                    
 class NitrogenFlows(object):
     """ Calculate daily nitrogen fluxes"""
     def __init__(self, control, params, state, fluxes):
@@ -387,7 +393,6 @@ class NitrogenFlows(object):
         self.fluxes = fluxes
         self.control = control
         self.state = state
-        self.conv = const.M2_AS_HA / const.G_AS_TONNES
 
     def calculate_nflows(self):
 
@@ -428,7 +433,7 @@ class NitrogenFlows(object):
         #urine=total-faeces
         if self.control.grazing:
             self.fluxes.nurine = (self.fluxes.neaten * self.params.fractosoil -
-                                    self.params.faecesn)
+                                  self.params.faecesn)
         else:
             self.fluxes.nurine = 0.0
 
@@ -450,14 +455,13 @@ class NitrogenFlows(object):
             N input from soil pool
 
         """
-
         # surface and soil inputs (faeces n goes to abovgrd litter pools)
         nsurf = (self.fluxes.deadleafn + self.fluxes.deadbranchn *
-                    self.params.brabove + self.fluxes.deadstemn +
-                    self.params.faecesn)
+                 self.params.brabove + self.fluxes.deadstemn +
+                 self.params.faecesn)
         
         nsoil = (self.fluxes.deadrootn + self.fluxes.deadbranchn *
-                    (1. - self.params.brabove))
+                 (1. - self.params.brabove))
 
         return nsurf, nsoil
 
@@ -489,29 +493,28 @@ class NitrogenFlows(object):
             if float_gt(self.fluxes.nresid[1], nsoil):
                 self.fluxes.nresid[1] = nsoil
         else:
-            
             # structural input n:c is a fraction of metabolic
             cwgtsu = (self.fluxes.cresid[0] * self.params.structrat +
-                        self.fluxes.cresid[2])
+                      self.fluxes.cresid[2])
             if float_eq(cwgtsu, 0.0):
                 self.fluxes.nresid[0] = 0.0
             else:
                 self.fluxes.nresid[0] = (nsurf * self.fluxes.cresid[0] *
-                                        self.params.structrat / cwgtsu)
+                                         self.params.structrat / cwgtsu)
 
             cwgtsl = (self.fluxes.cresid[1] * self.params.structrat +
-                        self.fluxes.cresid[3])
+                      self.fluxes.cresid[3])
             if float_eq(cwgtsl, 0.0):
                 self.fluxes.nresid[1] = 0.
             else:
                 self.fluxes.nresid[1] = (nsurf * self.fluxes.cresid[1] *
-                                            self.params.structrat / cwgtsl)
+                                         self.params.structrat / cwgtsl)
 
     def nfluxes_from_structural_pools(self):
         """ from structural pool """
         structout = self.state.structsurfn * self.params.decayrate[0]
         sigwt = (structout / (self.params.ligshoot * 0.7 +
-                    (1. - self.params.ligshoot) * 0.55))
+                (1. - self.params.ligshoot) * 0.55))
 
         # surface -> slow
         self.fluxes.nstruct[0] = sigwt * self.params.ligshoot * 0.7
@@ -569,7 +572,7 @@ class NitrogenFlows(object):
 
         # -> active
         self.fluxes.npassive = (self.state.passivesoiln *
-                                                    self.params.decayrate[6])
+                                self.params.decayrate[6])
 
     def calculate_nmineralisation(self):
         """ N gross mineralisation rate is given by the excess of N outflows 
@@ -581,8 +584,8 @@ class NitrogenFlows(object):
             Gross N mineralisation 
         """
         return  (sum(self.fluxes.nstruct) + sum(self.fluxes.nmetab) +
-                    sum(self.fluxes.nactive) + sum(self.fluxes.nslow) + 
-                    self.fluxes.npassive)
+                 sum(self.fluxes.nactive) + sum(self.fluxes.nslow) + 
+                 self.fluxes.npassive)
     
     def calculate_nimmobilisation(self):
         """ Calculated N immobilised in new soil organic matter
@@ -604,39 +607,46 @@ class NitrogenFlows(object):
         nimob : float
             N immobilsed
         """
+        conv = const.M2_AS_HA / const.G_AS_TONNES
+        
         # N:C new SOM - active, slow and passive
-        self.calculate_ncratio_slope_of_mineral_pools()
+        self.state.actncslope = self.calculate_nc_slope(self.params.actncmax, 
+                                                        self.params.actnc0)
+        self.state.slowncslope = self.calculate_nc_slope(self.params.slowncmax, 
+                                                        self.params.slownc0)
+        self.state.passncslope = self.calculate_nc_slope(self.params.passncmax, 
+                                                        self.params.passnc0) 
         
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
-                    (self.params.passnc0 - self.state.passncslope * 
-                    self.params.nmin0 / self.conv))
+                (self.params.passnc0 - self.state.passncslope * 
+                self.params.nmin0 / conv))
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
-                    self.fluxes.cactive[0]) *
-                    (self.params.slownc0 - self.state.slowncslope *
-                    self.params.nmin0 / self.conv))
+                self.fluxes.cactive[0]) *
+                (self.params.slownc0 - self.state.slowncslope *
+                self.params.nmin0 / conv))
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
-                    sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                    self.fluxes.passive) * (self.params.actnc0 - 
-                    self.state.actncslope * self.params.nmin0 / self.conv))
+                sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                self.fluxes.passive) * (self.params.actnc0 - 
+                self.state.actncslope * self.params.nmin0 / conv))
         numer1 = arg1 + arg2 + arg3
 
 
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
-                    self.params.passncmax)
+                self.params.passncmax)
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
-                    self.fluxes.cactive[0]) * self.params.slowncmax)
+                self.fluxes.cactive[0]) * self.params.slowncmax)
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
-                    sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                    self.fluxes.passive) * self.params.actncmax)
+                sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                self.fluxes.passive) * self.params.actncmax)
         numer2 = arg1 + arg2 + arg3
 
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) * 
                 self.state.passncslope)
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
-                    self.fluxes.cactive[0]) * self.state.slowncslope)
+                self.fluxes.cactive[0]) * self.state.slowncslope)
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
-                    sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                    self.fluxes.passive) * self.state.actncslope)
+                sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                self.fluxes.passive) * self.state.actncslope)
         denom = arg1 + arg2 + arg3
         
         # evaluate N immobilisation in new SOM
@@ -645,30 +655,12 @@ class NitrogenFlows(object):
             nimmob = numer2
         
         return nimmob
-
-    def calculate_ncratio_slope_of_mineral_pools(self):
-        """ N:C ratio of the slope 3 minerals (active, slow, passive) pools
+ 
+    def calculate_nc_slope(self, pool_ncmax, pool_ncmin):
+        """ Returns N:C ratio of the mineral pool slope """
+        arg1 = (pool_ncmax - pool_ncmin)
+        arg2 = (self.params.nmincrit - self.params.nmin0) 
+        arg3 = const.M2_AS_HA / const.G_AS_TONNES
         
-        General equation for new soil N:C ratio vs Nmin, expressed as linear 
-        equation passing through point Nmin0, actnc0 (etc). Values can be 
-        Nmin0=0, Actnc0=Actncmin 
-         
-        if Nmin < Nmincrit:
-            New soil N:C = soil N:C (when Nmin=0) + slope * Nmin
-         
-        if Nmin > Nmincrit
-            New soil N:C = max soil N:C       
-        
-        NB N:C ratio of new passive SOM can change even if assume Passiveconst
-        
-        """
-        # N:C new SOM - active, slow and passive
-        arg = (self.params.nmincrit - self.params.nmin0) / self.conv
-    
-        self.state.actncslope = ((self.params.actncmax - self.params.actnc0) / 
-                                    arg) 
-        self.state.slowncslope = ((self.params.slowncmax - self.params.slownc0)/ 
-                                    arg) 
-        self.state.passncslope = ((self.params.passncmax - self.params.passnc0)/  
-                                    arg) 
+        return arg1 / arg2 * arg3 #slope
         

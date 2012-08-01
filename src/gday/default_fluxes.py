@@ -17,6 +17,7 @@ npp = None
 nep = None
 auto_resp = None
 hetero_resp = None
+retrans = None
 
 # n
 nuptake = None
