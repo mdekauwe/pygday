@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Model Any Terrestrial Ecosystem (MATE) model. Full description below """
-
+import numpy as np
 import math
 import constants as const
 from utilities import float_eq, float_gt
@@ -51,7 +51,7 @@ class Mate(object):
             co2 compensation partial pressure in the absence of dark resp at 
             25 degC [umol mol-1]
         Oi : float
-            intercellular concentration of O2 [umol mol-1]
+            intercellular concentration of O2
         Kc25 : float
             Michaelis-Menten coefficents for carboxylation by Rubisco at 
             25degC [umol mol-1]
@@ -77,7 +77,7 @@ class Mate(object):
         self.Kc25 = 404.9 
         self.Ko25 = 278400.0 
         self.Ec = 79430.0
-        self.Eo = 36380.0   # Note there is a typo in the R mate code here...  
+        self.Eo = 36830.0
         self.Egamma = 37830.0
         
     def calculate_photosynthesis(self, day, daylen):
@@ -116,7 +116,7 @@ class Mate(object):
         # local var for tidyness
         (am, pm) = self.am, self.pm # morning/afternoon
         (temp, par, vpd, ca) = self.get_met_data(day)
-        Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
+        Tk = [t + const.DEG_TO_KELVIN for t in temp]
         
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(Tk)
@@ -162,6 +162,8 @@ class Mate(object):
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                 const.MOL_C_TO_GRAMS_C)
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        
+        
         self.fluxes.gpp_am_gCm2 = ((self.fluxes.apar / 2.0) * lue[am] * 
                                     const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_pm_gCm2 = ((self.fluxes.apar / 2.0) * lue[pm] * 
@@ -210,8 +212,10 @@ class Mate(object):
             par = self.met_data['sw_rad'][day] * conv
         
         if self.control.co2_conc == 0:
+            #ca = 385.0
             ca = self.met_data['amb_co2'][day]
         elif self.control.co2_conc == 1:
+            #ca = 550.0
             ca = self.met_data['ele_co2'][day]
             
         return (temp, par, vpd, ca)
@@ -297,13 +301,8 @@ class Mate(object):
         """ Assumption leaf N declines exponentially through the canopy. Input N
         is top of canopy (N0). See notes and Chen et al 93, Oecologia, 93,63-69. 
         """
-        if self.state.ncontent > 0.0:
-            # calculation for Leaf N content, top of the canopy (N0), [g m-2]                       
-            N0 = (self.state.ncontent * self.params.kext /
-                 (1.0 - math.exp(-self.params.kext * self.state.lai)))
-        else:
-            N0 = 0.0
-        return N0
+        return ((self.state.ncontent *  self.params.kext) / 
+                (1.0 - math.exp(-self.params.kext * self.state.lai)))
         
     def calculate_jmax_parameter(self, Tk, N0):
         """ Calculate the maximum RuBP regeneration rate for light-saturated 
@@ -328,13 +327,10 @@ class Mate(object):
         Hd = self.params.edj
         
         # calculate the maximum rate of electron transport at 25 degC 
-        if self.control.deciduous_model: 
-            jmax25 = 40.462 * N0 + 13.691
-        else:
-            jmax25 = self.params.jmaxn * N0
+        jmax25 = self.params.jmaxn * N0
         
         return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
-        
+ 
     def calculate_vcmax_parameter(self, Tk, N0):
         """ Max rate of electron transport, Jmax. 
 
@@ -354,10 +350,7 @@ class Mate(object):
         am, pm = self.am, self.pm # morning/afternoon
         
         # calculate the maximum rate of Rubisco activity at 25 degC 
-        if self.control.deciduous_model: 
-            vcmax25 = 20.497 * N0 + 8.403
-        else:
-            vcmax25 = self.params.vcmaxn * N0
+        vcmax25 = self.params.vcmaxn * N0
         
         return [self.arrh(vcmax25, self.params.eav, Tk[k]) for k in am, pm]
     
@@ -409,7 +402,7 @@ class Mate(object):
     def calculate_ci_ca_ratio(self, vpd):
         """ Calculate the ratio of intercellular to atmos CO2 conc
 
-        Formed by substituting gs = g0 + 1.6 * (1 + (g1/sqrt(D))) * A/Ca into
+        Formed by substituting gs = g0 + (1 + (g1/sqrt(D))) * A/Ca into
         A = gs / 1.6 * (Ca - Ci) and assuming intercept (g0) = 0.
 
         Parameters:
@@ -426,8 +419,9 @@ class Mate(object):
         -----------
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
-        g1w = self.params.g1 * self.state.wtfac_root
-        return g1w / (g1w + math.sqrt(vpd))
+        
+        return (1.0 - ((1.6 * math.sqrt(vpd)) /
+                (self.params.g1 * self.state.wtfac_root + math.sqrt(vpd))))
 
     def epsilon(self, amax, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996.
@@ -456,6 +450,7 @@ class Mate(object):
         * Sands, P. J. (1995) Australian Journal of Plant Physiology, 22, 601-14.
 
         """
+        
         if float_gt(amax, 0.0):
             q = (math.pi * self.params.kext * alpha * par /
                     (2.0 * daylen * const.HRS_TO_SECS * amax))
@@ -473,7 +468,7 @@ class Mate(object):
             lue = 0.0
 
         return lue
-    
+
     def arrh(self, k25, Ea, Tk):
         """ Temperature dependence of kinetic parameters is described by an
         Arrhenius function
@@ -496,7 +491,7 @@ class Mate(object):
         -----------
         * Medlyn et al. 2002, PCE, 25, 1167-1179.   
         """
-        return k25 * math.exp((Ea * (Tk - 298.15)) / (298.15 * const.RGAS * Tk))
+        return k25 * np.exp((Ea * (Tk - 298.15)) / (298.15 * const.RGAS * Tk))
     
     def peaked_arrh(self, k25, Ea, Tk, deltaS, Hd):
         """ Temperature dependancy approximated by peaked Arrhenius eqn, 
@@ -526,14 +521,14 @@ class Mate(object):
         
         """
         arg1 = self.arrh(k25, Ea, Tk)
-        arg2 = 1.0 + math.exp((298.15 * deltaS - Hd) / 298.15 * const.RGAS)
-        arg3 = 1.0 + math.exp((Tk * deltaS - Hd) / Tk * const.RGAS)
+        arg2 = 1.0 + np.exp((298.15 * deltaS - Hd) / 298.15 * const.RGAS)
+        arg3 = 1.0 + np.exp((Tk * deltaS - Hd) / Tk * const.RGAS)
         
         return arg1 * arg2 / arg3
+    
 
 if __name__ == "__main__":
     
-    import numpy as np
     # timing...
     import sys
     import time

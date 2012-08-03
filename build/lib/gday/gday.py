@@ -14,7 +14,7 @@ from print_outputs import PrintOutput
 from litter_production import LitterProduction
 from soil_cnflows import CarbonFlows, NitrogenFlows
 from update_pools import CarbonPools, NitrogenPools
-from utilities import float_eq, float_lt, calculate_daylength, uniq
+from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
 
 
@@ -116,12 +116,12 @@ class Gday(object):
                                  self.fluxes, self.met_data)
         
         if self.control.deciduous_model:
-            self.total = self.initialise_deciduous_model()
+            self.initialise_deciduous_model()
             self.P = Phenology(self.fluxes, self.state, 
                                 self.params.previous_ncd)
         
         # calculate initial C:N ratios and zero annual flux sums
-        self.day_end_calculations(0, 1, INIT=True)
+        self.day_end_calculations(0, INIT=True)
         self.state.pawater_root = self.params.wcapac_root
         self.state.pawater_tsoil = self.params.wcapac_topsoil
         self.spin_up = spin_up
@@ -153,7 +153,7 @@ class Gday(object):
                             (sequence, self.state.plantc, self.state.soilc, \
                              self.state.litterc))
             sequence += 1000
-        self.clean_up()    
+        self.print_output_file()    
             
     def run_sim(self):
         """ Run model simulation! """
@@ -166,6 +166,7 @@ class Gday(object):
                 self.zero_annual_sums()
                 self.P.calculate_phenology_flows(daylen, self.met_data, 
                                             days_in_year, project_day)
+            self.state.annual_cf_growth = 0.0
             for doy in xrange(days_in_year):   
                 
                 # litterfall rate: C and N fluxes
@@ -184,20 +185,24 @@ class Gday(object):
                 self.npl.calculate_npools(cact, cslo, cpas, project_day)
     
                 # calculate C:N ratios and increment annual flux sums
-                self.day_end_calculations(project_day, doy, days_in_year)
+                self.day_end_calculations(project_day, days_in_year)
                 
+               
                 #if self.spin_up == False:
                 #    print self.fluxes.gpp * 100, self.state.lai
-                
+                #print self.state.cstore, self.state.nstore
+                #print self.fluxes.npp
                 # save daily fluxes + state for daily output    
                 if self.control.print_options == 0:
                     self.save_daily_outputs(yr, doy+1)
                 project_day += 1
+            
+            sys.exit()
             # =============== #
             #   END OF YEAR   #                
             # =============== #
             if self.control.deciduous_model:
-                self.allocate_stored_c_and_n(self.total) 
+                self.allocate_stored_c_and_n() 
         
         if self.spin_up == False:
             self.print_output_file()
@@ -244,7 +249,7 @@ class Gday(object):
                 setattr(self.params, i, getattr(self.params, i) * 
                         const.NDAYS_IN_YR)
     
-    def day_end_calculations(self, prjday, doy, days_in_year=None, INIT=False):
+    def day_end_calculations(self, prjday, days_in_year=None, INIT=False):
         """Calculate derived values from state variables.
 
         Parameters:
@@ -321,6 +326,7 @@ class Gday(object):
                                         self.state.clabile_store)
         self.state.c_to_alloc_root = (self.state.alroot * 
                                         self.state.clabile_store)
+        
         self.state.c_to_alloc_branch = (self.state.albranch * 
                                         self.state.clabile_store)
         self.state.c_to_alloc_stem = (self.state.alstem * 
@@ -332,7 +338,7 @@ class Gday(object):
         self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot * 
                                         self.state.shootnc_yr)
 
-    def allocate_stored_c_and_n(self, total):
+    def allocate_stored_c_and_n(self):
         """ 
         At the end of the year allocate everything for the coming year
         based on stores from the previous year avaliable N for allocation
@@ -344,10 +350,11 @@ class Gday(object):
         
         self.state.c_to_alloc_stem = (self.params.callocw * 
                                       (self.state.clabile_store - 
-                                       self.state.c_to_alloc_stem))
+                                       self.state.c_to_alloc_shoot))
         self.state.c_to_alloc_root = (self.state.clabile_store - 
                                       self.state.c_to_alloc_stem - 
                                       self.state.c_to_alloc_shoot)
+       
         self.state.n_to_alloc_root = (min(Un, self.state.c_to_alloc_root * 
                                               self.state.rootnc))
         
@@ -361,7 +368,8 @@ class Gday(object):
         self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot * 
                                         self.state.shootnc_yr)    
 
-
+        
+        
 
     def save_daily_outputs(self, year, doy):
         """ Save the daily fluxes + state in a big list.

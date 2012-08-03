@@ -77,7 +77,7 @@ class Mate(object):
         self.Kc25 = 404.9 
         self.Ko25 = 278400.0 
         self.Ec = 79430.0
-        self.Eo = 36380.0   # Note there is a typo in the R mate code here...  
+        self.Eo = 36380.0      # Note there is a typo in the R mate code here...  
         self.Egamma = 37830.0
         
     def calculate_photosynthesis(self, day, daylen):
@@ -162,6 +162,8 @@ class Mate(object):
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                 const.MOL_C_TO_GRAMS_C)
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        
+        
         self.fluxes.gpp_am_gCm2 = ((self.fluxes.apar / 2.0) * lue[am] * 
                                     const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_pm_gCm2 = ((self.fluxes.apar / 2.0) * lue[pm] * 
@@ -210,8 +212,10 @@ class Mate(object):
             par = self.met_data['sw_rad'][day] * conv
         
         if self.control.co2_conc == 0:
+            #ca = 385.0
             ca = self.met_data['amb_co2'][day]
         elif self.control.co2_conc == 1:
+            #ca = 550.0
             ca = self.met_data['ele_co2'][day]
             
         return (temp, par, vpd, ca)

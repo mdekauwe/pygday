@@ -308,8 +308,14 @@ class PlantGrowth(object):
             self.fluxes.npstemmob = self.fluxes.cpstem * (ncwnew - ncwimm)
             self.fluxes.npbranch = 0.0    
             self.fluxes.nproot = self.fluxes.cproot * self.state.rootnc
-            self.fluxes.npleaf = (self.fluxes.lnrate * 
-                                  self.state.growing_days[doy])
+            
+            if self.state.growing_days[doy] < -900.0:
+                self.fluxes.npleaf = self.state.left_over_n 
+            else:
+
+                self.fluxes.npleaf = (self.fluxes.lnrate * self.state.growing_days[doy])
+           
+           
         else:
             # allocate N to pools with fixed N:C ratios
             
@@ -442,7 +448,12 @@ class PlantGrowth(object):
           pg 35--57.
         """
         if self.control.deciduous_model:
-            self.fluxes.cpleaf = self.fluxes.lrate * self.state.growing_days[doy]
+            if self.state.growing_days[doy] < -900.0:
+                self.fluxes.cpleaf = self.state.left_over_c
+               
+            else:
+                self.fluxes.cpleaf = self.fluxes.lrate * self.state.growing_days[doy]
+                
             self.fluxes.cpbranch = 0.0
             self.fluxes.cpstem = self.fluxes.wrate * self.state.growing_days[doy]
             self.fluxes.cproot = self.state.c_to_alloc_root * 1.0 / days_in_yr
@@ -451,7 +462,7 @@ class PlantGrowth(object):
             self.fluxes.cproot = self.fluxes.npp * self.state.alroot
             self.fluxes.cpbranch = self.fluxes.npp * self.state.albranch
             self.fluxes.cpstem = self.fluxes.npp * self.state.alstem
-        
+        print self.fluxes.cpleaf
         # C flux into root exudation, see McMurtrie et al. 2000. There is no 
         # reference given for the 0.15 in McM, however 14c work by Hale et al and
         # Martin and Puckeridge suggest values range between 10-20% of NPP. So
@@ -537,14 +548,17 @@ class PlantGrowth(object):
                                 self.params.retransmob * self.state.stemnmob)
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
         
+        
+        
         if self.control.deciduous_model:
             # update annual fluxes - store for next year
             self.state.clabile_store += self.fluxes.npp
             self.state.aroot_uptake += self.fluxes.nuptake
             self.state.aretrans += self.fluxes.retrans
             self.state.anloss += self.fluxes.nloss
+            self.calculate_cn_store()
         else:
-        
+            self.calculate_cn_store()
             # maximum leaf n:c ratio is function of stand age
             #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
             age_effect = ((self.state.age - self.params.ageyoung) / 
@@ -586,8 +600,39 @@ class PlantGrowth(object):
                 self.state.rootn -= extrar
                 self.fluxes.nuptake -= extrar 
             
+    def calculate_cn_store(self, tolerance=1.0E-05):        
+        cgrowth = (self.fluxes.cpleaf + self.fluxes.cproot + 
+                   self.fluxes.cpbranch + self.fluxes.cpstem)
+        ngrowth = (self.fluxes.npleaf + self.fluxes.nproot + 
+                   self.fluxes.npbranch + self.fluxes.npstemimm + 
+                   self.fluxes.npstemmob)
         
+        if self.control.deciduous_model:
+            # C storage as TNC
+            store = self.state.clabile_store - cgrowth
+            if math.fabs(store) <= tolerance:
+                store = 0.0
+            self.state.cstore += store
             
+            # N storage
+            store = self.state.aroot_uptake + self.state.aretrans - ngrowth
+            if math.fabs(store) <= tolerance:
+                store = 0.0
+            self.state.nstore += store
+            
+            #print self.state.cstore, store, self.state.clabile_store - cgrowth
+        else:            
+            # C storage as TNC
+            store = self.fluxes.npp - cgrowth
+            if math.fabs(store) <= tolerance:
+                store = 0.0
+            self.state.cstore += store
+            
+            # N storage
+            store = self.fluxes.nuptake + self.fluxes.retrans - ngrowth
+            if math.fabs(store) <= tolerance:
+                store = 0.0
+            self.state.nstore += store        
 
 
 if __name__ == "__main__":

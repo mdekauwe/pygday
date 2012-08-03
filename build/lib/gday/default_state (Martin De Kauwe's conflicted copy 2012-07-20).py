@@ -51,30 +51,21 @@ ncontent = None
 wtfac_root = None
 wtfac_tsoil = None
 
-left_over_n  = 0.0
-left_over_c  = 0.0
-cstore = 0.0
-nstore = 0.0
+nepsum = 0.0
+nppsum = 0.0
 age = 0.0                               #Current stand age (years)
-
-# C allocated fracs - NB these are at the annual timestep for the deciduous model
-alleaf = 0.0
-alroot = 0.0
-albranch = 0.0
-alstem = 0.0
-alroot_exudate = 0.0
 
 
 # decid model
-c_to_alloc_shoot = 0.0
-c_to_alloc_root = 0.0
-c_to_alloc_stem = 0.0
-n_to_alloc_shoot = 0.0
-c_to_alloc_root = 0.0
-c_to_alloc_branch = 0.0
-n_to_alloc_root = 0.0
-n_to_alloc_shoot = 0.0
-shootnc_yr = 0.0 # constant N:C of foliage during the growing season
+Hf = 0.0
+Hr = 0.0
+Hw = 0.0
+Af = 0.0
+Ar = 0.0
+Awm = 0.0
+Aws = 0.0
+npp_store = 0.0
+nc_fy = 0.0
 N0 = 0.0
 
 # annual NPP
@@ -87,7 +78,8 @@ anloss = 0.0
 remaining_days = None
 growing_days = None
 leaf_out_days = None
-
+nc_wnew = 0.0
+nc_ws = 0.0
 
 
 #============== Not publicly accessible to the user ==========================#
