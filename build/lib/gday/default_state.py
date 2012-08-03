@@ -51,6 +51,10 @@ ncontent = None
 wtfac_root = None
 wtfac_tsoil = None
 
+left_over_n  = 0.0
+left_over_c  = 0.0
+cstore = 0.0
+nstore = 0.0
 age = 0.0                               #Current stand age (years)
 
 # C allocated fracs - NB these are at the annual timestep for the deciduous model
