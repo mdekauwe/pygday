@@ -136,7 +136,7 @@ class Phenology(object):
         # midpoint) to speed up this allocation/loss period, to increase the 
         # rate of leaf acculation/loss.        
         if self.store_transfer_len == None:
-            self.len_groloss = math.floor((self.leaf_off - self.leaf_on) / 4.0)
+            self.len_groloss = math.floor((self.leaf_off - self.leaf_on) / 2.0)
         else:
             self.len_groloss = self.store_transfer_len
         
