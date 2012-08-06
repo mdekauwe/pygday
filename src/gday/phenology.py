@@ -132,11 +132,10 @@ class Phenology(object):
         # Length of time taken for new growth from storage to be allocated.
         # This is either some site-specific calibration or the midpoint of the
         # length of the growing season. The litterfall takes place over an 
-        # identical period. Currently we are dividing by 4 (i.e. half the 
-        # midpoint) to speed up this allocation/loss period, to increase the 
-        # rate of leaf acculation/loss.        
+        # identical period. Dividing by a larger number would increase the
+        # rate the C&N is allocated.
         if self.store_transfer_len == None:
-            self.len_groloss = math.floor((self.leaf_off - self.leaf_on) / 4.0)
+            self.len_groloss = math.floor((self.leaf_off - self.leaf_on) / 2.0)
         else:
             self.len_groloss = self.store_transfer_len
         
