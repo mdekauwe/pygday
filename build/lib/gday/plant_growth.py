@@ -298,7 +298,6 @@ class PlantGrowth(object):
         self.fluxes.nrootexudate = 0.0
         
         if self.control.deciduous_model:
-            
             # allocate N to pools with fixed N:C ratios
             # N flux into new ring (immobile component -> structrual components)
             self.fluxes.npstemimm = self.fluxes.cpstem * ncwimm
@@ -308,14 +307,8 @@ class PlantGrowth(object):
             self.fluxes.npstemmob = self.fluxes.cpstem * (ncwnew - ncwimm)
             self.fluxes.npbranch = 0.0    
             self.fluxes.nproot = self.fluxes.cproot * self.state.rootnc
-            
-            if self.state.growing_days[doy] < -900.0:
-                self.fluxes.npleaf = self.state.left_over_n 
-            else:
-
-                self.fluxes.npleaf = (self.fluxes.lnrate * self.state.growing_days[doy])
-           
-           
+            self.fluxes.npleaf = (self.fluxes.lnrate * 
+                                    self.state.growing_days[doy])
         else:
             # allocate N to pools with fixed N:C ratios
             
@@ -448,11 +441,8 @@ class PlantGrowth(object):
           pg 35--57.
         """
         if self.control.deciduous_model:
-            if self.state.growing_days[doy] < -900.0:
-                self.fluxes.cpleaf = self.state.left_over_c
-               
-            else:
-                self.fluxes.cpleaf = self.fluxes.lrate * self.state.growing_days[doy]
+            
+            self.fluxes.cpleaf = self.fluxes.lrate * self.state.growing_days[doy]
                 
             self.fluxes.cpbranch = 0.0
             self.fluxes.cpstem = self.fluxes.wrate * self.state.growing_days[doy]
@@ -462,7 +452,7 @@ class PlantGrowth(object):
             self.fluxes.cproot = self.fluxes.npp * self.state.alroot
             self.fluxes.cpbranch = self.fluxes.npp * self.state.albranch
             self.fluxes.cpstem = self.fluxes.npp * self.state.alstem
-        print self.fluxes.cpleaf
+        
         # C flux into root exudation, see McMurtrie et al. 2000. There is no 
         # reference given for the 0.15 in McM, however 14c work by Hale et al and
         # Martin and Puckeridge suggest values range between 10-20% of NPP. So
@@ -495,12 +485,6 @@ class PlantGrowth(object):
                 self.state.lai += (self.fluxes.cpleaf * sla_new_tonnes_ha_C -
                                   (self.fluxes.deadleaves + self.fluxes.ceaten) *
                                    self.state.lai / self.state.shoot) 
-                
-                """
-                sla_tonnes_ha_C = (self.state.sla * const.M2_AS_HA / 
-                                   (const.KG_AS_TONNES * self.params.cfracts))
-                self.state.lai = self.state.shoot * sla_tonnes_ha_C
-                """
             else:
                 self.state.lai = 0.0
         else:
@@ -509,9 +493,7 @@ class PlantGrowth(object):
                                (self.fluxes.deadleaves + self.fluxes.ceaten) *
                                 self.state.lai / self.state.shoot)
             
-            #(Cpleaf * sla_new_tonnes_ha_C - Deadleaves * Lai / Shoot ) 
-        
-        
+            
     def update_plant_state(self, fdecay, rdecay):
         """ Daily change in C content
 
@@ -552,10 +534,10 @@ class PlantGrowth(object):
         
         if self.control.deciduous_model:
             # update annual fluxes - store for next year
-            self.state.clabile_store += self.fluxes.npp
-            self.state.aroot_uptake += self.fluxes.nuptake
-            self.state.aretrans += self.fluxes.retrans
-            self.state.anloss += self.fluxes.nloss
+            #self.state.clabile_store += self.fluxes.npp
+            #self.state.aroot_uptake += self.fluxes.nuptake
+            #self.state.aretrans += self.fluxes.retrans
+            
             self.calculate_cn_store()
         else:
             self.calculate_cn_store()
@@ -607,34 +589,10 @@ class PlantGrowth(object):
                    self.fluxes.npbranch + self.fluxes.npstemimm + 
                    self.fluxes.npstemmob)
         
-        if self.control.deciduous_model:
-            # C storage as TNC
-            store = self.state.clabile_store - cgrowth
-            if math.fabs(store) <= tolerance:
-                store = 0.0
-            self.state.cstore += store
-            
-            # N storage
-            store = self.state.aroot_uptake + self.state.aretrans - ngrowth
-            if math.fabs(store) <= tolerance:
-                store = 0.0
-            self.state.nstore += store
-            
-            #print self.state.cstore, store, self.state.clabile_store - cgrowth
-        else:            
-            # C storage as TNC
-            store = self.fluxes.npp - cgrowth
-            if math.fabs(store) <= tolerance:
-                store = 0.0
-            self.state.cstore += store
-            
-            # N storage
-            store = self.fluxes.nuptake + self.fluxes.retrans - ngrowth
-            if math.fabs(store) <= tolerance:
-                store = 0.0
-            self.state.nstore += store        
-
-
+        # C storage as TNC
+        self.state.cstore += self.fluxes.npp - cgrowth
+        self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans - ngrowth
+        
 if __name__ == "__main__":
     
     # timing...

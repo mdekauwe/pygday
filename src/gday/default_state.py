@@ -79,10 +79,10 @@ N0 = 0.0
 
 # annual NPP
 anpp = 0.0
-clabile_store = 0.0
+cstore = 0.0
 aroot_uptake = 0.0
 aretrans = 0.0
-anloss = 0.0
+
 
 remaining_days = None
 growing_days = None

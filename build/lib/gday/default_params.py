@@ -153,6 +153,7 @@ displace_ratio   = 0.78     # Value for coniferous forest from Jarvis et al 1976
 callocw = 0.85173024 # annual allocation coefficient to wood 
 ncfmin = 0.0151
 previous_ncd = 17 # In the first year we don't have last years data, so I have precalculated the average of all the november-jan chilling values
+store_transfer_len = None
 #============== Not publicly accessible to the user ==========================#
 
 # decay rates
