@@ -118,7 +118,8 @@ class Gday(object):
         if self.control.deciduous_model:
             self.initialise_deciduous_model()
             self.P = Phenology(self.fluxes, self.state, 
-                                self.params.previous_ncd)
+                                self.params.previous_ncd, 
+                             store_transfer_len=self.params.store_transfer_len)
         
         # calculate initial C:N ratios and zero annual flux sums
         self.day_end_calculations(0, INIT=True)
@@ -166,7 +167,7 @@ class Gday(object):
                 self.zero_annual_sums()
                 self.P.calculate_phenology_flows(daylen, self.met_data, 
                                             days_in_year, project_day)
-            self.state.annual_cf_growth = 0.0
+            
             for doy in xrange(days_in_year):   
                 
                 # litterfall rate: C and N fluxes
@@ -187,17 +188,16 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year)
                 
-               
+                #print self.state.lai
                 #if self.spin_up == False:
-                #    print self.fluxes.gpp * 100, self.state.lai
-                #print self.state.cstore, self.state.nstore
+                    #print self.fluxes.gpp * 100, self.state.lai
+                
                 #print self.fluxes.npp
                 # save daily fluxes + state for daily output    
                 if self.control.print_options == 0:
                     self.save_daily_outputs(yr, doy+1)
                 project_day += 1
-            
-            sys.exit()
+                
             # =============== #
             #   END OF YEAR   #                
             # =============== #
@@ -232,10 +232,6 @@ class Gday(object):
         self.state.shoot = 0.0
         self.state.shootn = 0.0
         self.state.shootnc = 0.0
-        self.state.clabile_store = 0.0
-        self.state.aroot_uptake = 0.0
-        self.state.aretrans = 0.0
-        self.state.anloss = 0.0
         self.state.lai = 0.0
         
     def correct_rate_constants(self, output=False):
@@ -323,44 +319,48 @@ class Gday(object):
         # Divide up NPP based on annual allocation fractions
         
         self.state.c_to_alloc_shoot = (self.state.alleaf * 
-                                        self.state.clabile_store)
+                                        self.state.cstore)
+        
+        
         self.state.c_to_alloc_root = (self.state.alroot * 
-                                        self.state.clabile_store)
+                                        self.state.cstore)
         
         self.state.c_to_alloc_branch = (self.state.albranch * 
-                                        self.state.clabile_store)
+                                        self.state.cstore)
         self.state.c_to_alloc_stem = (self.state.alstem * 
-                                        self.state.clabile_store)
+                                        self.state.cstore)
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *    
-        #                                        self.state.clabile_store)
+        #                                        self.state.cstore)
         
         # annual available N for allocation to leaf
         self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot * 
                                         self.state.shootnc_yr)
-
+        
+        
+        
     def allocate_stored_c_and_n(self):
         """ 
         At the end of the year allocate everything for the coming year
         based on stores from the previous year avaliable N for allocation
         """
         self.state.c_to_alloc_shoot = (self.state.alleaf * 
-                                        self.state.clabile_store)
-        
-        Un = self.state.aroot_uptake + self.state.aretrans
-        
+                                        self.state.cstore)
+       
         self.state.c_to_alloc_stem = (self.params.callocw * 
-                                      (self.state.clabile_store - 
+                                      (self.state.cstore - 
                                        self.state.c_to_alloc_shoot))
-        self.state.c_to_alloc_root = (self.state.clabile_store - 
+        self.state.c_to_alloc_root = (self.state.cstore - 
                                       self.state.c_to_alloc_stem - 
                                       self.state.c_to_alloc_shoot)
        
-        self.state.n_to_alloc_root = (min(Un, self.state.c_to_alloc_root * 
-                                              self.state.rootnc))
+        self.state.n_to_alloc_root = (min(self.state.nstore, 
+                                          self.state.c_to_alloc_root * 
+                                          self.state.rootnc))
         
         # constant N:C of foliage during the growing season(kgN kg-1C)
-        self.state.shootnc_yr = ((Un - self.state.n_to_alloc_root) / 
-                                 (self.state.c_to_alloc_shoot)) 
+        self.state.shootnc_yr = ((self.state.nstore - 
+                                  self.state.n_to_alloc_root) / 
+                                  (self.state.c_to_alloc_shoot)) 
         # if we want to put back a floating N:C then we need to have
         # self.state.c_to_alloc_shoot + self.state.c_to_alloc_stem * some factor
         

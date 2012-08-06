@@ -3,15 +3,17 @@ from utilities import day_length
 
 
 class Phenology(object):
-    """ Prognostic phenology model calibrated from EO data
+    """ Phenology scheme based on Botta calibration against EO data. The 
+    estimated leaf out/off dates are used to define the allocation of C&N in the
+    deciduous model as a function of soil+air temperature and daylength.
     
     References:
     -----------
     Botta, A. et al. (2000) GCB, 6, 709-725.
     """
     
-    def __init__(self, fluxes, state, previous_ncd, pa=-68., pb=638., 
-                 pc=0.01):
+    def __init__(self, fluxes, state, previous_ncd=None, pa=-68., pb=638., 
+                 pc=0.01, store_transfer_len=None):
         """
         Parameters:
         ----------
@@ -21,6 +23,8 @@ class Phenology(object):
             (days) Leaf flush params following Botta.
         pc : float
             (1/days) Leaf flush params following Botta.
+        previous_ncd : int
+            Previous years number of chilling days
         """
         self.pa = pa 
         self.pb = pb
@@ -37,6 +41,7 @@ class Phenology(object):
         self.drop_leaves = False
         self.fluxes = fluxes
         self.state = state
+        self.store_transfer_len = store_transfer_len
         
     def calculate_phenology_flows(self, daylen, met_data, yr_days, 
                                   project_day):
@@ -123,26 +128,45 @@ class Phenology(object):
             self.project_day += 1
     
         self.last_yrs_accumulated_ncd = self.accumulated_ncd
-        self.mid_point = math.floor((self.leaf_off - self.leaf_on) / 4.0)
+        
+        # Length of time taken for new growth from storage to be allocated.
+        # This is either some site-specific calibration or the midpoint of the
+        # length of the growing season. The litterfall takes place over an 
+        # identical period. Currently we are dividing by 4 (i.e. half the 
+        # midpoint) to speed up this allocation/loss period, to increase the 
+        # rate of leaf acculation/loss.        
+        if self.store_transfer_len == None:
+            self.len_groloss = math.floor((self.leaf_off - self.leaf_on) / 4.0)
+        else:
+            self.len_groloss = self.store_transfer_len
         
     def calculate_days_left_in_growing_season(self, yr_days):
+        """ Calculate 2 arrays to signify the days left of growing period
+        and days left before all the leaves fall off. In both cases these will
+        be 2 lists, with 0.0 outside of the growing period and a series of 
+        numbers e.g. day 46 to 0 for growing_days. 0.5 is subtracted from the
+        doy to get round the issue of approximating an integral with discrete
+        time steps -> trapezoidal
+        """
+        
         self.state.remaining_days = [] 
         self.state.growing_days = [] 
         self.state.leaf_out_days= [] 
-        for day in xrange(1, yr_days+1):
-            if day>=self.leaf_off-self.mid_point and day<=self.leaf_off:
-                self.state.remaining_days.append(day-self.leaf_off+self.mid_point)
+        for doy in xrange(1, yr_days+1):
+            if doy > self.leaf_off - self.len_groloss and doy <= self.leaf_off:
+                self.state.remaining_days.append((doy - 0.5) - 
+                                                  self.leaf_off + 
+                                                  self.len_groloss)
             else:
                 self.state.remaining_days.append(0.0)
             
-            if day>=self.leaf_on and day<self.mid_point+self.leaf_on:
-                self.state.growing_days.append(self.mid_point+self.leaf_on-day)             
-            elif day==self.mid_point+self.leaf_on:
-                self.state.growing_days.append(-999.9)
+            if doy > self.leaf_on and doy <= self.len_groloss+self.leaf_on:
+                self.state.growing_days.append(self.len_groloss + 
+                                               self.leaf_on - (doy - 0.5))             
             else:
                 self.state.growing_days.append(0.0)
             
-            if day>self.leaf_on and day<self.leaf_off:
+            if doy > self.leaf_on and doy < self.leaf_off:
                 self.state.leaf_out_days.append(1.0)             
             else:
                 self.state.leaf_out_days.append(0.0)
@@ -150,26 +174,13 @@ class Phenology(object):
     def calculate_growing_season_fluxes(self):
         
         # C allocation rates across growing season
-        self.fluxes.lrate = 2.0 * self.state.c_to_alloc_shoot / self.mid_point**2
-        self.fluxes.wrate = 2.0 * self.state.c_to_alloc_stem / self.mid_point**2   
+        self.fluxes.lrate = (2.0 * self.state.c_to_alloc_shoot / 
+                             self.len_groloss**2)
+        self.fluxes.wrate = (2.0 * self.state.c_to_alloc_stem / 
+                             self.len_groloss**2)   
             
         # N allocation rates across growing season
-        self.fluxes.lnrate = 2.0 * self.state.n_to_alloc_shoot / self.mid_point**2 
-        
-        len_gs = len([i for i in self.state.growing_days if i > 0])
-        totcf = sum([self.fluxes.lrate*i for i in xrange(len_gs+1)])
-        totnf = sum([self.fluxes.lnrate*i for i in xrange(len_gs+1)])
-        
-        excess_alloc = totcf - self.state.c_to_alloc_shoot
-        excess_allocn = totnf - self.state.n_to_alloc_shoot
-        
-        self.fluxes.lrate = 2.0 * (self.state.c_to_alloc_shoot-excess_alloc) / self.mid_point**2
-        self.fluxes.lnrate = 2.0 * (self.state.n_to_alloc_shoot-excess_allocn) / self.mid_point**2 
-        totcf = sum([self.fluxes.lrate*i for i in xrange(len_gs+1)])
-        totnf = sum([self.fluxes.lnrate*i for i in xrange(len_gs+1)])
-        self.state.left_over_c = self.state.c_to_alloc_shoot-totcf
-        self.state.left_over_n = self.state.n_to_alloc_shoot-totnf
-        #print self.state.c_to_alloc_shoot,totcf, self.state.left_over_c,totcf+self.state.left_over_c
-        #import sys; sys.exit()
+        self.fluxes.lnrate = (2.0 * self.state.n_to_alloc_shoot / 
+                              self.len_groloss**2)
         
       
