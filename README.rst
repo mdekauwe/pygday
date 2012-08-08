@@ -22,7 +22,11 @@ The G'DAY model depends on very few non-standard python packages, in fact only o
 
 * `configobj <http://www.voidspace.org.uk/python/configobj.html>`_. (Used for reading cfg/ini files)
 
-And replacing this with a small bit of code to read user input files would be
+On the off chance you have a well behaved setup you should only need to do ::
+    
+    easy_install configobj
+
+Alternatively follow the simple instructions on the above link. Note, replacing this with a small bit of code to read user input files would be
 trivial. I might write that...
 
 Once you have downloaded the source code, or clone the repository (go on...) there is a simple makefile, e.g. ::
