@@ -27,13 +27,29 @@ or ::
 
     sudo python setup.py install
 
-I need to add some simple scripts (to do list!). But... ::
+Running the model
+=================
+
+I need to add some simple scripts (on the todo list!). But... ::
+    
+    from gday import gday as model
+    G = model.Gday(cfg_fname, spin_up=True)
+    G.spin_up_pools()
+
+will spin the model up. Spin up expects a met forcing file with a 1000 yrs of data, how you recycle this is up to you. The model automatically stops once the soil, plant and litter pools have reached equilibrium (check code for finer details).
+
+Changing the model default parameters for user defined ones is trivial and utilises a python dictionary, e.g. ::
+
+    from gday import adjust_gday_param_file as ad
+    replace_dict = { "albedo": "0.123" }
+    ad.adjust_param_file(cfg_fname, replace_dict)
+
+And finally running the model... ::
 
     from gday import gday as model
     G = model.Gday(cfg_fname)
     G.run_sim()
-
-(Also spin up option, adjusting parameter file...add!).
+    
 
 References
 =============
