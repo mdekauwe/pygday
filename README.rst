@@ -17,9 +17,17 @@ trivial.
 Once you have downloaded the source code, or cloned the repository there is 
 a simple makefile, e.g.
 
-sudo make install
+    sudo make install
 
 or
 
-sudo python setup.py install
+    sudo python setup.py install
+
+I need to add some simple scripts (to do list!). But...
+
+    from gday import gday as model
+    G = model.Gday(cfg_fname)
+    G.run_sim()
+
+(Also spin up option, adjusting parameter file...add!).
 
