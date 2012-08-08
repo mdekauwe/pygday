@@ -5,8 +5,8 @@ G'DAY
 GDAY simulates carbon, nitrogen and water cycling between the plant and the soil. The model is structured into three plant pools (foliage, wood and fine roots), four litter pools (above/below metabolic and structural litter) and three soil organic matter (SOM) pools with varying turnover rates (active, slow
 and passive).
 
-The model is coded entirely in 
-.. _Python: http://www.python.org/
+The model is coded entirely in `Python 
+<http://www.python.org/>`_.
 
 Key Reference
 =============
