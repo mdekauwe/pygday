@@ -6,7 +6,7 @@ GDAY simulates carbon, nitrogen and water cycling between the plant and the soil
 and passive).
 
 The model is coded entirely in `Python 
-<http://www.python.org/>`_.
+<http://www.python.org/>`.
 
 
 Key Reference
