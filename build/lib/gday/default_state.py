@@ -80,9 +80,8 @@ N0 = 0.0
 # annual NPP
 anpp = 0.0
 cstore = 0.0
-aroot_uptake = 0.0
-aretrans = 0.0
-
+nstore = 0.0
+exu_pool = 0.0
 
 remaining_days = None
 growing_days = None
