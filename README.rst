@@ -53,7 +53,7 @@ And finally running the model... ::
 
 References
 =============
-1). Comins, H. N. and McMurtrie, R. E. (1993) Ecological Applications, 3, 666-681.
+1). Comins, H. N. and McMurtrie, R. E. (1993) Long-Term Response of Nutrient-Limited Forests to CO"2 Enrichment; Equilibrium Behavior of Plant-Soil Models. Ecological Applications, 3, 666-681.
 
 
 Link to me
