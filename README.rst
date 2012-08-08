@@ -8,6 +8,12 @@ and passive).
 The model is coded entirely in `Python 
 <http://www.python.org/>`_.
 
+Python_ is `my favourite 
+programming language`__.
+.. _Python: http://www.python.org/
+
+__ Python_
+
 Key Reference
 =============
 1). Comins, H. N. and McMurtrie, R. E. (1993) Long-Term Response of Nutrient-Limited Forests to CO"2 Enrichment; Equilibrium Behavior of Plant-Soil Models. Ecological Applications, 3, 666-681.
