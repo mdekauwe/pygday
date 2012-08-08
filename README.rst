@@ -2,10 +2,10 @@
 G'DAY
 ====================
 
-.. contents:: :local:
-
 GDAY simulates carbon, nitrogen and water cycling between the plant and the soil. The model is structured into three plant pools (foliage, wood and fine roots), four litter pools (above/below metabolic and structural litter) and three soil organic matter (SOM) pools with varying turnover rates (active, slow
-and passive). 
+and passive).
+
+.. contents:: :local:
 
 
 Installation
@@ -40,4 +40,6 @@ References
 1). Comins, H. N. and McMurtrie, R. E. (1993) Ecological Applications, 3, 666-681.
 
 
+Link to me
+============
 https://sites.google.com/site/mdekauwe/
