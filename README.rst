@@ -8,7 +8,6 @@ and passive).
 The model is coded entirely in `Python 
 <http://www.python.org/>`_.
 
-Python_ 
 
 Key Reference
 =============
