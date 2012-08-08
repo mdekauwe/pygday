@@ -36,7 +36,7 @@ or the standard python approach ::
 Running the model
 =================
 
-I need to add some simple scripts (on the todo list!). But... ::
+I need to add some simple scripts (on the todo list!). But within a python script you would require the following lines... ::
     
     from gday import gday as model
     G = model.Gday(cfg_fname, spin_up=True)
