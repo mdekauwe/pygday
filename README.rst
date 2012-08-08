@@ -29,7 +29,7 @@ Once you have downloaded the source code, or clone the repository (go on...) the
 
     sudo make install
 
-or ::
+or the standard python approach ::
 
     sudo python setup.py install
 
