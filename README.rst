@@ -31,3 +31,9 @@ I need to add some simple scripts (to do list!). But... ::
 
 (Also spin up option, adjusting parameter file...add!).
 
+References
+=============
+1). Comins, H. N. and McMurtrie, R. E. (1993) Ecological Applications, 3, 666-681.
+
+
+https://sites.google.com/site/mdekauwe/
