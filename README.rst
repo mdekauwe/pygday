@@ -20,8 +20,7 @@ Installation
 
 The G'DAY model depends on very few non-standard python packages, in fact only one I think??!
 
-* `configobj 
-<http://www.voidspace.org.uk/python/configobj.html/>`_.
+* `configobj <http://www.voidspace.org.uk/python/configobj.html/>`_.
 
 And replacing this with a small bit of code to read user input files would be
 trivial. I might write that...
