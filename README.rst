@@ -60,4 +60,5 @@ In all cases ``cfg_fname`` is simple a string with a link to the users parameter
     
 Link to me
 ============
-`My home page -> https://sites.google.com/site/mdekauwe`
+
+`My home page <https://sites.google.com/site/mdekauwe/>`_.
