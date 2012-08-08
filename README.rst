@@ -52,6 +52,8 @@ And finally running the model... ::
     from gday import gday as model
     G = model.Gday(cfg_fname)
     G.run_sim()
+
+In all cases cfg_fname is simple a string with a link to the users parameter file, it can be named anything you please.
     
 Link to me
 ============
