@@ -145,7 +145,7 @@ class Phenology(object):
         be 2 lists, with 0.0 outside of the growing period and a series of 
         numbers e.g. day 46 to 0 for growing_days. 0.5 is subtracted from the
         doy to get round the issue of approximating an integral with discrete
-        time steps -> trapezoidal
+        time steps -> trapezoidal type solution
         """
         
         self.state.remaining_days = [] 

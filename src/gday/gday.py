@@ -150,7 +150,7 @@ class Gday(object):
             self.run_sim() # run the model...
             
             # Have we reached a steady state?
-            sys.stderr.write("Nyears of spin: %d %f %f %F\n" % \
+            sys.stderr.write("Nyears of spin: %d %f %f %f\n" % \
                             (sequence, self.state.plantc, self.state.soilc, \
                              self.state.litterc))
             sequence += 1000
@@ -189,9 +189,10 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year)
                 
                 if self.spin_up == False:
-                    print self.fluxes.gpp * 100, self.state.lai
+                    print self.fluxes.gpp * 100, self.state.lai, self.fluxes.nrootexudate
                 
-                #print self.fluxes.npp
+                
+                    
                 # save daily fluxes + state for daily output    
                 if self.control.print_options == 0:
                     self.save_daily_outputs(yr, doy+1)

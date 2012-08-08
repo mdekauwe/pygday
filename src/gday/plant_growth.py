@@ -3,7 +3,7 @@
 import math
 
 import constants as const
-from utilities import float_eq, float_lt, float_gt, day_length
+from utilities import float_eq, float_lt, float_gt, float_ne
 from bewdy import Bewdy
 from plant_production_mcmurtrie import PlantProdModel
 from water_balance import WaterBalance, WaterLimitedNPP
@@ -57,7 +57,9 @@ class PlantGrowth(object):
 
         self.mt = Mate(self.control, self.params, self.state, self.fluxes,
                        self.met_data)
-
+        
+        #self.rm = RootingDepthModel(zval=0.35, r0=0.05, top_soil_depth=0.3)
+        
     def grow(self, project_day, fdecay, rdecay, daylen, doy, days_in_yr):
         """Evolve plant state, photosynthesis, distribute N and C"
 
@@ -99,7 +101,7 @@ class PlantGrowth(object):
         self.nitrogen_distribution(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy)
         
         
-        self.update_plant_state(fdecay, rdecay)
+        self.update_plant_state(fdecay, rdecay, project_day)
          
     def calculate_ncwood_ratios(self, nitfac):
         """ Estimate the N:C ratio in the branch and stem. Option to vary
@@ -284,6 +286,45 @@ class PlantGrowth(object):
         self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay)
         self.fluxes.nuptake = self.calculate_nuptake()
         
+        
+        
+        
+        """ ROSS's Root Model.
+        nsupply = self.calculate_nuptake() * 365.25 * 100.0 # t ha-1 -> gN m-2
+        rtot = self.state.root * 0.1 # t ha-1 -> kgm2
+        
+        (root_depth, 
+         self.fluxes.nuptake,
+         self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
+        
+        
+        self.fluxes.nuptake = self.fluxes.nuptake * 0.01 / 365.25
+        
+        self.fluxes.deadroots = rdecay * self.state.root   # ditto
+        self.fluxes.deadroots = self.params.rdecay * self.fluxes.rabove * 10
+        self.fluxes.deadrootn = (self.state.rootnc * 
+                                 (1.0 - self.params.rretrans) * 
+                                 self.fluxes.deadroots)
+        
+        print self.fluxes.gpp*100, self.state.lai, root_depth
+        """
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         # N lost from system is proportional to the soil inorganic N pool, 
         # where the rate constant empirically defines gaseous and leaching 
         # losses, see McMurtrie et al. 2001.
@@ -293,10 +334,10 @@ class PlantGrowth(object):
         ntot = self.fluxes.nuptake + self.fluxes.retrans
         
         # N flux into root exudation, see McMurtrie et al. 2000
-        #self.fluxes.nrootexudate = (self.fluxes.npp * alroot_exudate * 
-        #                            self.params.vxfix)
-        self.fluxes.nrootexudate = 0.0
+        self.fluxes.nrootexudate = (self.fluxes.npp * self.state.alroot_exudate * 
+                                    self.params.vxfix)
         
+       
         if self.control.deciduous_model:
             # allocate N to pools with fixed N:C ratios
             # N flux into new ring (immobile component -> structrual components)
@@ -458,15 +499,9 @@ class PlantGrowth(object):
         # Martin and Puckeridge suggest values range between 10-20% of NPP. So
         # presumably this is where this values of 0.15 (i.e. the average) comes
         # from
-        #self.fluxes.cprootexudate = self.fluxes.npp * alroot_exudate
-        self.fluxes.cprootexudate = 0.0
+        self.fluxes.cprootexudate = self.fluxes.npp * self.state.alroot_exudate
+        #self.fluxes.cprootexudate = 0.0
         
-        # rhizresp = 0.5, unless changed of course! 1/3--2/3 of C
-        # fixed by plants is respired, so assuming a value of 0.5, i.e. the avg.
-        # (Lambers and Poot, 2003)
-        #self.fluxes.microbial_resp = (self.fluxes.cprootexudate * 
-        #                                self.params.rhizresp)
-        #self.fluxes.cprootexudate -= self.fluxes.microbial_resp
         
         # evaluate SLA of new foliage accounting for variation in SLA 
         # with tree and leaf age (Sands and Landsberg, 2002). Assume 
@@ -494,7 +529,7 @@ class PlantGrowth(object):
                                 self.state.lai / self.state.shoot)
             
             
-    def update_plant_state(self, fdecay, rdecay):
+    def update_plant_state(self, fdecay, rdecay, project_day):
         """ Daily change in C content
 
         Parameters:
@@ -530,6 +565,10 @@ class PlantGrowth(object):
                                 self.params.retransmob * self.state.stemnmob)
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
         
+        self.state.exu_pool += self.fluxes.cprootexudate
+        self.fluxes.microbial_resp = self.calc_microbial_resp(project_day)
+        self.state.exu_pool -= self.fluxes.microbial_resp
+        #print self.fluxes.microbial_resp, self.fluxes.cprootexudate
         
         
         if self.control.deciduous_model:
@@ -592,6 +631,287 @@ class PlantGrowth(object):
         # C storage as TNC
         self.state.cstore += self.fluxes.npp - cgrowth
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans - ngrowth
+
+    def calc_microbial_resp(self, project_day):
+        """ Based on LPJ-why
+        
+        References:
+        * Wania (2009) Integrating peatlands and permafrost into a dynamic global 
+          vegetation model: 1. Evaluation and sensitivity of physical land 
+          surface processes. GBC, 23, GB3014.
+        * Also part 2 and the geosci paper in 2010
+        """
+        tsoil = self.met_data['tsoil'][project_day]
+        
+        # Lloyd and Taylor, 1994
+        temp_resp = (math.exp(308.56 * ((1.0 / 56.02) - (1.0 / 
+                                (tsoil + const.DEG_TO_KELVIN - 227.13)))))
+        
+        moist_resp = ((1.0 - math.exp(-1.0 * self.state.wtfac_tsoil)) /  
+                        (1.0 - math.exp(-1.0)))
+        k_exu10 = 0.0714128571 # turnover rate of every 2 weeks in /days (1/14)
+        k_exu = k_exu10 * temp_resp * moist_resp
+        
+        return  self.state.exu_pool * (1.0 - math.exp(-k_exu))
+
+
+class RootingDepthModel(object):
+    """ Ross's Optimal rooting depth model.
+    
+    Optimisation hypothesis = maximise total N uptake by determining optimal 
+    distribution of root mass with soil depth and optimal root depth
+    
+    References:
+    ----------
+    McMurtire, R. et al (2011) ...
+    
+    """
+    
+    def __init__(self, zval, r0, top_soil_depth):
+        """
+        
+        Parameters:
+        -----------
+        zval : float
+            Length scale for exponential decline of Umax(z)
+        r0 : float
+            root C at half-maximum N uptake (kg C/m3)
+        zval : float
+            Length scale for exponential decline of Umax(z)
+        top_soil_depth : float
+            depth of soil assumed by G'DAY, not Ross comment about 20 cm [email]
+            
+        Returns:
+        --------
+        rtot : float
+            Total root C mass
+        
+        """
+        self.zval = zval    
+        self.r0 = r0      
+        self.top_soil_depth = top_soil_depth
+        
+    def main(self, rtoti=None, nsupply=None, depth_guess=None):
+        """
+        Parameters:
+        -----------
+        rtoti : float
+            Initial fine root C mass -> from G'DAY
+        depth_guess : float
+            Initial guess at the rooting depth, used as the first point in the 
+            root depth minimisation scheme.    
+        
+        Returns:
+        --------
+        nuptake : float
+            N uptake from roots
+        
+        
+        """
+        # step 2: determine maximum rooting depth for model
+        root_depth = self.estimate_max_root_depth(rtoti, depth_guess)
+        
+        # step 6: calculate plant N uptake -> eqn B8.
+        nuptake = self.calc_plant_nuptake(root_depth, nsupply)
+        
+        # step 7: daily root litter calculation. G'DAY requires root litter
+        # input to the top 30 cm of soil, so the G'DAY needs changing. So
+        # mortality below 30 cm should be ignored. Ross assumes that root
+        # longevity and root N:C are independent of depth, thus avoiding the
+        # integrals
+        rabove = self.calculate_root_mass_above_depth(rtoti, root_depth)
+        
+        return (root_depth, nuptake, rabove)
+    
+    def estimate_max_root_depth(self, rtoti, depth_guess):
+        """ Determing the maximum rooting depth through solving Eqn. B6. for 
+        rooting depth
+        
+        Parameters:
+        -----------
+        dmax_iteration : float
+            An iteration of the rooting depth defined by the minimisation scheme
+            [NOT USED]
+        rtoti : float
+            Initial fine root root C mass [from G'DAY] 
+        r0 : float
+            Root C at half-max N uptake. [NOT USED]
+        zval : float
+            Length scale for exponential decline of Umax(z). [NOT USED]
+        depth_guess : float
+            initial starting guess at the root depth [m]
+            
+            
+        Returns:
+        --------
+        rooting_depth : float
+            Minimised rooting depth
+        
+        """
+        root_depth = newton(self.rtot_wrapper, self.rtot_derivative, 
+                            depth_guess, args=(rtoti, self.r0, self.zval))
+        
+        # check minmised value is sensible?
+        min_rtot = round(self.rtot(root_depth, rtoti, self.r0, self.zval), 4)
+        gday_rtot = round(rtoti, 4)
+        if float_ne(min_rtot, gday_rtot):
+            msg = "Error, rtot supplied = %f but min = %f" % (rtoti, smin_rtot)
+            raise RuntimeError(msg)
+            
+        return root_depth
+        
+    def rtot_wrapper(self, *args):    
+        """ Wrapper method that calls rtot, but subtracts rtoti from the result
+        to give you the rooting depth
+        
+        Parameters:
+        -----------
+        args[1] : float
+            Initial fine root root C mass [from G'DAY], rtoti
+        self.rtot : function
+            call rtot function to estimate a value of rtot given a rooting
+            depth iteration
+        
+        Returns:
+        --------
+        val  : float
+            A minimised rooting depth iteration
+        """
+        return self.rtot(*args) - args[1]  
+    
+    def rtot(self, *args):
+        """ Estimate the total root biomass per unit ground area, i.e. the 
+        integral of root mass per unit soil volume, R(z), over depth z from the
+        soil surface to the maximim rooting depth, dmax.
+        
+        Parameters:
+        -----------
+        dmax : float
+            Rooting depth 
+        rtoti : float
+            Initial fine root root C mass [from G'DAY] 
+        r0 : float
+            Root C at half-max N uptake.
+        zval : float
+            Length scale for exponential decline of Umax(z)
+        
+        Returns:
+        --------
+        rtot : float
+            Total root C mass given a rooting depth
+        
+        """
+        (dmax, rtoti, r0, zval) = args
+        return (r0 * (2.0 * zval * math.exp(0.5 * dmax / zval) - 
+                (dmax + 2.0 * zval)))      
+    
+    def rtot_derivative(self, *args):
+        """ Derivative of maximum root depth equation, rtot
+        
+        Parameters:
+        -----------
+        dmax : float
+            Rooting depth 
+        rtoti : float
+            Initial fine root root C mass [from G'DAY]
+        r0 : float
+            Root C at half-max N uptake.
+        zval : float
+            Length scale for exponential decline of Umax(z)
+        
+        Returns:
+        --------
+        val : float
+            derivative of rtot
+        
+        """
+        (dmax, rtoti, r0, zval) = args
+        return r0 * (1.0 * math.exp(0.5 * dmax / zval) - 1.0)
+    
+
+    def calculate_root_mass_above_depth(self, rtoti, root_depth):
+        """ Estimate cumulative root mass above depth, 30 cm for the G'DAY model
+        
+        Parameters
+        ----------
+        rtoti : float
+            Initial fine root root C mass [from G'DAY]
+        root_depth : float
+            model rooting depth (m)
+
+        Returns
+        -------
+        val : float
+            cumulative root C mass above soil depth assumed by G'DAY model, 30cm
+        """
+        arg1 = rtoti + 2.0 * self.r0 * self.zval + root_depth * self.r0
+        arg2 = 1.0 - math.exp(-self.top_soil_depth / (2.0 * self.zval))
+        
+        return arg1 * arg2 - self.r0 * self.top_soil_depth
+        
+    def calc_plant_nuptake(self, *args):
+        """ Plant N uptake as a func of maximum rooting depth, eqn B8
+        
+        Parameters
+        ----------
+        root_depth : float
+            max rooting depth [m]
+        z : float
+            incremental depth provided by integration func
+        nsupply : float
+            soil N supply rate to plants per day [N/m2]
+        top_soil_depth : float
+            Depth of soil assumed by G'DAY model
+            
+        Returns
+        -------
+        nuptake : float
+            plant N uptake
+        """
+        (root_depth, nsupply) = args
+        arg1 = nsupply / (1.0 - math.exp(-self.top_soil_depth / self.zval))
+        arg2 = (1.0 - math.exp(-root_depth / (2.0 * self.zval)))**2
+        
+        return arg1 * arg2   
+
+
+def newton(f, fprime, x0, args=(), tol=1E-6, maxiter=250):
+    """ Newton-Raphson: finds a zero of the func, given an inital guess
+    
+    Parameters
+    ----------
+    f : function
+        The function whose zero is wanted. 
+    x0 : float
+        An initial guess.
+    fprime : function
+        The derivative of the function 
+    args : tuple, optional
+        Extra arguments to be used in the function call.
+    tol : float, optional
+        The allowable error of the zero value.
+    maxiter : int, optional
+        Maximum number of iterations.
+
+    Returns
+    -------
+    val : float
+        Estimated location where function is zero
+        
+    """
+    for iter in xrange(maxiter):
+        myargs = (x0,) + args
+        dx = f(*myargs) / fprime(*myargs)
+        x = x0 - dx
+        if abs(x - x0) < tol: 
+            return x
+        x0 = x
+    raise RuntimeError, "No minimum found after %d iterations" % maxiter
+
+
+
+
+
         
 if __name__ == "__main__":
     
