@@ -3,7 +3,7 @@
 
 import sys
 import datetime
-import math
+from math import fabs, exp, sqrt, sin, pi
 import constants as const
 from utilities import float_eq, float_lt, float_le, float_gt, day_length
 
@@ -98,7 +98,7 @@ class Bewdy(object):
         lai_mod = self.state.lai / frac_gcover
         n = (rho * self.params.kext *
                 (self.state.ncontent - self.params.nmin) * lai_mod /
-                (1.0 - math.exp(-self.params.kext * lai_mod)))
+                (1.0 - exp(-self.params.kext * lai_mod)))
         
         
         
@@ -183,7 +183,7 @@ class Bewdy(object):
         gamma_star = (42.7 + 1.68 * (temp - 25.0) + 0.012 * (temp - 25.0)**2)
 
         # effective Michaelis-Menen coefficent of Rubisco activity
-        km = 39.05 * math.exp(0.085 * temp) + 9.58 * gamma_star
+        km = 39.05 * exp(0.085 * temp) + 9.58 * gamma_star
 
         # max rate of electron transport and rubisco activity
         jmax, vcmax = self.jmax_and_vcmax_func(temp)
@@ -225,7 +225,7 @@ class Bewdy(object):
         """
 
         arg1 = (1.0 / self.params.kext *
-                (1.0 - math.exp(-self.params.kext * lai_mod)))
+                (1.0 - exp(-self.params.kext * lai_mod)))
         arg2 = (n * s * (n + s) + b * n**2) / (n + s)**2
 
         return arg1 * arg2
@@ -251,7 +251,7 @@ class Bewdy(object):
         """
 
         arg1 = 1.0 / self.params.kext * (b**2 * n**2) / (n + s)**3.0
-        arg2 = (math.log(((n + s) * math.exp(-self.params.kext *
+        arg2 = (log(((n + s) * exp(-self.params.kext *
                     lai_mod) + b) / (n + s + b)))
 
         return arg1 * arg2
@@ -301,8 +301,8 @@ class Bewdy(object):
 
         """
         plantn = self.state.shootn + self.state.rootn + self.state.stemnmob
-        ra = (0.0106 * plantn * 12.0 / 14.0 *
-                                math.exp(self.params.kq10 * (temp - 15.0)))
+        ra = (0.0106 * plantn * 12.0 / 14.0 * 
+              exp(self.params.kq10 * (temp - 15.0)))
         return ra
 
     def jmax_and_vcmax_func(self, temp):

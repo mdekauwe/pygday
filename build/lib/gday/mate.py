@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ Model Any Terrestrial Ecosystem (MATE) model. Full description below """
 
-import math
+from math import exp, sqrt, sin, pi
 import constants as const
 from utilities import float_eq, float_gt
 
@@ -300,7 +300,7 @@ class Mate(object):
         if self.state.ncontent > 0.0:
             # calculation for Leaf N content, top of the canopy (N0), [g m-2]                       
             N0 = (self.state.ncontent * self.params.kext /
-                 (1.0 - math.exp(-self.params.kext * self.state.lai)))
+                 (1.0 - exp(-self.params.kext * self.state.lai)))
         else:
             N0 = 0.0
         return N0
@@ -427,7 +427,7 @@ class Mate(object):
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
         g1w = self.params.g1 * self.state.wtfac_root
-        return g1w / (g1w + math.sqrt(vpd))
+        return g1w / (g1w + sqrt(vpd))
 
     def epsilon(self, amax, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996.
@@ -457,18 +457,18 @@ class Mate(object):
 
         """
         if float_gt(amax, 0.0):
-            q = (math.pi * self.params.kext * alpha * par /
-                    (2.0 * daylen * const.HRS_TO_SECS * amax))
+            q = (pi * self.params.kext * alpha * par /
+                 (2.0 * daylen * const.HRS_TO_SECS * amax))
 
             # check sands but shouldn't it be 2 * q * sin x on the top?
-            f = (lambda x: x / (1.0 + q * x + math.sqrt((1.0 + q * x)**2.0 -
+            f = (lambda x: x / (1.0 + q * x + sqrt((1.0 + q * x)**2.0 -
                             4.0 * self.params.theta * q * x)))
-            g = [f(math.sin(math.pi * i / 24.)) for i in xrange(1, 13, 2)]
+            g = [f(sin(pi * i / 24.)) for i in xrange(1, 13, 2)]
             
             #Trapezoidal rule - seems more accurate
             gg = 0.16666666667 * sum(g)
 
-            lue = alpha * gg * math.pi
+            lue = alpha * gg * pi
         else:
             lue = 0.0
 
@@ -496,7 +496,7 @@ class Mate(object):
         -----------
         * Medlyn et al. 2002, PCE, 25, 1167-1179.   
         """
-        return k25 * math.exp((Ea * (Tk - 298.15)) / (298.15 * const.RGAS * Tk))
+        return k25 * exp((Ea * (Tk - 298.15)) / (298.15 * const.RGAS * Tk))
     
     def peaked_arrh(self, k25, Ea, Tk, deltaS, Hd):
         """ Temperature dependancy approximated by peaked Arrhenius eqn, 
@@ -526,8 +526,8 @@ class Mate(object):
         
         """
         arg1 = self.arrh(k25, Ea, Tk)
-        arg2 = 1.0 + math.exp((298.15 * deltaS - Hd) / 298.15 * const.RGAS)
-        arg3 = 1.0 + math.exp((Tk * deltaS - Hd) / Tk * const.RGAS)
+        arg2 = 1.0 + exp((298.15 * deltaS - Hd) / 298.15 * const.RGAS)
+        arg3 = 1.0 + exp((Tk * deltaS - Hd) / Tk * const.RGAS)
         
         return arg1 * arg2 / arg3
 
@@ -604,7 +604,7 @@ if __name__ == "__main__":
         else:
             frac_gcover = 1.0
 
-        state.light_interception = ((1.0 - math.exp(-params.kext *
+        state.light_interception = ((1.0 - exp(-params.kext *
                                             state.lai / frac_gcover)) *
                                             frac_gcover)
 

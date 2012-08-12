@@ -1,4 +1,4 @@
-import math 
+from math import floor, exp
 from utilities import day_length
 
 
@@ -57,7 +57,7 @@ class Phenology(object):
         """ Leaf out has a chilling requirement, num chill days reduces the GDD
         requirement 
         """
-        return self.pa + self.pb * math.exp(self.pc * ncd)
+        return self.pa + self.pb * exp(self.pc * ncd)
     
     def calc_ncd(self, Tmean):
         """ Calculate the number of chilling days from fixed dates (1 Nov), 
@@ -135,7 +135,7 @@ class Phenology(object):
         # identical period. Dividing by a larger number would increase the
         # rate the C&N is allocated.
         if self.store_transfer_len == None:
-            self.len_groloss = math.floor((self.leaf_off - self.leaf_on) / 2.0)
+            self.len_groloss = floor((self.leaf_off - self.leaf_on) / 2.0)
         else:
             self.len_groloss = self.store_transfer_len
         

@@ -1,7 +1,6 @@
 """ Various misc funcs """
 
-
-import math
+from math import fabs, exp, sqrt, sin, pi, cos, tan, acos
 import sys
 
 __author__  = "Martin De Kauwe"
@@ -10,7 +9,7 @@ __email__   = "mdekauwe@gmail.com"
 
 def float_eq(arg1, arg2, tol=1E-14):
     """arg1 == arg2"""
-    return math.fabs(arg1 - arg2) < tol + tol * math.fabs(arg2)
+    return fabs(arg1 - arg2) < tol + tol * fabs(arg2)
     
 def float_ne(arg1, arg2, tol=1E-14):
     """arg1 != arg2"""
@@ -18,7 +17,7 @@ def float_ne(arg1, arg2, tol=1E-14):
 
 def float_lt(arg1, arg2, tol=1E-14):
     """arg1 < arg2"""
-    return arg2 - arg1 > math.fabs(arg1) * tol
+    return arg2 - arg1 > fabs(arg1) * tol
     
 def float_le(arg1, arg2, tol=1E-14):
     """arg1 <= arg2"""
@@ -26,7 +25,7 @@ def float_le(arg1, arg2, tol=1E-14):
 
 def float_gt(arg1, arg2, tol=1E-14):
     """arg1 > arg2"""
-    return arg1 - arg2 > math.fabs(arg1) * tol
+    return arg1 - arg2 > fabs(arg1) * tol
 
 def float_ge(arg1, arg2, tol=1E-14):
     """arg1 >= arg2"""
@@ -51,12 +50,12 @@ def day_length(doy, yr_days, latitude):
         daylength [hrs]
 
     """
-    conv = math.pi / 180.0
-    solar_declin = -23.4 * math.cos(conv * yr_days * (doy + 10.0) / yr_days)
-    temx = -math.tan(latitude * conv) * math.tan(solar_declin * conv)
+    conv = pi / 180.0
+    solar_declin = -23.4 * cos(conv * yr_days * (doy + 10.0) / yr_days)
+    temx = -tan(latitude * conv) * tan(solar_declin * conv)
 
-    if float_lt(math.fabs(temx), 1.0):
-        has = math.acos(temx) / conv
+    if float_lt(fabs(temx), 1.0):
+        has = acos(temx) / conv
         dayl = 2.0 * has / 15.0
     elif float_gt(temx, 0.0):
         dayl = 0.0
@@ -84,7 +83,7 @@ def mate_day_length(date, latitude):
         daylength [hrs]
 
     """
-    conv = math.pi / 180.0
+    conv = pi / 180.0
 
     # day of year 1-365/366
     doy = int(date.strftime('%j'))
@@ -95,14 +94,13 @@ def mate_day_length(date, latitude):
     else:
         yr_days = 365.
 
-    solar_dec = (23.4 * math.pi / 180.0 * math.cos(2.0 * math.pi /
+    solar_dec = (23.4 * pi / 180.0 * cos(2.0 * pi /
                     yr_days * (doy + 10.0)))
 
     if float_lt(latitude, 0.0):
         solar_dec *= -1.0
 
-    dayl = (math.acos(-math.tan(latitude * conv) * math.tan(solar_dec)) *
-                    24.0 / math.pi)
+    dayl = acos(-tan(latitude * conv) * tan(solar_dec)) * 24.0 / pi
 
     return dayl
 

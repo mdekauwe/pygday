@@ -5,7 +5,7 @@ Build the G'Day model
 that's all folks.
 """
 __author__ = "Martin De Kauwe"
-__version__ = "1.0 (09.02.2011)"
+__version__ = "1.0 (13.08.2011)"
 __email__ = "mdekauwe@gmail.com"
 
 from distutils.core import setup
@@ -17,6 +17,6 @@ setup(name="pygday",
     author="Martin De Kauwe",
     author_email='mdekauwe@gmail.com',
     platforms = ['any'],
-    package_dir = {'': 'src'},
+    package_dir = {'gday': 'src'},
     packages = ['gday']
 )
