@@ -6,14 +6,14 @@ description.
 
 #import ipdb
 import sys
-import math
+from math import fabs
 import constants as const
 from file_parser import initialise_model_data
 from plant_growth import PlantGrowth
 from print_outputs import PrintOutput
 from litter_production import LitterProduction
 from soil_cnflows import CarbonFlows, NitrogenFlows
-from update_pools import CarbonPools, NitrogenPools
+from update_pools import CarbonSoilPools, NitrogenSoilPools
 from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
 
@@ -110,9 +110,9 @@ class Gday(object):
                                    self.fluxes)
         self.pg = PlantGrowth(self.control, self.params, self.state, 
                               self.fluxes, self.met_data)
-        self.cpl = CarbonPools(self.control, self.params, self.state, 
+        self.cpl = CarbonSoilPools(self.control, self.params, self.state, 
                                self.fluxes)
-        self.npl = NitrogenPools(self.control, self.params, self.state, 
+        self.npl = NitrogenSoilPools(self.control, self.params, self.state, 
                                  self.fluxes, self.met_data)
         
         if self.control.deciduous_model:
@@ -141,9 +141,9 @@ class Gday(object):
         prev_plantc = -9999.9
         prev_soilc = -9999.9
         prev_litterc = -9999.9
-        while (math.fabs(prev_plantc - self.state.plantc) > tolerance and 
-               math.fabs(prev_soilc - self.state.soilc) > tolerance and 
-               math.fabs(prev_litterc - self.state.litterc) > tolerance): 
+        while (fabs(prev_plantc - self.state.plantc) > tolerance and 
+               fabs(prev_soilc - self.state.soilc) > tolerance and 
+               fabs(prev_litterc - self.state.litterc) > tolerance): 
             prev_plantc = self.state.plantc
             prev_soilc = self.state.soilc
             prev_litterc = self.state.litterc
@@ -174,23 +174,22 @@ class Gday(object):
                 (fdecay, rdecay) = self.lf.calculate_litter_flows(doy)
                 
                 # co2 assimilation, N uptake and loss
-                self.pg.grow(project_day, fdecay, rdecay, daylen[doy], doy, 
-                        float(days_in_year))
+                self.pg.calc_day_growth(project_day, fdecay, rdecay, 
+                                        daylen[doy], doy, float(days_in_year))
     
                 # soil model fluxes
                 self.cf.calculate_cflows(project_day)
                 self.nf.calculate_nflows()
                 
-                # soil model - update pools
+                # Update model soil C&N pools
                 (cact, cslo, cpas) = self.cpl.calculate_cpools()
-                self.npl.calculate_npools(cact, cslo, cpas, project_day)
+                self.npl.calculate_npools(cact, cslo, cpas)
     
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year)
                 
-                if self.spin_up == False:
-                    print self.fluxes.gpp * 100, self.state.lai, self.fluxes.nrootexudate
-                
+                #if self.spin_up == False:
+                #    print self.fluxes.gpp * 100, self.state.lai
                 
                     
                 # save daily fluxes + state for daily output    
@@ -409,8 +408,8 @@ def main():
 
 
     
-    #fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
-    fname = "test.cfg"
+    fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
+    #fname = "test.cfg"
     G = Gday(fname)
     G.run_sim()
     
@@ -436,5 +435,5 @@ def profile_main():
 
 if __name__ == "__main__":
 
-    main()
-    #profile_main()
+    #main()
+    profile_main()

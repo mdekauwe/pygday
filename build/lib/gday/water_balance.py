@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-import math
+from math import log, exp, sqrt, pi
 
 from utilities import float_gt, float_eq, clip
 import constants as const
@@ -59,35 +59,32 @@ class WaterBalance(object):
 
         """
         # met forcing
-        (tavg, rain, sw_rad, vpd, wind, net_rad, ca, 
-         press, amb_co2, net_rad_am, net_rad_pm, vpd_am,
-         vpd_pm, temp_am, temp_pm, 
-         wind_am, wind_pm) = self.get_met_data(day, daylen)
+        (temp, temp_avg, rain, sw_rad, sw_rad_avg, vpd, vpd_avg,  wind, 
+         wind_avg,  net_rad, net_rad_avg, 
+         ca, press, amb_co2) = self.get_met_data(day, daylen)
         
         # calculate water fluxes
         if self.control.trans_model == 0:
             # transpiration calculated from WUE...
-            self.calc_wue(vpd, ca, amb_co2)
+            self.calc_wue(vpd_avg, ca, amb_co2)
             self.calc_transpiration()
         elif self.control.trans_model == 1:
             
             #self.calc_transpiration_penmon(vpd, net_rad, tavg, wind,
             #                                    ca, daylen, press)
-            self.calc_transpiration_penmon_am_pm(net_rad_am, net_rad_pm, wind, ca, daylen, 
-                                                 press, vpd_am, vpd_pm, 
-                                                 temp_am, temp_pm, 
-                                                 wind_am, wind_pm)
-            self.calc_wue(vpd, ca, amb_co2)
+            self.calc_transpiration_penmon_am_pm(net_rad, wind_avg, wind, 
+                                                 ca, daylen, press, vpd, temp)
+            self.calc_wue(vpd_avg, ca, amb_co2)
         elif self.control.trans_model == 2:
-            self.calc_transpiration_priestay(net_rad, tavg, press)
-            self.calc_wue(vpd, ca, amb_co2)
+            self.calc_transpiration_priestay(net_rad_avg, temp_avg, press)
+            self.calc_wue(vpd_avg, ca, amb_co2)
 
         self.calc_infiltration(rain)
-        self.fluxes.soil_evap = self.calc_soil_evaporation(tavg, net_rad,
-                                                            press)
+        self.fluxes.soil_evap = self.calc_soil_evaporation(temp_avg, 
+                                                           net_rad_avg,
+                                                           press)
         self.fluxes.et = (self.fluxes.transpiration + self.fluxes.soil_evap +
-                            self.fluxes.interception)
-
+                          self.fluxes.interception)
         self.fluxes.runoff = self.update_water_storage()
        
         #water_balance = rain - self.fluxes.et- self.fluxes.runoff - self.delta_store
@@ -122,19 +119,19 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-        tavg = self.met_data['tair'][day]
-        temp_am, temp_pm = self.met_data['tam'][day], self.met_data['tpm'][day]
-        sw_rad_am, sw_rad_pm = self.met_data['sw_rad_am'][day], self.met_data['sw_rad_pm'][day]
+        temp_avg = self.met_data['tair'][day]
+        temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
+        sw_rad_avg = self.met_data['sw_rad'][day]
+        sw_rad = [self.met_data['sw_rad_am'][day], \
+                  self.met_data['sw_rad_pm'][day]]
         rain = self.met_data['rain'][day]
-        sw_rad = self.met_data['sw_rad'][day]
-        vpd = self.met_data['vpd_avg'][day] # daytime average
-        wind = self.met_data['wind'][day]
-        net_rad = self.calc_radiation(tavg, sw_rad, daylen)
-        net_rad_am = self.calc_radiation(temp_am, sw_rad_am, daylen/2.0)
-        net_rad_pm = self.calc_radiation(temp_pm, sw_rad_pm, daylen/2.0)
-        vpd_am, vpd_pm =self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]
-        temp_am, temp_pm = self.met_data['tam'][day], self.met_data['tpm'][day]
-        wind_am, wind_pm = self.met_data['wind_am'][day], self.met_data['wind_pm'][day]
+        vpd_avg = self.met_data['vpd_avg'][day] # daytime average
+        vpd = [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
+        wind = [self.met_data['wind_am'][day], self.met_data['wind_pm'][day]]
+        wind_avg = self.met_data['wind'][day]
+        net_rad_avg = self.calc_radiation(temp_avg, sw_rad_avg, daylen)
+        net_rad = [self.calc_radiation(temp[0], sw_rad[0], daylen/2.0), \
+                   self.calc_radiation(temp[1], sw_rad[1], daylen/2.0)]
         
         if self.control.co2_conc == 0:
             #ca = 385.0
@@ -151,9 +148,8 @@ class WaterBalance(object):
         else:
             press = None # use method below to calculate pressure
 
-        return (tavg, rain, sw_rad, vpd, wind, net_rad, ca, press, amb_co2,
-                net_rad_am, net_rad_pm, vpd_am, vpd_pm, temp_am, temp_pm, 
-                wind_am, wind_pm)
+        return (temp, temp_avg, rain, sw_rad, sw_rad_avg, vpd, vpd_avg,  wind, 
+                wind_avg,  net_rad, net_rad_avg, ca, press, amb_co2)
 
     def calc_wue(self, vpd, ca, amb_co2):
         """water use efficiency
@@ -248,8 +244,8 @@ class WaterBalance(object):
         self.fluxes.transpiration = P.calc_evaporation(net_rad, tavg, press,
                                                         pt_coeff=1.26)
 
-    def calc_transpiration_penmon(self, vpd, net_rad, tavg, wind, ca,
-                                        daylen, press):
+    def calc_transpiration_penmon(self, vpd, net_rad, tavg, wind, ca, daylen, 
+                                  press):
         """ Calculate canopy transpiration using the Penman-Monteith equation.
         units mm/day
 
@@ -274,25 +270,21 @@ class WaterBalance(object):
         """
         
         P = PenmanMonteith(canht=self.params.canht, dz0v_dh=self.params.dz0v_dh,
-                            displace_ratio=self.params.displace_ratio)
+                           displace_ratio=self.params.displace_ratio)
         
-        gs = self.calc_stomatal_conductance(vpd, ca, daylen, self.fluxes.gpp_gCm2,
-                                            press, tavg)
-        
+        gs = self.calc_stomatal_conductance(vpd, ca, daylen, 
+                                            self.fluxes.gpp_gCm2, press, tavg)
         transp = P.calc_evaporation(vpd, wind, gs, net_rad, tavg, press)
-        
         tconv = (60.0 * 60.0 * daylen) # seconds to day
         self.fluxes.transpiration = transp * tconv
        
        
         
-    def calc_transpiration_penmon_am_pm(self, net_rad_am, net_rad_pm, wind, ca, 
-                                        daylen, press, vpd_am, vpd_pm, temp_am, 
-                                        temp_pm, wind_am, wind_pm):
+    def calc_transpiration_penmon_am_pm(self, net_rad, wind_avg, wind, ca, 
+                                        daylen, press, vpd, temp, am=0, pm=1):
         """ Calculate canopy transpiration using the Penman-Monteith equation
-        using am and pm data.
-        units mm/day
-
+        using am and pm data [mm/day]
+        
         Parameters:
         -----------
         vpd : float
@@ -317,29 +309,20 @@ class WaterBalance(object):
         P = PenmanMonteith(canht=self.params.canht, dz0v_dh=self.params.dz0v_dh,
                             displace_ratio=self.params.displace_ratio)
         
-        gs_am = self.calc_stomatal_conductance(vpd_am, ca, daylen/2.0, 
-                                                self.fluxes.gpp_am_gCm2, 
-                                                press, temp_am)
-        gs_am_mol_m2_sec = self.fluxes.gs_mol_m2_sec
-        
-        gs_pm = self.calc_stomatal_conductance(vpd_pm, ca, daylen/2.0, 
-                                                self.fluxes.gpp_pm_gCm2,
-                                                press, temp_am)
-        gs_pm_mol_m2_sec = self.fluxes.gs_mol_m2_sec
-        gs = (gs_am + gs_pm) / 2.0
-        self.fluxes.gs_mol_m2_sec = (gs_am_mol_m2_sec + gs_pm_mol_m2_sec) / 2.0
-        
-        
-        transp_am = P.calc_evaporation(vpd_am, wind_am, gs_am, net_rad_am, 
-                                        temp_am, press)
-        transp_pm = P.calc_evaporation(vpd_pm, wind_pm, gs_pm, net_rad_pm, 
-                                        temp_pm, press)
-        
-        ga = P.calc_atmos_boundary_layer_conductance(wind)
+        gs = [None]*2
+        trans = [None]*2
+        gpp = [self.fluxes.gpp_am_gCm2, self.fluxes.gpp_pm_gCm2]
+        for i in am, pm:
+            gs[i] = self.calc_stomatal_conductance(vpd[i], ca, daylen/2.0, 
+                                                   gpp[i], press, temp[i])
+            trans[i] = P.calc_evaporation(vpd[i], wind[i], gs[i], net_rad[i], 
+                                          temp[i], press)
+                                          
+        self.fluxes.gs_mol_m2_sec = sum(gs) / 2.0
+        ga = P.calc_atmos_boundary_layer_conductance(wind_avg)
         self.fluxes.ga_mol_m2_sec = ga / const.CONV_CONDUCT
-        
-        tconv = (60.0 * 60.0 * daylen) # seconds to day
-        self.fluxes.transpiration = (transp_am + transp_pm) / 2.0 * tconv
+        tconv = 60.0 * 60.0 * daylen # seconds to day
+        self.fluxes.transpiration = sum(trans) / 2.0 * tconv
         
     def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
         """ Calculate stomatal conductance, note assimilation rate has been
@@ -376,7 +359,7 @@ class WaterBalance(object):
         tconv =  1.0 / (60.0 * 60.0 * daylen)
         gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * tconv)
         
-        arg1 = 1.6 * (1.0 + (g1_c * self.state.wtfac_root) / math.sqrt(vpd))
+        arg1 = 1.6 * (1.0 + (g1_c * self.state.wtfac_root) / sqrt(vpd))
         arg2 = gpp_umol_m2_sec / ca # umol mol-1
         gs_mol_m2_sec = arg1 * arg2 * const.RATIO_DIFF_H2O_TO_CO2
         
@@ -483,7 +466,7 @@ class WaterBalance(object):
         # not hold as well for a forest canopy?
         # Ritchie 1972, Water Resources Research, 8, 1204-1213.
         
-        soil_evap *= math.exp(-0.398 * self.state.lai)
+        soil_evap *= exp(-0.398 * self.state.lai)
         
         # if the available soil moisture is low the soil evaporation needs to
         # be reduced as well
@@ -821,7 +804,7 @@ class PenmanMonteith(object):
         d = self.displace_ratio * self.canht
 
         arg1 = self.vk**2 * wind
-        arg2 = (math.log((self.canht - d) / z0))**2
+        arg2 = (log((self.canht - d) / z0))**2
         
         return arg1 / arg2
     
@@ -848,7 +831,7 @@ class PenmanMonteith(object):
         wind_speed : float
             adjusted wind speed for height [m s-1]
         """
-        wind *= 4.87 / (math.log(67.8 * self.canht - 5.42))
+        wind *= 4.87 / (log(67.8 * self.canht - 5.42))
         return wind
 
     def calc_slope_of_saturation_vapour_pressure_curve(self, tavg):
@@ -866,7 +849,7 @@ class PenmanMonteith(object):
 
         """
         t = tavg + 237.3
-        arg1 = 4098.0 * (0.6108 * math.exp((17.27 * tavg) / t))
+        arg1 = 4098.0 * (0.6108 * exp((17.27 * tavg) / t))
         arg2 = t**2
         return (arg1 / arg2)
 

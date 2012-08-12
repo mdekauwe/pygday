@@ -5,7 +5,7 @@ __version__ = "1.0 (23.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 import sys
-import math
+from math import pow, exp, sqrt, sin, pi
 import constants as const
 from utilities import float_eq, float_lt, float_gt
 
@@ -138,7 +138,7 @@ class PlantProdModel(object):
             if float_eq(self.params.ncpower, 1.0):
                 lue = rat
             else:
-                lue = math.pow(rat, self.params.ncpower)
+                lue = pow(rat, self.params.ncpower)
 
         return lue * gpp_max * self.state.light_interception
 
@@ -251,7 +251,7 @@ def temp_dep(x):
         temp dependence
 
     """
-    return 1.0 / (1.0 + math.exp(1.693 - 0.1047 * x))
+    return 1.0 / (1.0 + exp(1.693 - 0.1047 * x))
 
 
 
@@ -303,7 +303,7 @@ def main():
         else:
             gcover = 1.0
 
-        adj_state.fapar = ((1.0 - math.exp(-adj_params.kext * adj_state.lai /
+        adj_state.fapar = ((1.0 - exp(-adj_params.kext * adj_state.lai /
                     gcover)) * gcover)
 
         adj_state.shootnc = adj_state.shootn / adj_state.shoot

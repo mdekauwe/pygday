@@ -1,6 +1,6 @@
 """ Carbon production module, call photosynthesis model """
 
-import math
+from math import exp
 
 import constants as const
 from utilities import float_eq, float_lt, float_gt, float_ne
@@ -60,7 +60,7 @@ class PlantGrowth(object):
         
         #self.rm = RootingDepthModel(zval=0.35, r0=0.05, top_soil_depth=0.3)
         
-    def grow(self, project_day, fdecay, rdecay, daylen, doy, days_in_yr):
+    def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, days_in_yr):
         """Evolve plant state, photosynthesis, distribute N and C"
 
         Parameters:
@@ -188,7 +188,7 @@ class PlantGrowth(object):
         # Radiance intercepted by the canopy, accounting for partial closure
         # Jackson and Palmer (1981), derived from beer's law
         if self.state.lai > 0.0:
-            self.state.light_interception = ((1.0 - math.exp(-self.params.kext *
+            self.state.light_interception = ((1.0 - exp(-self.params.kext *
                                              self.state.lai / frac_gcover)) *
                                              frac_gcover)
         else:
@@ -644,15 +644,21 @@ class PlantGrowth(object):
         tsoil = self.met_data['tsoil'][project_day]
         
         # Lloyd and Taylor, 1994
-        temp_resp = (math.exp(308.56 * ((1.0 / 56.02) - (1.0 / 
-                                (tsoil + const.DEG_TO_KELVIN - 227.13)))))
+        if tsoil < -10.0:
+            temp_resp = 0.0
+        else:
+            temp_resp = (exp(308.56 * ((1.0 / 56.02) - (1.0 / 
+                        (tsoil + const.DEG_TO_KELVIN - 227.13)))))
         
-        moist_resp = ((1.0 - math.exp(-1.0 * self.state.wtfac_tsoil)) /  
-                        (1.0 - math.exp(-1.0)))
-        k_exu10 = 0.0714128571 # turnover rate of every 2 weeks in /days (1/14)
+        moist_resp = ((1.0 - exp(-1.0 * self.state.wtfac_tsoil)) /  
+                        (1.0 - exp(-1.0)))
+        
+        # Pool turnover rate = every 2 weeks -> days. Check you have this right
+        # and turn into a parameter if so
+        k_exu10 = 0.0714128571 
         k_exu = k_exu10 * temp_resp * moist_resp
         
-        return  self.state.exu_pool * (1.0 - math.exp(-k_exu))
+        return  self.state.exu_pool * (1.0 - exp(-k_exu))
 
 
 class RootingDepthModel(object):
@@ -802,7 +808,7 @@ class RootingDepthModel(object):
         
         """
         (dmax, rtoti, r0, zval) = args
-        return (r0 * (2.0 * zval * math.exp(0.5 * dmax / zval) - 
+        return (r0 * (2.0 * zval * exp(0.5 * dmax / zval) - 
                 (dmax + 2.0 * zval)))      
     
     def rtot_derivative(self, *args):
@@ -826,7 +832,7 @@ class RootingDepthModel(object):
         
         """
         (dmax, rtoti, r0, zval) = args
-        return r0 * (1.0 * math.exp(0.5 * dmax / zval) - 1.0)
+        return r0 * (1.0 * exp(0.5 * dmax / zval) - 1.0)
     
 
     def calculate_root_mass_above_depth(self, rtoti, root_depth):
@@ -845,7 +851,7 @@ class RootingDepthModel(object):
             cumulative root C mass above soil depth assumed by G'DAY model, 30cm
         """
         arg1 = rtoti + 2.0 * self.r0 * self.zval + root_depth * self.r0
-        arg2 = 1.0 - math.exp(-self.top_soil_depth / (2.0 * self.zval))
+        arg2 = 1.0 - exp(-self.top_soil_depth / (2.0 * self.zval))
         
         return arg1 * arg2 - self.r0 * self.top_soil_depth
         
@@ -869,8 +875,8 @@ class RootingDepthModel(object):
             plant N uptake
         """
         (root_depth, nsupply) = args
-        arg1 = nsupply / (1.0 - math.exp(-self.top_soil_depth / self.zval))
-        arg2 = (1.0 - math.exp(-root_depth / (2.0 * self.zval)))**2
+        arg1 = nsupply / (1.0 - exp(-self.top_soil_depth / self.zval))
+        arg2 = (1.0 - exp(-root_depth / (2.0 * self.zval)))**2
         
         return arg1 * arg2   
 
@@ -973,7 +979,7 @@ if __name__ == "__main__":
         else:
             frac_gcover = 1.0
 
-        state.light_interception = ((1.0 - math.exp(-params.kext *
+        state.light_interception = ((1.0 - exp(-params.kext *
                                             state.lai / frac_gcover)) *
                                             frac_gcover)
 

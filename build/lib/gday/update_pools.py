@@ -16,8 +16,8 @@ def ncflux(cflux, nflux, nc_ratio):
     """
     return cflux * nc_ratio - nflux
 
-class CarbonPools(object):
-    """ Update model C pools"""
+class CarbonSoilPools(object):
+    """ Update model soil C pools"""
 
     def __init__(self, control, params, state, fluxes):
         """
@@ -77,6 +77,7 @@ class CarbonPools(object):
         # zero can end up becoming zero but to a silly decimal place
         self.state.metabsurf += (cmtsu - (self.fluxes.cmetab[0] +
                                  self.fluxes.co2_to_air[2]))
+        
         self.state.metabsoil += (cmtsl - (self.fluxes.cmetab[1] +
                                  self.fluxes.co2_to_air[3]))
         self.state.activesoil += (cact - (self.fluxes.cactive[0] +
@@ -91,8 +92,8 @@ class CarbonPools(object):
 
         return (cact, cslo, cpas)
 
-class NitrogenPools(object):
-    """ Update model N pools"""
+class NitrogenSoilPools(object):
+    """ Update model soil N pools"""
     def __init__(self, control, params, state, fluxes, met_data):
         """
         Parameters
@@ -115,7 +116,7 @@ class NitrogenPools(object):
         self.state = state
         self.met_data = met_data
 
-    def calculate_npools(self, cact, cslo, cpas, day):
+    def calculate_npools(self, cact, cslo, cpas):
         """Calculate new soil N pools.
 
         Parameters:
@@ -126,8 +127,6 @@ class NitrogenPools(object):
             C source flux from the slow pool
         cpas : float
             C source flux from the passive pool
-        day : integer
-            project day of simulation
         """
         # net source fluxes.
         nstsu = self.fluxes.nresid[0]  # s surf

@@ -7,7 +7,7 @@ Slow pool -> resistant plant material, turnover time of 20-50 yrs.
 Passive pool -> very resistant to decomp, turnover time of > 400 yrs.
 """
 
-import math
+from math import exp
 
 import constants as const
 from utilities import float_eq, float_lt, float_le, float_gt, float_ge
@@ -87,38 +87,34 @@ class CarbonFlows(object):
         """
         # temperature factor for decomposition
         tempact = self.soil_temp_factor(project_day)
+        rate_scalar = self.state.wtfac_tsoil * tempact
         
         # decay rate of surface structural pool
         self.params.decayrate[0] = (self.params.kdec1 *
-                                    math.exp(-3. * self.params.ligshoot) *
-                                    tempact * self.state.wtfac_tsoil)
+                                    exp(-3. * self.params.ligshoot) *
+                                    rate_scalar)
 
         # decay rate of surface metabolic pool
-        self.params.decayrate[1] = (self.params.kdec2 * tempact * 
-                                    self.state.wtfac_tsoil)
-
+        self.params.decayrate[1] = self.params.kdec2 * rate_scalar
 
         # decay rate of soil structural pool
-        self.params.decayrate[2] = (self.params.kdec3 *
-                                    math.exp(-3. * self.params.ligroot) *
-                                    tempact * self.state.wtfac_tsoil)
+        self.params.decayrate[2] = (self.params.kdec3 * 
+                                    exp(-3.0 * self.params.ligroot) * 
+                                    rate_scalar)
 
         # decay rate of soil metabolic pool
-        self.params.decayrate[3] = (self.params.kdec4 * tempact * 
-                                    self.state.wtfac_tsoil)
+        self.params.decayrate[3] = self.params.kdec4 * rate_scalar
 
         # decay rate of active pool
         self.params.decayrate[4] = (self.params.kdec5 *
                                     (1.0 - 0.75 * self.params.finesoil) *
-                                    tempact * self.state.wtfac_tsoil)
+                                    rate_scalar)
                                         
         # decay rate of slow pool
-        self.params.decayrate[5] = (self.params.kdec6 * tempact * 
-                                    self.state.wtfac_tsoil)
+        self.params.decayrate[5] = self.params.kdec6 * rate_scalar
 
         # decay rate of passive pool
-        self.params.decayrate[6] = (self.params.kdec7 * tempact * 
-                                    self.state.wtfac_tsoil)
+        self.params.decayrate[6] = self.params.kdec7 * rate_scalar
 
     def soil_temp_factor(self, project_day):
         """Soil-temperature activity factor (A9).
@@ -173,7 +169,7 @@ class CarbonFlows(object):
         nceroot = self.ratio_of_litternc_to_live_rootnc()
 
         if float_eq(nceleaf, 0.0):
-            lnleaf = 1E20
+            lnleaf = 1E20 # This is in the code, but why, this seems a mental thing to do???
         else:
             lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
             
@@ -282,24 +278,23 @@ class CarbonFlows(object):
     def cfluxes_from_struct_pool(self):
         """C fluxes from structural pools """
 
-        structout = self.state.structsurf * self.params.decayrate[0]
-
+        structout1 = self.state.structsurf * self.params.decayrate[0]
+        structout2 = self.state.structsoil * self.params.decayrate[2]
+        
         # surface -> slow
-        self.fluxes.cstruct[0] = structout * self.params.ligshoot * 0.7
+        self.fluxes.cstruct[0] = structout1 * self.params.ligshoot * 0.7
 
         # surface -> active
-        self.fluxes.cstruct[1] = structout * (1. - self.params.ligshoot) * 0.55
-        self.fluxes.co2_to_air[0] = (structout * (self.params.ligshoot * 0.3 +
+        self.fluxes.cstruct[1] = structout1 * (1. - self.params.ligshoot) * 0.55
+        self.fluxes.co2_to_air[0] = (structout1 * (self.params.ligshoot * 0.3 +
                                     (1. - self.params.ligshoot) * 0.45))
 
-        structout = self.state.structsoil * self.params.decayrate[2]
-
         # soil -> slow
-        self.fluxes.cstruct[2] = structout * self.params.ligroot * 0.7
+        self.fluxes.cstruct[2] = structout2 * self.params.ligroot * 0.7
 
         # soil -> active
-        self.fluxes.cstruct[3] = structout * (1. - self.params.ligroot) * 0.45
-        self.fluxes.co2_to_air[1] = (structout * (self.params.ligroot * 0.3 +
+        self.fluxes.cstruct[3] = structout2 * (1. - self.params.ligroot) * 0.45
+        self.fluxes.co2_to_air[1] = (structout2 * (self.params.ligroot * 0.3 +
                                     (1. - self.params.ligroot) * 0.55))
 
     def cfluxes_from_metabolic_pool(self):
@@ -370,7 +365,7 @@ class CarbonFlows(object):
             Net Ecosystem Productivity, C uptake
         """
         return (self.fluxes.npp - self.fluxes.hetero_resp -
-                    self.fluxes.ceaten * (1. - self.params.fracfaeces))
+                self.fluxes.ceaten * (1. - self.params.fracfaeces))
                     
                     
 class NitrogenFlows(object):
@@ -475,7 +470,6 @@ class NitrogenFlows(object):
         nsoil : float
             N input from soil pool
         """
-
         # constant structural input n:c as per century
         
         if not self.control.strfloat:
@@ -512,8 +506,10 @@ class NitrogenFlows(object):
 
     def nfluxes_from_structural_pools(self):
         """ from structural pool """
-        structout = self.state.structsurfn * self.params.decayrate[0]
-        sigwt = (structout / (self.params.ligshoot * 0.7 +
+        structout1 = self.state.structsurfn * self.params.decayrate[0]
+        structout2 = self.state.structsoiln * self.params.decayrate[2]
+        
+        sigwt = (structout1 / (self.params.ligshoot * 0.7 +
                 (1. - self.params.ligshoot) * 0.55))
 
         # surface -> slow
@@ -522,8 +518,7 @@ class NitrogenFlows(object):
         # surface -> active
         self.fluxes.nstruct[1] = sigwt * (1. - self.params.ligshoot) * 0.55
 
-        structout = self.state.structsoiln * self.params.decayrate[2]
-        sigwt = (structout / (self.params.ligroot * 0.7 +
+        sigwt = (structout2 / (self.params.ligroot * 0.7 +
                 (1. - self.params.ligroot) * 0.45))
 
         # soil -> slow
