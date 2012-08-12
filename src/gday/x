@@ -1,0 +1,133 @@
+************* Module gday.gday
+I0011:395,0: Locally disabling C0103
+I0011:396,0: Locally disabling C0324
+C0301:404,0: Line too long (103/80)
+W0403: 10,0: Relative import 'constants', should be 'gday.constants'
+W0403: 11,0: Relative import 'file_parser', should be 'gday.file_parser'
+W0403: 12,0: Relative import 'plant_growth', should be 'gday.plant_growth'
+W0403: 13,0: Relative import 'print_outputs', should be 'gday.print_outputs'
+W0403: 14,0: Relative import 'litter_production', should be 'gday.litter_production'
+W0403: 15,0: Relative import 'soil_cnflows', should be 'gday.soil_cnflows'
+W0403: 16,0: Relative import 'update_pools', should be 'gday.update_pools'
+W0403: 17,0: Relative import 'utilities', should be 'gday.utilities'
+W0403: 18,0: Relative import 'phenology', should be 'gday.phenology'
+R0902: 26,0:Gday: Too many instance attributes (18/7)
+C0103:105,8:Gday.__init__: Invalid name "cf" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103:107,8:Gday.__init__: Invalid name "nf" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103: 78,8:Gday.__init__: Invalid name "pr" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103:120,12:Gday.__init__: Invalid name "P" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103:111,8:Gday.__init__: Invalid name "pg" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103:109,8:Gday.__init__: Invalid name "lf" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103: 47,4:Gday.__init__: Invalid name "DUMP" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103: 47,35:Gday.__init__: Invalid name "DUMP" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103:161,12:Gday.run_sim: Invalid name "yr" (should match [a-z_][a-z0-9_]{2,30}$)
+W0612:216,16:Gday.print_output_file: Unused variable 'conv'
+C0111:226,4:Gday.zero_annual_sums: Missing docstring
+C0103:247,4:Gday.day_end_calculations: Invalid name "INIT" (should match [a-z_][a-z0-9_]{2,30}$)
+C0103:247,62:Gday.day_end_calculations: Invalid name "INIT" (should match [a-z_][a-z0-9_]{2,30}$)
+C0111:317,4:Gday.initialise_deciduous_model: Missing docstring
+C0103:343,8:Gday.allocate_stored_c_and_n: Invalid name "Un" (should match [a-z_][a-z0-9_]{2,30}$)
+
+
+Report
+======
+176 statements analysed.
+
+Messages by category
+--------------------
+
++-----------+-------+---------+-----------+
+|type       |number |previous |difference |
++===========+=======+=========+===========+
+|convention |15     |15       |=          |
++-----------+-------+---------+-----------+
+|refactor   |1      |1        |=          |
++-----------+-------+---------+-----------+
+|warning    |10     |11       |-1.00      |
++-----------+-------+---------+-----------+
+|error      |0      |0        |=          |
++-----------+-------+---------+-----------+
+
+
+
+Messages
+--------
+
++-----------+------------+
+|message id |occurrences |
++===========+============+
+|C0103      |12          |
++-----------+------------+
+|W0403      |9           |
++-----------+------------+
+|C0111      |2           |
++-----------+------------+
+|W0612      |1           |
++-----------+------------+
+|R0902      |1           |
++-----------+------------+
+|C0301      |1           |
++-----------+------------+
+
+
+
+Global evaluation
+-----------------
+Your code has been rated at 8.52/10 (previous run: 8.47/10)
+
+Statistics by type
+------------------
+
++---------+-------+-----------+-----------+------------+---------+
+|type     |number |old number |difference |%documented |%badname |
++=========+=======+===========+===========+============+=========+
+|module   |1      |1          |=          |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|class    |1      |1          |=          |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|method   |10     |10         |=          |80.00       |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|function |2      |2          |=          |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+
+
+
+Raw metrics
+-----------
+
++----------+-------+------+---------+-----------+
+|type      |number |%     |previous |difference |
++==========+=======+======+=========+===========+
+|code      |230    |58.67 |230      |=          |
++----------+-------+------+---------+-----------+
+|docstring |90     |22.96 |90       |=          |
++----------+-------+------+---------+-----------+
+|comment   |36     |9.18  |36       |=          |
++----------+-------+------+---------+-----------+
+|empty     |36     |9.18  |36       |=          |
++----------+-------+------+---------+-----------+
+
+
+
+Duplication
+-----------
+
++-------------------------+------+---------+-----------+
+|                         |now   |previous |difference |
++=========================+======+=========+===========+
+|nb duplicated lines      |0     |0        |=          |
++-------------------------+------+---------+-----------+
+|percent duplicated lines |0.000 |0.000    |=          |
++-------------------------+------+---------+-----------+
+
+
+
+External dependencies
+---------------------
+::
+
+    cProfile (gday.gday)
+    pstats (gday.gday)
+
+
+
