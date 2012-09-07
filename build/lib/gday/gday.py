@@ -68,12 +68,11 @@ class Gday(object):
 
         """
         self.day_output = [] # store daily outputs
-        
         (self.control, self.params,
             self.state, self.files,
             self.fluxes, self.met_data,
             self.print_opts) = initialise_model_data(fname, DUMP=DUMP)
-
+        
         # printing stuff
         self.pr = PrintOutput(self.params, self.state, self.fluxes,
                               self.control, self.files, self.print_opts)
@@ -82,7 +81,7 @@ class Gday(object):
         if DUMP == True:
             self.pr.save_default_parameters()
             sys.exit(0)
-
+        
         if self.control.print_options > 1:
             raise ValueError("Unknown output print option: %s  (try 0 or 1)" %
                              self.control.print_options)
@@ -114,6 +113,7 @@ class Gday(object):
                                self.fluxes)
         self.npl = NitrogenSoilPools(self.control, self.params, self.state, 
                                  self.fluxes, self.met_data)
+        
         
         if self.control.deciduous_model:
             self.initialise_deciduous_model()
@@ -188,10 +188,10 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year)
                 
-                #if self.spin_up == False:
-                #    print self.fluxes.gpp * 100, self.state.lai
+                if self.spin_up == False:
+                    print self.fluxes.gpp * 100, self.state.lai, \
+                          self.fluxes.transpiration, self.state.pawater_root
                 
-                    
                 # save daily fluxes + state for daily output    
                 if self.control.print_options == 0:
                     self.save_daily_outputs(yr, doy+1)

@@ -124,8 +124,12 @@ nmin0            = 0.0       # Mineral N pool corresponding to Actnc0,etc (g/m2)
 #set water model parameters
 wcapac_root       = 240.0 #Max plant avail soil water -root zone, i.e. total (mm) (smc_sat-smc_wilt) * root_depth (750mm) = [mm (water) / m (soil depth)]
 wcapac_topsoil    = 100.0 #Max plant avail soil water -top soil (mm)
-fwpmax            = 0.52  #Fractional water content at saturation point (max production)
-fwpmin            = 0.2   #Fractional water content at wilting point (no production)
+fwpmax_tsoil      = None  #Fractional water content at field capacity (max production). By default not set, values derived from Cosby eqns
+fwpmin_tsoil      = None   #Fractional water content at wilting point (no production). By default not set, values derived from Cosby eqns
+fwpmax_root       = None  #Fractional water content at field capacity (max production). By default not set, values derived from Cosby eqns
+fwpmin_root       = None   #Fractional water content at wilting point (no production). By default not set, values derived from Cosby eqns
+topsoil_type      = None
+rootsoil_type     = None
 fractup_soil      = 0.5   #fraction of uptake from top soil layer
 extraction        = 0.007 #water extractn by unit root mass(ha/tC/d)
 wue0              = 3.0   #WUE if VPD=1kPa, CO2=350ppm (gC*kPa/kgH2O)

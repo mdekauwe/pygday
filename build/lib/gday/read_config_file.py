@@ -27,9 +27,8 @@ class LoadConfigFile(object):
             filename of parameter (CFG) file [including path]
 
         """
-        self.config_file = fname
-
-
+        self.config_file = open(fname, "r")
+        
     def load_files(self):
         """ load config file, return a dictionary
 
@@ -43,6 +42,8 @@ class LoadConfigFile(object):
             config = ConfigObj(self.config_file, unrepr=True)
         except (ConfigObjError, IOError), e:
             raise IOError('%s' % e)
+        self.config_file.close()
+        sys.exit()
         return config
 
     def get_config_dicts(self, config_dict):

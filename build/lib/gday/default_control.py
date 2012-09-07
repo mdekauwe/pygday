@@ -32,3 +32,4 @@ co2_conc = 0           # 0=ambient, 1=elevated
 fixed_stem_nc = 1      # 0=vary stem N:C with foliage, 1=fixed stem N:C
 calc_gbl = 0           # calculate leaf boundary conductance, 0=No, 1=Yes
 deciduous_model = 0    # evergreen_model=0, deciduous_model=1
+calc_sw_params = 0     # 0=user supplies field capacity and wilting point, 1=calculate them based on cosby et al.
