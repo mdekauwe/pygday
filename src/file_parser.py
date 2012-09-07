@@ -13,7 +13,7 @@ import default_control as c
 import default_state as s
 import default_files as fi
 import default_fluxes
-from read_config_file import LoadConfigFile
+from configobj import ConfigObj, ConfigObjError
 
 def initialise_model_data(fname, DUMP=True):
     """ Load default model data, met forcing and return
@@ -48,15 +48,15 @@ def initialise_model_data(fname, DUMP=True):
     reload(fi)
     reload(p)
     
-    R = ReadUserConfigFile(fname)
+    R = ReadConfigFile(fname)
     config_dict = R.load_files()
     (user_control, user_params, user_state,
         user_files, user_fluxes, user_print) = R.get_config_dicts(config_dict)
-
+   
     # get driving data
     forcing_data = read_met_forcing(fname=user_files['met_fname'])
     
-   
+    
     
     # read in default modules and then adjust these
     if DUMP == False:
@@ -74,14 +74,41 @@ def initialise_model_data(fname, DUMP=True):
             user_print)
 
 
-class ReadUserConfigFile(LoadConfigFile):
-    """ Read user supplied config file.
 
-    Return various dictionaries based on defined sections. Note this is a
-    sub-class of the generic LoadConfigFile class.
+class ReadConfigFile(object):
+    """ Read supplied config file (.cfg/.ini).
+
+    Return various dictionaries based on defined sections. 
     """
+    def __init__(self, fname):
+
+        """
+        Parameters:
+        ----------
+        fname : string
+            filename of parameter (CFG) file [including path]
+
+        """
+        self.config_file = fname
+    
+    def load_files(self):
+        """ load config file, return a dictionary
+
+        Returns:
+        --------
+        config : object
+            user defined parameter file as an object
+
+        """
+        try:
+            config = ConfigObj(self.config_file, unrepr=True)
+        except (ConfigObjError, IOError), e:
+            raise IOError('%s' % e)
+        
+        return config
+        
     def get_config_dicts(self, config_dict):
-        """ split the dictionary into chuncks
+        """ reak config dictionary into small dictionaries based on sections.
 
         Parameters:
         -----------
@@ -143,7 +170,7 @@ def read_met_forcing(fname, comment='#'):
                     data.setdefault(name, []).append(value) 
         f.close()
     except IOError:
-        raise IOError('Could not read met file: "%s"' % fname)
+        raise IOError('Could not read met file: "%d"' % fname)
 
     return data
     
@@ -166,6 +193,7 @@ def adjust_object_attributes(user_dict, obj):
     # check user hasn't specified a parameter we are not expecting...
     # make sure parameters is not named a reserved python word
     ignore = ['cfg_fname']
+    special = ['topsoil_type', 'rootsoil_type']
     bad_words = keyword.kwlist
     bad_vars = [method for method in dir(str) if method[:2]=='__']
     for key, value in user_dict.iteritems():
@@ -177,10 +205,12 @@ def adjust_object_attributes(user_dict, obj):
             err_msg = "You cant name your parameter anything from:\n\n %s" \
                            % bad_words
             raise RuntimeError, err_msg
-        elif hasattr(obj, key):
+        elif key in special and not ignore:
             setattr(obj, key, value)
-        elif key in ignore:
+        elif key in ignore and not special:
             # we need to keep the default location names for the output dump
+            setattr(obj, key, value)
+        elif hasattr(obj, key):
             setattr(obj, key, value)
         else:
             err_msg = ".cfg file contains variable not in the model: %s" % key

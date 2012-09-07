@@ -10,8 +10,7 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (02.05.2012)"
 __email__   = "mdekauwe@gmail.com"
 
-
-
+          
 class WaterBalance(object):
     """Dynamic water balance model.
 
@@ -82,11 +81,13 @@ class WaterBalance(object):
         self.calc_infiltration(rain)
         self.fluxes.soil_evap = self.calc_soil_evaporation(temp_avg, 
                                                            net_rad_avg,
-                                                           press)
+                                                           press, daylen, 
+                                                           sw_rad_avg)
         self.fluxes.et = (self.fluxes.transpiration + self.fluxes.soil_evap +
                           self.fluxes.interception)
         self.fluxes.runoff = self.update_water_storage()
-       
+        
+        
         #water_balance = rain - self.fluxes.et- self.fluxes.runoff - self.delta_store
         
         
@@ -324,6 +325,8 @@ class WaterBalance(object):
         tconv = 60.0 * 60.0 * daylen # seconds to day
         self.fluxes.transpiration = sum(trans) / 2.0 * tconv
         
+        
+        
     def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
         """ Calculate stomatal conductance, note assimilation rate has been
         adjusted for water availability at this point.
@@ -404,16 +407,15 @@ class WaterBalance(object):
         """
         # Net loss of longwave radiation
         # Monteith and Unsworth '90, pg. 52, 54.
-
         net_lw = (107.0 - 0.3 * tavg) * daylen * const.WATT_HR_TO_MJ
         net_rad = max(0.0, sw_rad * (1.0 - self.params.albedo) - net_lw)
-
+       
         # convert units for met data
         tconv = 1.0 / (60.0 * 60.0 * daylen)  # day-1 to seconds-1
         
         return net_rad * tconv # MJ m-2 s-1
 
-    def calc_soil_evaporation(self, tavg, net_rad, press):
+    def calc_soil_evaporation(self, tavg, net_rad, press, daylen, sw_rad):
         """ Use Penman eqn to calculate top soil evaporation flux at the
         potential rate.
 
@@ -465,15 +467,15 @@ class WaterBalance(object):
         # are only 12 measurements and only three from LAI > 3. So this might
         # not hold as well for a forest canopy?
         # Ritchie 1972, Water Resources Research, 8, 1204-1213.
-        
         soil_evap *= exp(-0.398 * self.state.lai)
         
-        # if the available soil moisture is low the soil evaporation needs to
-        # be reduced as well
+        # reduce soil evaporation if top soil is dry
         soil_evap *= self.state.wtfac_tsoil
+        tconv = 60.0 * 60.0 * daylen # seconds to day
         
-        return soil_evap
-
+        return soil_evap * tconv
+        
+        
     def update_water_storage(self):
         """ Calculate root and top soil plant available water and runoff.
         
@@ -516,6 +518,119 @@ class WaterBalance(object):
         
         return runoff
 
+
+class SoilMoisture(object):
+    """ Estimate current soil moisture factor 
+    
+    Parameters
+    ----------
+    control : integers, object
+        model control flags
+    params: floats, object
+        model parameters
+    state: floats, object
+        model state
+    fluxes : floats, object
+        model fluxes
+    
+    References:
+    -----------
+    * Cosby et al. (1984) Water Resources Research, 20, 682-690.
+    """
+    def __init__(self, control, params, state, fluxes):
+        
+        self.params = params
+        self.fluxes = fluxes
+        self.control = control
+        self.state = state
+        self.silt_index = 0
+        self.sand_index = 1
+        self.clay_index = 2
+        
+        # initialise parameters, if these are not known for the site use
+        # values derived from Cosby et al will be used instead.
+        if self.control.calc_sw_params:
+            fsoil_top = self.get_soil_fracs(self.params.topsoil_type)
+            fsoil_root = self.get_soil_fracs(self.params.rootsoil_type)  
+            (self.wp_tsoil, self.cp_tsoil) = self.calc_soil_params(fsoil_top)
+            (self.wp_root, self.cp_root) = self.calc_soil_params(fsoil_root)
+        else:
+            self.cp_tsoil = self.params.fwpmax_tsoil
+            self.wp_tsoil = self.params.fwpmin_tsoil
+            self.cp_root = self.params.fwpmax_root
+            self.wp_root = self.params.fwpmin_root
+       
+        #print (self.cp_tsoil-self.wp_tsoil) * 50.0
+        #print (self.cp_root-self.wp_root) * 750.0
+        #print (self.cp_tsoil-self.wp_tsoil) * 50.0
+        #print (self.cp_root-self.wp_root) * 2000.0
+        #sys.exit()
+       
+    def get_soil_fracs(self, soil_type):
+        """ Based on Table 2 in Cosby et al """
+        fsoil = None
+        if soil_type == "sand":
+            fsoil = [0.05, 0.92, 0.03]
+        elif soil_type == "loamy_sand":
+            fsoil = [0.12, 0.82, 0.06]
+        elif soil_type == "sandy_loam":
+            fsoil = [0.32, 0.58, 0.1]
+        elif soil_type == "loam":
+            fsoil = [0.39, 0.43, 0.18]
+        elif soil_type == "silty_loam":
+            fsoil = [0.70, 0.17, 0.13]
+        elif soil_type == "sandy_clay_loam":
+            fsoil = [0.15, 0.58, 0.27]
+        elif soil_type == "clay_loam":
+            fsoil = [0.34, 0.32, 0.34]
+        elif soil_type == "silty_clay_loam":
+            fsoil = [0.56, 0.1, 0.34]
+        elif soil_type == "sandy_clay":
+            fsoil = [0.06, 0.52, 0.42]
+        elif soil_type == "silty_clay":
+            fsoil = [0.47, 0.06, 0.47]
+        elif soil_type == "clay":
+            fsoil = [0.2, 0.22, 0.58]
+        else:
+            print 'Could not understand soil type', soil_type
+            sys.exit()
+        return fsoil
+    
+    def calc_soil_params(self, fsoil):
+        """ Calculate the primary hydraulic parameters 
+        
+        Parameters:
+        ----------
+        fsoil : list
+            fraction of silt, sand, and clay (in that order
+        
+        Returns:
+        --------
+        wp : float
+            wilting point
+        cp : float
+            critical point
+        """
+        b = 3.1 + 15.7 * fsoil[self.clay_index] - 0.3 * fsoil[self.clay_index] 
+        # saturated hydraulic conductivity kg m-2 s-1
+        sathh = 0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * \
+                fsoil[self.clay_index])
+        
+        # volumetric soil moisture concentrations at the saturation point
+        sp = 0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * \
+             fsoil[self.sand_index]
+       
+        # volumetric soil moisture concentrations at the wilting point
+        # assumed to = to a suction of -1.5 MPa or a depth of water of 152.9 m
+        wp = sp * (sathh / 152.9)**(1.0 / b)
+    
+        
+        # volumetric soil moisture concentrations at the critical point
+        # assumed to = to a suction of -0.033 MPa or a depth of water of 3.364 m
+        cp = sp * (sathh / 3.364)**(1.0 / b)
+        
+        return wp, cp
+    
     def calculate_soil_water_fac(self):
         """ Estimate a relative water availability factor [0..1]
 
@@ -541,18 +656,17 @@ class WaterBalance(object):
         # turn into fraction...
         smc_root = self.state.pawater_root / self.params.wcapac_root
         smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
-
+        
         # Calculate a soil moisture availability factor, used to adjust
         # ci/ca ratio in the face of limited water supply.
-        arg = self.params.fwpmax - self.params.fwpmin
-        wtfac_tsoil = (smc_topsoil - self.params.fwpmin) / arg
-        wtfac_root = (smc_root - self.params.fwpmin) / arg
+        wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
+                        (self.cp_tsoil - self.wp_tsoil))
+       
+        wtfac_root = (smc_root - self.wp_root) / (self.cp_root - self.wp_root)
         
-        #return 1.0, 1.0
         return (clip(wtfac_tsoil, min=0.0, max=1.0), 
-                clip(wtfac_root, min=0.0, max=1.0))
-        
-        
+                clip(wtfac_root, min=0.0, max=1.0))   
+        #return 1.0, 1.0
         
 
 

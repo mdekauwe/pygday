@@ -64,7 +64,6 @@ class PrintOutput(object):
         except IOError:
             raise IOError("Can't open %s file for write" %
                             self.default_param_fname)
-
         self.print_parameters(oparams=oparams)
 
         # tidy up
@@ -110,18 +109,20 @@ class PrintOutput(object):
                   'fmfaeces', 'light_interception', 'wtfac_tsoil', \
                   'wtfac_root', 'remaining_days', 'growing_days', \
                   'leaf_out_days']
-        self.dump_ini_data("[files]\n", self.files, ignore, oparams, 
+        special = ['rootsoil_type', 'topsoil_type']
+        self.dump_ini_data("[files]\n", self.files, ignore, special, oparams, 
                             print_tag=False, print_files=True)
-        self.dump_ini_data("\n[params]\n", self.params, ignore, oparams, 
+        self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams, 
                             print_tag=False, print_files=False)
-        self.dump_ini_data("\n[state]\n", self.state, ignore, oparams, 
+        self.dump_ini_data("\n[state]\n", self.state, ignore, special, oparams, 
                             print_tag=False, print_files=False)
-        self.dump_ini_data("\n[control]\n", self.control, ignore, oparams, 
-                            print_tag=False, print_files=False)
-        self.dump_ini_data("\n[print]\n", self.print_opts, ignore, oparams, 
-                            print_tag=True, print_files=False)
+        self.dump_ini_data("\n[control]\n", self.control, ignore, special, 
+                            oparams, print_tag=False, print_files=False)
+        self.dump_ini_data("\n[print]\n", self.print_opts, ignore, special,
+                            oparams, print_tag=True, print_files=False)
         
-    def dump_ini_data(self, ini_section_tag, obj, ignore, fp, print_tag=False,
+    def dump_ini_data(self, ini_section_tag, obj, ignore, special, fp, 
+                        print_tag=False,
                         print_files=False):
         """ Get user class attributes and exclude builitin attributes
         Returns a list
@@ -146,11 +147,16 @@ class PrintOutput(object):
             data = [i for i in dir(obj) if not i.startswith('__') \
                     and i not in ignore]
             data.sort()
+            
             if print_tag == False and print_files == False:
-                fp.writelines("%s = %s\n" % (i, getattr(obj, i)) 
-                                    for i in data)
+                for i in data:
+                    if i in special:
+                        fp.writelines('%s = "%s"\n' % (i, getattr(obj, i)))
+                    else:
+                        fp.writelines("%s = %s\n" % (i, getattr(obj, i)))
+                                    
             elif print_tag == False and print_files == True:
-                 fp.writelines('%s = "%s"\n' % (i, getattr(obj, i)) 
+                fp.writelines('%s = "%s"\n' % (i, getattr(obj, i)) 
                                 for i in data)
             elif print_tag == True and print_files == False:
                 fp.writelines('%s = "%s"\n' % (i, "yes") for i in obj)

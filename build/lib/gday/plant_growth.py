@@ -6,7 +6,7 @@ import constants as const
 from utilities import float_eq, float_lt, float_gt, float_ne
 from bewdy import Bewdy
 from plant_production_mcmurtrie import PlantProdModel
-from water_balance import WaterBalance, WaterLimitedNPP
+from water_balance import WaterBalance, WaterLimitedNPP, SoilMoisture
 from mate import Mate
 
 __author__  = "Martin De Kauwe"
@@ -57,6 +57,9 @@ class PlantGrowth(object):
 
         self.mt = Mate(self.control, self.params, self.state, self.fluxes,
                        self.met_data)
+        
+        self.sm = SoilMoisture(self.control, self.params, self.state, 
+                               self.fluxes)
         
         #self.rm = RootingDepthModel(zval=0.35, r0=0.05, top_soil_depth=0.3)
         
@@ -197,7 +200,7 @@ class PlantGrowth(object):
         # Calculate the soil moisture availability factors [0,1] in the topsoil
         # and the entire root zone
         (self.state.wtfac_tsoil, 
-            self.state.wtfac_root) = self.wb.calculate_soil_water_fac()
+            self.state.wtfac_root) = self.sm.calculate_soil_water_fac()
         
         # Estimate photosynthesis using an empirical model
         if self.control.assim_model >=0 and self.control.assim_model <= 4:
