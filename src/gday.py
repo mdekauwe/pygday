@@ -33,8 +33,7 @@ class Gday(object):
     and passive). An adapted implementation of the CENTURY model simulates soil
     carbon and nutrient dynamics. There is an additional simple soil water
     balance module which can be used to limit growth. Model pools can be thought
-    of as buckets as they don't have dimensions. This is in essence a port
-    of the C++ code, but I am changing things at will (be warned)!
+    of as buckets as they don't have dimensions. 
 
     References:
     ----------
@@ -188,9 +187,14 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year)
                 
-                if self.spin_up == False:
-                    print self.fluxes.gpp * 100, self.state.lai, \
-                          self.fluxes.transpiration, self.state.pawater_root
+                #if self.spin_up == False:
+                #    print self.fluxes.gpp * 100, self.state.lai, \
+                #          self.fluxes.transpiration, self.state.pawater_root
+                
+                #if self.fluxes.transpiration  == 0.0:
+                #    print yr, self.params.g1 * self.state.wtfac_root, self.state.pawater_root / self.params.wcapac_root,0.0 
+                #else:
+                #    print yr, self.params.g1 * self.state.wtfac_root, self.state.pawater_root / self.params.wcapac_root,self.fluxes.gpp_gCm2 / self.fluxes.transpiration
                 
                 # save daily fluxes + state for daily output    
                 if self.control.print_options == 0:
