@@ -33,8 +33,7 @@ class Gday(object):
     and passive). An adapted implementation of the CENTURY model simulates soil
     carbon and nutrient dynamics. There is an additional simple soil water
     balance module which can be used to limit growth. Model pools can be thought
-    of as buckets as they don't have dimensions. This is in essence a port
-    of the C++ code, but I am changing things at will (be warned)!
+    of as buckets as they don't have dimensions. 
 
     References:
     ----------
