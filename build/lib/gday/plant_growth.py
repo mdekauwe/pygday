@@ -367,22 +367,20 @@ class PlantGrowth(object):
             # If we have allocated more N than we have available 
             #  - cut back N prodn
             arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +
-                   self.fluxes.npbranch + self.fluxes.nrootexudate)
+                   self.fluxes.npbranch )
     
             if float_gt(arg, ntot) and not self.control.fixleafnc:
                 self.fluxes.npp *= (ntot / (self.fluxes.npstemimm +
                                     self.fluxes.npstemmob + 
-                                    self.fluxes.npbranch + 
-                                    self.fluxes.nrootexudate))
+                                    self.fluxes.npbranch ))
                 self.fluxes.npbranch = self.fluxes.npp * self.state.albranch * ncbnew
                 self.fluxes.npstemimm = self.fluxes.npp * self.state.alstem * ncwimm
                 self.fluxes.npstemmob = (self.fluxes.npp * self.state.alstem * 
                                         (ncwnew - ncwimm))
-                self.fluxes.nrootexudate = (self.fluxes.npp * self.state.alroot_exudate * 
-                                            self.params.vxfix)
+                
                 
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
-                        self.fluxes.npstemmob + self.fluxes.nrootexudate)
+                        self.fluxes.npstemmob)
             
             # allocate remaining N to flexible-ratio pools
             self.fluxes.npleaf = (ntot * self.state.alleaf / 
