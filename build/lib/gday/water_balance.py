@@ -312,13 +312,17 @@ class WaterBalance(object):
         
         gs = [None]*2
         trans = [None]*2
+        omegax = [None]*2
         gpp = [self.fluxes.gpp_am_gCm2, self.fluxes.gpp_pm_gCm2]
         for i in am, pm:
             gs[i] = self.calc_stomatal_conductance(vpd[i], ca, daylen/2.0, 
                                                    gpp[i], press, temp[i])
-            trans[i] = P.calc_evaporation(vpd[i], wind[i], gs[i], net_rad[i], 
-                                          temp[i], press)
-                                          
+            trans[i], omegax[i] = P.calc_evaporation(vpd[i], wind[i], gs[i], 
+                                                    net_rad[i], 
+                                                    temp[i], press)
+        # print out pre-noon values
+        #print self.fluxes.omega = omegax[0]
+        self.fluxes.omega = sum(omegax) / 2.0                                  
         self.fluxes.gs_mol_m2_sec = sum(gs) / 2.0
         ga = P.calc_atmos_boundary_layer_conductance(wind_avg)
         self.fluxes.ga_mol_m2_sec = ga / const.CONV_CONDUCT
@@ -875,7 +879,7 @@ class PenmanMonteith(object):
             et = 0.0
             omega = 0.0
         
-        return et
+        return et, omega
 
     def calc_atmos_boundary_layer_conductance(self, wind):
         """ atmospheric boundary layer conductance, i.e. 1/ra

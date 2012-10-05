@@ -192,9 +192,9 @@ class Gday(object):
                 #          self.fluxes.transpiration, self.state.pawater_root
                 
                 #if self.fluxes.transpiration  == 0.0:
-                #    print yr, self.params.g1 * self.state.wtfac_root, self.state.pawater_root / self.params.wcapac_root,0.0 
+                #    print yr, self.state.pawater_root / self.params.wcapac_root,0.0 
                 #else:
-                #    print yr, self.params.g1 * self.state.wtfac_root, self.state.pawater_root / self.params.wcapac_root,self.fluxes.gpp_gCm2 / self.fluxes.transpiration
+                #    print yr, self.state.pawater_root / self.params.wcapac_root,self.fluxes.gpp_gCm2 / self.fluxes.transpiration
                 
                 # save daily fluxes + state for daily output    
                 if self.control.print_options == 0:
