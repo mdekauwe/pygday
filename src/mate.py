@@ -135,10 +135,12 @@ class Mate(object):
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
         # Rubisco-limited rate of photosynthesis
-        ac = [self.aclim(ci[k], gamma_star[k], km[k], vcmax[k]) for k in am, pm]
+        ac = [self.farq(ci[k], gamma_star[k], a1=vcmax[k], a2=km[k]) \
+              for k in am, pm]
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
-        aj = [self.ajlim(jmax[k], ci[k], gamma_star[k]) for k in am, pm]
+        aj = [self.farq(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
+              a2=2.0*gamma_star[k]) for k in am, pm]
         
         # Note that these are gross photosynthetic rates. Response to elevated
         # [CO2] is reduced if N declines, but increases as gs declines.
@@ -272,7 +274,8 @@ class Mate(object):
         Returns:
         -------
         value : float, list [am, pm]
-            km, effective Michaelis-Menten constant for Rubisco catalytic activity
+            km, effective Michaelis-Menten constant for Rubisco catalytic 
+            activity
         
         References:
         -----------
@@ -307,7 +310,7 @@ class Mate(object):
         
     def calculate_jmax_parameter(self, Tk, N0):
         """ Calculate the maximum RuBP regeneration rate for light-saturated 
-        leaves at the top of the canopy (proportional to leaf-N content). 
+        leaves at the top of the canopy. 
 
         Parameters:
         ----------
@@ -336,7 +339,8 @@ class Mate(object):
         return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
     def calculate_vcmax_parameter(self, Tk, N0):
-        """ Max rate of electron transport, Jmax. 
+        """ Calculate the maximum rate of rubisco-mediated carboxylation at the
+        top of the canopy
 
         Parameters:
         ----------
@@ -361,51 +365,31 @@ class Mate(object):
         
         return [self.arrh(vcmax25, self.params.eav, Tk[k]) for k in am, pm]
     
-    def aclim(self, ci, gamma_star, km, vcmax):
-        """Morning and afternoon calcultion of photosynthesis when Rubisco
-        activity is limiting, Ac.
-
+    def farq(self, ci, gamma_star, a1, a2):
+        """Morning and afternoon calcultion of photosynthesis with the 
+        limitation defined by the variables passed as a1 and a2, i.e. if we 
+        are calculating vcmax or jmax limited.
+        
         Parameters:
         ----------
         ci : float
             intercellular CO2 concentration.
         gamma_star : float
             CO2 compensation point in the abscence of mitochondrial respiration
-        km : float
-            effective Michaelis-Menten constant for Rubisco catalytic activity
-            for CO2
-        vcmax : float
-            maximum rate of Rubisco activity
+        a1 : float
+            variable depends on whether the calculation is light or rubisco 
+            limited.
+        a2 : float
+            variable depends on whether the calculation is light or rubisco 
+            limited.
 
         Returns:
         -------
         assimilation_rate : float
-            assimilation rate when Rubisco activity is limiting
-
+            assimilation rate assuming either light or rubisco limitation.
         """
-        return max(0.0, (ci - gamma_star) * vcmax) / (ci + km)
-
-    def ajlim(self, jmax, ci, gamma_star):
-        """Morning and afternoon calcultion of photosynthesis when
-        ribulose-1,5-bisphosphate (RuBP)-regeneration is limiting
-
-        Parameters:
-        ----------
-        jmax : float
-            maximum rate of electron transport
-        ci : float
-            intercellular CO2 concentration.
-        gamma_star : float
-            CO2 compensation point in the abscence of mitochondrial respiration
-
-        Returns:
-        -------
-        assimilation_rate : float
-            photosynthesis when RuBP regeneration is limiting
-
-        """
-        return (jmax * (ci - gamma_star)) / (4.0 * (ci + 2.0 * gamma_star))
-
+        return a1 * (ci - gamma_star) / (a2 + ci) 
+   
     def calculate_ci_ca_ratio(self, vpd):
         """ Calculate the ratio of intercellular to atmos CO2 conc
 
@@ -430,7 +414,9 @@ class Mate(object):
         return g1w / (g1w + sqrt(vpd))
 
     def epsilon(self, amax, par, daylen, alpha):
-        """ Canopy scale LUE using method from Sands 1995, 1996.
+        """ Canopy scale LUE using method from Sands 1995, 1996. 
+        
+        Using the rectangle method to approximate the integral
 
         Parameters:
         ----------
@@ -456,22 +442,20 @@ class Mate(object):
         * Sands, P. J. (1995) Australian Journal of Plant Physiology, 22, 601-14.
 
         """
+        delta = 0.16666666667 # subintervals scaler for integral
         if float_gt(amax, 0.0):
             q = (pi * self.params.kext * alpha * par /
                  (2.0 * daylen * const.HRS_TO_SECS * amax))
-
-            # check sands but shouldn't it be 2 * q * sin x on the top?
-            f = (lambda x: x / (1.0 + q * x + sqrt((1.0 + q * x)**2.0 -
-                            4.0 * self.params.theta * q * x)))
-            g = [f(sin(pi * i / 24.)) for i in xrange(1, 13, 2)]
             
-            #Trapezoidal rule - seems more accurate
-            gg = 0.16666666667 * sum(g)
-
-            lue = alpha * gg * pi
+            integral = 0.0
+            for hour in xrange(1, 13, 2):
+                x = sin(pi * hour / 24.)
+                integral += (x / (1.0 + q * x + sqrt((1.0 + q * x)**2.0 -
+                             4.0 * self.params.theta * q * x)) * delta)
+            lue = alpha * integral * pi
         else:
             lue = 0.0
-
+        
         return lue
     
     def arrh(self, k25, Ea, Tk):
@@ -542,7 +526,7 @@ if __name__ == "__main__":
     from file_parser import initialise_model_data
     from utilities import float_lt, day_length
     import datetime
-
+    from utilities import uniq
     
     fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
     (control, params, state, files,
@@ -558,68 +542,54 @@ if __name__ == "__main__":
     # Specific LAI (m2 onesided/kg DW)
     state.sla = params.slainit
 
-
-    year = str(control.startyear)
-    month = str(control.startmonth)
-    day = str(control.startday)
-    datex = datetime.datetime.strptime((year + month + day), "%Y%m%d")
-
     #laifname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/experiments/lai"
     #import numpy as np
     #laidata = np.loadtxt(laifname)
 
     control.co2_conc = 0
-    
     npp_sum = np.zeros(0)
     
-    #for project_day in xrange(365):
-    for project_day in xrange(len(met_data['prjday'])):
-        
-        #state.shootn = 0.072422739989 
-        #state.shoot = 6.54133760655 
-        #state.lai = 6.01803059803
-        #state.sla = 4.6
-        #params.cfracts = 0.5
-        #params.g1 = 4.8
-        #params.jmaxn = 60.0
-        #params.vcmaxn = 30.61
-        #params.theta = 0.75
-        
-        
-        
-        
-        
-        #state.shootn = 0.071 # ornl val
-        
-        state.shootnc = state.shootn / state.shoot
-        state.ncontent = (state.shootnc * params.cfracts /
-                                state.sla * const.KG_AS_G)
-        daylen = day_length(datex, params.latitude)
-        state.wtfac_root = 1.0
-        #state.lai = laidata[project_day]
-
-
-        if float_lt(state.lai, params.lai_cover):
-            frac_gcover = state.lai / params.lai_cover
-        else:
-            frac_gcover = 1.0
-
-        state.light_interception = ((1.0 - exp(-params.kext *
-                                            state.lai / frac_gcover)) *
-                                            frac_gcover)
-
-
-        #daylen = 10.0
-       
-        M.calculate_photosynthesis(project_day, daylen)
-
-        print fluxes.gpp_gCm2
-        #print fluxes.gpp / state.shootn
-        npp_sum = np.append(npp_sum, fluxes.gpp_gCm2*0.5) 
-
-
-
-        datex += datetime.timedelta(days=1)
+    project_day = 0
+    for yr in uniq(met_data["year"]):
+        days_in_year = len([x for x in met_data["year"] if x == yr])
+        daylen = 12.0
+        for doy in xrange(days_in_year):   
+   
+            
+            
+            
+            
+            #state.shootn = 0.071 # ornl val
+            
+            state.shootnc = state.shootn / state.shoot
+            state.ncontent = (state.shootnc * params.cfracts /
+                                    state.sla * const.KG_AS_G)
+            
+            state.wtfac_root = 1.0
+            #state.lai = laidata[project_day]
+    
+    
+            if float_lt(state.lai, params.lai_cover):
+                frac_gcover = state.lai / params.lai_cover
+            else:
+                frac_gcover = 1.0
+    
+            state.light_interception = ((1.0 - exp(-params.kext *
+                                                state.lai / frac_gcover)) *
+                                                frac_gcover)
+    
+    
+            #daylen = 10.0
+           
+            M.calculate_photosynthesis(project_day, daylen)
+    
+            print fluxes.gpp_gCm2
+            #print fluxes.gpp / state.shootn
+            npp_sum = np.append(npp_sum, fluxes.gpp_gCm2*0.5) 
+    
+    
+    
+            project_day += 1
     
     #print npp_sum.sum() / (state.shootn *100)
     
