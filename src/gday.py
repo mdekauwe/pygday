@@ -200,7 +200,7 @@ class Gday(object):
                 if self.control.print_options == 0:
                     self.save_daily_outputs(yr, doy+1)
                 project_day += 1
-                
+               
             # =============== #
             #   END OF YEAR   #                
             # =============== #
@@ -338,7 +338,7 @@ class Gday(object):
         # annual available N for allocation to leaf
         self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot * 
                                         self.state.shootnc_yr)
-        
+       
         
         
     def allocate_stored_c_and_n(self):
@@ -348,18 +348,17 @@ class Gday(object):
         """
         self.state.c_to_alloc_shoot = (self.state.alleaf * 
                                         self.state.cstore)
-       
-        self.state.c_to_alloc_stem = (self.params.callocw * 
-                                      (self.state.cstore - 
-                                       self.state.c_to_alloc_shoot))
-        self.state.c_to_alloc_root = (self.state.cstore - 
-                                      self.state.c_to_alloc_stem - 
-                                      self.state.c_to_alloc_shoot)
+        self.state.c_to_alloc_root = (self.state.alroot * 
+                                        self.state.cstore)
+        self.state.c_to_alloc_branch = (self.state.albranch * 
+                                        self.state.cstore)
+        self.state.c_to_alloc_stem = (self.state.alstem * 
+                                        self.state.cstore)
        
         self.state.n_to_alloc_root = (min(self.state.nstore, 
                                           self.state.c_to_alloc_root * 
                                           self.state.rootnc))
-        
+         
         # constant N:C of foliage during the growing season(kgN kg-1C)
         self.state.shootnc_yr = ((self.state.nstore - 
                                   self.state.n_to_alloc_root) / 
@@ -370,8 +369,9 @@ class Gday(object):
         # annual available N for allocation to leaf
         self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot * 
                                         self.state.shootnc_yr)    
-
         
+        total = self.state.c_to_alloc_shoot + self.state.c_to_alloc_root + self.state.c_to_alloc_stem
+        #print self.state.c_to_alloc_shoot/total, self.state.c_to_alloc_root/total, self.state.c_to_alloc_stem /total
         
 
     def save_daily_outputs(self, year, doy):

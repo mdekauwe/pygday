@@ -96,6 +96,9 @@ class PlantGrowth(object):
             # figure out allocation fractions for C for the evergreen model. For
             # the deciduous model these are calculated at the annual time step.
             self.allocate_carbon(nitfac)
+        
+        #print self.state.alleaf, self.state.alroot, self.state.alstem, self.state.albranch 
+        
            
         # Distribute new C and N through the system
         self.carbon_distribution(nitfac, doy, days_in_yr)
@@ -387,7 +390,7 @@ class PlantGrowth(object):
                                  (self.state.alleaf + self.state.alroot *
                                  self.params.ncrfac))
             self.fluxes.nproot = ntot - self.fluxes.npleaf
-        
+            
     def nitrogen_retrans(self, fdecay, rdecay):
         """ Nitrogen retranslocated from senesced plant matter.
         Constant rate of n translocated from mobile pool
@@ -489,6 +492,7 @@ class PlantGrowth(object):
             self.fluxes.cpbranch = 0.0
             self.fluxes.cpstem = self.fluxes.wrate * self.state.growing_days[doy]
             self.fluxes.cproot = self.state.c_to_alloc_root * 1.0 / days_in_yr
+            
         else:
             self.fluxes.cpleaf = self.fluxes.npp * self.state.alleaf
             self.fluxes.cproot = self.fluxes.npp * self.state.alroot
