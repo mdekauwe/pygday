@@ -827,7 +827,8 @@ class PenmanMonteith(object):
         self.canht = canht
         self.dz0v_dh = dz0v_dh
         self.displace_ratio = displace_ratio # zero plan displacement height
-
+        self.z0h_z0m = z0h_z0m
+        
     def calc_evaporation(self, vpd, wind, gs, net_rad, tavg, press):
 
         """
@@ -910,7 +911,6 @@ class PenmanMonteith(object):
         ga : float
             canopy boundary layer conductance [m s-1]
         """
-        
         # z0m roughness length governing momentum transfer [m]
         z0m = self.dz0v_dh * self.canht
     
@@ -932,6 +932,7 @@ class PenmanMonteith(object):
         arg3 = log((self.canht - d) / z0h) 
         
         return arg1 / (arg2 * arg3)
+        
         
     def calc_slope_of_saturation_vapour_pressure_curve(self, tavg):
         """ Eqn 13 from FAO paper, Allen et al. 1998.
