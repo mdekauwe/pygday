@@ -868,6 +868,8 @@ class PenmanMonteith(object):
        
         if float_gt(gs, 0.0):
             # decoupling coefficent, Jarvis and McNaughton, 1986
+            # when omega is close to zero, it is said to be well coupled and
+            # gs is the dominant controller of water loss (gs<ga).
             e = slope / gamma # chg of latent heat relative to sensible heat of air
             omega = (e + 1.0) / (e + 1.0 + (ga / gs))
             
@@ -877,7 +879,7 @@ class PenmanMonteith(object):
         else:
             et = 0.0
             omega = 0.0
-        
+        print wind, omega
         return et, omega
 
     def canopy_boundary_layer_conductance(self, wind):

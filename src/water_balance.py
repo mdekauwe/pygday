@@ -820,7 +820,6 @@ class PenmanMonteith(object):
 
         self.cp = cp
         self.vk = vk
-
         self.epsilon = epsilon
         self.zele_sea = zele_sea
         self.J_TO_MJ = 1.0E-6
@@ -868,6 +867,8 @@ class PenmanMonteith(object):
        
         if float_gt(gs, 0.0):
             # decoupling coefficent, Jarvis and McNaughton, 1986
+            # when omega is close to zero, it is said to be well coupled and
+            # gs is the dominant controller of water loss (gs<ga).
             e = slope / gamma # chg of latent heat relative to sensible heat of air
             omega = (e + 1.0) / (e + 1.0 + (ga / gs))
             
@@ -935,30 +936,6 @@ class PenmanMonteith(object):
         
         return arg1 / (arg2 * arg3)
         
-    def adj_wind_speed_2_screen(self, wind):
-        """ Standard PM expects wind speed at a 2m height, need to adjust
-        observations for the height difference
-
-        References:
-        -----------
-        * Bos et al (2009) Water Requirements for Irrigation and the
-          Environment, pg. 29
-        * http://www.apesimulator.it/help/models/evapotranspiration/\
-          Aerodynamic_resistance.html
-
-        Parameters:
-        -----------
-        wind : float
-            wind speed [m s-1]
-
-        Returns:
-        --------
-        wind_speed : float
-            adjusted wind speed for height [m s-1]
-        """
-        wind *= 4.87 / (log(67.8 * self.canht - 5.42))
-        return wind
-
     def calc_slope_of_saturation_vapour_pressure_curve(self, tavg):
         """ Eqn 13 from FAO paper, Allen et al. 1998.
 
