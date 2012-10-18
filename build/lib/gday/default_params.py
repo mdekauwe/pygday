@@ -151,7 +151,7 @@ a1 = 0.0
 canht            = 17.0     # Canopy height increased from 16m in 2001 to 18m in 2004 at Duke
 dz0v_dh          = 0.075    # Rate of change of vegetation roughness length for momentum with height.
 displace_ratio   = 0.78     # Value for coniferous forest from Jarvis et al 1976, taken from Jones 1992 pg 67.
-
+z0h_z0m          = 1.0      # Assume z0m = z0h, probably a big assumption [as z0h often < z0m.], see comment in code!!
 
 # decid model
 ncfmin = 0.0151
