@@ -828,9 +828,6 @@ class PenmanMonteith(object):
         self.dz0v_dh = dz0v_dh
         self.displace_ratio = displace_ratio # zero plan displacement height
 
-        # ratio of the roughness length for heat to the length for momentum
-        self.z0h_z0m = 0.1
-
     def calc_evaporation(self, vpd, wind, gs, net_rad, tavg, press):
 
         """
