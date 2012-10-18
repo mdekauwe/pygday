@@ -166,7 +166,7 @@ class Gday(object):
                 self.zero_annual_sums()
                 self.P.calculate_phenology_flows(daylen, self.met_data, 
                                             days_in_year, project_day)
-            #npp_sum = 0.0
+            
             for doy in xrange(days_in_year):   
                 
                 # litterfall rate: C and N fluxes
@@ -200,8 +200,7 @@ class Gday(object):
                 if self.control.print_options == 0:
                     self.save_daily_outputs(yr, doy+1)
                 project_day += 1
-                #npp_sum += self.fluxes.npp * 100
-            #print npp_sum
+               
             # =============== #
             #   END OF YEAR   #                
             # =============== #

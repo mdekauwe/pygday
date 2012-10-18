@@ -308,7 +308,8 @@ class WaterBalance(object):
 
         """
         P = PenmanMonteith(canht=self.params.canht, dz0v_dh=self.params.dz0v_dh,
-                            displace_ratio=self.params.displace_ratio)
+                            displace_ratio=self.params.displace_ratio,
+                            z0h_z0m=self.params.z0h_z0m)
         
         gs = [None]*2
         trans = [None]*2
@@ -324,7 +325,7 @@ class WaterBalance(object):
         #print self.fluxes.omega = omegax[0]
         self.fluxes.omega = sum(omegax) / 2.0                                  
         self.fluxes.gs_mol_m2_sec = sum(gs) / 2.0
-        ga = P.calc_atmos_boundary_layer_conductance(wind_avg)
+        ga = P.canopy_boundary_layer_conductance(wind_avg)
         self.fluxes.ga_mol_m2_sec = ga / const.CONV_CONDUCT
         tconv = 60.0 * 60.0 * daylen # seconds to day
         self.fluxes.transpiration = sum(trans) / 2.0 * tconv
@@ -764,13 +765,13 @@ class PenmanMonteith(object):
 
     """ Water loss from a canopy (ET), representing surface as a big "leaf".
     The resistance to vapour transfer from the canopy to the atmosphere is
-    determined by the aerodynamic resistance (1/ga) and the canopy resistance
-    (1/gc). If the surface is wet then there is a further water vapour flux
-    from the soil/surface (calculated elsewhere!).
+    determined by the aerodynamic canopy conductance (ga) and the stomatal 
+    conductance (gs). If the surface is wet then there is a further water vapour
+    flux from the soil/surface (calculated elsewhere!).
 
-    Assumes inputs are measured at a 2m screen height, though you can change
-    this with the the class initialisation. I have ignored the soil heat
-    flux (G) assuming it balances to zero over the course of the day.
+    Assumption is that calculation is for the entire stand (one surface), e.g. 
+    the single-layer approach. Second major assumption is that soil heat is
+    zero over the course of a day and is thus ignored.
 
     Value for cp comes from Allen et al 1998.
 
@@ -793,7 +794,7 @@ class PenmanMonteith(object):
     """
 
     def __init__(self, cp=1.013E-3, vk=0.41, epsilon=0.6222, zele_sea=125.0,
-                    canht=20.0, dz0v_dh=0.1, displace_ratio=0.67):
+                    canht=20.0, dz0v_dh=0.1, displace_ratio=0.67, z0h_z0m=1.0):
 
         """
         Parameters:
@@ -801,7 +802,7 @@ class PenmanMonteith(object):
         cp : float
             specific heat of dry air [MJ kg-1 degC-1]
         vk : float
-            von karman's constant [unitless]
+            von Karman's constant [unitless]
         epsilon : float
             ratio molecular weight of water vap/dry air
         zele_sea : float
@@ -812,7 +813,9 @@ class PenmanMonteith(object):
             rate change of roughness for momentum with height
         displace_ratio : float
             zero plain displacement height
-
+        z0h_z0m : float
+            Ratio of the roughness length for heat to the roughness length for 
+            momentum, see comment in method below!!!
         """
 
         self.cp = cp
@@ -861,19 +864,15 @@ class PenmanMonteith(object):
         gamma = self.calc_pyschrometric_constant(lambdax, press)
         slope = self.calc_slope_of_saturation_vapour_pressure_curve(tavg)
         rho = self.calc_density_of_air(tavg)
-        
-        ga = self.calc_atmos_boundary_layer_conductance(wind)
+        ga = self.canopy_boundary_layer_conductance(wind)
        
-        # our model is a big leaf, so canopy conductance, gc = gs
-        gc = gs
-        
-        if float_gt(gc, 0.0):
+        if float_gt(gs, 0.0):
             # decoupling coefficent, Jarvis and McNaughton, 1986
             e = slope / gamma # chg of latent heat relative to sensible heat of air
-            omega = (e + 1.0) / (e + 1.0 + (ga / gc))
+            omega = (e + 1.0) / (e + 1.0 + (ga / gs))
             
             arg1 = ((slope * net_rad ) + (rho * self.cp * vpd * ga))
-            arg2 = slope + gamma * (1.0 + ga / gc)
+            arg2 = slope + gamma * (1.0 + (ga / gs))
             et = (arg1 / arg2) / lambdax
         else:
             et = 0.0
@@ -881,13 +880,13 @@ class PenmanMonteith(object):
         
         return et, omega
 
-    def calc_atmos_boundary_layer_conductance(self, wind):
-        """ atmospheric boundary layer conductance, i.e. 1/ra
+    def canopy_boundary_layer_conductance(self, wind):
+        """  Canopy boundary layer conductance, ga or 1/ra
 
-        Transfer of heat/water vapour from evaporating surface into air
-        above the canopy is determined by aerodynamic conductance. Key
-        assumption is that roughness length for momentum and for heat are
-        identical.
+        Characterises the heat/water vapour from evaporating surface, but does 
+        not account for leaf boundary layer conductance, which is the parellel 
+        sum of single leaf boundary layer conductances for all leaves in the 
+        canopy.
 
         Notes:
         ------
@@ -912,22 +911,30 @@ class PenmanMonteith(object):
         --------
         ga : float
             canopy boundary layer conductance [m s-1]
-
         """
-        #wind = self.adj_wind_speed_2_screen(wind, canht)
-        # roughness length [m]
-        z0 = self.dz0v_dh * self.canht
+        
+        # z0m roughness length governing momentum transfer [m]
+        z0m = self.dz0v_dh * self.canht
+    
+        # z0h roughness length governing transfer of heat and vapour [m]
+        # *Heat tranfer typically less efficent than momentum transfer. There is
+        #  a lot of variability in values quoted for the ratio of these two...
+        #  JULES uses 0.1, Campbell and Norman '98 say z0h = z0m / 5. Garratt 
+        #  and Hicks, 1973/ Stewart et al '94 say z0h = z0m / 7. Therefore for 
+        #  the default I am following Monteith and Unsworth, by setting the 
+        #  ratio to be 1, the code below is identical to that on page 249, 
+        #  eqn 15.7
+        z0h = self.z0h_z0m * z0m
         
         # zero plan displacement height [m]
         d = self.displace_ratio * self.canht
-
-        arg1 = self.vk**2 * wind
-        arg2 = (log((self.canht - d) / z0))**2
         
-        return arg1 / arg2
-    
-    
-    
+        arg1 = self.vk**2 * wind
+        arg2 = log((self.canht - d) / z0m)
+        arg3 = log((self.canht - d) / z0h) 
+        
+        return arg1 / (arg2 * arg3)
+        
     def adj_wind_speed_2_screen(self, wind):
         """ Standard PM expects wind speed at a 2m height, need to adjust
         observations for the height difference
