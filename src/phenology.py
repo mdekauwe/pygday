@@ -12,8 +12,8 @@ class Phenology(object):
     Botta, A. et al. (2000) GCB, 6, 709-725.
     """
     
-    def __init__(self, fluxes, state, previous_ncd=None, pa=-68., pb=638., 
-                 pc=0.01, store_transfer_len=None):
+    def __init__(self, fluxes, state, control, previous_ncd=None, pa=-68., 
+                 pb=638., pc=0.01, store_transfer_len=None):
         """
         Parameters:
         ----------
@@ -41,6 +41,7 @@ class Phenology(object):
         self.drop_leaves = False
         self.fluxes = fluxes
         self.state = state
+        self.control = control
         self.store_transfer_len = store_transfer_len
         
     def calculate_phenology_flows(self, daylen, met_data, yr_days, 
@@ -75,11 +76,23 @@ class Phenology(object):
         -----------
         White, M. A. et al. (1997) GBC, 11, 217*234.
         """
-        if (daylen < 10.9166667 and Tsoil < 11.15) or Tsoil_next_3days < 2.0:
+        # hack for Oak Ridge simulations...take out for normal runs!!
+        #if self.control.deciduous_model:
+        #    if (daylen <= 7.9166667 and Tsoil <= 11.15) or Tsoil_next_3days < 2.0:
+        #        return True
+        #    else:
+        #        return False
+        #else:
+        #    if (daylen <= 10.9166667 and Tsoil <= 11.15) or Tsoil_next_3days < 2.0:
+        #        return True
+        #    else:
+        #        return False
+        
+        if (daylen <= 10.9166667 and Tsoil <= 11.15) or Tsoil_next_3days < 2.0:
             return True
         else:
             return False
-    
+        
     def ini_phen_calcs(self):
         self.accumulated_ncd = 0.0
         self.accumulated_gdd = 0.0
@@ -126,7 +139,7 @@ class Phenology(object):
                 self.accumulated_ncd += self.calc_ncd(Tmean) 
                 
             self.project_day += 1
-    
+       
         self.last_yrs_accumulated_ncd = self.accumulated_ncd
         
         # Length of time taken for new growth from storage to be allocated.

@@ -116,9 +116,9 @@ class Gday(object):
         
         if self.control.deciduous_model:
             self.initialise_deciduous_model()
-            self.P = Phenology(self.fluxes, self.state, 
-                                self.params.previous_ncd, 
-                             store_transfer_len=self.params.store_transfer_len)
+            self.P = Phenology(self.fluxes, self.state, self.control, 
+                               self.params.previous_ncd, 
+                               store_transfer_len=self.params.store_transfer_len)
         
         # calculate initial C:N ratios and zero annual flux sums
         self.day_end_calculations(0, INIT=True)
@@ -158,10 +158,22 @@ class Gday(object):
     def run_sim(self):
         """ Run model simulation! """
         project_day = 0
+        project_day2 = 0
         for yr in uniq(self.met_data["year"]):
             days_in_year = len([x for x in self.met_data["year"] if x == yr])
-            daylen = calculate_daylength(days_in_year, self.params.latitude)
             
+            # hack that you should take out to match the daylen to the ORNL
+            # sim as it only uses solar angles > 15.0
+            #if self.control.deciduous_model:
+            #    daylen = []
+            #    for doy2 in xrange(days_in_year):   
+            #        daylen.append(self.met_data["daylen"][project_day2])
+            #        project_day2 += 1
+            #else:
+            #    daylen = calculate_daylength(days_in_year, self.params.latitude)
+            
+            
+            daylen = calculate_daylength(days_in_year, self.params.latitude)
             if self.control.deciduous_model:
                 self.zero_annual_sums()
                 self.P.calculate_phenology_flows(daylen, self.met_data, 
