@@ -64,46 +64,6 @@ def day_length(doy, yr_days, latitude):
 
     return dayl
 
-def mate_day_length(date, latitude):
-    """ Calculate number of sunlight hours (units = h d-1)
-
-    Routine comes from MATE, though not sure how right this is, are the
-    hemispheres inverted? Check
-
-    Parameters:
-    -----------
-    date : date format string
-        date object, yr/month/day
-    latitude : float
-        latitude [degrees]
-
-    Returns:
-    --------
-    dayl : float
-        daylength [hrs]
-
-    """
-    conv = pi / 180.0
-
-    # day of year 1-365/366
-    doy = int(date.strftime('%j'))
-
-    # Total number of days in year
-    if calendar.isleap(date.year):
-        yr_days = 366.
-    else:
-        yr_days = 365.
-
-    solar_dec = (23.4 * pi / 180.0 * cos(2.0 * pi /
-                    yr_days * (doy + 10.0)))
-
-    if float_lt(latitude, 0.0):
-        solar_dec *= -1.0
-
-    dayl = acos(-tan(latitude * conv) * tan(solar_dec)) * 24.0 / pi
-
-    return dayl
-
 def clip(value, min=None, max=None):
     """clip(value [, min [, max]]) => value
 

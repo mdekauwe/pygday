@@ -146,9 +146,9 @@ class Mate(object):
         # [CO2] is reduced if N declines, but increases as gs declines.
         asat = [min(aj[k], ac[k]) for k in am, pm]
         
-        # GPP is assumed to be proportional to APAR, where the LUE defines the
-        # slope of this relationship. LUE, calculation is performed for morning 
-        # and afternnon periods.
+        # Assumption that the integral is symmetric about noon, so we average
+        # the LUE accounting for variability in temperature, but importantly
+        # not PAR
         lue = [self.epsilon(asat[k], par, daylen, alpha[k]) for k in am, pm]
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
@@ -164,6 +164,7 @@ class Mate(object):
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                 const.MOL_C_TO_GRAMS_C)
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        
         self.fluxes.gpp_am_gCm2 = ((self.fluxes.apar / 2.0) * lue[am] * 
                                     const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_pm_gCm2 = ((self.fluxes.apar / 2.0) * lue[pm] * 
@@ -173,7 +174,7 @@ class Mate(object):
         conv = const.G_AS_TONNES / const.M2_AS_HA
         self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
         self.fluxes.npp = self.fluxes.npp_gCm2 * conv
-    
+        
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
 
