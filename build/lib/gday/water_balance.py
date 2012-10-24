@@ -665,10 +665,7 @@ class SoilMoisture(object):
         
         return (clip(wtfac_tsoil, min=0.0, max=1.0), 
                 clip(wtfac_root, min=0.0, max=1.0))   
-        #return 1.0, 1.0
         
-
-
 class WaterLimitedNPP(object):
     """ Adjust carbon uptake for water limitations
 

@@ -1,7 +1,7 @@
 """ Carbon production module, call photosynthesis model """
 
 from math import exp
-
+import sys
 import constants as const
 from utilities import float_eq, float_lt, float_gt, float_ne
 from bewdy import Bewdy
@@ -61,7 +61,7 @@ class PlantGrowth(object):
         self.sm = SoilMoisture(self.control, self.params, self.state, 
                                self.fluxes)
         
-        #self.rm = RootingDepthModel(zval=0.35, r0=0.05, top_soil_depth=0.3)
+        self.rm = RootingDepthModel(zval=0.35, r0=0.05, top_soil_depth=0.3)
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, days_in_yr):
         """Evolve plant state, photosynthesis, distribute N and C"
@@ -199,12 +199,17 @@ class PlantGrowth(object):
                                              frac_gcover)
         else:
             self.state.light_interception = 0.0
-
-        # Calculate the soil moisture availability factors [0,1] in the topsoil
-        # and the entire root zone
-        (self.state.wtfac_tsoil, 
-            self.state.wtfac_root) = self.sm.calculate_soil_water_fac()
         
+        if self.control.water_stress:
+            # Calculate the soil moisture availability factors [0,1] in the 
+            # topsoil and the entire root zone
+            (self.state.wtfac_tsoil, 
+                self.state.wtfac_root) = self.sm.calculate_soil_water_fac()
+        else:
+            # really this should only be a debugging option!
+            self.state.wtfac_tsoil = 1.0
+            self.state.wtfac_root = 1.0
+            
         # Estimate photosynthesis using an empirical model
         if self.control.assim_model >=0 and self.control.assim_model <= 4:
             self.pp.calculate_photosynthesis(project_day)
@@ -293,41 +298,27 @@ class PlantGrowth(object):
         self.fluxes.nuptake = self.calculate_nuptake()
         
         
+        """
         
-        
-        """ ROSS's Root Model.
+        #======================== ROSS's Root Model.==========================#
         nsupply = self.calculate_nuptake() * 365.25 * 100.0 # t ha-1 -> gN m-2
-        rtot = self.state.root * 0.1 # t ha-1 -> kgm2
+        rtot = self.state.root * 0.1 # t ha-1 -> kg m-2
         
         (root_depth, 
          self.fluxes.nuptake,
          self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
-        
-        
         self.fluxes.nuptake = self.fluxes.nuptake * 0.01 / 365.25
-        
-        self.fluxes.deadroots = rdecay * self.state.root   # ditto
         self.fluxes.deadroots = self.params.rdecay * self.fluxes.rabove * 10
         self.fluxes.deadrootn = (self.state.rootnc * 
                                  (1.0 - self.params.rretrans) * 
-                                 self.fluxes.deadroots)
+                                  self.fluxes.deadroots)
         
-        print self.fluxes.gpp*100, self.state.lai, root_depth
+        
+        #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
+        #      self.fluxes.nuptake *100.
+        #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
+        #      root_depth, self.fluxes.nuptake *100.
         """
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         
         
@@ -687,8 +678,6 @@ class RootingDepthModel(object):
             Length scale for exponential decline of Umax(z)
         r0 : float
             root C at half-maximum N uptake (kg C/m3)
-        zval : float
-            Length scale for exponential decline of Umax(z)
         top_soil_depth : float
             depth of soil assumed by G'DAY, not Ross comment about 20 cm [email]
             
@@ -918,10 +907,6 @@ def newton(f, fprime, x0, args=(), tol=1E-6, maxiter=250):
             return x
         x0 = x
     raise RuntimeError, "No minimum found after %d iterations" % maxiter
-
-
-
-
 
         
 if __name__ == "__main__":
