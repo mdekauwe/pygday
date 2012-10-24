@@ -33,3 +33,4 @@ fixed_stem_nc = 1      # 0=vary stem N:C with foliage, 1=fixed stem N:C
 calc_gbl = 0           # calculate leaf boundary conductance, 0=No, 1=Yes
 deciduous_model = 0    # evergreen_model=0, deciduous_model=1
 calc_sw_params = 0     # 0=user supplies field capacity and wilting point, 1=calculate them based on cosby et al.
+water_stress = 1       # water stress modifier turned on=1 (default)...ability to turn off to test things without drought stress = 0
