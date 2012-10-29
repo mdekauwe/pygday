@@ -98,9 +98,6 @@ class PlantGrowth(object):
             # the deciduous model these are calculated at the annual time step.
             self.allocate_carbon(nitfac)
         
-        #print self.state.alleaf, self.state.alroot, self.state.alstem, self.state.albranch 
-        
-           
         # Distribute new C and N through the system
         self.carbon_distribution(nitfac, doy, days_in_yr)
         
@@ -180,7 +177,6 @@ class PlantGrowth(object):
         # leaf nitrogen content
         if self.state.lai > 0.0:
             # Leaf N content (g m-2)                       
-            
             self.state.ncontent = (self.state.shootnc * self.params.cfracts /
                                    self.state.sla * const.KG_AS_G)
         else:
@@ -297,6 +293,11 @@ class PlantGrowth(object):
         # the plant
         self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay)
         self.fluxes.nuptake = self.calculate_nuptake()
+       
+        # Attempt at floating rateuptake
+        #slope = (20.0 - 0.1) / ((6.0) - 0.0)
+        #y = slope * self.state.root + 0.0
+        #self.fluxes.nuptake = (y/365.25) * self.state.inorgn
         
         
         
@@ -366,8 +367,10 @@ class PlantGrowth(object):
     
             # N flux into new ring (mobile component -> can be retrans for new
             # woody tissue)
-            self.fluxes.npstemmob = self.fluxes.npp * self.state.alstem * (ncwnew - ncwimm)
-            self.fluxes.npbranch = self.fluxes.npp * self.state.albranch * ncbnew
+            self.fluxes.npstemmob = (self.fluxes.npp * self.state.alstem * 
+                                     (ncwnew - ncwimm))
+            self.fluxes.npbranch = (self.fluxes.npp * self.state.albranch * 
+                                     ncbnew)
             
             # If we have allocated more N than we have available 
             #  - cut back N prodn
@@ -378,8 +381,10 @@ class PlantGrowth(object):
                 self.fluxes.npp *= (ntot / (self.fluxes.npstemimm +
                                     self.fluxes.npstemmob + 
                                     self.fluxes.npbranch ))
-                self.fluxes.npbranch = self.fluxes.npp * self.state.albranch * ncbnew
-                self.fluxes.npstemimm = self.fluxes.npp * self.state.alstem * ncwimm
+                self.fluxes.npbranch = (self.fluxes.npp * self.state.albranch * 
+                                        ncbnew)
+                self.fluxes.npstemimm = (self.fluxes.npp * self.state.alstem * 
+                                         ncwimm)
                 self.fluxes.npstemmob = (self.fluxes.npp * self.state.alstem * 
                                         (ncwnew - ncwimm))
                 
@@ -413,7 +418,8 @@ class PlantGrowth(object):
         if self.control.deciduous_model:
             arg1 = (self.fluxes.leafretransn  +
                     self.params.rretrans * rdecay * self.state.rootn +
-                    self.params.bretrans * self.params.bdecay * self.state.branchn)
+                    self.params.bretrans * self.params.bdecay * 
+                    self.state.branchn)
             arg2 = (self.params.wretrans * self.params.wdecay *
                     self.state.stemnmob + self.params.retransmob *
                     self.state.stemnmob)
@@ -488,13 +494,10 @@ class PlantGrowth(object):
           pg 35--57.
         """
         if self.control.deciduous_model:
-            
             self.fluxes.cpleaf = self.fluxes.lrate * self.state.growing_days[doy]
-                
             self.fluxes.cpbranch = 0.0
             self.fluxes.cpstem = self.fluxes.wrate * self.state.growing_days[doy]
             self.fluxes.cproot = self.state.c_to_alloc_root * 1.0 / days_in_yr
-            
         else:
             self.fluxes.cpleaf = self.fluxes.npp * self.state.alleaf
             self.fluxes.cproot = self.fluxes.npp * self.state.alroot
@@ -525,7 +528,7 @@ class PlantGrowth(object):
                 self.state.lai = 0.0
             elif self.state.leaf_out_days[doy] > 0.0:
                 self.state.lai += (self.fluxes.cpleaf * sla_new_tonnes_ha_C -
-                                  (self.fluxes.deadleaves + self.fluxes.ceaten) *
+                                  (self.fluxes.deadleaves + self.fluxes.ceaten)*
                                    self.state.lai / self.state.shoot) 
             else:
                 self.state.lai = 0.0
@@ -601,9 +604,9 @@ class PlantGrowth(object):
             if float_gt(ncmaxf, self.params.ncmaxfyoung):
                 ncmaxf = self.params.ncmaxfyoung
     
-            # if foliage or root n:c ratio exceeds its max, then nitrogen uptake is
-            # cut back n.b. new ring n/c max is already set because it is related
-            # to leaf n:c
+            # if foliage or root n:c ratio exceeds its max, then nitrogen 
+            # uptake is cut back n.b. new ring n/c max is already set because 
+            # it is related to leaf n:c
             extrar = 0.
             extras = 0.
             if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
@@ -643,9 +646,9 @@ class PlantGrowth(object):
         """ Based on LPJ-why
         
         References:
-        * Wania (2009) Integrating peatlands and permafrost into a dynamic global 
-          vegetation model: 1. Evaluation and sensitivity of physical land 
-          surface processes. GBC, 23, GB3014.
+        * Wania (2009) Integrating peatlands and permafrost into a dynamic 
+          global vegetation model: 1. Evaluation and sensitivity of physical 
+          land surface processes. GBC, 23, GB3014.
         * Also part 2 and the geosci paper in 2010
         """
         tsoil = self.met_data['tsoil'][project_day]

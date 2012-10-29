@@ -1,3 +1,5 @@
+""" Really need to fix these units so that there are consistent with G'DAY!!!"""
+
 from math import exp
 from utilities import float_ne
 
@@ -17,9 +19,7 @@ class RootingDepthModel(object):
     * McMurtire, R. et al (2011) Increased nitrogen-uptake efficiency at 
       elevated  CO2 explained by an hypothesis of optimal root function. Ecology 
       and Evolution, 2, 1235--1250
-    
     """
-    
     def __init__(self, zval, r0, top_soil_depth):
         """
         Parameters:
@@ -29,7 +29,8 @@ class RootingDepthModel(object):
         r0 : float
             root C at half-maximum N uptake (kg C/m3)
         top_soil_depth : float
-            depth of soil assumed by G'DAY, not Ross comment about 20 cm [email]
+            depth of soil assumed by G'DAY, note Ross comment about 20 cm 
+            [email]
             
         Returns:
         --------
@@ -46,15 +47,15 @@ class RootingDepthModel(object):
         Parameters:
         -----------
         rtoti : float
-            Initial fine root C mass -> from G'DAY
+            Initial fine root C mass -> from G'DAY [kg m-2] -> paper says DM?!
         depth_guess : float
             Initial guess at the rooting depth, used as the first point in the 
-            root depth minimisation scheme.    
+            root depth minimisation scheme [m]. 
         
         Returns:
         --------
         nuptake : float
-            N uptake from roots
+            N uptake from roots [gN m-2 yr-1]
         """
         # step 2: determine maximum rooting depth for model
         root_depth = self.estimate_max_root_depth(rtoti, depth_guess)
@@ -82,6 +83,7 @@ class RootingDepthModel(object):
             [NOT USED]
         rtoti : float
             Initial fine root root C mass [from G'DAY] 
+            [kg m-2] -> paper says DM?!
         r0 : float
             Root C at half-max N uptake. [NOT USED]
         zval : float
@@ -92,7 +94,7 @@ class RootingDepthModel(object):
         Returns:
         --------
         rooting_depth : float
-            Minimised rooting depth
+            Minimised rooting depth [m]
         
         """
         root_depth = newton(self.rtot_wrapper, self.rtot_derivative, 
@@ -134,9 +136,10 @@ class RootingDepthModel(object):
         Parameters:
         -----------
         dmax : float
-            Rooting depth 
+            Rooting depth [m]
         rtoti : float
             Initial fine root root C mass [from G'DAY] 
+            [kg m-2] -> paper says DM?!
         r0 : float
             Root C at half-max N uptake.
         zval : float
@@ -158,9 +161,10 @@ class RootingDepthModel(object):
         Parameters:
         -----------
         dmax : float
-            Rooting depth 
+            Rooting depth [m]
         rtoti : float
             Initial fine root root C mass [from G'DAY]
+            [kg m-2] -> paper says DM?!
         r0 : float
             Root C at half-max N uptake.
         zval : float
@@ -183,6 +187,7 @@ class RootingDepthModel(object):
         ----------
         rtoti : float
             Initial fine root root C mass [from G'DAY]
+            [kg m-2] -> paper says DM?!
         root_depth : float
             model rooting depth (m)
 
@@ -208,7 +213,7 @@ class RootingDepthModel(object):
         nsupply : float
             soil N supply rate to plants per day [N/m2]
         top_soil_depth : float
-            Depth of soil assumed by G'DAY model
+            Depth of soil assumed by G'DAY model [m]
             
         Returns
         -------
