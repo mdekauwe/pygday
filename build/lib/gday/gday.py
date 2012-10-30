@@ -12,7 +12,7 @@ from file_parser import initialise_model_data
 from plant_growth import PlantGrowth
 from print_outputs import PrintOutput
 from litter_production import LitterProduction
-from soil_cnflows import CarbonFlows, NitrogenFlows
+from soil_cnflows import CarbonSoilFlows, NitrogenSoilFlows
 from update_pools import CarbonSoilPools, NitrogenSoilPools
 from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
@@ -104,9 +104,9 @@ class Gday(object):
         self.correct_rate_constants(output=False)
         
         # class instances
-        self.cf = CarbonFlows(self.control, self.params, self.state, 
+        self.cf = CarbonSoilFlows(self.control, self.params, self.state, 
                               self.fluxes, self.met_data)
-        self.nf = NitrogenFlows(self.control, self.params, self.state, 
+        self.nf = NitrogenSoilFlows(self.control, self.params, self.state, 
                                 self.fluxes)
         self.lf = LitterProduction(self.control, self.params, self.state,
                                    self.fluxes)
@@ -165,18 +165,6 @@ class Gday(object):
         project_day2 = 0
         for yr in uniq(self.met_data["year"]):
             days_in_year = len([x for x in self.met_data["year"] if x == yr])
-            
-            # hack that you should take out to match the daylen to the ORNL
-            # sim as it only uses solar angles > 15.0
-            #if self.control.deciduous_model:
-            #    daylen = []
-            #    for doy2 in xrange(days_in_year):   
-            #        daylen.append(self.met_data["daylen"][project_day2])
-            #        project_day2 += 1
-            #else:
-            #    daylen = calculate_daylength(days_in_year, self.params.latitude)
-            
-            
             daylen = calculate_daylength(days_in_year, self.params.latitude)
             if self.control.deciduous_model:
                 self.zero_annual_sums()
@@ -193,9 +181,9 @@ class Gday(object):
                 self.pg.calc_day_growth(project_day, fdecay, rdecay, 
                                         daylen[doy], doy, float(days_in_year))
     
-                # soil model fluxes
-                self.cf.calculate_cflows(project_day)
-                self.nf.calculate_nflows()
+                # soil C & N model fluxes
+                self.cf.calculate_csoil_flows(project_day)
+                self.nf.calculate_nsoil_flows()
                 
                 # Update model soil C&N pools
                 (cact, cslo, cpas) = self.cpl.calculate_cpools()
@@ -458,5 +446,5 @@ def profile_main():
 
 if __name__ == "__main__":
 
-    #main()
-    profile_main()
+    main()
+    #profile_main()

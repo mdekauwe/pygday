@@ -70,18 +70,15 @@ class WaterBalance(object):
         # calculate water fluxes
         if self.control.trans_model == 0:
             # transpiration calculated from WUE...
-            self.calc_wue(vpd_avg, ca, amb_co2)
             self.calc_transpiration()
         elif self.control.trans_model == 1:
             #self.calc_transpiration_penmon(vpd_avg, net_rad_avg, temp_avg, wind_avg,
             #                                    ca, daylen, press)
             self.calc_transpiration_penmon_am_pm(net_rad, wind, ca, daylen, 
                                                  press, vpd, temp)
-            self.calc_wue(vpd_avg, ca, amb_co2)
         elif self.control.trans_model == 2:
             self.calc_transpiration_priestay(net_rad_avg, temp_avg, press)
-            self.calc_wue(vpd_avg, ca, amb_co2)
-
+    
         self.calc_infiltration(rain)
         self.fluxes.soil_evap = self.calc_soil_evaporation(temp_avg, 
                                                            net_rad_avg,
@@ -150,52 +147,6 @@ class WaterBalance(object):
 
         return (temp, temp_avg, rain, sw_rad, sw_rad_avg, vpd, vpd_avg,  wind, 
                 wind_avg,  net_rad, net_rad_avg, ca, press, amb_co2)
-
-    def calc_wue(self, vpd, ca, amb_co2):
-        """water use efficiency
-
-        Not sure of units conversions here, have to ask BM
-
-        Parameters:
-        -----------
-        vpd : float
-            average daily vpd [kPa]
-        ca : float
-            atmospheric co2, depending on flag set in param file this will be
-            ambient or elevated. [umol mol-1]
-
-        """
-        if self.control.wue_model == 0:
-            # Gday original implementation
-            # (gC / kg H20)
-            if float_gt(vpd, 0.0):
-                # WUE Power law dependence on co2, Pepper et al 2005.            
-                co2_ratio = (ca / amb_co2)
-                co2_adjustment = co2_ratio**self.params.co2_effect_on_wue
-
-                # wue inversely proportional to daily mean vpd
-                self.fluxes.wue = self.params.wue0 * co2_adjustment / vpd
-            else:
-                self.fluxes.wue = 0.0
-        elif self.control.wue_model == 1 and self.control.assim_model == 7:
-            conv = const.MOL_C_TO_GRAMS_C / const.MOL_WATER_TO_GRAMS_WATER
-            self.fluxes.wue = (conv * 1000.0 * (ca * const.UMOL_TO_MOL *
-                                (1.0 - self.fluxes.cica_avg) /
-                                (1.6 * vpd / 101.0)))
-                        #if self.fluxes.wue > 20.0: self.fluxes.wue = 20.0    # FIX THIS!!!
-            # what is this? ask BM
-
-        elif self.control.wue_model == 2:
-            self.fluxes.wue = (self.params.wue0 * 0.27273 / vpd *
-                                ca / amb_co2)
-        elif self.control.wue_model == 3 :
-            if float_eq(self.fluxes.transpiration, 0.0):
-                self.fluxes.wue = 0.0
-            else:
-                self.fluxes.wue = (self.fluxes.gpp_gCm2 /
-                                    self.fluxes.transpiration)
-        else:
-            raise AttributeError('Unknown WUE calculation option')
 
     def calc_infiltration(self, rain):
         """ Estimate "effective" rain, or infiltration I guess.
@@ -490,7 +441,6 @@ class WaterBalance(object):
             outflow [mm d-1]
         """
         # Total root zone
-        
         prev = self.state.pawater_root
         self.state.pawater_root += (self.fluxes.erain -
                                     self.fluxes.transpiration -
@@ -505,7 +455,6 @@ class WaterBalance(object):
         self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
                                         max=self.params.wcapac_root)
         
-       
         # Total soil layer
         self.state.pawater_tsoil += (self.fluxes.erain -
                                      self.fluxes.transpiration *
