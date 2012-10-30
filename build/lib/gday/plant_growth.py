@@ -1,4 +1,5 @@
-""" Carbon production module, call photosynthesis model """
+""" Estimate daily Carbon fixed and pass around the aboveground portion of the
+plant. """
 
 from math import exp
 import sys
@@ -24,7 +25,7 @@ class PlantGrowth(object):
 
     Key feedback through soil N mineralisation and plant N uptake
 
-    * Note met_forcing is an object with radiation, temp and precip data
+    * Note met_forcing is an object with radiation, temp, precip data, etc.
     """
     def __init__(self, control, params, state, fluxes, met_data):
         """
@@ -346,7 +347,6 @@ class PlantGrowth(object):
         self.fluxes.nrootexudate = (self.fluxes.npp * self.state.alroot_exudate * 
                                     self.params.vxfix)
         
-       
         if self.control.deciduous_model:
             # allocate N to pools with fixed N:C ratios
             # N flux into new ring (immobile component -> structrual components)
@@ -580,16 +580,10 @@ class PlantGrowth(object):
         self.state.exu_pool -= self.fluxes.microbial_resp
         #print self.fluxes.microbial_resp, self.fluxes.cprootexudate
         
+        self.calculate_cn_store()
         
-        if self.control.deciduous_model:
-            # update annual fluxes - store for next year
-            #self.state.clabile_store += self.fluxes.npp
-            #self.state.aroot_uptake += self.fluxes.nuptake
-            #self.state.aretrans += self.fluxes.retrans
+        if not self.control.deciduous_model:
             
-            self.calculate_cn_store()
-        else:
-            self.calculate_cn_store()
             # maximum leaf n:c ratio is function of stand age
             #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
             age_effect = ((self.state.age - self.params.ageyoung) / 

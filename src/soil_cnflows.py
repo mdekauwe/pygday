@@ -17,7 +17,7 @@ __version__ = "1.0 (05.09.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 
-class CarbonFlows(object):
+class CarbonSoilFlows(object):
     """ Plant litter C production is divided btw metabolic and structural """
     def __init__(self, control, params, state, fluxes, met_data):
         """
@@ -41,7 +41,7 @@ class CarbonFlows(object):
         self.state = state
         self.met_data = met_data
 
-    def calculate_cflows(self, project_day):
+    def calculate_csoil_flows(self, project_day):
         """ C from decomposing litter -> active, slow and passive SOM pools.
 
         Parameters:
@@ -193,6 +193,7 @@ class CarbonFlows(object):
             ncleaf = 0.0
         else:
             ncleaf = self.fluxes.deadleafn / self.fluxes.deadleaves
+        
         if self.control.use_eff_nc:
             nceleaf = self.params.liteffnc  * (1. - self.params.fretrans)
         else:
@@ -245,6 +246,7 @@ class CarbonFlows(object):
 
     def cflux_from_plants(self):
         """ C flux from plants into soil/surface struct and metabolic pools """
+        # -> into surface structural
         self.fluxes.cresid[0] = (self.fluxes.deadleaves *
                                  (1.0 - self.params.fmleaf) +
                                  self.fluxes.deadbranch * self.params.brabove +
@@ -264,16 +266,6 @@ class CarbonFlows(object):
         # -> into metabolic soil
         self.fluxes.cresid[3] = (self.fluxes.deadroots * self.params.fmroot + 
                                  self.fluxes.cprootexudate)
-
-        # switch off production flows
-        if self.control.sel_noprod1:
-            self.fluxes.cresid[0] = 0.
-        if self.control.sel_noprod2:
-            self.fluxes.cresid[1] = 0.
-        if self.control.sel_noprod3:
-            self.fluxes.cresid[2] = 0.
-        if self.control.sel_noprod4:
-            self.fluxes.cresid[3] = 0.
 
     def cfluxes_from_struct_pool(self):
         """C fluxes from structural pools """
@@ -368,7 +360,7 @@ class CarbonFlows(object):
                 self.fluxes.ceaten * (1. - self.params.fracfaeces))
                     
                     
-class NitrogenFlows(object):
+class NitrogenSoilFlows(object):
     """ Calculate daily nitrogen fluxes"""
     def __init__(self, control, params, state, fluxes):
         """
@@ -389,7 +381,7 @@ class NitrogenFlows(object):
         self.control = control
         self.state = state
 
-    def calculate_nflows(self):
+    def calculate_nsoil_flows(self):
 
         self.grazer_inputs()
         (nsurf, nsoil) = self.inputs_from_plant_litter()
