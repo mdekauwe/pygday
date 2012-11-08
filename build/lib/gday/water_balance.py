@@ -260,10 +260,10 @@ class WaterBalance(object):
         gs = [None]*2  # m s-1
         trans = [None]*2
         omegax = [None]*2
-        gpp = [self.fluxes.gpp_am_gCm2, self.fluxes.gpp_pm_gCm2]
+        gpp = [self.fluxes.gpp_gCm2/2.0, self.fluxes.gpp_gCm2/2.0]
         for i in self.am, self.pm:
             (gs[i], gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, 
-                                                                daylen/2.0, 
+                                                                daylen/2., 
                                                                 gpp[i], press, 
                                                                 temp[i])
             ga[i] = self.P.canopy_boundary_layer_conductance(wind[i])
