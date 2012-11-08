@@ -32,15 +32,20 @@ def float_ge(arg1, arg2, tol=1E-14):
     return float_gt(arg1, arg2)
 
 def day_length(doy, yr_days, latitude):
-    """ Figure out number of sunlight hours, (hours day-1)
+    """ Daylength in hours
 
-    Routine from sdgvm. date is a python object, see datetime library for
-    more info
-
+    Eqns come from Leuning A4, A5 and A6
+    
+    Reference:
+    ----------
+    Leuning et al (1995) Plant, Cell and Environment, 18, 1183-1200.
+    
     Parameters:
     -----------
-    date : date format string
-        date object, yr/month/day
+    doy : int
+        day of year, 1=jan 1
+    yr_days : int
+        number of days in a year, 365 or 366
     latitude : float
         latitude [degrees]
 
@@ -50,18 +55,13 @@ def day_length(doy, yr_days, latitude):
         daylength [hrs]
 
     """
-    conv = pi / 180.0
-    solar_declin = -23.4 * cos(conv * yr_days * (doy + 10.0) / yr_days)
-    temx = -tan(latitude * conv) * tan(solar_declin * conv)
-
-    if float_lt(fabs(temx), 1.0):
-        has = acos(temx) / conv
-        dayl = 2.0 * has / 15.0
-    elif float_gt(temx, 0.0):
-        dayl = 0.0
-    else:
-        dayl = 24.0
-
+    deg2rad = pi / 180.0
+    latr = latitude * deg2rad
+    sindec = -sin(23.5 * deg2rad) * cos(2.0 * pi * (doy + 10.0) / yr_days)
+    a = sin(latr) * sindec
+    b = cos(latr) * cos(asin(sindec))
+    dayl = 12.0 * (1.0 + (2.0 / pi) * asin(a / b))
+    
     return dayl
 
 def clip(value, min=None, max=None):

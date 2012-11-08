@@ -152,7 +152,7 @@ class Mate(object):
         lue = [self.epsilon(asat[k], par, daylen, alpha[k]) for k in am, pm]
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
-        lue_avg = sum(lue) / len(lue)
+        lue_avg = sum(lue) / 2.0
         
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
@@ -164,11 +164,6 @@ class Mate(object):
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                 const.MOL_C_TO_GRAMS_C)
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
-        
-        self.fluxes.gpp_am_gCm2 = ((self.fluxes.apar / 2.0) * lue[am] * 
-                                    const.MOL_C_TO_GRAMS_C)
-        self.fluxes.gpp_pm_gCm2 = ((self.fluxes.apar / 2.0) * lue[pm] * 
-                                    const.MOL_C_TO_GRAMS_C)
         
         # tonnes hectare-1 day-1
         conv = const.G_AS_TONNES / const.M2_AS_HA
@@ -214,8 +209,10 @@ class Mate(object):
         
         if self.control.co2_conc == 0:
             ca = self.met_data['amb_co2'][day]
+            #ca = 385.
         elif self.control.co2_conc == 1:
             ca = self.met_data['ele_co2'][day]
+            #ca = 550.0
             
         return (temp, par, vpd, ca)
 
@@ -440,7 +437,8 @@ class Mate(object):
         References:
         -----------
         See assumptions above...
-        * Sands, P. J. (1995) Australian Journal of Plant Physiology, 22, 601-14.
+        * Sands, P. J. (1995) Australian Journal of Plant Physiology, 
+          22, 601-14.
 
         """
         delta = 0.16666666667 # subintervals scaler for integral
@@ -525,11 +523,9 @@ if __name__ == "__main__":
     start_time = time.time()
     
     from file_parser import initialise_model_data
-    from utilities import float_lt, day_length
     import datetime
-    from utilities import uniq
     
-    fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
+    fname = "example.cfg"
     (control, params, state, files,
         fluxes, met_data,
             print_opts) = initialise_model_data(fname, DUMP=False)
@@ -543,57 +539,29 @@ if __name__ == "__main__":
     # Specific LAI (m2 onesided/kg DW)
     state.sla = params.slainit
 
-    #laifname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/experiments/lai"
-    #import numpy as np
-    #laidata = np.loadtxt(laifname)
-
     control.co2_conc = 0
-    npp_sum = np.zeros(0)
     
     project_day = 0
-    for yr in uniq(met_data["year"]):
-        days_in_year = len([x for x in met_data["year"] if x == yr])
-        daylen = 12.0
-        for doy in xrange(days_in_year):   
-   
-            
-            
-            
-            
-            #state.shootn = 0.071 # ornl val
-            
-            state.shootnc = state.shootn / state.shoot
-            state.ncontent = (state.shootnc * params.cfracts /
-                                    state.sla * const.KG_AS_G)
-            
-            state.wtfac_root = 1.0
-            #state.lai = laidata[project_day]
-    
-    
-            if float_lt(state.lai, params.lai_cover):
-                frac_gcover = state.lai / params.lai_cover
-            else:
-                frac_gcover = 1.0
-    
-            state.light_interception = ((1.0 - exp(-params.kext *
-                                                state.lai / frac_gcover)) *
-                                                frac_gcover)
-    
-    
-            #daylen = 10.0
-           
-            M.calculate_photosynthesis(project_day, daylen)
-    
-            print fluxes.gpp_gCm2
-            #print fluxes.gpp / state.shootn
-            npp_sum = np.append(npp_sum, fluxes.gpp_gCm2*0.5) 
-    
-    
-    
-            project_day += 1
-    
-    #print npp_sum.sum() / (state.shootn *100)
-    
-    end_time = time.time()
-    sys.stderr.write("\nTotal simulation time: %.1f seconds\n\n" %
-                                                    (end_time - start_time))
+    yr = 1996
+    days_in_year = len([x for x in met_data["year"] if x == yr])
+    daylen = 12.0
+    for doy in xrange(days_in_year):   
+        state.shootnc = state.shootn / state.shoot
+        state.ncontent = (state.shootnc * params.cfracts /
+                                state.sla * const.KG_AS_G)
+        
+        state.wtfac_root = 1.0
+        if float_lt(state.lai, params.lai_cover):
+            frac_gcover = state.lai / params.lai_cover
+        else:
+            frac_gcover = 1.0
+
+        state.light_interception = ((1.0 - exp(-params.kext *
+                                            state.lai / frac_gcover)) *
+                                            frac_gcover)
+        M.calculate_photosynthesis(project_day, daylen)
+
+        print fluxes.gpp_gCm2
+        npp_sum = np.append(npp_sum, fluxes.gpp_gCm2*0.5) 
+
+        project_day += 1
