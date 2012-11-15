@@ -122,9 +122,13 @@ class Mate(object):
         gamma_star = self.calculate_co2_compensation_point(Tk)
         km = self.calculate_michaelis_menten_parameter(Tk)
         N0 = self.calculate_leafn()
-        jmax = self.calculate_jmax_parameter(Tk, N0)
-        vcmax = self.calculate_vcmax_parameter(Tk, N0)
         alpha = self.calculate_quantum_efficiency(temp)
+        if self.control.modeljm == 1: 
+            jmax = self.calculate_jmax_parameter(Tk, N0)
+            vcmax = self.calculate_vcmax_parameter(Tk, N0)
+        else:
+            jmax = self.params.jmax
+            vcmax = self.params.vcmax
         
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
@@ -135,15 +139,14 @@ class Mate(object):
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
         # Rubisco-limited rate of photosynthesis
-        ac = [self.farq(ci[k], gamma_star[k], a1=vcmax[k], a2=km[k]) \
+        ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=km[k]) \
               for k in am, pm]
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
-        aj = [self.farq(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
+        aj = [self.assim(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
               a2=2.0*gamma_star[k]) for k in am, pm]
         
-        # Note that these are gross photosynthetic rates. Response to elevated
-        # [CO2] is reduced if N declines, but increases as gs declines.
+        # Note that these are gross photosynthetic rates.
         asat = [min(aj[k], ac[k]) for k in am, pm]
         
         # Assumption that the integral is symmetric about noon, so we average
@@ -162,7 +165,7 @@ class Mate(object):
 
         # gC m-2 d-1
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
-                                const.MOL_C_TO_GRAMS_C)
+                                    const.MOL_C_TO_GRAMS_C)
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         # tonnes hectare-1 day-1
@@ -231,7 +234,6 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        
         return [self.arrh(self.gamstar25, self.Egamma, Tk[k]) for k in am, pm]
     
     def calculate_quantum_efficiency(self, temp):
@@ -255,6 +257,7 @@ class Mate(object):
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
         
+        # values from sands paper, should these be params that user can change?
         alpha0 = 0.05  # quantum efficiency at 20 degC.
         alpha1 = 0.016 # characterises strength of the temp dependance of alpha
         
@@ -327,11 +330,8 @@ class Mate(object):
         Ea = self.params.eaj
         Hd = self.params.edj
         
-        # calculate the maximum rate of electron transport at 25 degC 
-        if self.control.deciduous_model: 
-            jmax25 = 40.462 * N0 + 13.691
-        else:
-            jmax25 = self.params.jmaxn * N0
+        # the maximum rate of electron transport at 25 degC 
+        jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
         
         return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
@@ -354,15 +354,12 @@ class Mate(object):
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
         
-        # calculate the maximum rate of Rubisco activity at 25 degC 
-        if self.control.deciduous_model: 
-            vcmax25 = 20.497 * N0 + 8.403
-        else:
-            vcmax25 = self.params.vcmaxn * N0
+        # the maximum rate of electron transport at 25 degC 
+        vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
         
         return [self.arrh(vcmax25, self.params.eav, Tk[k]) for k in am, pm]
     
-    def farq(self, ci, gamma_star, a1, a2):
+    def assim(self, ci, gamma_star, a1, a2):
         """Morning and afternoon calcultion of photosynthesis with the 
         limitation defined by the variables passed as a1 and a2, i.e. if we 
         are calculating vcmax or jmax limited.
@@ -445,8 +442,8 @@ class Mate(object):
         h = daylen * const.HRS_TO_SECS 
         theta = self.params.theta # local var
         
-        q = pi * self.params.kext * alpha * par / (2.0 * h * amax)
         if float_gt(amax, 0.0):
+            q = pi * self.params.kext * alpha * par / (2.0 * h * amax)
             integral = 0.0
             for i in xrange(1, 13, 2):
                 sinx = sin(pi * i / 24.)
