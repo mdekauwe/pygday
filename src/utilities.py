@@ -1,6 +1,6 @@
 """ Various misc funcs """
 
-from math import fabs, exp, sqrt, sin, pi, cos, tan, acos
+from math import fabs, exp, sqrt, sin, pi, cos, tan, acos, asin
 import sys
 
 __author__  = "Martin De Kauwe"
@@ -34,7 +34,7 @@ def float_ge(arg1, arg2, tol=1E-14):
 def day_length(doy, yr_days, latitude):
     """ Daylength in hours
 
-    Eqns come from Leuning A4, A5 and A6
+    Eqns come from Leuning A4, A5 and A6, pg. 1196
     
     Reference:
     ----------
