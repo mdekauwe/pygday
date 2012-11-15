@@ -294,45 +294,42 @@ class PlantGrowth(object):
         # the plant
         self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay)
         self.fluxes.nuptake = self.calculate_nuptake()
-       
-        # Attempt at floating rateuptake
-        #slope = (20.0 - 0.1) / ((6.0) - 0.0)
-        #y = slope * self.state.root + 0.0
-        #self.fluxes.nuptake = (y/365.25) * self.state.inorgn
         
-        
-        
-        """
         #======================== Ross's Root Model.==========================#
-        # have you got all these units conversion right, they don't appear very
-        # consistent? you have grams and kg?!
-        
-        # convert t ha-1 d-1 to gN m-2 yr-1
-        nsupply = self.calculate_nuptake() * 365.25 * 100.0 # t ha-1 -> gN m-2
-        
-        # covnert t ha-1 to kg m-2
-        rtot = self.state.root * 0.1
-        
-        (root_depth, 
-         self.fluxes.nuptake,
-         self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
-        
-        # covert nuptake from gN m-2 yr-1 to t ha-1 d-1
-        self.fluxes.nuptake = self.fluxes.nuptake * 0.01 / 365.25
-        
-        # covert from kg N m-2 to t ha-1
-        self.fluxes.deadroots = self.params.rdecay * self.fluxes.rabove * 10
-        self.fluxes.deadrootn = (self.state.rootnc * 
-                                (1.0 - self.params.rretrans) * 
-                                self.fluxes.deadroots)
-        
-        print  root_depth
-        #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
-        #      self.fluxes.nuptake *100.
-        #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
-        #      root_depth, self.fluxes.nuptake *100.
-        """
-        
+        if self.control.model_optroot == 1:    
+                    
+            # Attempt at floating rateuptake
+            #slope = (20.0 - 0.1) / ((6.0) - 0.0)
+            #y = slope * self.state.root + 0.0
+            #self.fluxes.nuptake = (y/365.25) * self.state.inorgn
+                
+            # have you got all these units conversion right, they don't appear 
+            # very consistent? you have grams and kg?!
+            
+            # convert t ha-1 d-1 to gN m-2 yr-1
+            nsupply = self.calculate_nuptake() * 365.25 * 100.0 # t ha-1->gN m-2
+            
+            # covnert t ha-1 to kg m-2
+            rtot = self.state.root * 0.1
+            
+            (root_depth, 
+             self.fluxes.nuptake,
+             self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
+            
+            # covert nuptake from gN m-2 yr-1 to t ha-1 d-1
+            self.fluxes.nuptake = self.fluxes.nuptake * 0.01 / 365.25
+            
+            # covert from kg N m-2 to t ha-1
+            self.fluxes.deadroots = self.params.rdecay * self.fluxes.rabove * 10
+            self.fluxes.deadrootn = (self.state.rootnc * 
+                                    (1.0 - self.params.rretrans) * 
+                                    self.fluxes.deadroots)
+            
+            print  root_depth
+            #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
+            #      self.fluxes.nuptake *100.
+            #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
+            #      root_depth, self.fluxes.nuptake *100.
         
         
         # N lost from system is proportional to the soil inorganic N pool, 
