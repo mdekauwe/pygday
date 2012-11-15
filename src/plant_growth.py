@@ -295,7 +295,8 @@ class PlantGrowth(object):
         self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay)
         self.fluxes.nuptake = self.calculate_nuptake()
         
-        #======================== Ross's Root Model.==========================#
+        # Ross's Root Model.
+        # NOT WORKING YET
         if self.control.model_optroot == 1:    
                     
             # Attempt at floating rateuptake
