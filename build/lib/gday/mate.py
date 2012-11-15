@@ -243,23 +243,22 @@ class Mate(object):
         temp : float
             air temperature
         alpha0 : float
-            
+            Value of alpha at 20 deg C [umol CO2 m-1 PAR]
         alpha1 : float
-            
+            temperature sensitivity of alpha [degC-1]
         
         Returns:
         -------
         alpha : float, list [am, pm]
             mol co2 mol-1 PAR
         """
-        # BM - Ellsworth's table gives values 0.062 and 0.068 for upper canopy 
-        # pine, so using 0.6
-        alpha0 = 0.06  # quantum efficiency at 20 degC.
-        alpha1 = 0.016 # characterises strength of the temp dependance of alpha
-        
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        return [alpha0 * (1.0 - alpha1 * (temp[k]-20.0)) for k in am, pm]
+        
+        alpha0 = 0.05  # quantum efficiency at 20 degC.
+        alpha1 = 0.016 # characterises strength of the temp dependance of alpha
+        
+        return [alpha0 * (1.0 - alpha1 * (temp[k] - 20.0)) for k in am, pm]
     
     def calculate_michaelis_menten_parameter(self, Tk):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
@@ -439,18 +438,22 @@ class Mate(object):
         See assumptions above...
         * Sands, P. J. (1995) Australian Journal of Plant Physiology, 
           22, 601-14.
+        * LUE stuff comes from Sands 1996
 
         """
         delta = 0.16666666667 # subintervals scaler for integral
+        h = daylen * const.HRS_TO_SECS 
+        theta = self.params.theta # local var
+        
+        q = pi * self.params.kext * alpha * par / (2.0 * h * amax)
         if float_gt(amax, 0.0):
-            q = (pi * self.params.kext * alpha * par /
-                 (2.0 * daylen * const.HRS_TO_SECS * amax))
-            
             integral = 0.0
-            for hour in xrange(1, 13, 2):
-                x = sin(pi * hour / 24.)
-                integral += (x / (1.0 + q * x + sqrt((1.0 + q * x)**2.0 -
-                             4.0 * self.params.theta * q * x)) * delta)
+            for i in xrange(1, 13, 2):
+                sinx = sin(pi * i / 24.)
+                arg1 = sinx
+                arg2 = 1.0 + q * sinx 
+                arg3 = sqrt((1.0 + q * sinx)**2.0 - 4.0 * theta * q * sinx)
+                integral += arg1 / (arg2 + arg3) * delta
             lue = alpha * integral * pi
         else:
             lue = 0.0
