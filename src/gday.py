@@ -191,16 +191,11 @@ class Gday(object):
     
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year)
-                print self.fluxes.gpp * 100
+                
                 #if self.spin_up == False:
                 #    print self.fluxes.gpp * 100, self.state.lai, \
-                #          self.fluxes.transpiration, self.state.pawater_root
-                
-                #if self.fluxes.transpiration  == 0.0:
-                #    print yr, self.state.pawater_root / self.params.wcapac_root,0.0 
-                #else:
-                #    print yr, self.state.pawater_root / self.params.wcapac_root,self.fluxes.gpp_gCm2 / self.fluxes.transpiration
-                
+                #          self.fluxes.transpiration
+            
                 # save daily fluxes + state for daily output    
                 if self.control.print_options == 0:
                     self.save_daily_outputs(yr, doy+1)
