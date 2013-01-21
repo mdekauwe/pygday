@@ -63,7 +63,7 @@ class PlantGrowth(object):
         self.sm = SoilMoisture(self.control, self.params, self.state, 
                                self.fluxes)
         
-        self.rm = RootingDepthModel(zval=0.35, r0=0.05, top_soil_depth=0.3)
+        self.rm = RootingDepthModel(d0=0.35, r0=0.05, top_soil_depth=0.3)
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, days_in_yr):
         """Evolve plant state, photosynthesis, distribute N and C"

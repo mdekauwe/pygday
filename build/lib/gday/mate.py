@@ -135,7 +135,8 @@ class Mate(object):
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         ci = [i * ca for i in cica]
         
-        # store value as needed in water balance calculation
+        # store value as needed in water balance calculation - actually no
+        # longer used...
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
         # Rubisco-limited rate of photosynthesis
@@ -410,7 +411,8 @@ class Mate(object):
     def epsilon(self, amax, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996. 
         
-        Using the rectangle method to approximate the integral
+        Numerical integration of g is simplified to 6 intervals. Leaf 
+        transmission is assumed to be zero.
 
         Parameters:
         ----------
@@ -438,7 +440,7 @@ class Mate(object):
         * LUE stuff comes from Sands 1996
 
         """
-        delta = 0.16666666667 # subintervals scaler for integral
+        delta = 0.16666666667 # subintervals scaler, i.e. 6 intervals
         h = daylen * const.HRS_TO_SECS 
         theta = self.params.theta # local var
         
