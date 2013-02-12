@@ -9,6 +9,7 @@ import os
 import shutil
 import sys
 import subprocess
+import timeit
 from gday import gday as model
 from gday import adjust_gday_param_file as ad
 
@@ -160,32 +161,30 @@ def main(experiment_id, GROW_FOREST=False, RUN_SIM=True):
                         }
         ad.adjust_param_file(cfg_fname, replace_dict)
         
+        
         G = model.Gday(cfg_fname)
         G.run_sim()
         
-        
 
-    
 if __name__ == "__main__":
     
-    experiment_id = "TEST"
-    main(experiment_id, GROW_FOREST=True, RUN_SIM=True)
+    import time
+    import filecmp
+    
+    experiment_id = 'TEST'
+    N = 10
+    times = []
+    for i in xrange(N):
+        start_time = time.time()
+        main(experiment_id, GROW_FOREST=True, RUN_SIM=True) 
+        end_time = time.time()
+        times.append(end_time - start_time)
+    avg_time = sum(times) / float(len(times))
+    
+    print "\nAverage time (n=%d) : %2.5f seconds\n\n" % (N, avg_time)
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-       
-    
-    
-    
-    
-    
-    
+    file_dif = filecmp.cmp('runs/EXAMPLE.csv', 'runs/PREVIOUS.csv') 
+    if file_dif == False:
+        print "Houston we have a problem!!"
