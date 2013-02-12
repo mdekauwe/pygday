@@ -46,7 +46,7 @@ class Gday(object):
     def __init__(self, fname=None, DUMP=False, spin_up=False):
         
         """ Set up model
-        Test
+        
         Read meterological forcing file and user config file and adjust the
         model parameters, control or initial state attributes that are used
         within the code.
