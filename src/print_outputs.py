@@ -168,10 +168,12 @@ class PrintOutput(object):
         header = []
         header.extend(["year","doy"])
         header.extend(["%s" % (var) for var in self.print_opts])
-        
-        wr = csv.writer(self.odaily, delimiter=',', quoting=csv.QUOTE_NONE, 
-                        escapechar=' ')
-        wr.writerow(header)
-        wr.writerows(day_outputs)
+        h = ",".join ( ( "%s " for s in header ) )
+        self.odaily.write ( h+"\n" )
+        buff = "\n".join( ( \
+               ",".join( \
+               ( "%18.6G " % elemo for elemo in row)) \
+               for row in day_outputs))
+        self.odaily.write ( buff )
         self.odaily.close()
    
