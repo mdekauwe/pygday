@@ -48,6 +48,9 @@ class PrintOutput(object):
         # daily output filename
         try:
             self.odaily = open(self.files.out_fname, 'wb')
+            self.wr = csv.writer(self.odaily, delimiter=',', 
+                                 quoting=csv.QUOTE_NONE, escapechar=' ')
+            self.write_daily_output_header()
         except IOError:
             raise IOError("Can't open %s file for write" % self.odaily)
         
@@ -163,15 +166,18 @@ class PrintOutput(object):
         except IOError:
             raise IOError("Error writing params file")
     
-    def write_daily_outputs_file(self, day_outputs):
-        """ Write daily outputs to a csv file """
+    def write_daily_output_header(self):
         header = []
         header.extend(["year","doy"])
         header.extend(["%s" % (var) for var in self.print_opts])
+        self.wr.writerow(header)
+    
+    
+    def write_daily_outputs_file(self, day_outputs):
+        """ Write daily outputs to a csv file """
+        self.wr.writerows(day_outputs)
         
-        wr = csv.writer(self.odaily, delimiter=',', quoting=csv.QUOTE_NONE, 
-                        escapechar=' ')
-        wr.writerow(header)
-        wr.writerows(day_outputs)
-        self.odaily.close()
    
+    def clean_up(self):
+        """ close the output file that holds the daily output """
+        self.odaily.close()
