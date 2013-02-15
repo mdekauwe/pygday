@@ -164,7 +164,20 @@ def main(experiment_id, GROW_FOREST=False, RUN_SIM=True):
         
         G = model.Gday(cfg_fname)
         G.run_sim()
-        
+
+def profile_main():
+    """ profile code """
+    import cProfile, pstats
+    prof = cProfile.Profile()
+    prof = prof.runctx("main()", globals(), locals())
+    print "<pre>"
+    stats = pstats.Stats(prof)
+    stats.sort_stats("cumulative")  # Or cumulative
+    stats.print_stats(500)  # 80 = how many to print
+    # The rest is optional.
+    # stats.print_callees()
+    # stats.print_callers()
+    print "</pre>"        
 
 if __name__ == "__main__":
     
@@ -176,7 +189,7 @@ if __name__ == "__main__":
     times = []
     for i in xrange(N):
         start_time = time.time()
-        main(experiment_id, GROW_FOREST=True, RUN_SIM=True) 
+        main(experiment_id, GROW_FOREST=False, RUN_SIM=True) 
         end_time = time.time()
         times.append(end_time - start_time)
     avg_time = sum(times) / float(len(times))
