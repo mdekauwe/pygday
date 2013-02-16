@@ -64,7 +64,7 @@ class PlantGrowth(object):
                                self.fluxes)
         
         self.rm = RootingDepthModel(d0=0.35, r0=0.05, top_soil_depth=0.3)
-        
+     
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, days_in_yr):
         """Evolve plant state, photosynthesis, distribute N and C"
 
@@ -159,7 +159,7 @@ class PlantGrowth(object):
             ncwnew = max(0.0, 0.162 * self.state.shootnc - 0.00143)
         
         return (ncbnew, ncwimm, ncwnew)
-
+    @profile  
     def carbon_production(self, project_day, daylen):
         """ Calculate GPP, NPP and plant respiration
 
