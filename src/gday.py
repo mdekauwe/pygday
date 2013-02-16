@@ -11,7 +11,7 @@ import constants as const
 from file_parser import initialise_model_data
 from plant_growth import PlantGrowth
 from print_outputs import PrintOutput
-from litter_production import LitterProduction
+from litter_production import Litter
 from soil_cnflows import CarbonSoilFlows, NitrogenSoilFlows
 from update_pools import CarbonSoilPools, NitrogenSoilPools
 from utilities import float_eq, calculate_daylength, uniq
@@ -107,8 +107,7 @@ class Gday(object):
                               self.fluxes, self.met_data)
         self.nf = NitrogenSoilFlows(self.control, self.params, self.state,
                                 self.fluxes)
-        self.lf = LitterProduction(self.control, self.params, self.state,
-                                   self.fluxes)
+        self.lf = Litter(self.control, self.params, self.state, self.fluxes)
         self.pg = PlantGrowth(self.control, self.params, self.state,
                               self.fluxes, self.met_data)
         self.cpl = CarbonSoilPools(self.control, self.params, self.state,
@@ -178,7 +177,7 @@ class Gday(object):
             for doy in xrange(days_in_year[i]):
 
                 # litterfall rate: C and N fluxes
-                (fdecay, rdecay) = self.lf.calculate_litter_flows(doy)
+                (fdecay, rdecay) = self.lf.calculate_litter(doy)
 
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
