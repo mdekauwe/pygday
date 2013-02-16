@@ -5,7 +5,7 @@ __version__ = "1.0 (25.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 
-class LitterProduction(object):
+class Litter(object):
     """ Calculate C and N litter production
 
     Litter production for each pool is assumed to be proportional to biomass
@@ -30,7 +30,7 @@ class LitterProduction(object):
         self.control = control
         self.state = state
     
-    def calculate_litter_flows(self, doy=None):
+    def calculate_litter(self, doy=None):
         """Various C and N litter production elements
 
         Returns:
