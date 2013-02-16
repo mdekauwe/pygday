@@ -50,6 +50,18 @@ class PrintOutput(object):
             self.odaily = open(self.files.out_fname, 'wb')
             self.wr = csv.writer(self.odaily, delimiter=',', 
                                  quoting=csv.QUOTE_NONE, escapechar=' ')
+            self.print_fluxes = []
+            self.print_state = []
+            for var in self.print_opts:
+                try:
+                    if hasattr(self.state, var):
+                        self.print_state.append(var)
+                    else:
+                        self.print_fluxes.append(var)
+                except AttributeError:
+                    err_msg = "Error accessing var to print: %s" % var
+                    raise AttributeError, err_msg
+    
             self.write_daily_output_header()
         except IOError:
             raise IOError("Can't open %s file for write" % self.odaily)
@@ -57,19 +69,8 @@ class PrintOutput(object):
         self.day_output = []
      
     def get_vars_to_print(self):
-        """ build 2 list of variable names to print out """
-        print_fluxes = []
-        print_state = []
-        for var in self.print_opts:
-            try:
-                if hasattr(self.state, var):
-                    print_state.append(var)
-                else:
-                    print_fluxes.append(var)
-            except AttributeError:
-                err_msg = "Error accessing var to print: %s" % var
-                raise AttributeError, err_msg
-        return (print_state, print_fluxes)
+        """ return lists of variable names to print out """
+        return (self.print_state, self.print_fluxes)
       
     def save_default_parameters(self):
         """ Print default model state, control and param files.
@@ -184,9 +185,10 @@ class PrintOutput(object):
     def write_daily_output_header(self):
         header = []
         header.extend(["year","doy"])
-        header.extend(["%s" % (var) for var in self.print_opts])
+        header.extend(["%s" % (var) for var in self.print_state])
+        header.extend(["%s" % (var) for var in self.print_fluxes])
         self.wr.writerow(header)
-    
+        
     
     def write_daily_outputs_file(self, day_outputs):
         """ Write daily outputs to a csv file """
