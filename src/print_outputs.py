@@ -55,7 +55,22 @@ class PrintOutput(object):
             raise IOError("Can't open %s file for write" % self.odaily)
         
         self.day_output = []
-       
+     
+    def get_vars_to_print(self):
+        """ build 2 list of variable names to print out """
+        print_fluxes = []
+        print_state = []
+        for var in self.print_opts:
+            try:
+                if hasattr(self.state, var):
+                    print_state.append(var)
+                else:
+                    print_fluxes.append(var)
+            except AttributeError:
+                err_msg = "Error accessing var to print: %s" % var
+                raise AttributeError, err_msg
+        return (print_state, print_fluxes)
+      
     def save_default_parameters(self):
         """ Print default model state, control and param files.
 

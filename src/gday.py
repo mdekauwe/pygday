@@ -78,7 +78,10 @@ class Gday(object):
         # printing stuff
         self.pr = PrintOutput(self.params, self.state, self.fluxes,
                               self.control, self.files, self.print_opts)
-
+        
+        # build list of variables to print
+        (self.print_state, self.print_fluxes) = self.pr.get_vars_to_print()
+        
         # print model defaults
         if DUMP == True:
             self.pr.save_default_parameters()
@@ -127,7 +130,7 @@ class Gday(object):
         self.state.pawater_root = self.params.wcapac_root
         self.state.pawater_tsoil = self.params.wcapac_topsoil
         self.spin_up = spin_up
-
+        
     def spin_up_pools(self, tolerance=1E-03, sequence=1000):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
@@ -181,7 +184,8 @@ class Gday(object):
 
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
-                                        daylen[doy], doy, float(days_in_year[i]))
+                                        daylen[doy], doy, 
+                                        float(days_in_year[i]))
 
                 # soil C & N model fluxes
                 self.cf.calculate_csoil_flows(project_day)
@@ -397,17 +401,10 @@ class Gday(object):
             simulation day
         """
         output = [year, doy]
-        for var in self.print_opts:
-            try:
-                if hasattr(self.state, var):
-                    value = getattr(self.state, var)
-                    output.append(value)
-                else:
-                    value = getattr(self.fluxes, var)
-                    output.append(value)
-            except AttributeError:
-                err_msg = "Error accessing var to print: %s" % var
-                raise AttributeError, err_msg
+        for var in self.print_state:
+            output.append(getattr(self.state, var))
+        for var in self.print_fluxes:
+            output.append(getattr(self.fluxes, var))
         self.day_output.append(output)
 
 
