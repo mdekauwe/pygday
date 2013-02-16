@@ -17,7 +17,6 @@ from update_pools import CarbonSoilPools, NitrogenSoilPools
 from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
 
-
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (15.02.2011)"
 __email__   = "mdekauwe@gmail.com"
@@ -158,28 +157,32 @@ class Gday(object):
                              self.state.litterc))
             sequence += 1000
         self.print_output_file()
-
+    #@profile
     def run_sim(self):
         """ Run model simulation! """
         project_day = 0
-        project_day2 = 0
-        for yr in uniq(self.met_data["year"]):
-            days_in_year = len([x for x in self.met_data["year"] if x == yr])
-            daylen = calculate_daylength(days_in_year, self.params.latitude)
+        
+        # figure out the number of years for simulation and the number of
+        # days in each year
+        years = uniq(self.met_data["year"])
+        days_in_year = [self.met_data["year"].count(yr) for yr in years]
+        
+        for i, yr in enumerate(years):
+            daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
                 self.zero_annual_sums()
                 self.P.calculate_phenology_flows(daylen, self.met_data,
-                                            days_in_year, project_day)
+                                            days_in_year[i], project_day)
            
             self.day_output = [] # empty daily storage list for outputs
-            for doy in xrange(days_in_year):
+            for doy in xrange(days_in_year[i]):
 
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter_flows(doy)
 
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
-                                        daylen[doy], doy, float(days_in_year))
+                                        daylen[doy], doy, float(days_in_year[i]))
 
                 # soil C & N model fluxes
                 self.cf.calculate_csoil_flows(project_day)
@@ -190,7 +193,7 @@ class Gday(object):
                 self.npl.calculate_npools(cact, cslo, cpas)
 
                 # calculate C:N ratios and increment annual flux sums
-                self.day_end_calculations(project_day, days_in_year)
+                self.day_end_calculations(project_day, days_in_year[i])
 
 
                 #if self.spin_up == False:
