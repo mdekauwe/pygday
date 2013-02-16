@@ -159,7 +159,8 @@ class Gday(object):
                              self.state.litterc))
             sequence += 1000
         self.print_output_file()
-    @profile
+    
+    #@profile
     def run_sim(self):
         """ Run model simulation! """
         project_day = 0

@@ -79,7 +79,7 @@ class Mate(object):
         self.Ec = 79430.0
         self.Eo = 36380.0   # Note there is a typo in the R mate code here...  
         self.Egamma = 37830.0
-        
+    
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
         a commonly assumed reln (e.g. Potter 1993, Myneni 2002). The slope of
@@ -127,8 +127,8 @@ class Mate(object):
             jmax = self.calculate_jmax_parameter(Tk, N0)
             vcmax = self.calculate_vcmax_parameter(Tk, N0)
         else:
-            jmax = self.params.jmax
-            vcmax = self.params.vcmax
+            jmax = [self.params.jmax, self.params.jmax]
+            vcmax = [self.params.vcmax, self.params.vcmax]
         
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
@@ -516,6 +516,10 @@ class Mate(object):
         
         return arg1 * arg2 / arg3
 
+
+
+
+
 if __name__ == "__main__":
     
     import numpy as np
@@ -526,6 +530,9 @@ if __name__ == "__main__":
     
     from file_parser import initialise_model_data
     import datetime
+    
+    
+   
     
     fname = "example.cfg"
     (control, params, state, files,

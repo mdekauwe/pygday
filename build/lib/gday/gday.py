@@ -11,18 +11,17 @@ import constants as const
 from file_parser import initialise_model_data
 from plant_growth import PlantGrowth
 from print_outputs import PrintOutput
-from litter_production import LitterProduction
+from litter_production import Litter
 from soil_cnflows import CarbonSoilFlows, NitrogenSoilFlows
 from update_pools import CarbonSoilPools, NitrogenSoilPools
 from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
 
-
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (15.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
-@profile
+
 class Gday(object):
     """ The G'DAY (Generic Decomposition And Yield) model.
 
@@ -79,7 +78,10 @@ class Gday(object):
         # printing stuff
         self.pr = PrintOutput(self.params, self.state, self.fluxes,
                               self.control, self.files, self.print_opts)
-
+        
+        # build list of variables to print
+        (self.print_state, self.print_fluxes) = self.pr.get_vars_to_print()
+        
         # print model defaults
         if DUMP == True:
             self.pr.save_default_parameters()
@@ -108,8 +110,7 @@ class Gday(object):
                               self.fluxes, self.met_data)
         self.nf = NitrogenSoilFlows(self.control, self.params, self.state,
                                 self.fluxes)
-        self.lf = LitterProduction(self.control, self.params, self.state,
-                                   self.fluxes)
+        self.lf = Litter(self.control, self.params, self.state, self.fluxes)
         self.pg = PlantGrowth(self.control, self.params, self.state,
                               self.fluxes, self.met_data)
         self.cpl = CarbonSoilPools(self.control, self.params, self.state,
@@ -129,7 +130,7 @@ class Gday(object):
         self.state.pawater_root = self.params.wcapac_root
         self.state.pawater_tsoil = self.params.wcapac_topsoil
         self.spin_up = spin_up
-
+        
     def spin_up_pools(self, tolerance=1E-03, sequence=1000):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
@@ -158,28 +159,33 @@ class Gday(object):
                              self.state.litterc))
             sequence += 1000
         self.print_output_file()
-
+    #@profile
     def run_sim(self):
         """ Run model simulation! """
         project_day = 0
-        project_day2 = 0
-        for yr in uniq(self.met_data["year"]):
-            days_in_year = len([x for x in self.met_data["year"] if x == yr])
-            daylen = calculate_daylength(days_in_year, self.params.latitude)
+        
+        # figure out the number of years for simulation and the number of
+        # days in each year
+        years = uniq(self.met_data["year"])
+        days_in_year = [self.met_data["year"].count(yr) for yr in years]
+        
+        for i, yr in enumerate(years):
+            daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
                 self.zero_annual_sums()
                 self.P.calculate_phenology_flows(daylen, self.met_data,
-                                            days_in_year, project_day)
+                                            days_in_year[i], project_day)
            
             self.day_output = [] # empty daily storage list for outputs
-            for doy in xrange(days_in_year):
+            for doy in xrange(days_in_year[i]):
 
                 # litterfall rate: C and N fluxes
-                (fdecay, rdecay) = self.lf.calculate_litter_flows(doy)
+                (fdecay, rdecay) = self.lf.calculate_litter(doy)
 
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
-                                        daylen[doy], doy, float(days_in_year))
+                                        daylen[doy], doy, 
+                                        float(days_in_year[i]))
 
                 # soil C & N model fluxes
                 self.cf.calculate_csoil_flows(project_day)
@@ -190,7 +196,7 @@ class Gday(object):
                 self.npl.calculate_npools(cact, cslo, cpas)
 
                 # calculate C:N ratios and increment annual flux sums
-                self.day_end_calculations(project_day, days_in_year)
+                self.day_end_calculations(project_day, days_in_year[i])
 
 
                 #if self.spin_up == False:
@@ -395,17 +401,10 @@ class Gday(object):
             simulation day
         """
         output = [year, doy]
-        for var in self.print_opts:
-            try:
-                if hasattr(self.state, var):
-                    value = getattr(self.state, var)
-                    output.append(value)
-                else:
-                    value = getattr(self.fluxes, var)
-                    output.append(value)
-            except AttributeError:
-                err_msg = "Error accessing var to print: %s" % var
-                raise AttributeError, err_msg
+        for var in self.print_state:
+            output.append(getattr(self.state, var))
+        for var in self.print_fluxes:
+            output.append(getattr(self.fluxes, var))
         self.day_output.append(output)
 
 
