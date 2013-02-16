@@ -441,8 +441,6 @@ class Mate(object):
 
         """
         delta = 0.16666666667 # subintervals scaler, i.e. 6 intervals
-        print daylen
-        import sys; sys.exit()
         h = daylen * const.HRS_TO_SECS 
         theta = self.params.theta # local var
         
