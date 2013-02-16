@@ -407,7 +407,7 @@ class Mate(object):
         """
         g1w = self.params.g1 * self.state.wtfac_root
         return g1w / (g1w + sqrt(vpd))
-
+       
     def epsilon(self, amax, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996. 
         
