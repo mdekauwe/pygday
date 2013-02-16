@@ -1,7 +1,5 @@
 """ Litter Production object """
 
-from utilities import float_eq, float_lt, float_le, float_gt, float_ge
-
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (25.02.2011)"
 __email__   = "mdekauwe@gmail.com"
@@ -31,7 +29,7 @@ class LitterProduction(object):
         self.fluxes = fluxes
         self.control = control
         self.state = state
-
+    
     def calculate_litter_flows(self, doy=None):
         """Various C and N litter production elements
 
@@ -142,14 +140,14 @@ class LitterProduction(object):
         """
 
         new_decay_rate = (decay_rate_dry - (decay_rate_dry -
-                            decay_rate) * (self.state.pawater_root /
-                            self.params.wcapac_root - self.params.watdecaydry) /
-                            (self.params.watdecaywet - self.params.watdecaydry))
+                          decay_rate) * (self.state.pawater_root /
+                          self.params.wcapac_root - self.params.watdecaydry) /
+                          (self.params.watdecaywet - self.params.watdecaydry))
 
-        if float_lt(new_decay_rate, decay_rate):
+        if new_decay_rate < decay_rate:
             new_decay_rate = decay_rate
 
-        if float_gt(new_decay_rate, decay_rate_dry):
+        if new_decay_rate > decay_rate_dry:
             new_decay_rate = decay_rate_dry
 
         return new_decay_rate

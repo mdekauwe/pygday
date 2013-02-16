@@ -22,7 +22,7 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (15.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
-
+@profile
 class Gday(object):
     """ The G'DAY (Generic Decomposition And Yield) model.
 
