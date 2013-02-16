@@ -85,11 +85,9 @@ def uniq(inlist):
     return uniques
 
 def calculate_daylength(yr_days, latitude):
-    daylen = []
-    for d in xrange(yr_days):
-        daylen.append(day_length(d+1, yr_days, latitude))   
-    return daylen
-
+    """ wrapper to put the day length into a list """
+    return [day_length(d+1, yr_days, latitude) for d in xrange(yr_days)]
+    
 if __name__ == '__main__':
 
     print float_eq(0.0, 0.0)

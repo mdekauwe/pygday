@@ -79,7 +79,7 @@ class Mate(object):
         self.Ec = 79430.0
         self.Eo = 36380.0   # Note there is a typo in the R mate code here...  
         self.Egamma = 37830.0
-        
+    
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
         a commonly assumed reln (e.g. Potter 1993, Myneni 2002). The slope of
@@ -441,6 +441,8 @@ class Mate(object):
 
         """
         delta = 0.16666666667 # subintervals scaler, i.e. 6 intervals
+        print daylen
+        import sys; sys.exit()
         h = daylen * const.HRS_TO_SECS 
         theta = self.params.theta # local var
         
