@@ -159,6 +159,7 @@ class Gday(object):
                              self.state.litterc))
             sequence += 1000
         self.print_output_file()
+    
     #@profile
     def run_sim(self):
         """ Run model simulation! """
@@ -198,7 +199,7 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
 
-
+                
                 #if self.spin_up == False:
                 #    print self.fluxes.gpp * 100, self.state.lai, \
                 #          self.fluxes.transpiration
