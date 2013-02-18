@@ -91,18 +91,6 @@ class Gday(object):
             raise ValueError("Unknown output print option: %s  (try 0 or 1)" %
                              self.control.print_options)
 
-        # set initial lai -> m2/m2
-        self.state.lai = (self.params.slainit * const.M2_AS_HA /
-                          const.KG_AS_TONNES / self.params.cfracts *
-                          self.state.shoot)
-
-        # Specific leaf area (m2 onesided/kg DW)
-        self.state.sla = self.params.slainit
-
-        self.time_constants = ['rateuptake', 'rateloss', 'retransmob',
-                                'fdecay', 'fdecaydry', 'rdecay', 'rdecaydry',
-                                'bdecay', 'wdecay', 'kdec1', 'kdec2', 'kdec3',
-                                'kdec4', 'kdec5', 'kdec6', 'kdec7', 'nuptakez']
         self.correct_rate_constants(output=False)
 
         # class instances
@@ -118,9 +106,9 @@ class Gday(object):
         self.npl = NitrogenSoilPools(self.control, self.params, self.state,
                                  self.fluxes, self.met_data)
 
-
+        
         if self.control.deciduous_model:
-            self.initialise_deciduous_model()
+            self.pg.initialise_deciduous_model()
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
                                store_transfer_len=self.params.store_transfer_len)
@@ -130,6 +118,12 @@ class Gday(object):
         self.state.pawater_root = self.params.wcapac_root
         self.state.pawater_tsoil = self.params.wcapac_topsoil
         self.spin_up = spin_up
+        self.state.sla = self.params.slainit # Specific leaf area (m2/kg DW)
+        self.state.lai = (self.params.slainit * const.M2_AS_HA /
+                          const.KG_AS_TONNES / self.params.cfracts *
+                          self.state.shoot)
+
+        
         
     def spin_up_pools(self, tolerance=1E-03, sequence=1000):
         """ Spin Up model plant, soil and litter pools.
@@ -218,7 +212,7 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
-                self.allocate_stored_c_and_n()
+                self.pg.allocate_stored_c_and_n()
 
             if self.control.print_options == 0 and self.spin_up == False:
                 self.print_output_file()
@@ -245,8 +239,6 @@ class Gday(object):
             self.correct_rate_constants(output=True)
             self.pr.save_state()
 
-
-
     def zero_annual_sums(self):
         self.state.shoot = 0.0
         self.state.shootn = 0.0
@@ -255,14 +247,18 @@ class Gday(object):
 
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
+        time_constants = ['rateuptake', 'rateloss', 'retransmob',
+                          'fdecay', 'fdecaydry', 'rdecay', 'rdecaydry',
+                          'bdecay', 'wdecay', 'kdec1', 'kdec2', 'kdec3',
+                          'kdec4', 'kdec5', 'kdec6', 'kdec7', 'nuptakez']
+        conv = const.NDAYS_IN_YR
+        
         if output == False:
-            for i in self.time_constants:
-                setattr(self.params, i, getattr(self.params, i) /
-                        const.NDAYS_IN_YR)
+            for i in time_constants:
+                setattr(self.params, i, getattr(self.params, i) / conv)
         else:
-            for i in self.time_constants:
-                setattr(self.params, i, getattr(self.params, i) *
-                        const.NDAYS_IN_YR)
+            for i in time_constants:
+                setattr(self.params, i, getattr(self.params, i) * conv)
 
     def day_end_calculations(self, prjday, days_in_year=None, INIT=False):
         """Calculate derived values from state variables.
@@ -333,62 +329,6 @@ class Gday(object):
                                             self.fluxes.nrootexudate -
                                             self.fluxes.nimmob +
                                             self.fluxes.nlittrelease)
-
-    def initialise_deciduous_model(self):
-        # Divide up NPP based on annual allocation fractions
-
-        self.state.c_to_alloc_shoot = (self.state.alleaf *
-                                        self.state.cstore)
-
-
-        self.state.c_to_alloc_root = (self.state.alroot *
-                                        self.state.cstore)
-
-        self.state.c_to_alloc_branch = (self.state.albranch *
-                                        self.state.cstore)
-        self.state.c_to_alloc_stem = (self.state.alstem *
-                                        self.state.cstore)
-        #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
-        #                                        self.state.cstore)
-
-        # annual available N for allocation to leaf
-        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
-                                        self.state.shootnc_yr)
-
-
-
-    def allocate_stored_c_and_n(self):
-        """
-        At the end of the year allocate everything for the coming year
-        based on stores from the previous year avaliable N for allocation
-        """
-        self.state.c_to_alloc_shoot = (self.state.alleaf *
-                                        self.state.cstore)
-        self.state.c_to_alloc_root = (self.state.alroot *
-                                        self.state.cstore)
-        self.state.c_to_alloc_branch = (self.state.albranch *
-                                        self.state.cstore)
-        self.state.c_to_alloc_stem = (self.state.alstem *
-                                        self.state.cstore)
-
-        self.state.n_to_alloc_root = (min(self.state.nstore,
-                                          self.state.c_to_alloc_root *
-                                          self.state.rootnc))
-
-        # constant N:C of foliage during the growing season(kgN kg-1C)
-        self.state.shootnc_yr = ((self.state.nstore -
-                                  self.state.n_to_alloc_root) /
-                                  (self.state.c_to_alloc_shoot))
-        # if we want to put back a floating N:C then we need to have
-        # self.state.c_to_alloc_shoot + self.state.c_to_alloc_stem * some factor
-
-        # annual available N for allocation to leaf
-        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
-                                        self.state.shootnc_yr)
-
-        total = (self.state.c_to_alloc_shoot + self.state.c_to_alloc_root + 
-                 self.state.c_to_alloc_stem)
-        
 
     def save_daily_outputs(self, year, doy):
         """ Save the daily fluxes + state in a big list.
