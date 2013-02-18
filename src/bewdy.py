@@ -3,7 +3,7 @@
 
 import sys
 import datetime
-from math import fabs, exp, sqrt, sin, pi
+from math import fabs, exp, sqrt, sin, pi, log
 import constants as const
 from utilities import float_eq, float_lt, float_le, float_gt, day_length
 
@@ -54,16 +54,14 @@ class Bewdy(object):
         self.state = state
         self.met_data = met_data
 
-    def calculate_photosynthesis(self, frac_gcover, date, day, daylen):
+    def calculate_photosynthesis(self, frac_gcover, day, daylen):
         """
         Parameters:
         -----------
         frac_gcover : float
             fraction of ground cover
-        date : date object string
-            date string (yr/mth/day)
         day : integer
-            day of simulation
+            project day
         daylen : float
             daylength in hours
 
@@ -91,17 +89,13 @@ class Bewdy(object):
         b = quantum_yield * self.params.kext * direct_rad * leaf_absorptance
         s = quantum_yield * self.params.kext * diffuse_rad * leaf_absorptance
         
-        
-        
         # effect of incomplete ground cover - modifies lai to lai/cover
         # (jackson & palmer)
         lai_mod = self.state.lai / frac_gcover
+        
         n = (rho * self.params.kext *
                 (self.state.ncontent - self.params.nmin) * lai_mod /
                 (1.0 - exp(-self.params.kext * lai_mod)))
-        
-        
-        
         
         self.fluxes.gpp = ((self.sunlit_contribution(b, s, n, lai_mod) +
                             self.shaded_contribution(b, s, n, lai_mod)))
@@ -186,7 +180,7 @@ class Bewdy(object):
         km = 39.05 * exp(0.085 * temp) + 9.58 * gamma_star
 
         # max rate of electron transport and rubisco activity
-        jmax, vcmax = self.jmax_and_vcmax_func(temp)
+        (jmax, vcmax) = self.jmax_and_vcmax_func(temp)
 
         # co2 concentration of intercellular air spaces
         ci = self.intercellular_co2_conc(gamma_star, ca, vpd)
@@ -320,7 +314,6 @@ class Bewdy(object):
         vcmax : float
             maximum rate of Rubisco activity
         """
-
         if float_gt(temp, 10.0):
             jmax = (self.params.jmaxn * (1.0 + (temp - 25.0) * (0.05 +
                     (temp - 25.0) * (-1.81 * 1E-3 + (temp - 25.0) *

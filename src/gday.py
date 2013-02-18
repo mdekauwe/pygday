@@ -198,7 +198,7 @@ class Gday(object):
                 #    print self.fluxes.gpp * 100, self.state.lai, \
                 #          self.fluxes.transpiration
 
-                
+                print self.fluxes.gpp * 100
                 
                 # =============== #
                 #   END OF DAY    #
