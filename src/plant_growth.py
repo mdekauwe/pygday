@@ -75,6 +75,8 @@ class PlantGrowth(object):
         # calculate NPP
         self.carbon_production(project_day, daylen)
 
+        # calculate water balance
+        self.wb.calculate_water_balance(project_day, daylen)
         
         # leaf N:C as a fraction of Ncmaxyoung, i.e. the max N:C ratio of
         # foliage in young stand
