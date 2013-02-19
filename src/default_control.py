@@ -13,10 +13,10 @@ __email__   = "mdekauwe@gmail.com"
 assim_model = "mate"       # bewdy or mate?
 nuptake_model = 1          # 0=constant uptake, 1=func of N inorgn, 2=depends on rate of soil N availability
 trans_model = 1            # 0=trans from WUE, 1=Penman-Monteith, 2=Priestley-Taylor
-fixleafnc = 0              # fixed leaf N C ?
-passiveconst = 0           # hold passive pool at passivesoil
+fixleafnc = False          # fixed leaf N C ?
+passiveconst = False       # hold passive pool at passivesoil
 print_options = "daily"    # "daily"=every timestep, "end"=end of run
-grazing = False               # Is foliage grazed 0=No, 1=Yes
+grazing = False            # Is foliage grazed?
 use_eff_nc = 0             # use constant leaf n:c for  metfrac s
 strfloat = 0               # Structural pool input N:C varies=1, fixed=0
 use_leuning = 0    

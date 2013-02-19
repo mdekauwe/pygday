@@ -400,7 +400,7 @@ class PlantGrowth(object):
             arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +
                    self.fluxes.npbranch )
     
-            if float_gt(arg, ntot) and not self.control.fixleafnc:
+            if float_gt(arg, ntot) and self.control.fixleafnc == False:
                 self.fluxes.npp *= (ntot / (self.fluxes.npstemimm +
                                     self.fluxes.npstemmob + 
                                     self.fluxes.npbranch ))
