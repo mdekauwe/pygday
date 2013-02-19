@@ -4,6 +4,7 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (25.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
+from utilities import float_lt, float_gt
 
 class Litter(object):
     """ Calculate C and N litter production
@@ -144,10 +145,10 @@ class Litter(object):
                           self.params.wcapac_root - self.params.watdecaydry) /
                           (self.params.watdecaywet - self.params.watdecaydry))
 
-        if new_decay_rate < decay_rate:
+        if float_lt(new_decay_rate, decay_rate):
             new_decay_rate = decay_rate
 
-        if new_decay_rate > decay_rate_dry:
+        if float_gt(new_decay_rate, decay_rate_dry):
             new_decay_rate = decay_rate_dry
 
         return new_decay_rate
