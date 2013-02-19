@@ -126,7 +126,7 @@ def main(experiment_id, GROW_FOREST=False, RUN_SIM=True):
                          "z0h_z0m": "1.0",         # Assume z0m = z0h, probably a big assumption [as z0h often < z0m.], see comment in code!! 
                          "callocrx": "0.0",
                          "vxfix": "5.0e-9", # N fixation per unit rhizodeposition 5g/1000g -> tonnes 
-                         "modeljm": "1",
+                         "modeljm": '"true"',
                          "jmaxna": "60.0",  # Original values Belinda had, plus largely match scatter plot fig 7, pg 235 Ellsworth 2011
                          "jmaxnb": "0.0",   # Original values Belinda had, plus largely match scatter plot fig 7, pg 235 Ellsworth 2011
                          "vcmaxna": "30.61",# Original values Belinda had, plus largely match scatter plot fig 7, pg 235 Ellsworth 2011
@@ -156,7 +156,7 @@ def main(experiment_id, GROW_FOREST=False, RUN_SIM=True):
                          "age": "12.0",
                          "print_options": '"daily"',
                          "co2_conc": '"AMB"',
-                         "water_stress": "1",
+                         "water_stress": '"true"',
                          "model_optroot": '"false"',
                         }
         ad.adjust_param_file(cfg_fname, replace_dict)
