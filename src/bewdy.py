@@ -132,9 +132,9 @@ class Bewdy(object):
         temp = self.met_data['tair'][day]
         sw_rad = self.met_data['sw_rad'][day]
 
-        if self.control.co2_conc == 0:
+        if self.control.co2_conc == "AMB":
             ca = self.met_data['amb_co2'][day]
-        elif self.control.co2_conc == 1:
+        elif self.control.co2_conc == "ELE":
             ca = self.met_data['ele_co2'][day]
         vpd = self.met_data['vpd_avg'][day]
         

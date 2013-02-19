@@ -79,7 +79,13 @@ class Mate(object):
         self.Ec = 79430.0
         self.Eo = 36380.0   # Note there is a typo in the R mate code here...  
         self.Egamma = 37830.0
-    
+        self.co2_flag = self.control.co2_conc 
+        if self.control.co2_conc == "AMB":
+            self.co2_flag = 'amb_co2'
+        elif self.control.co2_conc == "ELE":
+            self.co2_flag = 'ele_co2'
+
+        
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
         a commonly assumed reln (e.g. Potter 1993, Myneni 2002). The slope of
@@ -200,7 +206,8 @@ class Mate(object):
         """
         temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
         vpd = [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
-
+        ca = self.met_data[self.co2_flag][day]
+        
         # if PAR is supplied by the user then use this data, otherwise use the
         # standard conversion factor. This was added as the NCEAS run had a
         # different scaling factor btw PAR and SW_RAD, i.e. not 2.3!
@@ -211,13 +218,6 @@ class Mate(object):
             conv = const.RAD_TO_PAR * const.MJ_TO_MOL * const.MOL_TO_UMOL
             par = self.met_data['sw_rad'][day] * conv
         
-        if self.control.co2_conc == 0:
-            ca = self.met_data['amb_co2'][day]
-            #ca = 385.
-        elif self.control.co2_conc == 1:
-            ca = self.met_data['ele_co2'][day]
-            #ca = 550.0
-            
         return (temp, par, vpd, ca)
 
     def calculate_co2_compensation_point(self, Tk):
@@ -301,6 +301,7 @@ class Mate(object):
         """ Assumption leaf N declines exponentially through the canopy. Input N
         is top of canopy (N0). See notes and Chen et al 93, Oecologia, 93,63-69. 
         """
+        
         if self.state.ncontent > 0.0:
             # calculation for Leaf N content, top of the canopy (N0), [g m-2]                       
             N0 = (self.state.ncontent * self.params.kext /

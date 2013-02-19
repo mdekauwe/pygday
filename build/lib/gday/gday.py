@@ -70,7 +70,7 @@ class Gday(object):
             self.state, self.files,
             self.fluxes, self.met_data,
             self.print_opts) = initialise_model_data(fname, DUMP=DUMP)
-
+        
         if self.control.water_stress == 0:
             sys.stderr.write("**** You have turned off the drought stress")
             sys.stderr.write(", I assume you're debugging??!\n")
@@ -86,11 +86,7 @@ class Gday(object):
         if DUMP == True:
             self.pr.save_default_parameters()
             sys.exit(0)
-
-        if self.control.print_options > 1:
-            raise ValueError("Unknown output print option: %s  (try 0 or 1)" %
-                             self.control.print_options)
-
+        
         self.correct_rate_constants(output=False)
 
         # class instances
@@ -198,7 +194,7 @@ class Gday(object):
                 #    print self.fluxes.gpp * 100, self.state.lai, \
                 #          self.fluxes.transpiration
 
-                
+                #print self.fluxes.gpp * 100, self.met_data['amb_co2'][project_day]
                 
                 # =============== #
                 #   END OF DAY    #
@@ -214,7 +210,7 @@ class Gday(object):
             if self.control.deciduous_model:
                 self.pg.allocate_stored_c_and_n()
 
-            if self.control.print_options == 0 and self.spin_up == False:
+            if self.control.print_options == "DAILY" and self.spin_up == False:
                 self.print_output_file()
 
         # close output files
@@ -225,10 +221,10 @@ class Gday(object):
         print the final state + param file. """
 
         # print the daily output file, this is done once at the end of each yr
-        if self.control.print_options == 0:
+        if self.control.print_options == "DAILY":
             self.pr.write_daily_outputs_file(self.day_output)
         # print the final state
-        elif self.control.print_options == 1:
+        elif self.control.print_options == "END":
             if not self.control.deciduous_model:
                 # need to save initial SLA to current one!
                 conv = const.M2_AS_HA * const.KG_AS_TONNES

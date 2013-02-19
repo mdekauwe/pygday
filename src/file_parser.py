@@ -14,6 +14,7 @@ import default_state as s
 import default_files as fi
 import default_fluxes
 from configobj import ConfigObj, ConfigObjError
+from utilities import str2boolean
 
 def initialise_model_data(fname, DUMP=True):
     """ Load default model data, met forcing and return
@@ -69,11 +70,25 @@ def initialise_model_data(fname, DUMP=True):
         state = s
         control = c
         files = fi
-
+    
+    turn_strings_into_bools(control)
+    check_case_of_flags(control)
+    
     return (control, params, state, files, default_fluxes, forcing_data,
             user_print)
 
-
+def turn_strings_into_bools(control):
+    flags = ['model_optroot', "deciduous_model"]
+    for i in flags:
+        setattr(control, i, str2boolean(getattr(control, i)))
+        
+        
+        
+def check_case_of_flags(control):
+    """ keep all flags uppercase """
+    flags = ["assim_model", "co2_conc", "print_options"]
+    for i in flags:
+        setattr(control, i, getattr(control, i).upper())
 
 class ReadConfigFile(object):
     """ Read supplied config file (.cfg/.ini).

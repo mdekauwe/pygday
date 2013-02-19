@@ -6,8 +6,7 @@ import sys
 import constants as const
 from utilities import float_eq, float_lt, float_gt
 from bewdy import Bewdy
-from plant_production_mcmurtrie import PlantProdModel
-from water_balance import WaterBalance, WaterLimitedNPP, SoilMoisture
+from water_balance import WaterBalance, SoilMoisture
 from mate import Mate
 from optimal_root_model import RootingDepthModel
 
@@ -52,11 +51,7 @@ class PlantGrowth(object):
                         self.met_data)
         self.wb = WaterBalance(self.control, self.params, self.state,
                                self.fluxes, self.met_data)
-        self.pp = PlantProdModel(self.control, self.params, self.state,
-                                 self.fluxes, self.met_data)
-        self.wl = WaterLimitedNPP(self.control, self.params, self.state,
-                                  self.fluxes)
-
+        
         self.mt = Mate(self.control, self.params, self.state, self.fluxes,
                        self.met_data)
         
@@ -80,16 +75,7 @@ class PlantGrowth(object):
         # calculate NPP
         self.carbon_production(project_day, daylen)
 
-        # calculate water balance and adjust C production for any water stress.
-        # If we are using the MATE model then water stress is applied directly
-        # through the Ci:Ca reln, so do not apply any scalar to production.
-        if self.control.water_model == 1:
-            self.wb.calculate_water_balance(project_day, daylen)
-            # adjust carbon production for water limitations, all models except
-            # MATE!
-            if self.control.assim_model != 7:
-                self.wl.adjust_cproduction(self.control.water_model)
-
+        
         # leaf N:C as a fraction of Ncmaxyoung, i.e. the max N:C ratio of
         # foliage in young stand
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
@@ -208,16 +194,10 @@ class PlantGrowth(object):
             self.state.wtfac_tsoil = 1.0
             self.state.wtfac_root = 1.0
             
-        # Estimate photosynthesis using an empirical model
-        if self.control.assim_model >=0 and self.control.assim_model <= 4:
-            self.pp.calculate_photosynthesis(project_day)
-        # Estimate photosynthesis using the mechanistic BEWDY model
-        elif self.control.assim_model >=5 and self.control.assim_model <= 6:
-            # calculate plant C uptake using bewdy
+        # Estimate photosynthesis 
+        if self.control.assim_model == "BEWDY":
             self.bw.calculate_photosynthesis(frac_gcover, project_day, daylen)
-        # Estimate photosynthesis using the mechanistic MATE model. Also need to
-        # calculate a water availability scalar to determine Ci:Ca reln.
-        elif self.control.assim_model ==7:
+        elif self.control.assim_model == "MATE":
             self.mt.calculate_photosynthesis(project_day, daylen)
         else:
             raise AttributeError('Unknown assimilation model')
@@ -340,8 +320,8 @@ class PlantGrowth(object):
         
         # Ross's Root Model.
         # NOT WORKING YET
-        if self.control.model_optroot == 1:    
-                    
+        
+        if self.control.model_optroot == True:    
             # Attempt at floating rateuptake
             #slope = (20.0 - 0.1) / ((6.0) - 0.0)
             #y = slope * self.state.root + 0.0

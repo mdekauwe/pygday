@@ -50,7 +50,12 @@ class WaterBalance(object):
                                 z0h_z0m=self.params.z0h_z0m)
         self.am = 0
         self.pm = 1
-        
+        self.co2_flag = self.control.co2_conc 
+        if self.control.co2_conc == "AMB":
+            self.co2_flag = 'amb_co2'
+        elif self.control.co2_conc == "ELE":
+            self.co2_flag = 'ele_co2'
+            
     def calculate_water_balance(self, day, daylen):
         """ Calculate water balance
 
@@ -63,9 +68,10 @@ class WaterBalance(object):
 
         """
         # met forcing
-        (temp, temp_avg, rain, sw_rad, sw_rad_avg, vpd, vpd_avg, wind, 
+        (temp, temp_avg, rain, sw_rad, 
+         sw_rad_avg, vpd, vpd_avg, wind, 
          wind_avg, net_rad, net_rad_avg, 
-         ca, press, amb_co2) = self.get_met_data(day, daylen)
+         ca, press) = self.get_met_data(day, daylen)
         
         # calculate water fluxes
         if self.control.trans_model == 0:
@@ -117,6 +123,7 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
+        ca = self.met_data[self.co2_flag][day]
         temp_avg = self.met_data['tair'][day]
         temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
         sw_rad_avg = self.met_data['sw_rad'][day]
@@ -131,14 +138,6 @@ class WaterBalance(object):
         net_rad = [self.calc_radiation(temp[0], sw_rad[0], daylen/2.0), \
                    self.calc_radiation(temp[1], sw_rad[1], daylen/2.0)]
         
-        if self.control.co2_conc == 0:
-            #ca = 385.0
-            ca = self.met_data['amb_co2'][day]
-        elif self.control.co2_conc == 1:
-            #ca = 550.0
-            ca = self.met_data['ele_co2'][day]
-        amb_co2 = self.met_data['amb_co2'][day]
-        
         if ('atmos_press' in self.met_data and not
             self.met_data['atmos_press'] is None):
             press = self.met_data['atmos_press'][day]
@@ -146,7 +145,7 @@ class WaterBalance(object):
             press = None # use method below to calculate pressure
 
         return (temp, temp_avg, rain, sw_rad, sw_rad_avg, vpd, vpd_avg,  wind, 
-                wind_avg,  net_rad, net_rad_avg, ca, press, amb_co2)
+                wind_avg,  net_rad, net_rad_avg, ca, press)
 
     def calc_infiltration(self, rain):
         """ Estimate "effective" rain, or infiltration I guess.
@@ -615,93 +614,7 @@ class SoilMoisture(object):
         return (clip(wtfac_tsoil, min=0.0, max=1.0), 
                 clip(wtfac_root, min=0.0, max=1.0))   
         
-        
-        
-        
-class WaterLimitedNPP(object):
-    """ Adjust carbon uptake for water limitations
 
-    Water limited growth depends on the maximum rate of which water can
-    be extracted by the roots
-    """
-    def __init__(self, control, params, state, fluxes):
-        """
-        Parameters
-        ----------
-        control : integers, object
-            model control flags
-        params: floats, object
-            model parameters
-        state: floats, object
-            model state
-        fluxes : floats, object
-            model fluxes
-
-        """
-        self.params = params
-        self.fluxes = fluxes
-        self.control = control
-        self.state = state
-
-    def adjust_cproduction(self, option):
-        """ select model?
-
-        It seems hybrid is the same as biomass, so check this and remove. I
-        have set it up so that a call to hybrid just calls biomass
-
-        Parameters:
-        -----------
-        option : integer
-            model option
-
-        """
-        if option == 1 or option == 3:
-            self.monteith_rescap_model()
-        elif option == 2 and float_gt(self.params.fwpmax, self.params.fwpmin):
-            self.biomass_model()
-        elif option == 3 and float_gt(self.params.fwpmax, self.params.fwpmin):
-            self.hybrid_model() # same as calling biomass model!
-        else:
-            err_msg = "Unknown water bal model (try 1-3): %s\n" % option
-            raise RuntimeError, err_msg
-
-    def monteith_rescap_model(self):
-        """Growth on a given day will either be
-
-        light or water limited and this depends on the plants ability to
-        capture resources (leaves to intercept light + roots to supply
-        water)
-
-        """
-        if self.control.fixroot:
-            rootz = self.params.fixed_rootc
-        else:
-            rootz = self.state.root
-
-        growth_water_lim = (self.fluxes.wue * self.params.extraction /
-                                100.0 * rootz * self.state.pawater_root)
-
-        # growth is the lesser of two limiting (water and light) rates
-        # light limited growth is the already calculated npp
-        self.fluxes.npp = min(self.fluxes.npp, growth_water_lim)
-
-    def biomass_model(self):
-        """ Water limit on carbon production: Biomass model """
-
-        # water limitation factor for NPP, which depends on total plant water.
-        # Used to limit growth (i.e. water stress)
-        self.fluxes.npp *= self.state.wtfac_root
-
-    def hybrid_model(self):
-        """Rescap/biomass hybrid water balance model
-
-        water-limited transpirationn is proportional to npp*wtfac
-
-        """
-        # the original code has this setup identical to the biomass model, are
-        # they meant to be different? For the moment I will just call biomass
-        # model from here but really this should be remvoed?
-        self.biomass_model()
 
 
 class PenmanMonteith(object):
