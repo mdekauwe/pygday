@@ -342,7 +342,7 @@ class CarbonSoilFlows(object):
 
         # insert following line so value of resp obeys c conservn if fix
         # passive pool
-        if self.control.passiveconst != 0:
+        if self.control.passiveconst == True:
             self.fluxes.hetero_resp = (self.fluxes.hetero_resp +
                                        self.fluxes.cactive[1] +
                                        self.fluxes.cslow[1] -
