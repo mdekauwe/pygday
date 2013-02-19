@@ -56,6 +56,9 @@ class RootingDepthModel(object):
         rabove : float
             
         """
+        print "ROOT MODEL = WARNING DON'T USE"
+        import sys; sys.exit()
+        
         # step 2: determine maximum rooting depth for model for a value rtoti
         # from G'DAY
         root_depth = self.estimate_max_root_depth(rtoti, depth_guess)
