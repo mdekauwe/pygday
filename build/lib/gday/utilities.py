@@ -87,7 +87,18 @@ def uniq(inlist):
 def calculate_daylength(yr_days, latitude):
     """ wrapper to put the day length into a list """
     return [day_length(d+1, yr_days, latitude) for d in xrange(yr_days)]
+
+def str2boolean(value):
+    """ Take the string value and return the boolean value, check case etc..."""
+    if value is True or value is False or value is 0 or value is 1:
+        return value
+    elif isinstance(value, basestring) and value: 
+        if value.lower() in ['true', 't', '1']: return True
+        elif value.lower() in ['false', 'f', '0']: return False
+    else:  
+        raise ValueError("%s is no recognized as a boolean value" % value)
     
+   
 if __name__ == '__main__':
 
     print float_eq(0.0, 0.0)

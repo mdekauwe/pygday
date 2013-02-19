@@ -49,7 +49,7 @@ def main(experiment_id, GROW_FOREST=False, RUN_SIM=True):
                          "out_fname": '"%s"' % (out_fname),
                          "age": "0.0",
                          "ageold": "1000",
-                         "print_options": "end",
+                         "print_options": "1",
                          "albedo": "0.123", # modis site avg
                          "finesoil": "0.5", 
                          "n_crit": "0.04",
@@ -114,7 +114,7 @@ def main(experiment_id, GROW_FOREST=False, RUN_SIM=True):
                          "topsoil_type": '"clay_loam"',
                          "rootsoil_type": '"clay"',
                          "calc_sw_params": "1",   #0 uses fwp values, 1= derive them
-                         "co2_conc": '"AMB"',
+                         "co2_conc": "0",
                          "trans_model": "1",
                          "rateuptake": "5.7", 
                          "rateloss": "0.5",
@@ -131,7 +131,7 @@ def main(experiment_id, GROW_FOREST=False, RUN_SIM=True):
                          "jmaxnb": "0.0",   # Original values Belinda had, plus largely match scatter plot fig 7, pg 235 Ellsworth 2011
                          "vcmaxna": "30.61",# Original values Belinda had, plus largely match scatter plot fig 7, pg 235 Ellsworth 2011
                          "vcmaxnb": "0.0",  # Original values Belinda had, plus largely match scatter plot fig 7, pg 235 Ellsworth 2011
-                         "model_optroot": '"false"',
+                         "model_optroot": "0",
                         }
         ad.adjust_param_file(cfg_fname, replace_dict)
         #print cfg_fname
@@ -154,10 +154,10 @@ def main(experiment_id, GROW_FOREST=False, RUN_SIM=True):
                          "met_fname": '"%s"' % (met_fname),
                          "out_fname": '"%s"' % (out_fname),
                          "age": "12.0",
-                         "print_options": '"daily"',
+                         "print_options": "0",
                          "co2_conc": '"AMB"',
                          "water_stress": "1",
-                         "model_optroot": '"false"',
+                         "model_optroot": "0",
                         }
         ad.adjust_param_file(cfg_fname, replace_dict)
         
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     import filecmp
     
     experiment_id = 'TEST'
-    N = 1
+    N = 10
     times = []
     for i in xrange(N):
         start_time = time.time()
