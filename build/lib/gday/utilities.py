@@ -64,13 +64,17 @@ def day_length(doy, yr_days, latitude):
     
     return dayl
 
-def clip(value, min_val=None, max_val=None):
-    """clip value between range
+def clip(value, min=None, max=None):
+    """clip(value [, min [, max]]) => value
 
-    Return value clipped to the range [min, max] inclusive. 
+    Return value clipped to the range [min, max] inclusive. If either
+    min or max is None, no clipping is performed on that side.
     """
-    return max(max_val, min(min_val, value))
-    
+    if min is not None and value < min:
+        value = min
+    if max is not None and value > max:
+        value = max
+    return value    
 
 def uniq(inlist): 
     # order preserving

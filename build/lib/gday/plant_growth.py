@@ -221,7 +221,9 @@ class PlantGrowth(object):
             self.mt.calculate_photosynthesis(project_day, daylen)
         else:
             raise AttributeError('Unknown assimilation model')
-
+    
+    
+    
     def allocate_carbon(self, nitfac):
         """Carbon allocation fractions to move photosynthate through the plant.
         Allocations to foliage tends to decrease with stand age and wood stock
@@ -267,7 +269,48 @@ class PlantGrowth(object):
         # allocate remainder to stem
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch - self.state.alroot_exudate)
+    
+    def initialise_deciduous_model(self):
+        """ Divide up NPP based on annual allocation fractions """
+        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
+        self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
+        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
+        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
+        #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
+        #                                        self.state.cstore)
+
+        # annual available N for allocation to leaf
+        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
+                                        self.state.shootnc_yr)
+    
+    def allocate_stored_c_and_n(self):
+        """
+        At the end of the year allocate everything for the coming year
+        based on stores from the previous year avaliable N for allocation
+        """
+        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
+        self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
+        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
+        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
+        self.state.n_to_alloc_root = (min(self.state.nstore,
+                                          self.state.c_to_alloc_root *
+                                          self.state.rootnc))
+
+        # constant N:C of foliage during the growing season(kgN kg-1C)
+        self.state.shootnc_yr = ((self.state.nstore -
+                                  self.state.n_to_alloc_root) /
+                                  (self.state.c_to_alloc_shoot))
         
+        # if we want to put back a floating N:C then we need to have
+        # self.state.c_to_alloc_shoot + self.state.c_to_alloc_stem * some factor
+
+        # annual available N for allocation to leaf
+        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
+                                        self.state.shootnc_yr)
+
+        
+    
+     
     def nitrogen_distribution(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
