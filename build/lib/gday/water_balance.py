@@ -452,8 +452,8 @@ class WaterBalance(object):
         else:
             runoff = 0.0
             
-        self.state.pawater_root = clip(self.state.pawater_root, min_val=0.0,
-                                        max_val=self.params.wcapac_root)
+        self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
+                                        max=self.params.wcapac_root)
         
         # Total soil layer
         self.state.pawater_tsoil += (self.fluxes.erain -
@@ -461,8 +461,8 @@ class WaterBalance(object):
                                      self.params.fractup_soil -
                                      self.fluxes.soil_evap)
 
-        self.state.pawater_tsoil = clip(self.state.pawater_tsoil, min_val=0.0,
-                                        max_val=self.params.wcapac_topsoil) 
+        self.state.pawater_tsoil = clip(self.state.pawater_tsoil, min=0.0,
+                                        max=self.params.wcapac_topsoil) 
         
         return runoff
 
@@ -612,11 +612,11 @@ class SoilMoisture(object):
        
         wtfac_root = (smc_root - self.wp_root) / (self.cp_root - self.wp_root)
         
+        return (clip(wtfac_tsoil, min=0.0, max=1.0), 
+                clip(wtfac_root, min=0.0, max=1.0))   
         
-        #return (max(0.0, min(1.0, wtfac_tsoil)), max(0.0, min(1.0, wtfac_root)))
         
-        return (clip(wtfac_tsoil, min_val=0.0, max_val=1.0), 
-                clip(wtfac_root, min_val=0.0, max_val=1.0))   
+        
         
 class WaterLimitedNPP(object):
     """ Adjust carbon uptake for water limitations
