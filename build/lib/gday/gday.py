@@ -71,7 +71,7 @@ class Gday(object):
             self.fluxes, self.met_data,
             self.print_opts) = initialise_model_data(fname, DUMP=DUMP)
         
-        if self.control.water_stress == 0:
+        if self.control.water_stress == False:
             sys.stderr.write("**** You have turned off the drought stress")
             sys.stderr.write(", I assume you're debugging??!\n")
 
