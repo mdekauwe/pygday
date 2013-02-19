@@ -311,7 +311,7 @@ class Gday(object):
                              self.state.plantc)
 
         # optional constant passive pool
-        if self.control.passiveconst != 0:
+        if self.control.passiveconst == True:
             self.state.passivesoil = self.params.passivesoilz
             self.state.passivesoiln = self.params.passivesoilnz
 
