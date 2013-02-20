@@ -88,10 +88,10 @@ class PlantGrowth(object):
             self.allocate_carbon(nitfac)
         
         # Distribute new C and N through the system
-        self.carbon_distribution(nitfac, doy, days_in_yr)
+        self.carbon_allocation(nitfac, doy, days_in_yr)
         
         (ncbnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
-        self.nitrogen_distribution(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy)
+        self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy)
         
         
         self.update_plant_state(fdecay, rdecay, project_day)
@@ -293,7 +293,7 @@ class PlantGrowth(object):
         
     
      
-    def nitrogen_distribution(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy):
+    def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
         to the shoot and roots with flexible ratios.
@@ -489,7 +489,7 @@ class PlantGrowth(object):
         
         return nuptake
     
-    def carbon_distribution(self, nitfac, doy, days_in_yr):
+    def carbon_allocation(self, nitfac, doy, days_in_yr):
         """ C distribution - allocate available C through system
 
         Parameters:
@@ -517,9 +517,10 @@ class PlantGrowth(object):
           pg 35--57.
         """
         if self.control.deciduous_model:
-            self.fluxes.cpleaf = self.fluxes.lrate * self.state.growing_days[doy]
+            days_left = self.state.growing_days[doy]
+            self.fluxes.cpleaf = self.fluxes.lrate * days_left
             self.fluxes.cpbranch = 0.0
-            self.fluxes.cpstem = self.fluxes.wrate * self.state.growing_days[doy]
+            self.fluxes.cpstem = self.fluxes.wrate * days_left
             self.fluxes.cproot = self.state.c_to_alloc_root * 1.0 / days_in_yr
         else:
             self.fluxes.cpleaf = self.fluxes.npp * self.state.alleaf

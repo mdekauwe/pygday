@@ -387,12 +387,12 @@ class NitrogenSoilFlows(object):
         (nsurf, nsoil) = self.inputs_from_plant_litter()
         self.inputs_from_structrual_pool(nsurf, nsoil)
 
-        # remaining n goes to metabolic pools
+        # remaining N goes to metabolic pools
         self.fluxes.nresid[2] = nsurf - self.fluxes.nresid[0]
         self.fluxes.nresid[3] = nsoil - self.fluxes.nresid[1]
 
         # SOM nitrogen effluxes.  These are assumed to have the source n:c
-        # ratio prior to the increase of n:c due to co2 evolution.
+        # ratio prior to the increase of N:C due to co2 evolution.
         self.nfluxes_from_structural_pools()
         self.nfluxes_from_metabolic_pool()
         self.nfluxes_from_active_pool()
@@ -473,7 +473,7 @@ class NitrogenSoilFlows(object):
             # soil
             self.fluxes.nresid[1] = self.fluxes.cresid[1] / self.params.structcn
 
-            # if not enough N for structural, all available goes to structural
+            # if not enough N for structural, all available N goes to structural
             if float_gt(self.fluxes.nresid[0], nsurf):
                 self.fluxes.nresid[0] = nsurf
             if float_gt(self.fluxes.nresid[1], nsoil):
