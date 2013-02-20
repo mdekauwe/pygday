@@ -222,7 +222,9 @@ class Gday(object):
 
         # print the daily output file, this is done once at the end of each yr
         if self.control.print_options == "DAILY":
-            self.pr.write_daily_outputs_file(self.day_output)
+            #self.pr.write_daily_outputs_file(self.day_output)
+            self.pr.write_annual_output_to_binary(self.day_output)
+            
         # print the final state
         elif self.control.print_options == "END":
             if not self.control.deciduous_model:
