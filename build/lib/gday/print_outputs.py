@@ -67,7 +67,8 @@ class PrintOutput(object):
             raise IOError("Can't open %s file for write" % self.odaily)
         
         self.day_output = []
-     
+        
+        
     def get_vars_to_print(self):
         """ return lists of variable names to print out """
         return (self.print_state, self.print_fluxes)
@@ -183,12 +184,22 @@ class PrintOutput(object):
             raise IOError("Error writing params file")
     
     def write_daily_output_header(self):
-        header = []
-        header.extend(["year","doy"])
-        header.extend(["%s" % (var) for var in self.print_state])
-        header.extend(["%s" % (var) for var in self.print_fluxes])
-        self.wr.writerow(header)
+        self.header = []
+        self.header.extend(["year","doy"])
+        self.header.extend(["%s" % (var) for var in self.print_state])
+        self.header.extend(["%s" % (var) for var in self.print_fluxes])
+        self.wr.writerow(self.header)
+    
+    
+    def write_annual_output_to_binary(self, day_outputs):   
         
+        import numpy as np
+        format = ['f8']*len(self.header)
+        data = np.array(day_outputs)
+        print data.shape
+        arr = np.recarray(data, dtype=zip(self.header, format))
+        print arr.shape
+        import sys; sys.exit()
     
     def write_daily_outputs_file(self, day_outputs):
         """ Write daily outputs to a csv file """
