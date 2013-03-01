@@ -151,6 +151,12 @@ d0 = 0.0
 d1 = 0.0
 a1 = 0.0
 
+# root model stuff
+d0x = 0.35   # Length scale for exponential decline of Umax(z)
+r0 = 0.1325 # root C at half-maximum N uptake (kg C/m3)
+top_soil_depth = 0.3 # depth (cm) of soil assumed by G'DAY
+
+
 # penman-monteith params
 canht            = 17.0     # Canopy height increased from 16m in 2001 to 18m in 2004 at Duke
 dz0v_dh          = 0.075    # Rate of change of vegetation roughness length for momentum with height.
