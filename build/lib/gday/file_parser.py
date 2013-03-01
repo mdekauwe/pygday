@@ -213,6 +213,7 @@ def adjust_object_attributes(user_dict, obj):
     bad_words = keyword.kwlist
     bad_vars = [method for method in dir(str) if method[:2]=='__']
     for key, value in user_dict.iteritems():
+        
         if key in bad_words:
             err_msg = "You cant name your parameter anything from:\n\n %s" \
                             % bad_words

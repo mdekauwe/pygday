@@ -52,7 +52,8 @@ class PrintOutput(object):
                                  quoting=csv.QUOTE_NONE, escapechar=' ')
             self.print_fluxes = []
             self.print_state = []
-            for var in self.print_opts:
+            for i, var in enumerate(self.print_opts):
+                #print i, var
                 try:
                     if hasattr(self.state, var):
                         self.print_state.append(var)
