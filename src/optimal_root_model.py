@@ -2,17 +2,19 @@
 
 from math import exp
 from utilities import float_ne
+import math
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (26.10.2012)"
+__version__ = "1.0 (01.03.2013)"
 __email__   = "mdekauwe@gmail.com"
 
 
 class RootingDepthModel(object):
     """ Ross's Optimal rooting depth model.
     
-    Optimisation hypothesis = maximise total N uptake by determining optimal 
-    distribution of root mass with soil depth and optimal root depth
+    Optimisation hypothesis = maximise total N uptake (Utot) by determining 
+    optimal distribution of root mass (R(z)) with soil depth and optimal
+    root depth (D, m)
     
     References:
     ----------
@@ -43,6 +45,8 @@ class RootingDepthModel(object):
         -----------
         rtoti : float
             Initial fine root C mass -> from G'DAY [kg m-2] -> paper says DM?!
+        nsupply : float
+            daily net N mineralisation in top soil layer from G'DAY
         depth_guess : float
             Initial guess at the rooting depth, used as the first point in the 
             root depth optimisation scheme [m]. 
@@ -56,9 +60,6 @@ class RootingDepthModel(object):
         rabove : float
             
         """
-        print "ROOT MODEL = WARNING DON'T USE"
-        import sys; sys.exit()
-        
         # step 2: determine maximum rooting depth for model for a value rtoti
         # from G'DAY
         root_depth = self.estimate_max_root_depth(rtoti, depth_guess)
@@ -75,6 +76,7 @@ class RootingDepthModel(object):
         
         return (root_depth, nuptake, rabove)
     
+    
     def estimate_max_root_depth(self, rtoti, depth_guess):
         """ Determing the maximum rooting depth through solving Eqn. B6. for 
         rooting depth
@@ -86,11 +88,7 @@ class RootingDepthModel(object):
             [NOT USED]
         rtoti : float
             Initial fine root root C mass [from G'DAY] 
-            [kg m-2] -> paper says DM?!
-        r0 : float
-            Root C at half-max N uptake. [NOT USED]
-        d0 : float
-            Length scale for exponential decline of Umax(z). [NOT USED]
+            [kg m-2] -> paper says DM?! 
         depth_guess : float
             initial starting guess at the root depth [m]
             
@@ -114,7 +112,7 @@ class RootingDepthModel(object):
         
     def rtot_wrapper(self, *args):    
         """ Wrapper method that calls rtot, but subtracts rtoti from the result
-        to give you the rooting depth
+        to give you the rooting depth (dmax)
         
         Parameters:
         -----------
@@ -134,7 +132,7 @@ class RootingDepthModel(object):
     def rtot(self, *args):
         """ Estimate the total root biomass per unit ground area, i.e. the 
         integral of root mass per unit soil volume, R(z), over depth z from the
-        soil surface to the maximim rooting depth, dmax.
+        soil surface to the maximim rooting depth, dmax. (Eqn 8, in McM 2012)
         
         Parameters:
         -----------
@@ -157,7 +155,7 @@ class RootingDepthModel(object):
         (dmax, rtoti, r0, d0) = args
         
         return r0 * (2.0 * d0 * (exp(dmax / (2.0 * d0)) - 1.0) - dmax) 
-    
+   
     def rtot_derivative(self, *args):
         """ Derivative of maximum root depth equation, rtot
         
@@ -205,7 +203,9 @@ class RootingDepthModel(object):
         return arg1 * arg2 - self.r0 * self.top_soil_depth
         
     def calc_plant_nuptake(self, *args):
-        """ Plant N uptake as a func of maximum rooting depth, eqn B8
+        """ Plant N uptake (Utot) as a func of maximum rooting depth
+        
+        This is the alternative eqn from McM word document
         
         Parameters
         ----------
@@ -226,6 +226,12 @@ class RootingDepthModel(object):
         (root_depth, nsupply) = args
         arg1 = nsupply / (1.0 - exp(-self.top_soil_depth / self.d0))
         arg2 = (1.0 - exp(-root_depth / (2.0 * self.d0)))**2
+        
+        
+        # Eqn B7
+        #arg3 = nsup * d0
+        #arg4 = (1.0 - exp(-root_depth/top_soil_depth))**2
+        #print arg1 * arg2, arg3*arg4 
         
         return arg1 * arg2   
 
@@ -272,63 +278,109 @@ if __name__ == "__main__":
     
     # Create the PdfPages object to which we will save the pages:
     pdf = PdfPages('/Users/mdekauwe/Desktop/root_model_test.pdf')
-
-    RM = RootingDepthModel(d0=0.35, r0=.1325, top_soil_depth=0.3)
     
-    rtot = np.linspace(0, 1.2, 100)
+    #========Params=======
+    d0 = 0.35
+    r0 = .265#0.1325
+    top_soil_depth = 0.3
+    depth_guess=1.0
+    #=====================
+    rtot = np.linspace(0, 1.4, 100)
     nsupply = np.linspace(0.1, 10.0, 5)
+    zval = np.linspace(0.05, .99, 5)
     
+    RM = RootingDepthModel(d0=d0, r0=r0, top_soil_depth=top_soil_depth)
     for nsup in nsupply:
         dmax = np.zeros(0)
         for rt in rtot:
-            (root_depth, nuptake, rabove) = RM.main(rt, nsup, depth_guess=1.0)
+            (root_depth, nuptake, rabove) = RM.main(rt, nsup, 
+                                                    depth_guess=depth_guess)
             dmax = np.append(dmax, root_depth)
         
-        plt.plot(rtot*2., dmax, label="N supply = %.2f" %(nsup))
-    
+        plt.plot(rtot, dmax, label="N supply = %.2f" %(nsup))
+    plt.xlim(0, 1.0)
+    plt.legend(numpoints=1, loc="best")
     plt.ylabel("Maximum rooting depth (D$_{max}$, m)")
     plt.xlabel("Total root mass (R$_{tot}$, kg DM m$^{-2}$)")
-    plt.title("d$_0$ = 0.35, r$_0$ = 0.1325, top_soil_depth = 0.3")
+    plt.title("Fig2a: d$_0$ = %.2f, r$_0$ = %.4f, top_soil_depth = %.2f" % \
+              (d0, r0, top_soil_depth))
     plt.rcParams.update({'legend.fontsize': 8})
-    plt.legend(numpoints=1, loc="best")
     pdf.savefig() 
     plt.clf()
     
     for nsup in nsupply:
         nup = np.zeros(0)
         for rt in rtot:
-            (root_depth, nuptake, rabove) = RM.main(rt, nsup, depth_guess=1.0)
+            (root_depth, nuptake, rabove) = RM.main(rt, nsup, 
+                                                    depth_guess=depth_guess)
             nup = np.append(nup, nuptake)
         
-        plt.plot(rtot*2., nup, label="N supply = %.2f" %(nsup))
+        plt.plot(rtot, nup, label="N supply = %.2f" %(nsup))
+    plt.xlim(0, 1.4)
     plt.legend(numpoints=1, loc="best")
     plt.ylabel("N Uptake (g N m$^{-2}$)")
     plt.xlabel("Total root mass (R$_{tot}$, kg DM m$^{-2}$)")
-    plt.title("d$_0$ = 0.35, r$_0$ = 0.1325, top_soil_depth = 0.3")
+    plt.title("d$_0$ = %.2f, r$_0$ = %.4f, top_soil_depth = %.2f" % \
+              (d0, r0, top_soil_depth))
     plt.rcParams.update({'legend.fontsize': 8})
     pdf.savefig() 
     plt.clf()
     
-    zval = np.linspace(0.05, .99, 5)
     
     for zv in zval:
-        RM = RootingDepthModel(d0=zv, r0=.1325, top_soil_depth=0.3)
+        RM = RootingDepthModel(d0=zv, r0=r0, top_soil_depth=top_soil_depth)
         nup = np.zeros(0)
         for rt in rtot:
-            (root_depth, nuptake, rabove) = RM.main(rt, nsup, depth_guess=1.0)
+            (root_depth, nuptake, rabove) = RM.main(rt, nsup, 
+                                                    depth_guess=depth_guess)
             nup = np.append(nup, nuptake)
         
-        plt.plot(rtot*2., nup, label="soil depth (Z) = %.2f" %(zv))
+        plt.plot(rtot, nup, label="soil depth (Z) = %.2f" %(zv))
+    plt.xlim(0, 1.4)
+    #plt.ylim(0, 1.0)
     plt.legend(numpoints=1, loc="best")
     plt.ylabel("N Uptake (g N m$^{-2}$)")
     plt.xlabel("Total root mass (R$_{tot}$, kg DM m$^{-2}$)")
-    plt.title("d$_0$ = see legend, r$_0$ = 0.1325, top_soil_depth = 0.3")
+    plt.title("d$_0$ = %.2f, r$_0$ = %.4f, top_soil_depth = %.2f" % \
+              (d0, r0, top_soil_depth))
     plt.rcParams.update({'legend.fontsize': 8})
     pdf.savefig() 
     plt.clf()
+    #"""
     
+    
+    
+    RM = RootingDepthModel(d0=d0, r0=r0, top_soil_depth=top_soil_depth)
+    
+    for nsup in nsupply:
+        n_uptake_frac = np.zeros(0)
+        for rt in rtot:
+            (root_depth, nuptake, rabove) = RM.main(rt, nsup, 
+                                                    depth_guess=depth_guess)
+            
+            # Total potential annual N uptake integrated over all soil depths
+            Umax = nsup / (1.0 - exp(-top_soil_depth / d0)) 
+            
+            # annual total N uptake per unit land area
+            Utot = nuptake
+           
+            phi_N = Utot / Umax
+            n_uptake_frac = np.append(n_uptake_frac, phi_N)
+            
+        plt.plot(rtot, n_uptake_frac, label="N supply = %.2f" %(nsup))
+    
+    plt.legend(numpoints=1, loc="best")
+    plt.xlim(0, 1.4)
+    plt.ylim(0, 1.0)
+    plt.ylabel("Gross N-uptake fraction")
+    plt.xlabel("Total root mass (R$_{tot}$, kg DM m$^{-2}$)")
+    plt.title("Fig2b: d$_0$ = %.2f, r$_0$ = %.4f, top_soil_depth = %.2f" % \
+              (d0, r0, top_soil_depth))
+    plt.rcParams.update({'legend.fontsize': 8})
+    pdf.savefig() 
+    plt.clf()
     
     # Remember to close the object
     pdf.close()
     
-    
+   
