@@ -22,11 +22,11 @@ class RootingDepthModel(object):
       elevated  CO2 explained by an hypothesis of optimal root function. Ecology 
       and Evolution, 2, 1235--1250
     """
-    def __init__(self, d0, r0, top_soil_depth):
+    def __init__(self, d0x, r0, top_soil_depth):
         """
         Parameters:
         -----------
-        d0 : float
+        d0x : float
             Length scale for exponential decline of Umax(z)
         r0 : float
             root C at half-maximum N uptake (kg C/m3)
@@ -35,7 +35,7 @@ class RootingDepthModel(object):
             [email]
             
         """
-        self.d0 = d0    
+        self.d0 = d0x   
         self.r0 = r0      
         self.top_soil_depth = top_soil_depth
         

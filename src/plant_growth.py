@@ -58,7 +58,8 @@ class PlantGrowth(object):
         self.sm = SoilMoisture(self.control, self.params, self.state, 
                                self.fluxes)
         
-        self.rm = RootingDepthModel(d0=0.35, r0=0.05, top_soil_depth=0.3)
+        self.rm = RootingDepthModel(d0x=self.params.d0x, r0=self.params.r0, 
+                                    top_soil_depth=self.params.top_soil_depth)
    
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, days_in_yr):
         """Evolve plant state, photosynthesis, distribute N and C"
@@ -324,34 +325,38 @@ class PlantGrowth(object):
         # NOT WORKING YET
         
         if self.control.model_optroot == True:    
+            
             # Attempt at floating rateuptake
             #slope = (20.0 - 0.1) / ((6.0) - 0.0)
             #y = slope * self.state.root + 0.0
             #self.fluxes.nuptake = (y/365.25) * self.state.inorgn
                 
-            # have you got all these units conversion right, they don't appear 
-            # very consistent? you have grams and kg?!
+            TONNES_HA_2_KG_M2 = 0.1
+            TONNES_HA_2_G_M2 = 100.0
+            G_M2_2_TONNES_HA = 0.01
+            KG_M2_2_TONNES_HA = 10.0
             
-            # convert t ha-1 d-1 to gN m-2 yr-1
-            nsupply = self.calculate_nuptake() * 365.25 * 100.0 # t ha-1->gN m-2
+            
+            # convert t ha-1 to gN m-2
+            nsupply = self.calculate_nuptake() * TONNES_HA_2_G_M2
             
             # covnert t ha-1 to kg m-2
-            rtot = self.state.root * 0.1
+            rtot = self.state.root * TONNES_HA_2_KG_M2
             
             (root_depth, 
              self.fluxes.nuptake,
              self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
             
-            # covert nuptake from gN m-2 yr-1 to t ha-1 d-1
-            self.fluxes.nuptake = self.fluxes.nuptake * 0.01 / 365.25
+            # covert nuptake from gN m-2  to t ha-1
+            self.fluxes.nuptake = self.fluxes.nuptake * G_M2_2_TONNES_HA
             
             # covert from kg N m-2 to t ha-1
-            self.fluxes.deadroots = self.params.rdecay * self.fluxes.rabove * 10
+            self.fluxes.deadroots = self.params.rdecay * self.fluxes.rabove * KG_M2_2_TONNES_HA
             self.fluxes.deadrootn = (self.state.rootnc * 
                                     (1.0 - self.params.rretrans) * 
                                     self.fluxes.deadroots)
             
-            print  root_depth
+            #print  root_depth
             #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
             #      self.fluxes.nuptake *100.
             #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
