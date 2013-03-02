@@ -330,28 +330,24 @@ class PlantGrowth(object):
             #slope = (20.0 - 0.1) / ((6.0) - 0.0)
             #y = slope * self.state.root + 0.0
             #self.fluxes.nuptake = (y/365.25) * self.state.inorgn
-                
-            TONNES_HA_2_KG_M2 = 0.1
-            TONNES_HA_2_G_M2 = 100.0
-            G_M2_2_TONNES_HA = 0.01
-            KG_M2_2_TONNES_HA = 10.0
-            
-            
-            # convert t ha-1 to gN m-2
-            nsupply = self.calculate_nuptake() * TONNES_HA_2_G_M2
+           
+            # convert t ha-1 day-1 to gN m-2 year-1
+            nsupply = self.calculate_nuptake() * const.TONNES_HA_2_G_M2 * 365.25
             
             # covnert t ha-1 to kg m-2
-            rtot = self.state.root * TONNES_HA_2_KG_M2
+            rtot = self.state.root * const.TONNES_HA_2_KG_M2
             
             (root_depth, 
              self.fluxes.nuptake,
              self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
             
-            # covert nuptake from gN m-2  to t ha-1
-            self.fluxes.nuptake = self.fluxes.nuptake * G_M2_2_TONNES_HA
+            # covert nuptake from gN m-2 year-1  to t ha-1 day-1
+            self.fluxes.nuptake = self.fluxes.nuptake * const.G_M2_2_TONNES_HA / 365.25
             
             # covert from kg N m-2 to t ha-1
-            self.fluxes.deadroots = self.params.rdecay * self.fluxes.rabove * KG_M2_2_TONNES_HA
+            self.fluxes.deadroots = (self.params.rdecay * self.fluxes.rabove * 
+                                     const.KG_M2_2_TONNES_HA)
+            
             self.fluxes.deadrootn = (self.state.rootnc * 
                                     (1.0 - self.params.rretrans) * 
                                     self.fluxes.deadroots)
