@@ -45,7 +45,10 @@ PPM_VOL_2_MOL_MOL = 1E-6
 MJ_TO_MOL = 4.6
 RATIO_DIFF_H2O_TO_CO2 = 1.6
 
-
+TONNES_HA_2_KG_M2 = 0.1
+TONNES_HA_2_G_M2 = 100.0
+G_M2_2_TONNES_HA = 0.01
+KG_M2_2_TONNES_HA = 10.0
 
 # Converts conductance from units of mol m-2 s-1 to m s-1 at 25 degC
 # See Jones Appendix 3 or Diaz et al 2007.
