@@ -341,6 +341,7 @@ class PlantGrowth(object):
              self.fluxes.nuptake,
              self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
             
+            
             # covert nuptake from gN m-2 year-1  to t ha-1 day-1
             self.fluxes.nuptake = self.fluxes.nuptake * const.G_M2_2_TONNES_HA / 365.25
             
@@ -358,7 +359,7 @@ class PlantGrowth(object):
             #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
             #      root_depth, self.fluxes.nuptake *100.
         
-        
+        #print self.fluxes.nuptake* 365.25, self.fluxes.deadroots
         # N lost from system is proportional to the soil inorganic N pool, 
         # where the rate constant empirically defines gaseous and leaching 
         # losses, see McMurtrie et al. 2001.
