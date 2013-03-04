@@ -337,7 +337,7 @@ class PlantGrowth(object):
             # covnert t ha-1 to kg m-2
             rtot = self.state.root * const.TONNES_HA_2_KG_M2
             
-            (root_depth, 
+            (self.state.root_depth, 
              self.fluxes.nuptake,
              self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
             
