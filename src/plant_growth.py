@@ -255,21 +255,52 @@ class PlantGrowth(object):
     
     def initialise_deciduous_model(self):
         """ Divide up NPP based on annual allocation fractions """
+        
+        # allocation fractions varying per yr
+        
+        """
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
-        self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
+        self.state.c_to_alloc_root = self.state.alroot[0] * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
+        self.state.alstem = 1.0 - self.state.alleaf - self.state.alroot[0]
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
         #                                        self.state.cstore)
-
+    
         # annual available N for allocation to leaf
         self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
                                         self.state.shootnc_yr)
-    
-    def allocate_stored_c_and_n(self):
+        
+        """
+        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
+        self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
+        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
+        #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
+        #                                        self.state.cstore)
+        
+        # annual available N for allocation to leaf
+        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
+                                        self.state.shootnc_yr)
+        
+        
+    def allocate_stored_c_and_n(self, i):
         """
         At the end of the year allocate everything for the coming year
         based on stores from the previous year avaliable N for allocation
+        """
+        
+        """
+        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
+        self.state.c_to_alloc_root = self.state.alroot[i] * self.state.cstore
+        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
+        self.state.alstem = 1.0 - self.state.alleaf - self.state.alroot[i]
+        sumx = self.state.alleaf + self.state.alstem+ self.state.alroot[i]
+        #print self.state.alleaf, self.state.alstem, self.state.alroot[i]
+        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
+        self.state.n_to_alloc_root = (min(self.state.nstore,
+                                          self.state.c_to_alloc_root *
+                                          self.state.rootnc))
+        
         """
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
@@ -278,7 +309,10 @@ class PlantGrowth(object):
         self.state.n_to_alloc_root = (min(self.state.nstore,
                                           self.state.c_to_alloc_root *
                                           self.state.rootnc))
-
+        
+        
+            
+            
         # constant N:C of foliage during the growing season(kgN kg-1C)
         self.state.shootnc_yr = ((self.state.nstore -
                                   self.state.n_to_alloc_root) /
@@ -329,8 +363,8 @@ class PlantGrowth(object):
             # Attempt at floating rateuptake
             #slope = (20.0 - 0.1) / ((6.0) - 0.0)
             #y = slope * self.state.root + 0.0
-            #self.fluxes.nuptake = (y/365.25) * self.state.inorgn
-           
+            #nsupply = (y/365.25) * self.state.inorgn
+            
             # convert t ha-1 day-1 to gN m-2 year-1
             nsupply = self.calculate_nuptake() * const.TONNES_HA_2_G_M2 * 365.25
             
@@ -358,6 +392,7 @@ class PlantGrowth(object):
             #      self.fluxes.nuptake *100.
             #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
             #      root_depth, self.fluxes.nuptake *100.
+        
         
         #print self.fluxes.nuptake* 365.25, self.fluxes.deadroots
         # N lost from system is proportional to the soil inorganic N pool, 
@@ -584,7 +619,9 @@ class PlantGrowth(object):
         
         if self.control.deciduous_model:
             self.state.shootn += (self.fluxes.npleaf - 
-                                 (self.fluxes.deadleafn - self.fluxes.neaten))
+                                  self.fluxes.deadleafn - 
+                                  self.fluxes.neaten -
+                                  self.fluxes.leafretransn)
         else:
             self.state.shootn += (self.fluxes.npleaf - 
                                   fdecay * self.state.shootn - 

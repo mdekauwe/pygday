@@ -87,7 +87,7 @@ remaining_days = None
 growing_days = None
 leaf_out_days = None
 
-root_depth = None  # rooting depth, Dmax (m)
+root_depth = -9999.9  # rooting depth, Dmax (m)
 
 #============== Not publicly accessible to the user ==========================#
 # total plant, soil, litter and system carbon
