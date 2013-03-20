@@ -278,9 +278,19 @@ class PlantGrowth(object):
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
         #                                        self.state.cstore)
         
-        # annual available N for allocation to leaf
-        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
-                                        self.state.shootnc_yr)
+       
+        # constant N:C of Wood
+        ntot = self.state.nstore 
+        self.state.n_to_alloc_stem = self.state.alstem * ntot
+        ntot -=  self.state.n_to_alloc_stem
+        
+        # allocate remaining N to flexible-ratio pools
+        self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
+                                        (self.state.alleaf + self.state.alroot * 
+                                        self.params.ncrfac))
+        
+        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        
         
         
     def allocate_stored_c_and_n(self, i):
@@ -306,27 +316,35 @@ class PlantGrowth(object):
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
-        self.state.n_to_alloc_root = (min(self.state.nstore,
-                                          self.state.c_to_alloc_root *
-                                          self.state.rootnc))
+        
+        # allocate remainder to stem
+        self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
+                             self.state.albranch - self.state.alroot_exudate)
+        
+        # constant N:C of Wood
+        ntot = self.state.nstore 
+        self.state.n_to_alloc_stem = self.state.alstem * ntot
+        ntot -=  self.state.n_to_alloc_stem
+        
+        # allocate remaining N to flexible-ratio pools
+        self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
+                                        (self.state.alleaf + self.state.alroot * 
+                                        self.params.ncrfac))
+        
+        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
         
-            
-            
-        # constant N:C of foliage during the growing season(kgN kg-1C)
-        self.state.shootnc_yr = ((self.state.nstore -
-                                  self.state.n_to_alloc_root) /
-                                  (self.state.c_to_alloc_shoot))
+        
         
         # if we want to put back a floating N:C then we need to have
         # self.state.c_to_alloc_shoot + self.state.c_to_alloc_stem * some factor
 
         # annual available N for allocation to leaf
-        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
-                                        self.state.shootnc_yr)
+        #self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
+        #                                self.state.shootnc_yr)
 
         
-    
+        
      
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy):
         """ Nitrogen distribution - allocate available N through system.
@@ -645,6 +663,9 @@ class PlantGrowth(object):
         
         self.calculate_cn_store()
         
+        
+        self.state.anpp += self.fluxes.npp
+        
         if not self.control.deciduous_model:
             
             # maximum leaf n:c ratio is function of stand age
@@ -687,6 +708,8 @@ class PlantGrowth(object):
     
                 self.state.rootn -= extrar
                 self.fluxes.nuptake -= extrar 
+        
+            
             
     def calculate_cn_store(self, tolerance=1.0E-05):        
         cgrowth = (self.fluxes.cpleaf + self.fluxes.cproot + 
