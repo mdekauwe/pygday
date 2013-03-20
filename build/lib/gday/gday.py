@@ -168,6 +168,8 @@ class Gday(object):
                                             days_in_year[i], project_day)
            
             self.day_output = [] # empty daily storage list for outputs
+            
+            
             for doy in xrange(days_in_year[i]):
 
                 # litterfall rate: C and N fluxes
@@ -192,9 +194,9 @@ class Gday(object):
                 #tonnes_per_ha_to_g_m2 = 0.01
                 #print self.fluxes.gpp / tonnes_per_ha_to_g_m2, self.state.lai, self.fluxes.nuptake / tonnes_per_ha_to_g_m2, self.state.root / tonnes_per_ha_to_g_m2, self.state.inorgn / tonnes_per_ha_to_g_m2
                 #if self.spin_up == False:
-                 #   print self.fluxes.gpp * 100, self.state.lai, \
-                 #         self.fluxes.transpiration
-
+                print self.fluxes.gpp * 100, self.state.lai
+                #          self.fluxes.transpiration
+                #print self.fluxes.gpp * 100
                 #print self.fluxes.gpp * 100, self.met_data['amb_co2'][project_day]
                 
                 # =============== #
@@ -204,7 +206,8 @@ class Gday(object):
                 self.save_daily_outputs(yr, doy+1)
                 
                 project_day += 1
-             
+                
+            #print self.state.cstore, self.state.nstore 
             # =============== #
             #   END OF YEAR   #
             # =============== #
@@ -213,8 +216,10 @@ class Gday(object):
 
             if self.control.print_options == "DAILY" and self.spin_up == False:
                 self.print_output_file()
-
+            
         # close output files
+        if self.control.print_options == "END" and self.spin_up == False:
+                self.print_output_file()
         self.pr.clean_up()
 
     def print_output_file(self):
