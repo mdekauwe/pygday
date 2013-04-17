@@ -83,10 +83,8 @@ class PlantGrowth(object):
         # foliage in young stand
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
         
-        if not self.control.deciduous_model:
-            # figure out allocation fractions for C for the evergreen model. For
-            # the deciduous model these are calculated at the annual time step.
-            self.allocate_carbon(nitfac)
+        # figure out the C allocation fractions 
+        self.calc_carbon_allocation_fracs(nitfac)
         
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
@@ -95,7 +93,7 @@ class PlantGrowth(object):
         self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy)
         
         
-        self.update_plant_state(fdecay, rdecay, project_day)
+        self.update_plant_state(fdecay, rdecay, project_day, doy)
          
     def calculate_ncwood_ratios(self, nitfac):
         """ Estimate the N:C ratio in the branch and stem. Option to vary
@@ -205,14 +203,8 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
     
-    
-    
-    def allocate_carbon(self, nitfac):
+    def calc_carbon_allocation_fracs(self, nitfac):
         """Carbon allocation fractions to move photosynthate through the plant.
-        Allocations to foliage tends to decrease with stand age and wood stock
-        increases (Makela and Hari, 1986; Cannell and Dewar, 1994; 
-        Magnani et al, 2000). In stressed (soil/nutrient) regions fine root 
-        allocations increases.
 
         Parameters:
         -----------
@@ -236,6 +228,7 @@ class PlantGrowth(object):
         -----------
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
+        
         self.state.alleaf = (self.params.callocf + nitfac *
                             (self.params.callocf - self.params.callocfz))
     
@@ -252,7 +245,8 @@ class PlantGrowth(object):
         # allocate remainder to stem
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch - self.state.alroot_exudate)
-    
+
+        
     def initialise_deciduous_model(self):
         """ Divide up NPP based on annual allocation fractions """
         
@@ -274,6 +268,7 @@ class PlantGrowth(object):
         """
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
+        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
         #                                        self.state.cstore)
@@ -281,6 +276,8 @@ class PlantGrowth(object):
        
         # constant N:C of Wood
         ntot = self.state.nstore 
+        self.state.n_to_alloc_branch = self.state.albranch * ntot
+        ntot -=  self.state.n_to_alloc_branch
         self.state.n_to_alloc_stem = self.state.alstem * ntot
         ntot -=  self.state.n_to_alloc_stem
         
@@ -322,7 +319,10 @@ class PlantGrowth(object):
                              self.state.albranch - self.state.alroot_exudate)
         
         # constant N:C of Wood
+        
         ntot = self.state.nstore 
+        self.state.n_to_alloc_branch = self.state.albranch * ntot
+        ntot -=  self.state.n_to_alloc_branch
         self.state.n_to_alloc_stem = self.state.alstem * ntot
         ntot -=  self.state.n_to_alloc_stem
         
@@ -433,7 +433,7 @@ class PlantGrowth(object):
             # N flux into new ring (mobile component -> can be retrans for new
             # woody tissue)
             self.fluxes.npstemmob = self.fluxes.cpstem * (ncwnew - ncwimm)
-            self.fluxes.npbranch = 0.0    
+            self.fluxes.npbranch = self.fluxes.bnrate * self.state.growing_days[doy]
             self.fluxes.nproot = self.fluxes.cproot * self.state.rootnc
             self.fluxes.npleaf = (self.fluxes.lnrate * 
                                     self.state.growing_days[doy])
@@ -496,8 +496,7 @@ class PlantGrowth(object):
         if self.control.deciduous_model:
             arg1 = (self.fluxes.leafretransn  +
                     self.params.rretrans * rdecay * self.state.rootn +
-                    self.params.bretrans * self.params.bdecay * 
-                    self.state.branchn)
+                    self.fluxes.branchretransn)
             arg2 = (self.params.wretrans * self.params.wdecay *
                     self.state.stemnmob + self.params.retransmob *
                     self.state.stemnmob)
@@ -574,7 +573,7 @@ class PlantGrowth(object):
         if self.control.deciduous_model:
             days_left = self.state.growing_days[doy]
             self.fluxes.cpleaf = self.fluxes.lrate * days_left
-            self.fluxes.cpbranch = 0.0
+            self.fluxes.cpbranch = self.fluxes.brate * days_left
             self.fluxes.cpstem = self.fluxes.wrate * days_left
             self.fluxes.cproot = self.state.c_to_alloc_root * 1.0 / days_in_yr
         else:
@@ -618,7 +617,7 @@ class PlantGrowth(object):
                                 self.state.lai / self.state.shoot)
             
             
-    def update_plant_state(self, fdecay, rdecay, project_day):
+    def update_plant_state(self, fdecay, rdecay, project_day, doy):
         """ Daily change in C content
 
         Parameters:
@@ -634,28 +633,41 @@ class PlantGrowth(object):
         self.state.root += self.fluxes.cproot - self.fluxes.deadroots
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
-        
+
         if self.control.deciduous_model:
+            #self.state.shootn += (self.fluxes.npleaf - 
+            #                      self.fluxes.deadleafn - 
+            #                      self.fluxes.neaten )
+            #self.state.branchn += (self.fluxes.npbranch - 
+            #                        self.fluxes.deadbranchn)
+                                    
             self.state.shootn += (self.fluxes.npleaf - 
-                                  self.fluxes.deadleafn - 
-                                  self.fluxes.neaten -
-                                  self.fluxes.leafretransn)
+                                 (self.fluxes.lnrate * 
+                                  self.state.remaining_days[doy]) - 
+                                  self.fluxes.neaten)
+            self.state.branchn += (self.fluxes.npbranch - 
+                                   self.fluxes.bnrate * 
+                                   self.state.remaining_days[doy])                         
+                                    
+                                    
         else:
             self.state.shootn += (self.fluxes.npleaf - 
                                   fdecay * self.state.shootn - 
                                   self.fluxes.neaten)
+            self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
+                                   self.state.branchn)                     
+        
+                               
         self.state.shootn = max(0.0, self.state.shootn)
         
         self.state.rootn += self.fluxes.nproot - rdecay * self.state.rootn
-        self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
-                                self.state.branchn)
+        
         self.state.stemnimm += (self.fluxes.npstemimm - self.params.wdecay *
                                 self.state.stemnimm)
         self.state.stemnmob += (self.fluxes.npstemmob - self.params.wdecay *
                                 self.state.stemnmob -
                                 self.params.retransmob * self.state.stemnmob)
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
-        
         self.state.exu_pool += self.fluxes.cprootexudate
         self.fluxes.microbial_resp = self.calc_microbial_resp(project_day)
         self.state.exu_pool -= self.fluxes.microbial_resp
@@ -666,50 +678,63 @@ class PlantGrowth(object):
         
         self.state.anpp += self.fluxes.npp
         
+        
+        # NOT SURE WHY THIS DOESN'T SEEM TO MAKE SENSE FOR DECID MODEL. I 
+        # THINK THE LOGIC HERE IS WRONG. IF YOU CUT BACK PRODUCTION YOU SHOULD
+        # ALSO RECALCULATE THE RETRANS FLUX WHICH DOESNT SEEM TO BE HAPPENING
         if not self.control.deciduous_model:
-            
+        
+            # if foliage N:C ratio exceeds its max, then nitrogen uptake is cut back 
+            # n.b. new ring n/c max is already set because it is related to leaf n:c
+    
             # maximum leaf n:c ratio is function of stand age
             #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
             age_effect = ((self.state.age - self.params.ageyoung) / 
                             (self.params.ageold - self.params.ageyoung))
-            
+
             ncmaxf = (self.params.ncmaxfyoung - (self.params.ncmaxfyoung -
                         self.params.ncmaxfold) * age_effect)
-                   
+    
             if float_lt(ncmaxf, self.params.ncmaxfold):
                 ncmaxf = self.params.ncmaxfold
-    
+
             if float_gt(ncmaxf, self.params.ncmaxfyoung):
                 ncmaxf = self.params.ncmaxfyoung
     
-            # if foliage or root n:c ratio exceeds its max, then nitrogen 
-            # uptake is cut back n.b. new ring n/c max is already set because 
-            # it is related to leaf n:c
-            extrar = 0.
-            extras = 0.
-            if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
-                extras = self.state.shootn - self.state.shoot * ncmaxf
+            extras = 0.0
+            if self.state.lai > 0.0:
+
+                if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
+                    extras = self.state.shootn - self.state.shoot * ncmaxf
+
+                    #print doy, extras, self.state.shootn, (self.state.shoot * ncmaxf)
+        
+                    # Ensure N uptake cannot be reduced below zero.
+                    if float_gt(extras, self.fluxes.nuptake):
+                        extras = self.fluxes.nuptake
+
+                    self.state.shootn -= extras
+                    self.fluxes.nuptake -= extras
+
     
-                #n uptake cannot be reduced below zero.
-                if float_gt(extras, self.fluxes.nuptake):
-                    extras = self.fluxes.nuptake
     
-                self.state.shootn -= extras
-                self.fluxes.nuptake -= extras
     
+            # if root N:C ratio exceeds its max, then nitrogen uptake is cut back 
+            # n.b. new ring n/c max is already set because it is related to leaf n:c
             ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
-    
+            extrar = 0.0
             if float_gt(self.state.rootn, (self.state.root * ncmaxr)):
+       
                 extrar = self.state.rootn - self.state.root * ncmaxr
-    
-                #n uptake cannot be reduced below zero.
+
+                # Ensure N uptake cannot be reduced below zero.
                 if float_gt((extras + extrar), self.fluxes.nuptake):
                     extrar = self.fluxes.nuptake - extras
-    
+
                 self.state.rootn -= extrar
                 self.fluxes.nuptake -= extrar 
+
         
-            
             
     def calculate_cn_store(self, tolerance=1.0E-05):        
         cgrowth = (self.fluxes.cpleaf + self.fluxes.cproot + 

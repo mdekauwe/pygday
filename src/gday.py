@@ -104,6 +104,7 @@ class Gday(object):
 
         
         if self.control.deciduous_model:
+            self.pg.calc_carbon_allocation_fracs(0.0)
             self.pg.initialise_deciduous_model()
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
@@ -168,8 +169,6 @@ class Gday(object):
                                             days_in_year[i], project_day)
            
             self.day_output = [] # empty daily storage list for outputs
-            
-            
             for doy in xrange(days_in_year[i]):
 
                 # litterfall rate: C and N fluxes
@@ -191,22 +190,18 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                #tonnes_per_ha_to_g_m2 = 0.01
-                #print self.fluxes.gpp / tonnes_per_ha_to_g_m2, self.state.lai, self.fluxes.nuptake / tonnes_per_ha_to_g_m2, self.state.root / tonnes_per_ha_to_g_m2, self.state.inorgn / tonnes_per_ha_to_g_m2
                 #if self.spin_up == False:
-                print self.fluxes.gpp * 100, self.state.lai
+                #print self.fluxes.gpp * 100, self.state.lai
                 #          self.fluxes.transpiration
-                #print self.fluxes.gpp * 100
-                #print self.fluxes.gpp * 100, self.met_data['amb_co2'][project_day]
                 
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
                 # save daily fluxes + state for daily output
                 self.save_daily_outputs(yr, doy+1)
-                
+               
                 project_day += 1
-                
+            
             #print self.state.cstore, self.state.nstore 
             # =============== #
             #   END OF YEAR   #
@@ -305,7 +300,7 @@ class Gday(object):
                              self.state.branchn + self.state.stemn)
         self.state.totaln = (self.state.plantn + self.state.littern +
                              self.state.soiln)
-
+        #print self.state.shootn*100. , self.state.rootn*100. ,self.state.branchn*100. , self.state.stemn*100.
         # total plant, soil, litter and system carbon
         self.state.soilc = (self.state.activesoil + self.state.slowsoil +
                             self.state.passivesoil)
