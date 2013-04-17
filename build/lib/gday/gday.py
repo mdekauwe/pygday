@@ -169,9 +169,6 @@ class Gday(object):
                                             days_in_year[i], project_day)
            
             self.day_output = [] # empty daily storage list for outputs
-            
-            x = 0.0
-            y = []
             for doy in xrange(days_in_year[i]):
 
                 # litterfall rate: C and N fluxes
@@ -193,17 +190,10 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                #tonnes_per_ha_to_g_m2 = 0.01
-                #print self.fluxes.gpp / tonnes_per_ha_to_g_m2, self.state.lai, self.fluxes.nuptake / tonnes_per_ha_to_g_m2, self.state.root / tonnes_per_ha_to_g_m2, self.state.inorgn / tonnes_per_ha_to_g_m2
                 #if self.spin_up == False:
                 #print self.fluxes.gpp * 100, self.state.lai
                 #          self.fluxes.transpiration
-                #print self.fluxes.gpp * 100, self.state.lai
-                
-                #print self.state.shoot, self.state.stem, self.state.root
-                
-                x += self.state.shootn * 100.
-                y.append(self.state.lai)
+                #print self.state.shootn *100., self.fluxes.gpp * 100, self.state.lai
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -211,7 +201,7 @@ class Gday(object):
                 self.save_daily_outputs(yr, doy+1)
                
                 project_day += 1
-            #print x, max(y)
+            
             #print self.state.cstore, self.state.nstore 
             # =============== #
             #   END OF YEAR   #
