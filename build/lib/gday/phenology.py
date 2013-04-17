@@ -76,18 +76,6 @@ class Phenology(object):
         -----------
         White, M. A. et al. (1997) GBC, 11, 217*234.
         """
-        # hack for Oak Ridge simulations...take out for normal runs!!
-        #if self.control.deciduous_model:
-        #    if (daylen <= 7.9166667 and Tsoil <= 11.15) or Tsoil_next_3days < 2.0:
-        #        return True
-        #    else:
-        #        return False
-        #else:
-        #    if (daylen <= 10.9166667 and Tsoil <= 11.15) or Tsoil_next_3days < 2.0:
-        #        return True
-        #    else:
-        #        return False
-        
         if (daylen <= 10.9166667 and Tsoil <= 11.15) or Tsoil_next_3days < 2.0:
             return True
         else:
@@ -190,9 +178,13 @@ class Phenology(object):
                              self.len_groloss**2)
         self.fluxes.wrate = (2.0 * self.state.c_to_alloc_stem / 
                              self.len_groloss**2)   
-            
+        self.fluxes.brate = (2.0 * self.state.c_to_alloc_branch / 
+                             self.len_groloss**2)   
+        
+        
         # N allocation rates across growing season
         self.fluxes.lnrate = (2.0 * self.state.n_to_alloc_shoot / 
                               self.len_groloss**2)
-        
+        self.fluxes.bnrate = (2.0 * self.state.n_to_alloc_branch / 
+                              self.len_groloss**2)
       
