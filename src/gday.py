@@ -193,7 +193,7 @@ class Gday(object):
                 #if self.spin_up == False:
                 #print self.fluxes.gpp * 100, self.state.lai
                 #          self.fluxes.transpiration
-                
+                #print self.state.shootn *100., self.fluxes.gpp * 100, self.state.lai
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
