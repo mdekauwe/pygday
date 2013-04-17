@@ -129,7 +129,9 @@ class PrintOutput(object):
                   'fmfaeces', 'light_interception', 'wtfac_tsoil', \
                   'wtfac_root', 'remaining_days', 'growing_days', \
                   'leaf_out_days']
-        special = ['rootsoil_type', 'topsoil_type']
+        special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
+                   'deciduous_model', 'fixleafnc', 'grazing', 'model_optroot',\
+                   'modeljm', 'passiveconst', 'print_options', 'water_stress']
         self.dump_ini_data("[files]\n", self.files, ignore, special, oparams, 
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams, 
