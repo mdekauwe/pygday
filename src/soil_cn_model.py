@@ -358,7 +358,64 @@ class CarbonSoilFlows(object):
         """
         return (self.fluxes.npp - self.fluxes.hetero_resp -
                 self.fluxes.ceaten * (1. - self.params.fracfaeces))
-                    
+    
+    def calculate_cpools(self):
+        """Calculate new soil carbon pools.
+
+        Returns:
+        --------
+        cact : float
+            C source flux from the active pool
+        cslo : float
+            C source flux from the slow pool
+        cpas : float
+            C source flux from the passive pool
+        """
+        
+        # net source fluxes
+        cstsu = self.fluxes.cresid[0] # s surf
+        cstsl = self.fluxes.cresid[1] # s soil
+        cmtsu = self.fluxes.cresid[2] # m surf
+        cmtsl = self.fluxes.cresid[3] # m soil
+        cact = (self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
+                sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                self.fluxes.passive)
+        cslo = (self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
+                self.fluxes.cactive[0])
+        cpas = (self.fluxes.cactive[1] + self.fluxes.cslow[1] )
+
+
+        # update pools
+        self.state.structsurf += (cstsu - (self.fluxes.cstruct[0] +
+                                  self.fluxes.cstruct[1] +
+                                  self.fluxes.co2_to_air[0]))
+        self.state.structsoil += (cstsl - (self.fluxes.cstruct[2] +
+                                  self.fluxes.cstruct[3] +
+                                  self.fluxes.co2_to_air[1]))
+        
+        # When nothing is being added to the metabolic pools, there is the 
+        # potential scenario with the way the model works for tiny bits to be
+        # removed with each timestep. Effectively with time this value which is
+        # zero can end up becoming zero but to a silly decimal place
+        self.state.metabsurf += (cmtsu - (self.fluxes.cmetab[0] +
+                                 self.fluxes.co2_to_air[2]))
+        
+        self.state.metabsoil += (cmtsl - (self.fluxes.cmetab[1] +
+                                 self.fluxes.co2_to_air[3]))
+        self.state.activesoil += (cact - (self.fluxes.cactive[0] +
+                                  self.fluxes.cactive[1] +
+                                  self.fluxes.co2_to_air[4]))
+        self.state.slowsoil += (cslo - (self.fluxes.cslow[0] +
+                                self.fluxes.cslow[1] +
+                                self.fluxes.co2_to_air[5]))
+        self.state.passivesoil += (cpas - (self.fluxes.passive +
+                                   self.fluxes.co2_to_air[6]))
+        self.state.carbon_loss += self.fluxes.hetero_resp
+
+        return (cact, cslo, cpas)
+
+    
+                   
                     
 class NitrogenSoilFlows(object):
     """ Calculate daily nitrogen fluxes"""
@@ -650,4 +707,151 @@ class NitrogenSoilFlows(object):
         arg3 = const.M2_AS_HA / const.G_AS_TONNES
         
         return arg1 / arg2 * arg3 #slope
+    
+    def calculate_npools(self, cact, cslo, cpas):
+        """Calculate new soil N pools.
+
+        Parameters:
+        -----------
+        cact : float
+            C source flux from the active pool
+        cslo : float
+            C source flux from the slow pool
+        cpas : float
+            C source flux from the passive pool
+        """
+        # net source fluxes.
+        nstsu = self.fluxes.nresid[0]  # s surf
+        nstsl = self.fluxes.nresid[1]  # s soil
+        nmtsu = self.fluxes.nresid[2]  # m surf
+        nmtsl = self.fluxes.nresid[3]  # m soil
+        nact = (self.fluxes.nstruct[1] + self.fluxes.nstruct[3] +
+                self.fluxes.nmetab[0] + self.fluxes.nmetab[1] +
+                self.fluxes.nslow[0] + self.fluxes.npassive)
+        nslo = (self.fluxes.nstruct[0] + self.fluxes.nstruct[2] +
+                self.fluxes.nactive[0])
+        npas = self.fluxes.nactive[1] + self.fluxes.nslow[1]
+
+        # net effluxes.
+        lstsu = (self.fluxes.nstruct[0] + self.fluxes.nstruct[1])   # s surf
+        lstsl = (self.fluxes.nstruct[2] + self.fluxes.nstruct[3])   # s soil
+        lmtsu = self.fluxes.nmetab[0]                               # m surf
+        lmtsl = self.fluxes.nmetab[1]                               # m soil
+        lact = (self.fluxes.nactive[0] + self.fluxes.nactive[1])
+        lslo = (self.fluxes.nslow[0] + self.fluxes.nslow[1])
+        lpas = self.fluxes.npassive
+
+        # net N release implied by separation of litter into structural
+        # & metabolic. The following pools only fix or release N at their 
+        # limiting n:c values. 
         
+        # N released or fixed from the N inorganic pool is incremented with
+        # each call to nclimit and stored in self.fluxes.nlittrelease
+        self.fluxes.nlittrelease = 0.0
+        
+        self.state.structsurfn += nstsu - lstsu
+        if not self.control.strfloat:
+            self.state.structsurfn += self.nclimit(self.state.structsurf,
+                                                   self.state.structsurfn,
+                                                   1.0/self.params.structcn,
+                                                   1.0/self.params.structcn)
+        
+        self.state.structsoiln += nstsl - lstsl
+        if not self.control.strfloat:
+            self.state.structsoiln += self.nclimit(self.state.structsoil,
+                                                   self.state.structsoiln,
+                                                   1.0/self.params.structcn,
+                                                   1.0/self.params.structcn)
+        
+        self.state.metabsurfn += nmtsu - lmtsu
+        self.state.metabsurfn += self.nclimit(self.state.metabsurf,
+                                              self.state.metabsurfn,
+                                              1.0/25.0, 1.0/10.0)
+        
+        # When nothing is being added to the metabolic pools, there is the 
+        # potential scenario with the way the model works for tiny bits to be
+        # removed with each timestep. Effectively with time this value which is
+        # zero can end up becoming zero but to a silly decimal place
+        self.state.metabsoiln += nmtsl - lmtsl
+        self.state.metabsoiln += self.nclimit(self.state.metabsoil,
+                                              self.state.metabsoiln,
+                                              1.0/25.0, 1.0/10.0)
+        
+        # N:C of the SOM pools increases linearly btw prescribed min and max 
+        # values as the Nconc of the soil increases.
+        arg = (self.state.inorgn - self.params.nmin0 / const.M2_AS_HA * 
+                const.G_AS_TONNES)
+        # active
+        actnc = self.params.actnc0 + self.state.actncslope * arg
+        if float_gt(actnc, self.params.actncmax):
+            actnc = self.params.actncmax
+        fixn = ncflux(cact, nact, actnc)
+        self.state.activesoiln += nact + fixn - lact
+
+        # slow
+        slownc = self.params.slownc0 + self.state.slowncslope * arg
+        if float_gt(slownc, self.params.slowncmax):
+            slownc = self.params.slowncmax
+        fixn = ncflux(cslo, nslo, slownc)
+        self.state.slowsoiln += nslo + fixn - lslo
+
+        # passive
+        passnc = self.params.passnc0 + self.state.passncslope * arg
+        if float_gt(passnc, self.params.passncmax):
+            passnc = self.params.passncmax
+        fixn = ncflux(cpas, npas, passnc)
+        # update passive pool only if passiveconst=0
+        self.state.passivesoiln += npas + fixn - lpas
+
+        # Daily increment of soil inorganic N pool, diff btw in and effluxes
+        # (grazer urine n goes directly into inorganic pool) nb inorgn may be
+        # unstable if rateuptake is large
+        self.state.inorgn += ((self.fluxes.ngross + self.fluxes.ninflow + 
+                               self.fluxes.nrootexudate + self.fluxes.nurine - 
+                               self.fluxes.nimmob - self.fluxes.nloss - 
+                               self.fluxes.nuptake) + self.fluxes.nlittrelease)
+        
+        
+    def nclimit(self, cpool, npool, ncmin, ncmax):
+        """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
+        the  N:C ratio of a litter pool within the range 'ncmin' to 'ncmax'.
+
+        Parameters:
+        -----------
+        cpool : float
+            various C pool (state)
+        npool : float
+            various N pool (state)
+        ncmin : float
+            maximum N:C ratio
+        ncmax : float
+            minimum N:C ratio
+
+        Returns:
+        --------
+        fix/rel : float
+            amount of N to be added/released from the inorganic pool
+
+        """
+        nmax = cpool * ncmax
+        nmin = cpool * ncmin
+    
+        if float_gt(npool, nmax):  #release
+            rel = npool - nmax
+            self.fluxes.nlittrelease += rel 
+            return -rel
+        elif float_lt(npool, nmin):   #fix
+            fix = nmin - npool
+            self.fluxes.nlittrelease -= fix
+            return fix
+        else:
+            return 0.0 
+
+
+def ncflux(cflux, nflux, nc_ratio):
+    """Returns the amount of N fixed
+
+    Release N to Inorgn or fix N from Inorgn, in order to normalise
+    the N: C ratio of a net flux.
+    """
+    return cflux * nc_ratio - nflux

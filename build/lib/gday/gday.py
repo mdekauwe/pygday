@@ -12,8 +12,8 @@ from file_parser import initialise_model_data
 from plant_growth import PlantGrowth
 from print_outputs import PrintOutput
 from litter_production import Litter
-from soil_cnflows import CarbonSoilFlows, NitrogenSoilFlows
-from update_pools import CarbonSoilPools, NitrogenSoilPools
+from soil_cn_model import CarbonSoilFlows, NitrogenSoilFlows
+
 from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
 
@@ -90,18 +90,13 @@ class Gday(object):
         self.correct_rate_constants(output=False)
 
         # class instances
-        self.cf = CarbonSoilFlows(self.control, self.params, self.state,
+        self.cs = CarbonSoilFlows(self.control, self.params, self.state,
                               self.fluxes, self.met_data)
-        self.nf = NitrogenSoilFlows(self.control, self.params, self.state,
+        self.ns = NitrogenSoilFlows(self.control, self.params, self.state,
                                 self.fluxes)
         self.lf = Litter(self.control, self.params, self.state, self.fluxes)
         self.pg = PlantGrowth(self.control, self.params, self.state,
                               self.fluxes, self.met_data)
-        self.cpl = CarbonSoilPools(self.control, self.params, self.state,
-                               self.fluxes)
-        self.npl = NitrogenSoilPools(self.control, self.params, self.state,
-                                 self.fluxes, self.met_data)
-
         
         if self.control.deciduous_model:
             self.pg.calc_carbon_allocation_fracs(0.0)
@@ -180,12 +175,12 @@ class Gday(object):
                                         float(days_in_year[i]))
 
                 # soil C & N model fluxes
-                self.cf.calculate_csoil_flows(project_day)
-                self.nf.calculate_nsoil_flows()
+                self.cs.calculate_csoil_flows(project_day)
+                self.ns.calculate_nsoil_flows()
 
                 # Update model soil C&N pools
-                (cact, cslo, cpas) = self.cpl.calculate_cpools()
-                self.npl.calculate_npools(cact, cslo, cpas)
+                (cact, cslo, cpas) = self.cs.calculate_cpools()
+                self.ns.calculate_npools(cact, cslo, cpas)
 
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
@@ -193,7 +188,7 @@ class Gday(object):
                 #if self.spin_up == False:
                 #print self.fluxes.gpp * 100, self.state.lai
                 #          self.fluxes.transpiration
-                #print self.state.shootn *100., self.fluxes.gpp * 100, self.state.lai
+                print self.state.shootn *100., self.fluxes.gpp * 100, self.state.lai
                 
                 # =============== #
                 #   END OF DAY    #
