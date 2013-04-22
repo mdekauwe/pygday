@@ -13,12 +13,13 @@ import constants as const
 from utilities import float_eq, float_lt, float_le, float_gt, float_ge
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (05.09.2011)"
+__version__ = "1.0 (22.04.2013)"
 __email__   = "mdekauwe@gmail.com"
 
 
 class CarbonSoilFlows(object):
     """ Plant litter C production is divided btw metabolic and structural """
+    
     def __init__(self, control, params, state, fluxes, met_data):
         """
         Parameters
@@ -66,8 +67,10 @@ class CarbonSoilFlows(object):
         self.cfluxes_from_struct_pool()
         self.cfluxes_from_metabolic_pool()
         self.cfluxes_from_passive_pool()
-        self.fluxes.nep = self.calculate_nep()
-    
+        
+        # update the C pools
+        self.calculate_cpools()
+        
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
         and moisture dependency. Note same temperature is assumed for all 3 
@@ -348,43 +351,24 @@ class CarbonSoilFlows(object):
                                        self.fluxes.cslow[1] -
                                        self.state.passivesoil *
                                        self.params.decayrate[6])
-    def calculate_nep(self):
-        """ carbon sink or source?
-        
-        Returns:
-        --------
-        NEP : float
-            Net Ecosystem Productivity, C uptake
-        """
-        return (self.fluxes.npp - self.fluxes.hetero_resp -
-                self.fluxes.ceaten * (1. - self.params.fracfaeces))
-    
+   
     def calculate_cpools(self):
-        """Calculate new soil carbon pools.
-
-        Returns:
-        --------
-        cact : float
-            C source flux from the active pool
-        cslo : float
-            C source flux from the slow pool
-        cpas : float
-            C source flux from the passive pool
-        """
+        """Calculate new soil carbon pools. """
         
         # net source fluxes
         cstsu = self.fluxes.cresid[0] # s surf
         cstsl = self.fluxes.cresid[1] # s soil
         cmtsu = self.fluxes.cresid[2] # m surf
         cmtsl = self.fluxes.cresid[3] # m soil
-        cact = (self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
-                sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                self.fluxes.passive)
-        cslo = (self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
-                self.fluxes.cactive[0])
-        cpas = (self.fluxes.cactive[1] + self.fluxes.cslow[1] )
-
-
+        
+        # store the C SOM fluxes for Nitrogen calculations
+        self.fluxes.cact = (self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
+                            sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                            self.fluxes.passive)
+        self.fluxes.cslo = (self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
+                            self.fluxes.cactive[0])
+        self.fluxes.cpas = (self.fluxes.cactive[1] + self.fluxes.cslow[1])
+        
         # update pools
         self.state.structsurf += (cstsu - (self.fluxes.cstruct[0] +
                                   self.fluxes.cstruct[1] +
@@ -402,20 +386,17 @@ class CarbonSoilFlows(object):
         
         self.state.metabsoil += (cmtsl - (self.fluxes.cmetab[1] +
                                  self.fluxes.co2_to_air[3]))
-        self.state.activesoil += (cact - (self.fluxes.cactive[0] +
+        self.state.activesoil += (self.fluxes.cact - (self.fluxes.cactive[0] +
                                   self.fluxes.cactive[1] +
                                   self.fluxes.co2_to_air[4]))
-        self.state.slowsoil += (cslo - (self.fluxes.cslow[0] +
+        self.state.slowsoil += (self.fluxes.cslo - (self.fluxes.cslow[0] +
                                 self.fluxes.cslow[1] +
                                 self.fluxes.co2_to_air[5]))
-        self.state.passivesoil += (cpas - (self.fluxes.passive +
+        self.state.passivesoil += (self.fluxes.cpas - (self.fluxes.passive +
                                    self.fluxes.co2_to_air[6]))
         self.state.carbon_loss += self.fluxes.hetero_resp
-
-        return (cact, cslo, cpas)
-
-    
-                   
+        
+        
                     
 class NitrogenSoilFlows(object):
     """ Calculate daily nitrogen fluxes"""
@@ -461,6 +442,9 @@ class NitrogenSoilFlows(object):
 
         # calculate N immobilisation
         self.fluxes.nimmob = self.calculate_nimmobilisation()
+        
+        # Update model soil N pools
+        self.calculate_npools()
         
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
@@ -708,18 +692,9 @@ class NitrogenSoilFlows(object):
         
         return arg1 / arg2 * arg3 #slope
     
-    def calculate_npools(self, cact, cslo, cpas):
-        """Calculate new soil N pools.
+    def calculate_npools(self):
+        """ Calculate new soil N pools. """
 
-        Parameters:
-        -----------
-        cact : float
-            C source flux from the active pool
-        cslo : float
-            C source flux from the slow pool
-        cpas : float
-            C source flux from the passive pool
-        """
         # net source fluxes.
         nstsu = self.fluxes.nresid[0]  # s surf
         nstsl = self.fluxes.nresid[1]  # s soil
@@ -785,21 +760,21 @@ class NitrogenSoilFlows(object):
         actnc = self.params.actnc0 + self.state.actncslope * arg
         if float_gt(actnc, self.params.actncmax):
             actnc = self.params.actncmax
-        fixn = ncflux(cact, nact, actnc)
+        fixn = ncflux(self.fluxes.cact, nact, actnc)
         self.state.activesoiln += nact + fixn - lact
 
         # slow
         slownc = self.params.slownc0 + self.state.slowncslope * arg
         if float_gt(slownc, self.params.slowncmax):
             slownc = self.params.slowncmax
-        fixn = ncflux(cslo, nslo, slownc)
+        fixn = ncflux(self.fluxes.cslo, nslo, slownc)
         self.state.slowsoiln += nslo + fixn - lslo
 
         # passive
         passnc = self.params.passnc0 + self.state.passncslope * arg
         if float_gt(passnc, self.params.passncmax):
             passnc = self.params.passncmax
-        fixn = ncflux(cpas, npas, passnc)
+        fixn = ncflux(self.fluxes.cpas, npas, passnc)
         # update passive pool only if passiveconst=0
         self.state.passivesoiln += npas + fixn - lpas
 

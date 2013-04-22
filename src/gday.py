@@ -177,18 +177,13 @@ class Gday(object):
                 # soil C & N model fluxes
                 self.cs.calculate_csoil_flows(project_day)
                 self.ns.calculate_nsoil_flows()
-
-                # Update model soil C&N pools
-                (cact, cslo, cpas) = self.cs.calculate_cpools()
-                self.ns.calculate_npools(cact, cslo, cpas)
-
+    
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
                 #if self.spin_up == False:
                 #print self.fluxes.gpp * 100, self.state.lai
                 #          self.fluxes.transpiration
-                print self.state.shootn *100., self.fluxes.gpp * 100, self.state.lai
                 
                 # =============== #
                 #   END OF DAY    #
@@ -267,7 +262,9 @@ class Gday(object):
 
         """
         self.fluxes.ninflow = self.met_data['ndep'][prjday]
-
+        
+        
+        
         # update N:C of plant pools
         if self.control.deciduous_model:
             if float_eq(self.state.shoot, 0.0):
@@ -296,7 +293,7 @@ class Gday(object):
                              self.state.branchn + self.state.stemn)
         self.state.totaln = (self.state.plantn + self.state.littern +
                              self.state.soiln)
-        #print self.state.shootn*100. , self.state.rootn*100. ,self.state.branchn*100. , self.state.stemn*100.
+
         # total plant, soil, litter and system carbon
         self.state.soilc = (self.state.activesoil + self.state.slowsoil +
                             self.state.passivesoil)
@@ -323,7 +320,10 @@ class Gday(object):
                                             self.fluxes.nrootexudate -
                                             self.fluxes.nimmob +
                                             self.fluxes.nlittrelease)
-
+            # calculate NEP
+            self.fluxes.nep = (self.fluxes.npp - self.fluxes.hetero_resp -
+                           self.fluxes.ceaten * (1. - self.params.fracfaeces))
+                           
     def save_daily_outputs(self, year, doy):
         """ Save the daily fluxes + state in a big list.
 
