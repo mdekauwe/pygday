@@ -674,16 +674,15 @@ class PlantGrowth(object):
         #print self.fluxes.microbial_resp, self.fluxes.cprootexudate
         
         self.calculate_cn_store()
-        
-        
         self.state.anpp += self.fluxes.npp
         
-        
-        # NOT SURE WHY THIS DOESN'T SEEM TO MAKE SENSE FOR DECID MODEL. I 
-        # THINK THE LOGIC HERE IS WRONG. IF YOU CUT BACK PRODUCTION YOU SHOULD
-        # ALSO RECALCULATE THE RETRANS FLUX WHICH DOESNT SEEM TO BE HAPPENING
+        # This doesn't make sense for the deciduous model. This is because of 
+        # the ramp function. So there will be a period where we will be above
+        # the ncmaxf, so we will end up just cutting things back. This logic
+        # essentially doesn't fit with the ramp function which allocates 
+        # everything we have to allocate, i.e. I don't think this is necessary
         if not self.control.deciduous_model:
-        
+            
             # if foliage N:C ratio exceeds its max, then nitrogen uptake is cut back 
             # n.b. new ring n/c max is already set because it is related to leaf n:c
     
@@ -715,10 +714,13 @@ class PlantGrowth(object):
 
                     self.state.shootn -= extras
                     self.fluxes.nuptake -= extras
-
-    
-    
-    
+                    print self.fluxes.deadleafn,
+                    # recalculate N in litter production
+                    self.state.shootnc = self.state.shootn / self.state.shoot
+                    ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
+                    self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
+                    
+                    print self.fluxes.deadleafn
             # if root N:C ratio exceeds its max, then nitrogen uptake is cut back 
             # n.b. new ring n/c max is already set because it is related to leaf n:c
             ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
@@ -734,8 +736,11 @@ class PlantGrowth(object):
                 self.state.rootn -= extrar
                 self.fluxes.nuptake -= extrar 
 
-        
-            
+                # recalculate N in root litter production
+                self.state.rootnc = self.state.rootn / self.state.root
+                ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
+                self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
+                
     def calculate_cn_store(self, tolerance=1.0E-05):        
         cgrowth = (self.fluxes.cpleaf + self.fluxes.cproot + 
                    self.fluxes.cpbranch + self.fluxes.cpstem)
