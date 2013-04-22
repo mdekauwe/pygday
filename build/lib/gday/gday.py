@@ -194,6 +194,7 @@ class Gday(object):
                 #print self.fluxes.gpp * 100, self.state.lai
                 #          self.fluxes.transpiration
                 #print self.state.shootn *100., self.fluxes.gpp * 100, self.state.lai
+                
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -279,11 +280,11 @@ class Gday(object):
             else:
                 self.state.shootnc = max(self.state.shootn / self.state.shoot,
                                          self.params.ncfmin)
-            self.state.rootnc = 0.02
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
-            self.state.rootnc = self.state.rootn / self.state.root
-
+        
+        self.state.rootnc = self.state.rootn / self.state.root
+        
         if self.state.lai > 0.0:
             # SLA (m2 onesided/kg DW) -> HA/tonnes C
             self.state.sla = (self.state.lai / const.M2_AS_HA *
