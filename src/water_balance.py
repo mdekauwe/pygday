@@ -78,10 +78,14 @@ class WaterBalance(object):
             # transpiration calculated from WUE...
             self.calc_transpiration()
         elif self.control.trans_model == 1:
-            #self.calc_transpiration_penmon(vpd_avg, net_rad_avg, temp_avg, wind_avg,
-            #                                    ca, daylen, press)
-            self.calc_transpiration_penmon_am_pm(net_rad, wind, ca, daylen, 
-                                                 press, vpd, temp)
+        
+            if self.control.assim_model == "BEWDY":
+                self.calc_transpiration_penmon(vpd_avg, net_rad_avg, temp_avg, 
+                                               wind_avg, ca, daylen, press)
+            elif self.control.assim_model == "MATE":
+                self.calc_transpiration_penmon_am_pm(net_rad, wind, ca, daylen, 
+                                                     press, vpd, temp)
+        
         elif self.control.trans_model == 2:
             self.calc_transpiration_priestay(net_rad_avg, temp_avg, press)
     
@@ -218,7 +222,8 @@ class WaterBalance(object):
         gs, gs_mol = self.calc_stomatal_conductance(vpd, ca, daylen, 
                                                     self.fluxes.gpp_gCm2, 
                                                     press, tavg)
-        transp, omegax = self.P.calc_evaporation(vpd, wind, gs, net_rad, tavg, press)
+        transp, omegax = self.P.calc_evaporation(vpd, wind, gs, net_rad, tavg, 
+                                                 press)
         
         self.fluxes.gs_mol_m2_sec = gs_mol
         ga = self.P.canopy_boundary_layer_conductance(wind)
