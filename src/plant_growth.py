@@ -714,13 +714,12 @@ class PlantGrowth(object):
 
                     self.state.shootn -= extras
                     self.fluxes.nuptake -= extras
-                    print self.fluxes.deadleafn,
+                    
                     # recalculate N in litter production
                     self.state.shootnc = self.state.shootn / self.state.shoot
                     ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
                     self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
                     
-                    print self.fluxes.deadleafn
             # if root N:C ratio exceeds its max, then nitrogen uptake is cut back 
             # n.b. new ring n/c max is already set because it is related to leaf n:c
             ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
