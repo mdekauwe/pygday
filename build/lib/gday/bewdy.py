@@ -20,13 +20,8 @@ class Bewdy(object):
     the top of the canopy and leaf N content at the top of the canopy.
     See Medlyn et al for more details.
 
-    The model by using a sunlit/shaded approach is a
-    compromise between a more detailed canopy model that models vertical
-    (and horizontal?) incident radiation and a big-leaf (no diffuse/direct
-    distinction). I guess this is therefore effectively a "two-leaf" model.
-
-    * should we have 2 different temps for sunlit and shaded leaves?
-
+    *** RESULTS FROM THIS DON'T MAKE SENSE, DON'T USE, 22 APR 2013 ***
+    
     References:
     -----------
     * Medlyn, B. E. et al (2000) Canadian Journal of Forest Research,30,873-888.
@@ -71,14 +66,11 @@ class Bewdy(object):
             Method calculates GPP, NPP and Ra.
         """
         (temp, sw_rad, ca, vpd) = self.get_met_data(day)
-        
-        # presumably conversion to seconds
-        daylength = daylen * const.HRS_TO_SECS * 1E-6
+        daylength = daylen * const.HRS_TO_SECS 
         
         # calculated from the canopy-averaged leaf N
         leaf_absorptance = ((self.state.ncontent / 2.8) /
                             (self.state.ncontent / 2.8 + 0.076))
-        
         
         direct_rad = sw_rad / daylength / 0.235 * self.params.direct_frac
         diffuse_rad = (sw_rad / daylength / 0.235 *
@@ -99,9 +91,9 @@ class Bewdy(object):
         
         self.fluxes.gpp = ((self.sunlit_contribution(b, s, n, lai_mod) +
                             self.shaded_contribution(b, s, n, lai_mod)))
-        
+       
         # rescale gpp
-        self.fluxes.gpp *= daylength
+        self.fluxes.gpp *= daylength * const.UMOL_TO_MOL
 
         self.fluxes.npp = self.calculate_npp(temp, frac_gcover)
         self.fluxes.npp_gCm2 = (self.fluxes.npp * const.M2_AS_HA /
@@ -315,15 +307,15 @@ class Bewdy(object):
             maximum rate of Rubisco activity
         """
         if float_gt(temp, 10.0):
-            jmax = (self.params.jmaxn * (1.0 + (temp - 25.0) * (0.05 +
+            jmax = (self.params.jmaxna * (1.0 + (temp - 25.0) * (0.05 +
                     (temp - 25.0) * (-1.81 * 1E-3 + (temp - 25.0) *
                     (-1.37 * 1E-4)))))
-            vcmax = (self.params.vcmaxn * (1.0 + (temp - 25.0) *
+            vcmax = (self.params.vcmaxna * (1.0 + (temp - 25.0) *
                     (0.0485 + (temp - 25.0) * (-6.93 * 1E-4 + (temp - 25.0) *
                     (-3.9 * 1E-5)))))
         elif float_gt(temp, 0.0):
-            jmax = self.params.jmaxn * 0.0305 * temp
-            vcmax = self.params.vcmaxn * 0.0238 * temp
+            jmax = self.params.jmaxna * 0.0305 * temp
+            vcmax = self.params.vcmaxna * 0.0238 * temp
         else:
             jmax = 0.0
             vcmax = 0.0
