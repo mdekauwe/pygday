@@ -75,6 +75,11 @@ nresid = [None] * 4  # Nshoot -> surf struct, Nroot -> soil sturct, Nshoot -> su
 cstruct = [None] * 4  # Csurf struct -> slow, Csurf struct -> active, Csoil struct -> slow, Csoil struct -> active
 nstruct = [None] * 4  # Nsurf struct -> slow, Nsurf struct -> active, Nsoil struct -> slow, Nsoil struct -> active
 
+cact = 0.0 # C source flux from the active pool
+cslo = 0.0 # C source flux from the slow pool
+cpas = 0.0 # C source flux from the passive pool
+
+
 
 # C flows to the air
 co2_to_air = [None] * 7 
