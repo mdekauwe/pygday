@@ -779,8 +779,7 @@ class PlantGrowth(object):
         
         return  self.state.exu_pool * (1.0 - exp(-k_exu))
 
-
-
+  
         
 if __name__ == "__main__":
     
