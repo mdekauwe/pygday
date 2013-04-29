@@ -61,8 +61,6 @@ class Litter(object):
             self.fluxes.deadbranch = (self.fluxes.brate * 
                                       self.state.remaining_days[doy])
             
-            
-            
             self.fluxes.deadleafn = (self.fluxes.lnrate * 
                                      self.state.remaining_days[doy]  * 
                                     (1.0 - self.params.fretrans))
