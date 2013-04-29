@@ -96,7 +96,7 @@ class CarbonSoilFlows(object):
         self.params.decayrate[0] = (self.params.kdec1 *
                                     exp(-3. * self.params.ligshoot) *
                                     rate_scalar)
-
+        
         # decay rate of surface metabolic pool
         self.params.decayrate[1] = self.params.kdec2 * rate_scalar
 
