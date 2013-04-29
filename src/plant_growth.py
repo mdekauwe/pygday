@@ -124,6 +124,7 @@ class PlantGrowth(object):
         # n:c ratio of new branch wood
         ncbnew = (self.params.ncbnew + nitfac *
                  (self.params.ncbnew - self.params.ncbnewz))
+        self.state.branchnc = ncbnew
         
         # fixed N:C in the stemwood
         if self.control.fixed_stem_nc == 1:
@@ -169,7 +170,7 @@ class PlantGrowth(object):
                                    self.state.sla * const.KG_AS_G)
         else:
             self.state.ncontent = 0.0
-            
+         
         # fractional ground cover.
         if float_lt(self.state.lai, self.params.lai_cover):
             frac_gcover = self.state.lai / self.params.lai_cover
@@ -271,24 +272,23 @@ class PlantGrowth(object):
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
-        #                                        self.state.cstore)
+        #                                     self.state.cstore)
         
-       
-        # constant N:C of Wood
-        ntot = self.state.nstore 
-        self.state.n_to_alloc_branch = self.state.albranch * ntot
-        ntot -=  self.state.n_to_alloc_branch
-        self.state.n_to_alloc_stem = self.state.alstem * ntot
-        ntot -=  self.state.n_to_alloc_stem
+        
+        #ntot = self.state.nstore 
+        self.state.n_to_alloc_branch = self.state.albranch * self.state.nstore
+        
+        self.state.n_to_alloc_stem = self.state.alstem * self.state.nstore
+        #ntot -= self.state.n_to_alloc_stem + self.state.n_to_alloc_branch
         
         # allocate remaining N to flexible-ratio pools
-        self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
-                                        (self.state.alleaf + self.state.alroot * 
-                                        self.params.ncrfac))
-        
-        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
-        
+        #self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
+        #                               (self.state.alleaf + self.state.alroot * 
+        #                                 self.params.ncrfac))
+        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
+        self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
+        #print self.state.nstore, self.state.n_to_alloc_branch/self.state.nstore,self.state.n_to_alloc_stem/self.state.nstore,self.state.n_to_alloc_shoot/self.state.nstore,self.state.n_to_alloc_root/self.state.nstore
         
     def allocate_stored_c_and_n(self, i):
         """
@@ -318,24 +318,21 @@ class PlantGrowth(object):
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch - self.state.alroot_exudate)
         
-        # constant N:C of Wood
+        #ntot = self.state.nstore 
+        self.state.n_to_alloc_branch = self.state.albranch * self.state.nstore
         
-        ntot = self.state.nstore 
-        self.state.n_to_alloc_branch = self.state.albranch * ntot
-        ntot -=  self.state.n_to_alloc_branch
-        self.state.n_to_alloc_stem = self.state.alstem * ntot
-        ntot -=  self.state.n_to_alloc_stem
+        self.state.n_to_alloc_stem = self.state.alstem * self.state.nstore
+        #ntot -= self.state.n_to_alloc_stem + self.state.n_to_alloc_branch
         
         # allocate remaining N to flexible-ratio pools
-        self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
-                                        (self.state.alleaf + self.state.alroot * 
-                                        self.params.ncrfac))
+        #self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
+        #                               (self.state.alleaf + self.state.alroot * 
+        #                                 self.params.ncrfac))
+        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
+        self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
         
-        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
-        
-        
-        
+       
         # if we want to put back a floating N:C then we need to have
         # self.state.c_to_alloc_shoot + self.state.c_to_alloc_stem * some factor
 
@@ -343,7 +340,6 @@ class PlantGrowth(object):
         #self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
         #                                self.state.shootnc_yr)
 
-        
         
      
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy):
@@ -590,31 +586,34 @@ class PlantGrowth(object):
         self.fluxes.cprootexudate = self.fluxes.npp * self.state.alroot_exudate
         #self.fluxes.cprootexudate = 0.0
         
-        
         # evaluate SLA of new foliage accounting for variation in SLA 
         # with tree and leaf age (Sands and Landsberg, 2002). Assume 
         # SLA of new foliage is linearly related to leaf N:C ratio 
         # via nitfac
-        sla_new = (self.params.slazero + nitfac *
-                  (self.params.slamax - self.params.slazero))
-        sla_new_tonnes_ha_C = (sla_new * const.M2_AS_HA / 
-                             (const.KG_AS_TONNES * self.params.cfracts))
-        
+        # (m2 onesided/kg DW)
+        self.state.sla = (self.params.slazero + nitfac *
+                         (self.params.slamax - self.params.slazero))
         
         if self.control.deciduous_model:
             if self.state.shoot == 0.0:
                 self.state.lai = 0.0
-            elif self.state.leaf_out_days[doy] > 0.0:
-                self.state.lai += (self.fluxes.cpleaf * sla_new_tonnes_ha_C -
-                                  (self.fluxes.deadleaves + self.fluxes.ceaten)*
-                                   self.state.lai / self.state.shoot) 
+            elif self.state.leaf_out_days[doy] > 0.0:               
+                self.state.lai += (self.fluxes.cpleaf * 
+                                  (self.state.sla * const.M2_AS_HA / 
+                                  (const.KG_AS_TONNES * self.params.cfracts)) -
+                                  (self.fluxes.deadleaves + 
+                                   self.fluxes.ceaten) *
+                                   self.state.lai / self.state.shoot)
             else:
                 self.state.lai = 0.0
         else:
             # update leaf area [m2 m-2]
-            self.state.lai += (self.fluxes.cpleaf * sla_new_tonnes_ha_C -
-                               (self.fluxes.deadleaves + self.fluxes.ceaten) *
-                                self.state.lai / self.state.shoot)
+            self.state.lai += (self.fluxes.cpleaf * 
+                                  (self.state.sla * const.M2_AS_HA / 
+                                  (const.KG_AS_TONNES * self.params.cfracts)) -
+                                  (self.fluxes.deadleaves + 
+                                   self.fluxes.ceaten) *
+                                   self.state.lai / self.state.shoot)
             
             
     def update_plant_state(self, fdecay, rdecay, project_day, doy):
@@ -648,7 +647,13 @@ class PlantGrowth(object):
             self.state.branchn += (self.fluxes.npbranch - 
                                    self.fluxes.bnrate * 
                                    self.state.remaining_days[doy])                         
-                                    
+            
+            # potential for floating errors to be an issue, so effectively 
+            # zero if pool becomes v.v.small.
+            self.state.shoot = max(0.0, self.state.shoot)                       
+            self.state.shootn = max(0.0, self.state.shootn)
+            self.state.branch = max(0.0, self.state.branch)                       
+            self.state.branchn = max(0.0, self.state.branchn)                       
                                     
         else:
             self.state.shootn += (self.fluxes.npleaf - 
@@ -657,8 +662,7 @@ class PlantGrowth(object):
             self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
                                    self.state.branchn)                     
         
-                               
-        self.state.shootn = max(0.0, self.state.shootn)
+        
         
         self.state.rootn += self.fluxes.nproot - rdecay * self.state.rootn
         
@@ -747,7 +751,7 @@ class PlantGrowth(object):
                    self.fluxes.npbranch + self.fluxes.npstemimm + 
                    self.fluxes.npstemmob)
         
-        # C storage as TNC
+        # Total C & N storage to allocate annually.
         self.state.cstore += self.fluxes.npp - cgrowth
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans - ngrowth
 

@@ -165,10 +165,14 @@ class WaterBalance(object):
             rainfall [mm d-1]
 
         """
-        self.fluxes.erain = max(0.0, rain * self.params.rfmult -
-                                self.state.lai * self.params.wetloss)
-        self.fluxes.interception = rain * self.params.rfmult - self.fluxes.erain
-        
+        if self.state.lai > 0.0:
+            self.fluxes.erain = max(0.0, rain * self.params.rfmult -
+                                    self.state.lai * self.params.wetloss)
+            self.fluxes.interception = rain * self.params.rfmult - self.fluxes.erain
+        else:
+            self.fluxes.erain = max(0.0, rain)
+            self.fluxes.interception = 0.0
+                
     def calc_transpiration(self):
         """ units mm/day """
         if float_gt(self.fluxes.wue, 0.0):
@@ -455,7 +459,7 @@ class WaterBalance(object):
             
         else:
             runoff = 0.0
-            
+        
         self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
                                         max=self.params.wcapac_root)
         
