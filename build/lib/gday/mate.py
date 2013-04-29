@@ -4,6 +4,7 @@
 from math import exp, sqrt, sin, pi
 import constants as const
 from utilities import float_eq, float_gt
+import sys
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (04.08.2011)"
@@ -129,6 +130,7 @@ class Mate(object):
         km = self.calculate_michaelis_menten_parameter(Tk)
         N0 = self.calculate_leafn()
         alpha = self.calculate_quantum_efficiency(temp)
+        
         if self.control.modeljm == 1: 
             jmax = self.calculate_jmax_parameter(Tk, N0)
             vcmax = self.calculate_vcmax_parameter(Tk, N0)
@@ -145,7 +147,7 @@ class Mate(object):
         # longer used...
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
-        # Rubisco-limited rate of photosynthesis
+        # Rubisco carboxylation limited rate of photosynthesis
         ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=km[k]) \
               for k in am, pm]
         
@@ -304,8 +306,8 @@ class Mate(object):
         
         if self.state.ncontent > 0.0:
             # calculation for Leaf N content, top of the canopy (N0), [g m-2]                       
-            N0 = (self.state.ncontent * self.params.kext /
-                 (1.0 - exp(-self.params.kext * self.state.lai)))
+            N0 = ((self.state.ncontent * self.params.kext) /
+                  (1.0 - exp(-self.params.kext * self.state.lai)))
         else:
             N0 = 0.0
         return N0
@@ -331,9 +333,17 @@ class Mate(object):
         deltaS = self.params.delsj
         Ea = self.params.eaj
         Hd = self.params.edj
-        
+        #nx = (self.state.shootnc * self.params.cfracts /self.state.sla * const.KG_AS_G)
         # the maximum rate of electron transport at 25 degC 
-        jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
+        #jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
+        
+        
+        jmax25 = self.params.jmaxna * self.state.ncontent + self.params.jmaxnb
+        #if self.state.ncontent > 0.0:
+        #    jmax25 = (jmax25 * self.params.kext /
+        #             (1.0 - exp(-self.params.kext * self.state.lai)))
+        #else:
+        #    jmax25 = 0.0        
         
         return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
@@ -355,10 +365,17 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        
+        #nx = (self.state.shootnc * self.params.cfracts /self.state.sla * const.KG_AS_G)
         # the maximum rate of electron transport at 25 degC 
-        vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
+        #vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
         
+        vcmax25 = self.params.vcmaxna * self.state.ncontent + self.params.vcmaxnb
+        #print self.state.ncontent, self.state.shootnc, self.state.shoot, self.state.shootn, self.params.vcmaxna * N0 + self.params.vcmaxnb, self.params.vcmaxna * self.state.ncontent + self.params.vcmaxnb
+        #if self.state.ncontent > 0.0:
+        #    vcmax25 = (vcmax25 * self.params.kext /
+        #             (1.0 - exp(-self.params.kext * self.state.lai)))
+        #else:
+        #    vcmax25 = 0.0        
         return [self.arrh(vcmax25, self.params.eav, Tk[k]) for k in am, pm]
     
     def assim(self, ci, gamma_star, a1, a2):
@@ -407,7 +424,12 @@ class Mate(object):
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
         g1w = self.params.g1 * self.state.wtfac_root
+        
         return g1w / (g1w + sqrt(vpd))
+       
+       
+       #CiCa_am = (1.0 - ((1.6 * sqrt(vpdam)) / (gi + sqrt(vpdam))))
+       
        
     def epsilon(self, amax, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996. 
@@ -531,47 +553,58 @@ if __name__ == "__main__":
     
     from file_parser import initialise_model_data
     import datetime
+    from utilities import float_eq, float_lt, float_gt, calculate_daylength, uniq
     
-    
-   
-    
-    fname = "example.cfg"
+    fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/params/NCEAS_or_youngforest.cfg"
     (control, params, state, files,
         fluxes, met_data,
             print_opts) = initialise_model_data(fname, DUMP=False)
 
     M = Mate(control, params, state, fluxes, met_data)
-
-    state.lai = (params.slainit * const.M2_AS_HA /
-                            const.KG_AS_TONNES / params.cfracts *
-                            state.shoot)
+        
+    flai = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/experiments/silvias_LAI.txt"
+    lai_data = np.loadtxt(flai)
+    #state.lai = 6.0
 
     # Specific LAI (m2 onesided/kg DW)
     state.sla = params.slainit
 
     control.co2_conc = 0
     
+    
     project_day = 0
-    yr = 1996
-    days_in_year = len([x for x in met_data["year"] if x == yr])
-    daylen = 12.0
-    for doy in xrange(days_in_year):   
-        state.shootnc = state.shootn / state.shoot
-        state.ncontent = (state.shootnc * params.cfracts /
-                                state.sla * const.KG_AS_G)
         
-        state.wtfac_root = 1.0
-        if float_lt(state.lai, params.lai_cover):
-            frac_gcover = state.lai / params.lai_cover
-        else:
-            frac_gcover = 1.0
+    # figure out the number of years for simulation and the number of
+    # days in each year
+    years = uniq(met_data["year"])
+    years = years[:-1] # dump last year as missing "site" LAI
+    
+    days_in_year = [met_data["year"].count(yr) for yr in years]
+    
+    for i, yr in enumerate(years):
+        daylen = calculate_daylength(days_in_year[i], params.latitude)
+        for doy in xrange(days_in_year[i]):
+            state.wtfac_root = 1.0
+            state.lai = lai_data[project_day]
+        
+            if state.lai > 0.0:
+                state.shootnc = 0.0329#state.shootn / state.shoot
+                state.ncontent = (state.shootnc * params.cfracts /
+                                        state.sla * const.KG_AS_G)
+            else:
+                state.ncontent = 0.0        
+        
+        
+            if float_lt(state.lai, params.lai_cover):
+                frac_gcover = state.lai / params.lai_cover
+            else:
+                frac_gcover = 1.0
 
-        state.light_interception = ((1.0 - exp(-params.kext *
-                                            state.lai / frac_gcover)) *
-                                            frac_gcover)
-        M.calculate_photosynthesis(project_day, daylen)
+            state.light_interception = ((1.0 - exp(-params.kext *
+                                                state.lai / frac_gcover)) *
+                                                frac_gcover)
+            M.calculate_photosynthesis(project_day, daylen[doy])
 
-        print fluxes.gpp_gCm2
-        npp_sum = np.append(npp_sum, fluxes.gpp_gCm2*0.5) 
-
-        project_day += 1
+            print fluxes.gpp_gCm2#, state.lai
+        
+            project_day += 1

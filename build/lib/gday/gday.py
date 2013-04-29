@@ -181,10 +181,9 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                #if self.spin_up == False:
+                #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
                 #print self.fluxes.gpp * 100, self.state.lai
-                #          self.fluxes.transpiration
-                #print self.fluxes.gpp * 100
+                
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -276,13 +275,7 @@ class Gday(object):
             self.state.shootnc = self.state.shootn / self.state.shoot
         
         self.state.rootnc = self.state.rootn / self.state.root
-        
-        if self.state.lai > 0.0:
-            # SLA (m2 onesided/kg DW) -> HA/tonnes C
-            self.state.sla = (self.state.lai / const.M2_AS_HA *
-                              const.KG_AS_TONNES * self.params.cfracts /
-                              self.state.shoot)
-
+       
         # total plant, soil & litter nitrogen
         self.state.soiln = (self.state.inorgn + self.state.activesoiln +
                             self.state.slowsoiln + self.state.passivesoiln)
