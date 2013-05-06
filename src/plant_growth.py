@@ -163,11 +163,13 @@ class PlantGrowth(object):
         * Jackson, J. E. and Palmer, J. W. (1981) Annals of Botany, 47, 561-565.
         """
 
-        # leaf nitrogen content
         if self.state.lai > 0.0:
-            # Leaf N content (g m-2)                       
-            self.state.ncontent = (self.state.shootnc * self.params.cfracts /
-                                   self.state.sla * const.KG_AS_G)
+            # average leaf nitrogen content (g N m-2 leaf)
+            leafn = (self.state.shootnc * self.params.cfracts /
+                     self.state.sla * const.KG_AS_G)
+            
+            # total nitrogen content of the canopy
+            self.state.ncontent = leafn * self.state.lai
         else:
             self.state.ncontent = 0.0
          
@@ -678,7 +680,7 @@ class PlantGrowth(object):
         #print self.fluxes.microbial_resp, self.fluxes.cprootexudate
         
         self.calculate_cn_store()
-        self.state.anpp += self.fluxes.npp
+        
         
         # This doesn't make sense for the deciduous model. This is because of 
         # the ramp function. So there will be a period where we will be above
@@ -754,7 +756,9 @@ class PlantGrowth(object):
         # Total C & N storage to allocate annually.
         self.state.cstore += self.fluxes.npp - cgrowth
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans - ngrowth
-
+        
+        self.state.anpp += self.fluxes.npp
+        
     def calc_microbial_resp(self, project_day):
         """ Based on LPJ-why
         

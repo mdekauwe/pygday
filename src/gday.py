@@ -117,7 +117,7 @@ class Gday(object):
 
         
         
-    def spin_up_pools(self, tolerance=1E-03, sequence=1000):
+    def spin_up_pools(self, tolerance=0.0005):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
            or at steady state to 3 d.p.
@@ -128,22 +128,22 @@ class Gday(object):
         * Murty, D and McMurtrie, R. E. (2000) Ecological Modelling, 134,
           185-205, specifically page 196.
         """
-        prev_plantc = -9999.9
-        prev_soilc = -9999.9
-        prev_litterc = -9999.9
-        while (fabs(prev_plantc - self.state.plantc) > tolerance and
-               fabs(prev_soilc - self.state.soilc) > tolerance and
-               fabs(prev_litterc - self.state.litterc) > tolerance):
-            prev_plantc = self.state.plantc
-            prev_soilc = self.state.soilc
-            prev_litterc = self.state.litterc
-            self.run_sim() # run the model...
-
-            # Have we reached a steady state?
-            sys.stderr.write("Nyears of spin: %d %f %f %f\n" % \
-                            (sequence, self.state.plantc, self.state.soilc, \
-                             self.state.litterc))
-            sequence += 1000
+        prev_plantc = 9999.9
+        prev_soilc = 9999.9
+        
+        while True:
+            if (fabs(prev_plantc - self.state.plantc) < tolerance and
+                fabs(prev_soilc - self.state.soilc) < tolerance):
+                break
+            else:            
+                prev_plantc = self.state.plantc
+                prev_soilc = self.state.soilc
+                self.run_sim() # run the model...
+            
+                # Have we reached a steady state?
+                sys.stderr.write("Spinup: Plant C - %f, Soil C - %f\n" % \
+                                (self.state.plantc, self.state.soilc))
+        
         self.print_output_file()
     
     #@profile
@@ -182,8 +182,7 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                 
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
-                #print self.fluxes.gpp * 100, self.state.lai
-                
+                #print self.state.soilc, self.state.plantc
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -261,7 +260,7 @@ class Gday(object):
 
         """
         self.fluxes.ninflow = self.met_data['ndep'][prjday]
-        
+        self.state.anpp = 0.0
         
         
         # update N:C of plant pools
