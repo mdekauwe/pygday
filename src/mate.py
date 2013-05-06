@@ -128,7 +128,7 @@ class Mate(object):
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(Tk)
         km = self.calculate_michaelis_menten_parameter(Tk)
-        N0 = self.calculate_leafn()
+        N0 = self.calculate_top_of_canopy_n()
         alpha = self.calculate_quantum_efficiency(temp)
         
         if self.control.modeljm == 1: 
@@ -299,15 +299,15 @@ class Mate(object):
         # return effectinve Michaelis-Menten coeffeicent for CO2
         return [Kc[k] * (1.0 + self.Oi / Ko[k]) for k in am, pm]
                 
-    def calculate_leafn(self):  
-        """ Assumption leaf N declines exponentially through the canopy. Input N
-        is top of canopy (N0). See notes and Chen et al 93, Oecologia, 93,63-69. 
+    def calculate_top_of_canopy_n(self):  
+        """ Calculate the canopy N at the top of the canopy (g N m-2), N0.
+        See notes and Chen et al 93, Oecologia, 93,63-69. 
         """
         
-        if self.state.ncontent > 0.0:
-            # calculation for Leaf N content, top of the canopy (N0), [g m-2]                       
-            N0 = ((self.state.ncontent * self.params.kext) /
-                  (1.0 - exp(-self.params.kext * self.state.lai)))
+        if self.state.lai > 0.0:
+            # calculation for canopy N content at the top of the canopy                   
+            N0 = (self.state.ncontent * self.params.kext /
+                 (1.0 - exp(-self.params.kext * self.state.lai)))
         else:
             N0 = 0.0
         return N0
@@ -333,17 +333,9 @@ class Mate(object):
         deltaS = self.params.delsj
         Ea = self.params.eaj
         Hd = self.params.edj
-        #nx = (self.state.shootnc * self.params.cfracts /self.state.sla * const.KG_AS_G)
+        
         # the maximum rate of electron transport at 25 degC 
-        #jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
-        
-        
-        jmax25 = self.params.jmaxna * self.state.ncontent + self.params.jmaxnb
-        #if self.state.ncontent > 0.0:
-        #    jmax25 = (jmax25 * self.params.kext /
-        #             (1.0 - exp(-self.params.kext * self.state.lai)))
-        #else:
-        #    jmax25 = 0.0        
+        jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
         
         return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
@@ -365,17 +357,10 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        #nx = (self.state.shootnc * self.params.cfracts /self.state.sla * const.KG_AS_G)
-        # the maximum rate of electron transport at 25 degC 
-        #vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
         
-        vcmax25 = self.params.vcmaxna * self.state.ncontent + self.params.vcmaxnb
-        #print self.state.ncontent, self.state.shootnc, self.state.shoot, self.state.shootn, self.params.vcmaxna * N0 + self.params.vcmaxnb, self.params.vcmaxna * self.state.ncontent + self.params.vcmaxnb
-        #if self.state.ncontent > 0.0:
-        #    vcmax25 = (vcmax25 * self.params.kext /
-        #             (1.0 - exp(-self.params.kext * self.state.lai)))
-        #else:
-        #    vcmax25 = 0.0        
+        # the maximum rate of electron transport at 25 degC 
+        vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
+        
         return [self.arrh(vcmax25, self.params.eav, Tk[k]) for k in am, pm]
     
     def assim(self, ci, gamma_star, a1, a2):
