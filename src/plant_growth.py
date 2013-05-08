@@ -677,7 +677,7 @@ class PlantGrowth(object):
         self.state.exu_pool += self.fluxes.cprootexudate
         self.fluxes.microbial_resp = self.calc_microbial_resp(project_day)
         self.state.exu_pool -= self.fluxes.microbial_resp        
-        if not self.control.deciduous_model:
+        if self.control.deciduous_model:
             self.calculate_cn_store()
         
         
