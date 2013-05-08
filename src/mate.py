@@ -131,7 +131,7 @@ class Mate(object):
         N0 = self.calculate_top_of_canopy_n()
         alpha = self.calculate_quantum_efficiency(temp)
         
-        if self.control.modeljm == 1: 
+        if self.control.modeljm == True: 
             jmax = self.calculate_jmax_parameter(Tk, N0)
             vcmax = self.calculate_vcmax_parameter(Tk, N0)
         else:
