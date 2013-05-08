@@ -248,7 +248,8 @@ class PlantGrowth(object):
         # allocate remainder to stem
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch - self.state.alroot_exudate)
-
+        
+        
         
     def initialise_deciduous_model(self):
         """ Divide up NPP based on annual allocation fractions """
@@ -290,7 +291,6 @@ class PlantGrowth(object):
         #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
         self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
-        #print self.state.nstore, self.state.n_to_alloc_branch/self.state.nstore,self.state.n_to_alloc_stem/self.state.nstore,self.state.n_to_alloc_shoot/self.state.nstore,self.state.n_to_alloc_root/self.state.nstore
         
     def allocate_stored_c_and_n(self, i):
         """
@@ -676,10 +676,9 @@ class PlantGrowth(object):
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
         self.state.exu_pool += self.fluxes.cprootexudate
         self.fluxes.microbial_resp = self.calc_microbial_resp(project_day)
-        self.state.exu_pool -= self.fluxes.microbial_resp
-        #print self.fluxes.microbial_resp, self.fluxes.cprootexudate
-        
-        self.calculate_cn_store()
+        self.state.exu_pool -= self.fluxes.microbial_resp        
+        if not self.control.deciduous_model:
+            self.calculate_cn_store()
         
         
         # This doesn't make sense for the deciduous model. This is because of 
@@ -712,8 +711,6 @@ class PlantGrowth(object):
                 if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
                     extras = self.state.shootn - self.state.shoot * ncmaxf
 
-                    #print doy, extras, self.state.shootn, (self.state.shoot * ncmaxf)
-        
                     # Ensure N uptake cannot be reduced below zero.
                     if float_gt(extras, self.fluxes.nuptake):
                         extras = self.fluxes.nuptake
@@ -756,6 +753,7 @@ class PlantGrowth(object):
         # Total C & N storage to allocate annually.
         self.state.cstore += self.fluxes.npp - cgrowth
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans - ngrowth
+        
         
         self.state.anpp += self.fluxes.npp
         

@@ -117,7 +117,7 @@ class Gday(object):
 
         
         
-    def spin_up_pools(self, tolerance=0.0005):
+    def spin_up_pools(self, tolerance=1E-03):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
            or at steady state to 3 d.p.
@@ -139,7 +139,7 @@ class Gday(object):
                 prev_plantc = self.state.plantc
                 prev_soilc = self.state.soilc
                 self.run_sim() # run the model...
-            
+                
                 # Have we reached a steady state?
                 sys.stderr.write("Spinup: Plant C - %f, Soil C - %f\n" % \
                                 (self.state.plantc, self.state.soilc))
@@ -156,6 +156,7 @@ class Gday(object):
         years = uniq(self.met_data["year"])
         days_in_year = [self.met_data["year"].count(yr) for yr in years]
         
+        
         for i, yr in enumerate(years):
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
@@ -165,33 +166,35 @@ class Gday(object):
            
             self.day_output = [] # empty daily storage list for outputs
             for doy in xrange(days_in_year[i]):
-
+                
+                
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
-
+                
+                
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
                                         float(days_in_year[i]))
-
+            
                 # soil C & N model fluxes
                 self.cs.calculate_csoil_flows(project_day)
                 self.ns.calculate_nsoil_flows()
     
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
-                
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
-                #print self.state.soilc, self.state.plantc
+                #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc,  self.state.shootn , self.state.shoot
+                 
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
                 # save daily fluxes + state for daily output
                 self.save_daily_outputs(yr, doy+1)
-               
+                
                 project_day += 1
             
-            #print self.state.cstore, self.state.nstore 
+            #print self.state.cstore, self.state.nstore
             # =============== #
             #   END OF YEAR   #
             # =============== #
