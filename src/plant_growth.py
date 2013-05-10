@@ -679,6 +679,7 @@ class PlantGrowth(object):
         self.state.exu_pool -= self.fluxes.microbial_resp        
         if self.control.deciduous_model:
             self.calculate_cn_store()
+            
         
         
         # This doesn't make sense for the deciduous model. This is because of 
@@ -753,8 +754,6 @@ class PlantGrowth(object):
         # Total C & N storage to allocate annually.
         self.state.cstore += self.fluxes.npp - cgrowth
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans - ngrowth
-        
-        
         self.state.anpp += self.fluxes.npp
         
     def calc_microbial_resp(self, project_day):
