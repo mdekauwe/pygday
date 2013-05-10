@@ -23,7 +23,7 @@ __email__   = "mdekauwe@gmail.com"
 def main(experiment_id):
     
     # --- FILE PATHS, DIR NAMES ETC --- #
-    base_dir = os.getcwd()
+    base_dir = ""
     param_dir = os.path.join(base_dir, "params")
     met_dir = os.path.join(base_dir, "forcing")
     run_dir = os.path.join(base_dir, "runs")
