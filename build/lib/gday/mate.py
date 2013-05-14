@@ -165,7 +165,7 @@ class Mate(object):
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / 2.0
-        
+
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
         else:
@@ -182,6 +182,11 @@ class Mate(object):
         self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
         self.fluxes.npp = self.fluxes.npp_gCm2 * conv
         
+        self.fluxes.gpp_am_pm[am] = ((self.fluxes.apar / 2.0) * lue[am] * 
+                                      const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
+                                      const.MOL_C_TO_GRAMS_C)
+                              
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
 
