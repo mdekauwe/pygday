@@ -186,7 +186,7 @@ class Gday(object):
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc,  self.state.shootn , self.state.shoot
                 
-                #print self.fluxes.gpp * 100, self.state.lai
+                print self.fluxes.gpp * 100, self.state.lai, self.fluxes.transpiration
                 
                 # =============== #
                 #   END OF DAY    #
