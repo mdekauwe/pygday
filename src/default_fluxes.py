@@ -12,6 +12,7 @@ __email__   = "mdekauwe@gmail.com"
 
 gpp_gCm2 = None
 npp_gCm2 = None
+gpp_am_pm = [0.0, 0.0]
 gpp = None
 npp = None
 nep = None
