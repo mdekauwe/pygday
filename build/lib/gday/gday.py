@@ -180,7 +180,7 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                
+                print self.state.lai
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
                 
                 # =============== #
@@ -265,16 +265,18 @@ class Gday(object):
         
         
         # update N:C of plant pools
-        if self.control.deciduous_model:
-            if float_eq(self.state.shoot, 0.0):
-                self.state.shootnc = 0.0
-            else:
-                self.state.shootnc = max(self.state.shootn / self.state.shoot,
+        if float_eq(self.state.shoot, 0.0):
+            self.state.shootnc = 0.0
+        elif self.control.deciduous_model:
+            self.state.shootnc = max(self.state.shootn / self.state.shoot,
                                          self.params.ncfmin)
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
         
-        self.state.rootnc = self.state.rootn / self.state.root
+        if float_eq(self.state.root, 0.0):
+            self.state.shootnc = 0.0
+        else:
+            self.state.rootnc = self.state.rootn / self.state.root
        
         # total plant, soil & litter nitrogen
         self.state.soiln = (self.state.inorgn + self.state.activesoiln +
