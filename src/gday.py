@@ -158,7 +158,7 @@ class Gday(object):
             if self.control.deciduous_model:
                 self.P.calculate_phenology_flows(daylen, self.met_data,
                                             days_in_year[i], project_day)
-                 self.zero_stuff()
+                self.zero_stuff()
                  
             self.day_output = [] # empty daily storage list for outputs
             for doy in xrange(days_in_year[i]):
