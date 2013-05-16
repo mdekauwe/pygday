@@ -254,22 +254,6 @@ class PlantGrowth(object):
     def initialise_deciduous_model(self):
         """ Divide up NPP based on annual allocation fractions """
         
-        # allocation fractions varying per yr
-        
-        """
-        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
-        self.state.c_to_alloc_root = self.state.alroot[0] * self.state.cstore
-        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
-        self.state.alstem = 1.0 - self.state.alleaf - self.state.alroot[0]
-        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
-        #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
-        #                                        self.state.cstore)
-    
-        # annual available N for allocation to leaf
-        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
-                                        self.state.shootnc_yr)
-        
-        """
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
@@ -297,20 +281,6 @@ class PlantGrowth(object):
         At the end of the year allocate everything for the coming year
         based on stores from the previous year avaliable N for allocation
         """
-        
-        """
-        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
-        self.state.c_to_alloc_root = self.state.alroot[i] * self.state.cstore
-        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
-        self.state.alstem = 1.0 - self.state.alleaf - self.state.alroot[i]
-        sumx = self.state.alleaf + self.state.alstem+ self.state.alroot[i]
-        #print self.state.alleaf, self.state.alstem, self.state.alroot[i]
-        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
-        self.state.n_to_alloc_root = (min(self.state.nstore,
-                                          self.state.c_to_alloc_root *
-                                          self.state.rootnc))
-        
-        """
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
@@ -334,7 +304,6 @@ class PlantGrowth(object):
         self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
         self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
         
-       
         # if we want to put back a floating N:C then we need to have
         # self.state.c_to_alloc_shoot + self.state.c_to_alloc_stem * some factor
 
@@ -630,7 +599,7 @@ class PlantGrowth(object):
 
         """
         self.state.shoot += (self.fluxes.cpleaf - self.fluxes.deadleaves -
-                                self.fluxes.ceaten)
+                             self.fluxes.ceaten)
         self.state.root += self.fluxes.cproot - self.fluxes.deadroots
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
@@ -680,8 +649,6 @@ class PlantGrowth(object):
         if self.control.deciduous_model:
             self.calculate_cn_store()
             
-        
-        
         # This doesn't make sense for the deciduous model. This is because of 
         # the ramp function. So there will be a period where we will be above
         # the ncmaxf, so we will end up just cutting things back. This logic
@@ -744,18 +711,13 @@ class PlantGrowth(object):
                 ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
                 self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
                 
-    def calculate_cn_store(self, tolerance=1.0E-05):        
-        cgrowth = (self.fluxes.cpleaf + self.fluxes.cproot + 
-                   self.fluxes.cpbranch + self.fluxes.cpstem)
-        ngrowth = (self.fluxes.npleaf + self.fluxes.nproot + 
-                   self.fluxes.npbranch + self.fluxes.npstemimm + 
-                   self.fluxes.npstemmob)
+    def calculate_cn_store(self):        
         
         # Total C & N storage to allocate annually.
-        self.state.cstore += self.fluxes.npp - cgrowth
-        self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans - ngrowth
+        self.state.cstore += self.fluxes.npp
+        self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
-        
+  
     def calc_microbial_resp(self, project_day):
         """ Based on LPJ-why
         

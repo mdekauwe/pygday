@@ -114,9 +114,7 @@ class Gday(object):
         self.state.lai = (self.params.slainit * const.M2_AS_HA /
                           const.KG_AS_TONNES / self.params.cfracts *
                           self.state.shoot)
-
-        
-        
+                          
     def spin_up_pools(self, tolerance=1E-03):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
@@ -143,10 +141,8 @@ class Gday(object):
                 # Have we reached a steady state?
                 sys.stderr.write("Spinup: Plant C - %f, Soil C - %f\n" % \
                                 (self.state.plantc, self.state.soilc))
-        
         self.print_output_file()
     
-    #@profile
     def run_sim(self):
         """ Run model simulation! """
         project_day = 0
@@ -160,10 +156,10 @@ class Gday(object):
         for i, yr in enumerate(years):
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
-                self.zero_annual_sums()
                 self.P.calculate_phenology_flows(daylen, self.met_data,
                                             days_in_year[i], project_day)
-           
+                 self.zero_stuff()
+                 
             self.day_output = [] # empty daily storage list for outputs
             for doy in xrange(days_in_year[i]):
                 
@@ -183,17 +179,15 @@ class Gday(object):
     
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
-                #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
-                #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc,  self.state.shootn , self.state.shoot
                 
-                print self.fluxes.gpp * 100, self.state.lai, self.fluxes.transpiration
+                
+                #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
                 
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
                 # save daily fluxes + state for daily output
                 self.save_daily_outputs(yr, doy+1)
-                
                 project_day += 1
             
             #print self.state.cstore, self.state.nstore
@@ -231,12 +225,14 @@ class Gday(object):
             self.correct_rate_constants(output=True)
             self.pr.save_state()
 
-    def zero_annual_sums(self):
+    def zero_stuff(self):
         self.state.shoot = 0.0
         self.state.shootn = 0.0
         self.state.shootnc = 0.0
         self.state.lai = 0.0
-
+        self.state.cstore = 0.0
+        self.state.nstore = 0.0
+        
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
         time_constants = ['rateuptake', 'rateloss', 'retransmob',
