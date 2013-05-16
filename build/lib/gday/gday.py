@@ -163,7 +163,8 @@ class Gday(object):
                 self.zero_annual_sums()
                 self.P.calculate_phenology_flows(daylen, self.met_data,
                                             days_in_year[i], project_day)
-           
+                self.state.cstore = 0.0
+                self.state.nstore = 0.0
             self.day_output = [] # empty daily storage list for outputs
             for doy in xrange(days_in_year[i]):
                 
@@ -183,11 +184,13 @@ class Gday(object):
     
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
+                
+                
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc,  self.state.shootn , self.state.shoot
                 
-                print self.fluxes.gpp * 100, self.state.lai, self.fluxes.transpiration
-                
+                #print self.fluxes.gpp * 100, self.state.lai, self.fluxes.transpiration
+                #print self.state.stemn * 100., self.state.branchn * 100.0
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
