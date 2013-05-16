@@ -668,11 +668,10 @@ class PlantGrowth(object):
         if self.control.deciduous_model:
             self.calculate_cn_store()
             
-        # This doesn't make sense for the deciduous model. This is because of 
-        # the ramp function. So there will be a period where we will be above
-        # the ncmaxf, so we will end up just cutting things back. This logic
-        # essentially doesn't fit with the ramp function which allocates 
-        # everything we have to allocate, i.e. I don't think this is necessary
+        # This doesn't make sense for the deciduous model because of the ramp
+        # function. The way the deciduous logic works we now before we start
+        # how much N we have to allocate so it is impossible to allocate in 
+        # excess. Therefore this is only relevant for evergreen model.
         if not self.control.deciduous_model:
             
             # if foliage N:C ratio exceeds its max, then nitrogen uptake is cut back 
