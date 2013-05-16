@@ -94,7 +94,8 @@ class PlantGrowth(object):
         
         
         self.update_plant_state(fdecay, rdecay, project_day, doy)
-         
+        self.precision_control()
+        
     def calculate_ncwood_ratios(self, nitfac):
         """ Estimate the N:C ratio in the branch and stem. Option to vary
         the N:C ratio of the stem following Jeffreys (1999) or keep it a fixed
@@ -249,27 +250,11 @@ class PlantGrowth(object):
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch - self.state.alroot_exudate)
         
-        
+        #print self.state.alleaf, self.state.alroot, self.state.albranch, self.state.alstem
         
     def initialise_deciduous_model(self):
         """ Divide up NPP based on annual allocation fractions """
         
-        # allocation fractions varying per yr
-        
-        """
-        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
-        self.state.c_to_alloc_root = self.state.alroot[0] * self.state.cstore
-        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
-        self.state.alstem = 1.0 - self.state.alleaf - self.state.alroot[0]
-        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
-        #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
-        #                                        self.state.cstore)
-    
-        # annual available N for allocation to leaf
-        self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
-                                        self.state.shootnc_yr)
-        
-        """
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
@@ -296,20 +281,6 @@ class PlantGrowth(object):
         """
         At the end of the year allocate everything for the coming year
         based on stores from the previous year avaliable N for allocation
-        """
-        
-        """
-        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
-        self.state.c_to_alloc_root = self.state.alroot[i] * self.state.cstore
-        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
-        self.state.alstem = 1.0 - self.state.alleaf - self.state.alroot[i]
-        sumx = self.state.alleaf + self.state.alstem+ self.state.alroot[i]
-        #print self.state.alleaf, self.state.alstem, self.state.alroot[i]
-        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
-        self.state.n_to_alloc_root = (min(self.state.nstore,
-                                          self.state.c_to_alloc_root *
-                                          self.state.rootnc))
-        
         """
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
@@ -596,7 +567,7 @@ class PlantGrowth(object):
                          (self.params.slamax - self.params.slazero))
         
         if self.control.deciduous_model:
-            if self.state.shoot == 0.0:
+            if float_eq(self.state.shoot, 0.0):
                 self.state.lai = 0.0
             elif self.state.leaf_out_days[doy] > 0.0:               
                 self.state.lai += (self.fluxes.cpleaf * 
@@ -615,8 +586,35 @@ class PlantGrowth(object):
                                   (self.fluxes.deadleaves + 
                                    self.fluxes.ceaten) *
                                    self.state.lai / self.state.shoot)
+    def precision_control(self, tolerance=1E-08):
+        """ Detect very low values in state variables and force to zero to 
+        avoid rounding and overflow errors """       
+        
+        # C & N state variables 
+        if self.state.shoot < tolerance:
+            self.fluxes.deadleaves += self.state.shoot
+            self.fluxes.deadleafn += self.state.shootn
+            self.fluxes.deadbranch += self.state.branch
+            self.fluxes.deadbranchn += self.state.branchn
+            self.state.shoot = 0.0 
+            self.state.shootn = 0.0 
+            self.state.branch = 0.0
+            self.state.branchn = 0.0
+        
+        if self.state.root < tolerance:
+            self.fluxes.deadrootn += self.state.rootn
+            self.fluxes.deadroot += self.state.root
+            self.state.root = 0.0
+            self.state.rootn = 0.0
+    
+        if self.state.stem < tolerance:     
+            self.fluxes.deadstemn += self.state.stem
+            self.state.stem = 0.0
+            self.state.stemnimm = 0.0
+            self.state.stemnmob = 0.0
             
-            
+        # should add check for soil pools - excess goes where?
+        
     def update_plant_state(self, fdecay, rdecay, project_day, doy):
         """ Daily change in C content
 
@@ -635,12 +633,9 @@ class PlantGrowth(object):
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
 
         if self.control.deciduous_model:
-            #self.state.shootn += (self.fluxes.npleaf - 
-            #                      self.fluxes.deadleafn - 
-            #                      self.fluxes.neaten )
-            #self.state.branchn += (self.fluxes.npbranch - 
-            #                        self.fluxes.deadbranchn)
-                                    
+            # These have to be calculated like this as the deadleafn and
+            # deadbranchn are missing the retrans fluxes so things won't balance
+            # otherwise.                
             self.state.shootn += (self.fluxes.npleaf - 
                                  (self.fluxes.lnrate * 
                                   self.state.remaining_days[doy]) - 
@@ -648,13 +643,7 @@ class PlantGrowth(object):
             self.state.branchn += (self.fluxes.npbranch - 
                                    self.fluxes.bnrate * 
                                    self.state.remaining_days[doy])                         
-            
-            # potential for floating errors to be an issue, so effectively 
-            # zero if pool becomes v.v.small.
-            self.state.shoot = max(0.0, self.state.shoot)                       
-            self.state.shootn = max(0.0, self.state.shootn)
-            self.state.branch = max(0.0, self.state.branch)                       
-            self.state.branchn = max(0.0, self.state.branchn)                       
+           
                                     
         else:
             self.state.shootn += (self.fluxes.npleaf - 
@@ -679,8 +668,6 @@ class PlantGrowth(object):
         if self.control.deciduous_model:
             self.calculate_cn_store()
             
-        
-        
         # This doesn't make sense for the deciduous model. This is because of 
         # the ramp function. So there will be a period where we will be above
         # the ncmaxf, so we will end up just cutting things back. This logic
@@ -743,20 +730,13 @@ class PlantGrowth(object):
                 ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
                 self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
                 
-    def calculate_cn_store(self, tolerance=1.0E-05):        
-        cgrowth = (self.fluxes.cpleaf + self.fluxes.cproot + 
-                   self.fluxes.cpbranch + self.fluxes.cpstem)
-        ngrowth = (self.fluxes.npleaf + self.fluxes.nproot + 
-                   self.fluxes.npbranch + self.fluxes.npstemimm + 
-                   self.fluxes.npstemmob)
+    def calculate_cn_store(self):        
         
         # Total C & N storage to allocate annually.
-        self.state.cstore += self.fluxes.npp #- cgrowth
-        self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans #- ngrowth
+        self.state.cstore += self.fluxes.npp
+        self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
-        
-        #print  self.state.lai, self.state.nstore*100., self.fluxes.nuptake*100. , self.fluxes.retrans*100. , ngrowth*100.,\
-        #        self.fluxes.npleaf , self.fluxes.nproot , self.fluxes.npbranch , self.fluxes.npstemimm , self.fluxes.npstemmob
+  
     def calc_microbial_resp(self, project_day):
         """ Based on LPJ-why
         
