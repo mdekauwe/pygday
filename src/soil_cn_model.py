@@ -170,14 +170,18 @@ class CarbonSoilFlows(object):
         """
         nceleaf = self.ratio_of_litternc_to_live_leafnc()
         nceroot = self.ratio_of_litternc_to_live_rootnc()
-
+        
+        
         if float_eq(nceleaf, 0.0):
-            lnleaf = 1E20 # This is in the code, but why, this seems a mental thing to do???
+            #lnleaf = 1E20 # This is in the code, but why, this seems a mental thing to do???
+            lnleaf = 0.0 
+            
         else:
             lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
             
         if float_eq(nceroot, 0.0):
-            lnroot = 1E20
+            #lnroot = 1E20
+            lnroot = 0.0
         else:
             lnroot = self.params.ligroot / self.params.cfracts / nceroot
 

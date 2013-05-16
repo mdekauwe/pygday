@@ -187,4 +187,6 @@ class Phenology(object):
                               self.len_groloss**2)
         self.fluxes.bnrate = (2.0 * self.state.n_to_alloc_branch / 
                               self.len_groloss**2)
-      
+        
+        
+        

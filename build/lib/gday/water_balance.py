@@ -516,9 +516,10 @@ class SoilMoisture(object):
             self.cp_root = self.params.fwpmax_root
             self.wp_root = self.params.fwpmin_root
        
-        #print (self.cp_tsoil-self.wp_tsoil) * 200.0
-        #print (self.cp_root-self.wp_root) * 750.0
-        
+        #print (self.cp_tsoil-self.wp_tsoil) * 400.0
+        #print (self.cp_root-self.wp_root) * 2500.0
+        #print self.cp_tsoil, self.wp_tsoil
+        #print self.cp_root, self.wp_root 
         #sys.exit()
        
     def get_soil_fracs(self, soil_type):
