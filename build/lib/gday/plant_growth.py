@@ -460,7 +460,8 @@ class PlantGrowth(object):
         if self.control.deciduous_model:
             arg1 = (self.fluxes.leafretransn  +
                     self.params.rretrans * rdecay * self.state.rootn +
-                    self.fluxes.branchretransn)
+                    self.params.bretrans * self.params.bdecay *
+                    self.state.branchn)
             arg2 = (self.params.wretrans * self.params.wdecay *
                     self.state.stemnmob + self.params.retransmob *
                     self.state.stemnmob)
