@@ -48,6 +48,11 @@ class Litter(object):
         # litter production
         self.fluxes.deadroots = rdecay * self.state.root   # ditto
         self.fluxes.deadstems = self.params.wdecay * self.state.stem
+        self.fluxes.deadbranch = self.params.bdecay * self.state.branch
+        # N in branch litter - assuming fraction is retranslocated before
+        # senescence, i.e. a fracion of nutrients is stored within the plant
+        self.fluxes.deadbranchn = (self.params.bdecay * self.state.branchn *
+                                  (1.0 - self.params.bretrans))
         
         # litter N:C ratios, roots and shoot
         ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
@@ -58,31 +63,20 @@ class Litter(object):
             self.fluxes.deadleaves = (self.fluxes.lrate * 
                                       self.state.remaining_days[doy])
             
-            self.fluxes.deadbranch = (self.fluxes.brate * 
-                                      self.state.remaining_days[doy])
+            
             
             self.fluxes.deadleafn = (self.fluxes.lnrate * 
                                      self.state.remaining_days[doy]  * 
                                     (1.0 - self.params.fretrans))
             
-            # N in branch litter - assuming fraction is retranslocated before
-            # senescence, i.e. a fracion of nutrients is stored within the plant
-            self.fluxes.deadbranchn = (self.fluxes.bnrate * 
-                                       self.state.remaining_days[doy] *
-                                      (1.0 - self.params.bretrans))
-            
-            
+           
             self.fluxes.deadrootn = (self.state.rootnc * 
                                     (1.0 - self.params.rretrans) * 
                                      self.fluxes.deadroots)
             self.fluxes.leafretransn = (self.fluxes.lnrate * 
                                         self.state.remaining_days[doy] * 
                                         self.params.fretrans)
-                                        
-            self.fluxes.branchretransn = (self.fluxes.bnrate * 
-                                         self.state.remaining_days[doy] * 
-                                         self.params.bretrans)
-            
+         
             fdecay = -999. # doesn't do anything here, but needs to be assigned
         else:
             # Leaf litterfall rates have been found to be higher during 
@@ -92,7 +86,7 @@ class Litter(object):
             
             # litter production
             self.fluxes.deadleaves = fdecay * self.state.shoot
-            self.fluxes.deadbranch = self.params.bdecay * self.state.branch
+            
             
             # litter N:C ratios, roots and shoot
             ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
@@ -103,10 +97,7 @@ class Litter(object):
             self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
             
             
-            # N in branch litter - assuming fraction is retranslocated before
-            # senescence, i.e. a fracion of nutrients is stored within the plant
-            self.fluxes.deadbranchn = (self.params.bdecay * self.state.branchn *
-                                        (1.0 - self.params.bretrans))
+            
 
         # n in stemwood litter - only mobile n is retranslocated
         self.fluxes.deadstemn = (self.params.wdecay * 
