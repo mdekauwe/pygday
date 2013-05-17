@@ -91,9 +91,9 @@ class Gday(object):
 
         # class instances
         self.cs = CarbonSoilFlows(self.control, self.params, self.state,
-                              self.fluxes, self.met_data)
+                                  self.fluxes, self.met_data)
         self.ns = NitrogenSoilFlows(self.control, self.params, self.state,
-                                self.fluxes)
+                                    self.fluxes)
         self.lf = Litter(self.control, self.params, self.state, self.fluxes)
         self.pg = PlantGrowth(self.control, self.params, self.state,
                               self.fluxes, self.met_data)
@@ -152,14 +152,19 @@ class Gday(object):
         years = uniq(self.met_data["year"])
         days_in_year = [self.met_data["year"].count(yr) for yr in years]
         
+        # =============== #
+        #   YEAR LOOP     #
+        # =============== #
         for i, yr in enumerate(years):
+            self.day_output = [] # empty daily storage list for outputs
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
                 self.P.calculate_phenology_flows(daylen, self.met_data,
                                             days_in_year[i], project_day)
                 self.zero_stuff()
-               
-            self.day_output = [] # empty daily storage list for outputs
+            # =============== #
+            #   DAY LOOP      #
+            # =============== #  
             for doy in xrange(days_in_year[i]):
                 
                 # litterfall rate: C and N fluxes
@@ -184,12 +189,8 @@ class Gday(object):
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
-                # save daily fluxes + state for daily output
                 self.save_daily_outputs(yr, doy+1)
                 project_day += 1
-            
-            
-            #print self.state.cstore, self.state.nstore
             # =============== #
             #   END OF YEAR   #
             # =============== #
@@ -218,7 +219,7 @@ class Gday(object):
                 # need to save initial SLA to current one!
                 conv = const.M2_AS_HA * const.KG_AS_TONNES
                 self.params.slainit = (self.state.lai / const.M2_AS_HA *
-                                      const.KG_AS_TONNES *
+                                       const.KG_AS_TONNES *
                                        self.params.cfracts /self.state.shoot)
 
             self.correct_rate_constants(output=True)
@@ -231,6 +232,7 @@ class Gday(object):
         self.state.lai = 0.0
         self.state.cstore = 0.0
         self.state.nstore = 0.0
+        self.state.anpp = 0.0
         
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
@@ -260,15 +262,13 @@ class Gday(object):
 
         """
         self.fluxes.ninflow = self.met_data['ndep'][prjday]
-        self.state.anpp = 0.0
-        
         
         # update N:C of plant pools
         if float_eq(self.state.shoot, 0.0):
             self.state.shootnc = 0.0
         elif self.control.deciduous_model:
             self.state.shootnc = max(self.state.shootn / self.state.shoot,
-                                         self.params.ncfmin)
+                                     self.params.ncfmin)
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
         
@@ -316,7 +316,8 @@ class Gday(object):
                                             self.fluxes.nlittrelease)
             # calculate NEP
             self.fluxes.nep = (self.fluxes.npp - self.fluxes.hetero_resp -
-                           self.fluxes.ceaten * (1. - self.params.fracfaeces))
+                               self.fluxes.ceaten * 
+                               (1. - self.params.fracfaeces))
                            
     def save_daily_outputs(self, year, doy):
         """ Save the daily fluxes + state in a big list.
