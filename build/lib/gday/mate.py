@@ -175,18 +175,17 @@ class Mate(object):
         # gC m-2 d-1
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                     const.MOL_C_TO_GRAMS_C)
-        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
-        
-        # tonnes hectare-1 day-1
-        conv = const.G_AS_TONNES / const.M2_AS_HA
-        self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
-        self.fluxes.npp = self.fluxes.npp_gCm2 * conv
-        
         self.fluxes.gpp_am_pm[am] = ((self.fluxes.apar / 2.0) * lue[am] * 
                                       const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
-                              
+        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        
+        # g C m-2 to tonnes hectare-1 day-1
+        conv = const.G_AS_TONNES / const.M2_AS_HA
+        self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
+        self.fluxes.npp = self.fluxes.npp_gCm2 * conv
+        
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
 
