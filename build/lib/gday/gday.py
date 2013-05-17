@@ -162,7 +162,6 @@ class Gday(object):
             self.day_output = [] # empty daily storage list for outputs
             for doy in xrange(days_in_year[i]):
                 
-                
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
                 
