@@ -127,6 +127,7 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
+        am, pm = self.am, self.pm
         ca = self.met_data[self.co2_flag][day]
         temp_avg = self.met_data['tair'][day]
         temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
@@ -139,8 +140,8 @@ class WaterBalance(object):
         wind = [self.met_data['wind_am'][day], self.met_data['wind_pm'][day]]
         wind_avg = self.met_data['wind'][day]
         net_rad_avg = self.calc_radiation(temp_avg, sw_rad_avg, daylen)
-        net_rad = [self.calc_radiation(temp[0], sw_rad[0], daylen/2.0), \
-                   self.calc_radiation(temp[1], sw_rad[1], daylen/2.0)]
+        net_rad = [self.calc_radiation(temp[am], sw_rad[am], daylen/2.0), \
+                   self.calc_radiation(temp[pm], sw_rad[pm], daylen/2.0)]
         
         if ('atmos_press' in self.met_data and not
             self.met_data['atmos_press'] is None):
@@ -268,7 +269,7 @@ class WaterBalance(object):
         gs = [None]*2  # m s-1
         trans = [None]*2
         omegax = [None]*2
-        gpp = self.fluxes.gpp_am_pm
+        gpp = self.fluxes.gpp_am_pm # list
         for i in self.am, self.pm:
             (gs[i], gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, 
                                                                 daylen/2., 

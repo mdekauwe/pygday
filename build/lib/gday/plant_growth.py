@@ -257,23 +257,26 @@ class PlantGrowth(object):
         
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
+        
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
         #                                     self.state.cstore)
         
-        
         #ntot = self.state.nstore 
-        self.state.n_to_alloc_branch = self.state.albranch * self.state.nstore
-        
-        self.state.n_to_alloc_stem = self.state.alstem * self.state.nstore
+        #self.state.n_to_alloc_branch = self.state.albranch * ntot
+        #self.state.n_to_alloc_stem = self.state.alstem * ntot
         #ntot -= self.state.n_to_alloc_stem + self.state.n_to_alloc_branch
         
         # allocate remaining N to flexible-ratio pools
         #self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
         #                               (self.state.alleaf + self.state.alroot * 
-        #                                 self.params.ncrfac))
+        #                                self.params.ncrfac))
         #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        
+        
+        self.state.n_to_alloc_branch = self.state.albranch * self.state.nstore
+        self.state.n_to_alloc_stem = self.state.alstem * self.state.nstore
         self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
         self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
         
@@ -287,31 +290,25 @@ class PlantGrowth(object):
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
         
-        # allocate remainder to stem
-        self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
-                             self.state.albranch - self.state.alroot_exudate)
         
         #ntot = self.state.nstore 
-        self.state.n_to_alloc_branch = self.state.albranch * self.state.nstore
-        
-        self.state.n_to_alloc_stem = self.state.alstem * self.state.nstore
+        #self.state.n_to_alloc_branch = self.state.albranch * ntot
+        #self.state.n_to_alloc_stem = self.state.alstem * ntot
         #ntot -= self.state.n_to_alloc_stem + self.state.n_to_alloc_branch
         
         # allocate remaining N to flexible-ratio pools
         #self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
         #                               (self.state.alleaf + self.state.alroot * 
-        #                                 self.params.ncrfac))
+        #                                self.params.ncrfac))
         #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        
+        
+        self.state.n_to_alloc_branch = self.state.albranch * self.state.nstore
+        self.state.n_to_alloc_stem = self.state.alstem * self.state.nstore
         self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
         self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
         
-        # if we want to put back a floating N:C then we need to have
-        # self.state.c_to_alloc_shoot + self.state.c_to_alloc_stem * some factor
-
-        # annual available N for allocation to leaf
-        #self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
-        #                                self.state.shootnc_yr)
-
+        
      
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy):
         """ Nitrogen distribution - allocate available N through system.
