@@ -312,7 +312,6 @@ class PlantGrowth(object):
         #self.state.n_to_alloc_shoot = (self.state.c_to_alloc_shoot *
         #                                self.state.shootnc_yr)
 
-        
      
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy):
         """ Nitrogen distribution - allocate available N through system.

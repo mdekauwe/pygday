@@ -268,7 +268,7 @@ class WaterBalance(object):
         gs = [None]*2  # m s-1
         trans = [None]*2
         omegax = [None]*2
-        gpp = [self.fluxes.gpp_am_pm[self.am], self.fluxes.gpp_am_pm[self.pm]]
+        gpp = self.fluxes.gpp_am_pm # list
         for i in self.am, self.pm:
             (gs[i], gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, 
                                                                 daylen/2., 
