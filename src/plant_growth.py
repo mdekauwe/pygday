@@ -61,7 +61,8 @@ class PlantGrowth(object):
         self.rm = RootingDepthModel(d0x=self.params.d0x, r0=self.params.r0, 
                                     top_soil_depth=self.params.top_soil_depth)
    
-    def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, days_in_yr):
+    def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
+                        days_in_yr):
         """Evolve plant state, photosynthesis, distribute N and C"
 
         Parameters:
@@ -334,7 +335,7 @@ class PlantGrowth(object):
         """
         # N retranslocated proportion from dying plant tissue and stored within
         # the plant
-        self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay)
+        self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay, doy)
         self.fluxes.nuptake = self.calculate_nuptake()
         
         # Ross's Root Model.
@@ -440,7 +441,7 @@ class PlantGrowth(object):
                                  self.params.ncrfac))
             self.fluxes.nproot = ntot - self.fluxes.npleaf
             
-    def nitrogen_retrans(self, fdecay, rdecay):
+    def nitrogen_retrans(self, fdecay, rdecay, doy):
         """ Nitrogen retranslocated from senesced plant matter.
         Constant rate of n translocated from mobile pool
 
@@ -457,8 +458,13 @@ class PlantGrowth(object):
             N retranslocated plant matter
 
         """
-      
-        arg1 = (self.fluxes.leafretransn +
+        if self.control.deciduous_model:
+            leafretransn = (self.fluxes.lnrate * self.state.remaining_days[doy] * 
+                            self.params.fretrans)
+        else:
+            leafretransn = self.params.fretrans * fdecay * self.state.shootn
+        
+        arg1 = (leafretransn +
                 self.params.rretrans * rdecay * self.state.rootn +
                 self.params.bretrans * self.params.bdecay *
                 self.state.branchn)
@@ -621,10 +627,7 @@ class PlantGrowth(object):
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
 
-        if self.control.deciduous_model:
-            # These have to be calculated like this as the deadleafn is
-            # missing the retrans fluxes so things won't balance
-            # otherwise.                
+        if self.control.deciduous_model:       
             self.state.shootn += (self.fluxes.npleaf - 
                                  (self.fluxes.lnrate * 
                                   self.state.remaining_days[doy]) - 
@@ -633,11 +636,9 @@ class PlantGrowth(object):
             self.state.shootn += (self.fluxes.npleaf - 
                                   fdecay * self.state.shootn - 
                                   self.fluxes.neaten)
-                                 
-        
-        
+                                
         self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
-                                   self.state.branchn)
+                               self.state.branchn)
         self.state.rootn += self.fluxes.nproot - rdecay * self.state.rootn
         
         self.state.stemnimm += (self.fluxes.npstemimm - self.params.wdecay *
