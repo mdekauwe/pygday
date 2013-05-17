@@ -392,16 +392,20 @@ class PlantGrowth(object):
         
         if self.control.deciduous_model:
             # allocate N to pools with fixed N:C ratios
+            
             # N flux into new ring (immobile component -> structrual components)
             self.fluxes.npstemimm = self.fluxes.cpstem * ncwimm
     
             # N flux into new ring (mobile component -> can be retrans for new
             # woody tissue)
             self.fluxes.npstemmob = self.fluxes.cpstem * (ncwnew - ncwimm)
-            self.fluxes.npbranch = self.fluxes.bnrate * self.state.growing_days[doy]
             self.fluxes.nproot = self.fluxes.cproot * self.state.rootnc
+            
             self.fluxes.npleaf = (self.fluxes.lnrate * 
+                                  self.state.growing_days[doy])
+            self.fluxes.npbranch = (self.fluxes.bnrate * 
                                     self.state.growing_days[doy])
+            
         else:
             # allocate N to pools with fixed N:C ratios
             
@@ -459,8 +463,8 @@ class PlantGrowth(object):
 
         """
         if self.control.deciduous_model:
-            leafretransn = (self.fluxes.lnrate * self.state.remaining_days[doy] * 
-                            self.params.fretrans)
+            leafretransn = (self.params.fretrans * self.fluxes.lnrate * 
+                            self.state.remaining_days[doy])
         else:
             leafretransn = self.params.fretrans * fdecay * self.state.shootn
         
