@@ -93,7 +93,6 @@ class PlantGrowth(object):
         (ncbnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
         self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy)
         
-        
         self.update_plant_state(fdecay, rdecay, project_day, doy)
         self.precision_control()
         
@@ -194,7 +193,7 @@ class PlantGrowth(object):
             # Calculate the soil moisture availability factors [0,1] in the 
             # topsoil and the entire root zone
             (self.state.wtfac_tsoil, 
-                self.state.wtfac_root) = self.sm.calculate_soil_water_fac()
+             self.state.wtfac_root) = self.sm.calculate_soil_water_fac()
         else:
             # really this should only be a debugging option!
             self.state.wtfac_tsoil = 1.0
@@ -392,16 +391,20 @@ class PlantGrowth(object):
         
         if self.control.deciduous_model:
             # allocate N to pools with fixed N:C ratios
+            
             # N flux into new ring (immobile component -> structrual components)
             self.fluxes.npstemimm = self.fluxes.cpstem * ncwimm
     
             # N flux into new ring (mobile component -> can be retrans for new
             # woody tissue)
             self.fluxes.npstemmob = self.fluxes.cpstem * (ncwnew - ncwimm)
-            self.fluxes.npbranch = self.fluxes.bnrate * self.state.growing_days[doy]
             self.fluxes.nproot = self.fluxes.cproot * self.state.rootnc
+            
             self.fluxes.npleaf = (self.fluxes.lnrate * 
+                                  self.state.growing_days[doy])
+            self.fluxes.npbranch = (self.fluxes.bnrate * 
                                     self.state.growing_days[doy])
+            
         else:
             # allocate N to pools with fixed N:C ratios
             
@@ -459,8 +462,8 @@ class PlantGrowth(object):
 
         """
         if self.control.deciduous_model:
-            leafretransn = (self.fluxes.lnrate * self.state.remaining_days[doy] * 
-                            self.params.fretrans)
+            leafretransn = (self.params.fretrans * self.fluxes.lnrate * 
+                            self.state.remaining_days[doy])
         else:
             leafretransn = self.params.fretrans * fdecay * self.state.shootn
         
@@ -576,11 +579,12 @@ class PlantGrowth(object):
         else:
             # update leaf area [m2 m-2]
             self.state.lai += (self.fluxes.cpleaf * 
-                                  (self.state.sla * const.M2_AS_HA / 
-                                  (const.KG_AS_TONNES * self.params.cfracts)) -
-                                  (self.fluxes.deadleaves + 
-                                   self.fluxes.ceaten) *
-                                   self.state.lai / self.state.shoot)
+                              (self.state.sla * const.M2_AS_HA / 
+                              (const.KG_AS_TONNES * self.params.cfracts)) -
+                              (self.fluxes.deadleaves + 
+                               self.fluxes.ceaten) *
+                               self.state.lai / self.state.shoot)
+   
     def precision_control(self, tolerance=1E-08):
         """ Detect very low values in state variables and force to zero to 
         avoid rounding and overflow errors """       
@@ -659,9 +663,10 @@ class PlantGrowth(object):
         # excess. Therefore this is only relevant for evergreen model.
         if not self.control.deciduous_model:
             
-            # if foliage N:C ratio exceeds its max, then nitrogen uptake is cut back 
-            # n.b. new ring n/c max is already set because it is related to leaf n:c
-    
+            # if foliage N:C ratio exceeds its max, then nitrogen uptake is cut 
+            # back n.b. new ring n/c max is already set because it is related to 
+            # leaf n:c
+            
             # maximum leaf n:c ratio is function of stand age
             #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
             age_effect = ((self.state.age - self.params.ageyoung) / 

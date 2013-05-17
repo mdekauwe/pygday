@@ -60,9 +60,7 @@ class CarbonSoilFlows(object):
         self.params.fmleaf = self.metafract(lnleaf)
         self.params.fmroot = self.metafract(lnroot)
        
-        # input from faeces
-        self.flux_from_grazers()
-
+        self.flux_from_grazers() # input from faeces
         self.cflux_from_plants()
         self.cfluxes_from_struct_pool()
         self.cfluxes_from_metabolic_pool()
@@ -150,7 +148,7 @@ class CarbonSoilFlows(object):
         """ Input from faeces """
         if self.control.grazing:
             arg = (self.params.ligfaeces * self.params.faecescn /
-                    self.params.cfracts)
+                   self.params.cfracts)
             self.params.fmfaeces = self.metafract(arg)
             self.fluxes.faecesc = self.fluxes.ceaten * self.params.fracfaeces
         else:
@@ -171,7 +169,6 @@ class CarbonSoilFlows(object):
         nceleaf = self.ratio_of_litternc_to_live_leafnc()
         nceroot = self.ratio_of_litternc_to_live_rootnc()
         
-        
         if float_eq(nceleaf, 0.0):
             #lnleaf = 1E20 # This is in the code, but why, this seems a mental thing to do???
             lnleaf = 0.0 
@@ -180,12 +177,12 @@ class CarbonSoilFlows(object):
             lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
             
         if float_eq(nceroot, 0.0):
-            #lnroot = 1E20
+            #lnroot = 1E20 # This is in the code, but why, this seems a mental thing to do???
             lnroot = 0.0
         else:
             lnroot = self.params.ligroot / self.params.cfracts / nceroot
 
-        return lnleaf, lnroot
+        return (lnleaf, lnroot)
 
     def ratio_of_litternc_to_live_leafnc(self):
         """ratio of litter N:C to live leaf N:C
@@ -224,7 +221,7 @@ class CarbonSoilFlows(object):
 
         if self.control.use_eff_nc:
             nceroot = (self.params.liteffnc * self.params.ncrfac *
-                       (1.0 - self.params.rretrans))
+                      (1.0 - self.params.rretrans))
         else:
             nceroot = ncroot
 
@@ -457,12 +454,12 @@ class NitrogenSoilFlows(object):
         else:
             self.params.faecesn = 0.0
 
-        #make sure faecesn <= total n input to soil from grazing
+        # make sure faecesn <= total n input to soil from grazing
         arg = self.fluxes.neaten * self.params.fractosoil
         if float_gt(self.params.faecesn, arg):
             self.params.faecesn = self.fluxes.neaten * self.params.fractosoil
 
-        #urine=total-faeces
+        # urine=total-faeces
         if self.control.grazing:
             self.fluxes.nurine = (self.fluxes.neaten * self.params.fractosoil -
                                   self.params.faecesn)
@@ -471,7 +468,6 @@ class NitrogenSoilFlows(object):
 
         if float_lt(self.fluxes.nurine, 0.0):
             self.fluxes.nurine = 0.0
-
 
     def inputs_from_plant_litter(self):
         """ inputs from plant litter.
@@ -570,11 +566,11 @@ class NitrogenSoilFlows(object):
 
         # surf -> active
         self.fluxes.nmetab[0] = (self.state.metabsurfn *
-                                    self.params.decayrate[1])
+                                 self.params.decayrate[1])
 
         # soil -> active
         self.fluxes.nmetab[1] = (self.state.metabsoiln *
-                                    self.params.decayrate[3])
+                                 self.params.decayrate[3])
 
     def nfluxes_from_active_pool(self):
         """ from active pool """
