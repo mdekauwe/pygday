@@ -152,14 +152,13 @@ class Gday(object):
         years = uniq(self.met_data["year"])
         days_in_year = [self.met_data["year"].count(yr) for yr in years]
         
-        
         for i, yr in enumerate(years):
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
                 self.P.calculate_phenology_flows(daylen, self.met_data,
                                             days_in_year[i], project_day)
                 self.zero_stuff()
-                 
+               
             self.day_output = [] # empty daily storage list for outputs
             for doy in xrange(days_in_year[i]):
                 
@@ -182,12 +181,14 @@ class Gday(object):
                 
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
                 
+                
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
                 # save daily fluxes + state for daily output
                 self.save_daily_outputs(yr, doy+1)
                 project_day += 1
+            
             
             #print self.state.cstore, self.state.nstore
             # =============== #
