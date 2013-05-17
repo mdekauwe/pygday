@@ -77,7 +77,9 @@ class Litter(object):
             
             # N in litter production
             self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
-         
+            
+            self.fluxes.leafretransn = (self.params.fretrans * fdecay * 
+                                        self.state.shootn)
         
         # N in branch litter - assuming fraction is retranslocated before
         # senescence, i.e. a fracion of nutrients is stored within the plant

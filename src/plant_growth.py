@@ -457,22 +457,14 @@ class PlantGrowth(object):
             N retranslocated plant matter
 
         """
-        if self.control.deciduous_model:
-            arg1 = (self.fluxes.leafretransn  +
-                    self.params.rretrans * rdecay * self.state.rootn +
-                    self.params.bretrans * self.params.bdecay *
-                    self.state.branchn)
-            arg2 = (self.params.wretrans * self.params.wdecay *
-                    self.state.stemnmob + self.params.retransmob *
-                    self.state.stemnmob)
-        else:
-            arg1 = (self.params.fretrans * fdecay * self.state.shootn +
-                    self.params.rretrans * rdecay * self.state.rootn +
-                    self.params.bretrans * self.params.bdecay *
-                    self.state.branchn)
-            arg2 = (self.params.wretrans * self.params.wdecay *
-                    self.state.stemnmob + self.params.retransmob *
-                    self.state.stemnmob)
+      
+        arg1 = (self.fluxes.leafretransn +
+                self.params.rretrans * rdecay * self.state.rootn +
+                self.params.bretrans * self.params.bdecay *
+                self.state.branchn)
+        arg2 = (self.params.wretrans * self.params.wdecay *
+                self.state.stemnmob + self.params.retransmob *
+                self.state.stemnmob)
         
         return arg1 + arg2
     
