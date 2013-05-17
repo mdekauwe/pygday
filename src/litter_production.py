@@ -126,11 +126,12 @@ class Litter(object):
             adjusted deacy rate if the soil is dry [tonnes C/ha/day]
 
         """
-
-        new_decay_rate = (decay_rate_dry - (decay_rate_dry -
-                          decay_rate) * (self.state.pawater_root /
-                          self.params.wcapac_root - self.params.watdecaydry) /
-                          (self.params.watdecaywet - self.params.watdecaydry))
+        # turn into fraction...
+        smc_root = self.state.pawater_root / self.params.wcapac_root
+        
+        new_decay_rate = (decay_rate_dry - (decay_rate_dry - decay_rate) * 
+                         (smc_root - self.params.watdecaydry) /
+                         (self.params.watdecaywet - self.params.watdecaydry))
 
         if float_lt(new_decay_rate, decay_rate):
             new_decay_rate = decay_rate
