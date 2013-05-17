@@ -622,27 +622,22 @@ class PlantGrowth(object):
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
 
         if self.control.deciduous_model:
-            # These have to be calculated like this as the deadleafn and
-            # deadbranchn are missing the retrans fluxes so things won't balance
+            # These have to be calculated like this as the deadleafn is
+            # missing the retrans fluxes so things won't balance
             # otherwise.                
             self.state.shootn += (self.fluxes.npleaf - 
                                  (self.fluxes.lnrate * 
                                   self.state.remaining_days[doy]) - 
-                                  self.fluxes.neaten)
-            self.state.branchn += (self.fluxes.npbranch - 
-                                   self.fluxes.bnrate * 
-                                   self.state.remaining_days[doy])                         
-           
-                                    
+                                  self.fluxes.neaten)                        
         else:
             self.state.shootn += (self.fluxes.npleaf - 
                                   fdecay * self.state.shootn - 
                                   self.fluxes.neaten)
-            self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
-                                   self.state.branchn)                     
+                                 
         
         
-        
+        self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
+                                   self.state.branchn)
         self.state.rootn += self.fluxes.nproot - rdecay * self.state.rootn
         
         self.state.stemnimm += (self.fluxes.npstemimm - self.params.wdecay *

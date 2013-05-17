@@ -628,21 +628,16 @@ class PlantGrowth(object):
             self.state.shootn += (self.fluxes.npleaf - 
                                  (self.fluxes.lnrate * 
                                   self.state.remaining_days[doy]) - 
-                                  self.fluxes.neaten)
-            self.state.branchn += (self.fluxes.npbranch - 
-                                   self.fluxes.bnrate * 
-                                   self.state.remaining_days[doy])                         
-           
-                                    
+                                  self.fluxes.neaten)                        
         else:
             self.state.shootn += (self.fluxes.npleaf - 
                                   fdecay * self.state.shootn - 
                                   self.fluxes.neaten)
-            self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
-                                   self.state.branchn)                     
+                                 
         
         
-        
+        self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
+                                   self.state.branchn)
         self.state.rootn += self.fluxes.nproot - rdecay * self.state.rootn
         
         self.state.stemnimm += (self.fluxes.npstemimm - self.params.wdecay *
