@@ -256,7 +256,9 @@ class PlantGrowth(object):
         Allocate stored C&N. This is either down as the model is initialised 
         for the first time or at the end of each year. 
         """
+        # ========================
         # Carbon - fixed fractions
+        # ========================
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
@@ -264,8 +266,10 @@ class PlantGrowth(object):
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
         #                                     self.state.cstore)
         
+        # =========
         # Nitrogen
-        #
+        # =========
+        
         # Fixed ratios N allocation to woody components.
         
         # N flux into new ring (immobile component -> structrual components)
