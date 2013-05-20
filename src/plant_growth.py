@@ -256,7 +256,7 @@ class PlantGrowth(object):
         Allocate stored C&N. This is either down as the model is initialised 
         for the first time or at the end of each year. 
         """
-        # Carbon
+        # Carbon - fixed fractions
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
@@ -266,7 +266,7 @@ class PlantGrowth(object):
         
         # Nitrogen
         #
-        # Fixed Ratios N allocation to wood components.
+        # Fixed ratios N allocation to woody components.
         
         # N flux into new ring (immobile component -> structrual components)
         self.state.n_to_alloc_stemimm = (self.state.cstore * self.state.alstem * 
@@ -282,6 +282,7 @@ class PlantGrowth(object):
                                         self.state.albranch * 
                                         self.params.ncbnew)
         
+        # Calculate remaining N left to allocate to leaves and roots 
         ntot = (self.state.nstore - self.state.n_to_alloc_stemimm -
                 self.state.n_to_alloc_stemmob - self.state.n_to_alloc_branch)
         
@@ -300,7 +301,6 @@ class PlantGrowth(object):
         self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
         self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
         """
-        #print self.state.n_to_alloc_shoot/self.state.c_to_alloc_shoot, self.state.n_to_alloc_stemimm/ self.state.c_to_alloc_stem,self.state.n_to_alloc_root/self.state.c_to_alloc_root 
 
         
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
