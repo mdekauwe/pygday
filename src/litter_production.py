@@ -62,12 +62,10 @@ class Litter(object):
         if self.control.deciduous_model:
             self.fluxes.deadleaves = (self.fluxes.lrate * 
                                       self.state.remaining_days[doy])
-            self.fluxes.deadleafn = (self.fluxes.lnrate * 
-                                     self.state.remaining_days[doy]  * 
-                                     (1.0 - self.params.fretrans))
         else:
             self.fluxes.deadleaves = fdecay * self.state.shoot
-            self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
+        
+        self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
         
         # N Litter production - assuming fraction is retranslocated before
         # senescence, i.e. a fracion of nutrients is stored within the plant
