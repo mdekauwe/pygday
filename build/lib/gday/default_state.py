@@ -76,6 +76,14 @@ n_to_alloc_root = 0.0
 n_to_alloc_shoot = 0.0
 n_to_alloc_stem = 0.0
 n_to_alloc_branch = 0.0
+
+n_to_alloc_stemimm = 0.0
+n_to_alloc_stemmob = 0.0
+n_to_alloc_branch =0.0
+
+
+
+
 shootnc_yr = 0.0 # constant N:C of foliage during the growing season
 N0 = 0.0
 
