@@ -623,12 +623,18 @@ class PlantGrowth(object):
             fine root decay rate
 
         """
+        # 
+        # Carbon pools
+        #
         self.state.shoot += (self.fluxes.cpleaf - self.fluxes.deadleaves -
                              self.fluxes.ceaten)
         self.state.root += self.fluxes.cproot - self.fluxes.deadroots
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
-
+        
+        # 
+        # Nitrogen pools
+        #
         if self.control.deciduous_model:       
             self.state.shootn += (self.fluxes.npleaf - 
                                  (self.fluxes.lnrate * 
@@ -649,9 +655,9 @@ class PlantGrowth(object):
                                 self.state.stemnmob -
                                 self.params.retransmob * self.state.stemnmob)
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
-        self.state.exu_pool += self.fluxes.cprootexudate
-        self.fluxes.microbial_resp = self.calc_microbial_resp(project_day)
-        self.state.exu_pool -= self.fluxes.microbial_resp        
+        #self.state.exu_pool += self.fluxes.cprootexudate
+        #self.fluxes.microbial_resp = self.calc_microbial_resp(project_day)
+        #self.state.exu_pool -= self.fluxes.microbial_resp        
         if self.control.deciduous_model:
             self.calculate_cn_store()
             
