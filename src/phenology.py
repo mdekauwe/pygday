@@ -187,6 +187,16 @@ class Phenology(object):
                               self.len_groloss**2)
         self.fluxes.bnrate = (2.0 * self.state.n_to_alloc_branch / 
                               self.len_groloss**2)
+        #self.fluxes.wnrate = (2.0 * self.state.n_to_alloc_stem / 
+        #                      self.len_groloss**2)
+        #self.fluxes.rnrate = (2.0 * self.state.n_to_alloc_root / 
+        #                      self.len_groloss**2)
+        self.fluxes.wnimrate = (2.0 * self.state.n_to_alloc_stemimm / 
+                              self.len_groloss**2)
+        self.fluxes.wnmobrate = (2.0 * self.state.n_to_alloc_stemmob / 
+                              self.len_groloss**2)
+        
+        
         # Use the wrate to calculate wnrate as I need to fraction N to 
         # immobile and mobile components
         

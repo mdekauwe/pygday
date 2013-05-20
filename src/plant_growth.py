@@ -1,6 +1,6 @@
 """ Estimate daily Carbon fixed and pass around the aboveground portion of the
 plant. """
-
+import sys
 from math import exp
 import sys
 import constants as const
@@ -91,7 +91,8 @@ class PlantGrowth(object):
         self.carbon_allocation(nitfac, doy, days_in_yr)
         
         (ncbnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
-        self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy)
+        self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
+                                 days_in_yr)
         
         self.update_plant_state(fdecay, rdecay, project_day, doy)
         self.precision_control()
@@ -250,67 +251,60 @@ class PlantGrowth(object):
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch - self.state.alroot_exudate)
         
-        #print self.state.alleaf, self.state.alroot, self.state.albranch, self.state.alstem
-        
-    def initialise_deciduous_model(self):
-        """ Divide up NPP based on annual allocation fractions """
-        
+    def allocate_stored_c_and_n(self):
+        """
+        Allocate stored C&N. This is either down as the model is initialised 
+        for the first time or at the end of each year. 
+        """
+        # Carbon
         self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
-        
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
         #                                     self.state.cstore)
         
-        #ntot = self.state.nstore 
-        #self.state.n_to_alloc_branch = self.state.albranch * ntot
-        #self.state.n_to_alloc_stem = self.state.alstem * ntot
-        #ntot -= self.state.n_to_alloc_stem + self.state.n_to_alloc_branch
+        # Nitrogen
+        #
+        # Fixed Ratios N allocation to wood components.
+        
+        # N flux into new ring (immobile component -> structrual components)
+        self.state.n_to_alloc_stemimm = (self.state.cstore * self.state.alstem * 
+                                         self.params.ncwimm)
+    
+        # N flux into new ring (mobile component -> can be retrans for new
+        # woody tissue)
+        self.state.n_to_alloc_stemmob = (self.state.cstore * self.state.alstem * 
+                                        (self.params.ncwnew - 
+                                         self.params.ncwimm))
+        
+        self.state.n_to_alloc_branch = (self.state.cstore * 
+                                        self.state.albranch * 
+                                        self.params.ncbnew)
+        
+        ntot = (self.state.nstore - self.state.n_to_alloc_stemimm -
+                self.state.n_to_alloc_stemmob - self.state.n_to_alloc_branch)
         
         # allocate remaining N to flexible-ratio pools
-        #self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
-        #                               (self.state.alleaf + self.state.alroot * 
-        #                                self.params.ncrfac))
-        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
+                                      (self.state.alleaf + 
+                                       self.state.alroot *
+                                       self.params.ncrfac))
+        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
         
+        """
+        self.state.n_to_alloc_stemimm = self.state.alstem * self.state.nstore
+        self.state.n_to_alloc_stemmob = 0.0
         self.state.n_to_alloc_branch = self.state.albranch * self.state.nstore
-        self.state.n_to_alloc_stem = self.state.alstem * self.state.nstore
         self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
         self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
-        
-    def allocate_stored_c_and_n(self, i):
         """
-        At the end of the year allocate everything for the coming year
-        based on stores from the previous year avaliable N for allocation
-        """
-        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
-        self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
-        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
-        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
+        #print self.state.n_to_alloc_shoot/self.state.c_to_alloc_shoot, self.state.n_to_alloc_stemimm/ self.state.c_to_alloc_stem,self.state.n_to_alloc_root/self.state.c_to_alloc_root 
+
         
-        
-        #ntot = self.state.nstore 
-        #self.state.n_to_alloc_branch = self.state.albranch * ntot
-        #self.state.n_to_alloc_stem = self.state.alstem * ntot
-        #ntot -= self.state.n_to_alloc_stem + self.state.n_to_alloc_branch
-        
-        # allocate remaining N to flexible-ratio pools
-        #self.state.n_to_alloc_shoot =  (ntot * self.state.alleaf / 
-        #                               (self.state.alleaf + self.state.alroot * 
-        #                                self.params.ncrfac))
-        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
-        
-        self.state.n_to_alloc_branch = self.state.albranch * self.state.nstore
-        self.state.n_to_alloc_stem = self.state.alstem * self.state.nstore
-        self.state.n_to_alloc_shoot = self.state.alleaf * self.state.nstore
-        self.state.n_to_alloc_root = self.state.alroot * self.state.nstore
-        
-        
-     
-    def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy):
+    def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
+                            days_in_yr):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
         to the shoot and roots with flexible ratios.
@@ -393,22 +387,25 @@ class PlantGrowth(object):
             # allocate N to pools with fixed N:C ratios
             
             # N flux into new ring (immobile component -> structrual components)
-            self.fluxes.npstemimm = self.fluxes.cpstem * ncwimm
-    
+            self.fluxes.npstemimm = (self.fluxes.wnimrate * 
+                                     self.state.growing_days[doy])
+            
             # N flux into new ring (mobile component -> can be retrans for new
             # woody tissue)
-            self.fluxes.npstemmob = self.fluxes.cpstem * (ncwnew - ncwimm)
-            self.fluxes.nproot = self.fluxes.cproot * self.state.rootnc
+            self.fluxes.npstemmob = (self.fluxes.wnmobrate * 
+                                     self.state.growing_days[doy])
+            
+            self.fluxes.nproot = self.state.n_to_alloc_root / days_in_yr
             
             self.fluxes.npleaf = (self.fluxes.lnrate * 
                                   self.state.growing_days[doy])
+            
             self.fluxes.npbranch = (self.fluxes.bnrate * 
                                     self.state.growing_days[doy])
-            
         else:
             # allocate N to pools with fixed N:C ratios
             
-            # N flux into new ring (immobile component -> structrual components)
+            # N flux into new ring (immobile component -> structural components)
             self.fluxes.npstemimm = self.fluxes.npp * self.state.alstem * ncwimm
     
             # N flux into new ring (mobile component -> can be retrans for new
@@ -443,7 +440,8 @@ class PlantGrowth(object):
                                  (self.state.alleaf + self.state.alroot *
                                  self.params.ncrfac))
             self.fluxes.nproot = ntot - self.fluxes.npleaf
-            
+        
+        
     def nitrogen_retrans(self, fdecay, rdecay, doy):
         """ Nitrogen retranslocated from senesced plant matter.
         Constant rate of n translocated from mobile pool
@@ -699,8 +697,9 @@ class PlantGrowth(object):
                     ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
                     self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
                     
-            # if root N:C ratio exceeds its max, then nitrogen uptake is cut back 
-            # n.b. new ring n/c max is already set because it is related to leaf n:c
+            # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
+            # back. n.b. new ring n/c max is already set because it is related 
+            # to leaf n:c
             ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
             extrar = 0.0
             if float_gt(self.state.rootn, (self.state.root * ncmaxr)):

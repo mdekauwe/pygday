@@ -100,7 +100,7 @@ class Gday(object):
         
         if self.control.deciduous_model:
             self.pg.calc_carbon_allocation_fracs(0.0)
-            self.pg.initialise_deciduous_model()
+            self.pg.allocate_stored_c_and_n()
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
                                store_transfer_len=self.params.store_transfer_len)
@@ -184,7 +184,7 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                 
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
-                
+                #print self.fluxes.gpp * 100, self.state.lai
                 
                 # =============== #
                 #   END OF DAY    #
@@ -195,7 +195,7 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
-                self.pg.allocate_stored_c_and_n(i)
+                self.pg.allocate_stored_c_and_n()
 
             if self.control.print_options == "DAILY" and self.spin_up == False:
                 self.print_output_file()
