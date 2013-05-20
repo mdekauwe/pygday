@@ -297,7 +297,8 @@ class PlantGrowth(object):
                                        self.params.ncrfac))
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
-        
+        #print self.state.n_to_alloc_shoot/self.state.c_to_alloc_shoot, self.state.n_to_alloc_stemimm/self.state.c_to_alloc_stem, self.state.n_to_alloc_root/self.state.c_to_alloc_root
+        #print self.state.alleaf, self.state.alroot, self.state.albranch, self.state.alstem
         """
         self.state.n_to_alloc_stemimm = self.state.alstem * self.state.nstore
         self.state.n_to_alloc_stemmob = 0.0
