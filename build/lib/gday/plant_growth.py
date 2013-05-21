@@ -655,24 +655,26 @@ class PlantGrowth(object):
         #self.state.exu_pool -= self.fluxes.microbial_resp        
         if self.control.deciduous_model:
             self.calculate_cn_store()
-            
+        
+        #============================
+        # Enforce maximum N:C ratios.
+        # ===========================    
         # This doesn't make sense for the deciduous model because of the ramp
         # function. The way the deciduous logic works we now before we start
         # how much N we have to allocate so it is impossible to allocate in 
         # excess. Therefore this is only relevant for evergreen model.
         if not self.control.deciduous_model:
             
-            # if foliage N:C ratio exceeds its max, then nitrogen uptake is cut 
-            # back n.b. new ring n/c max is already set because it is related to 
-            # leaf n:c
+            # If foliage or root N/C exceeds its max, then N uptake is cut back
             
             # maximum leaf n:c ratio is function of stand age
             #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
             age_effect = ((self.state.age - self.params.ageyoung) / 
-                            (self.params.ageold - self.params.ageyoung))
+                          (self.params.ageold - self.params.ageyoung))
 
-            ncmaxf = (self.params.ncmaxfyoung - (self.params.ncmaxfyoung -
-                        self.params.ncmaxfold) * age_effect)
+            ncmaxf = (self.params.ncmaxfyoung - 
+                     (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
+                      age_effect)
     
             if float_lt(ncmaxf, self.params.ncmaxfold):
                 ncmaxf = self.params.ncmaxfold
@@ -693,11 +695,6 @@ class PlantGrowth(object):
                     self.state.shootn -= extras
                     self.fluxes.nuptake -= extras
                     
-                    # recalculate N in litter production
-                    self.state.shootnc = self.state.shootn / self.state.shoot
-                    ncflit = self.state.shootnc * (1.0 - self.params.fretrans)
-                    self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
-                    
             # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
             # back. n.b. new ring n/c max is already set because it is related 
             # to leaf n:c
@@ -713,11 +710,6 @@ class PlantGrowth(object):
 
                 self.state.rootn -= extrar
                 self.fluxes.nuptake -= extrar 
-
-                # recalculate N in root litter production
-                self.state.rootnc = self.state.rootn / self.state.root
-                ncrlit = self.state.rootnc * (1.0 - self.params.rretrans)
-                self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
                 
     def calculate_cn_store(self):        
         
