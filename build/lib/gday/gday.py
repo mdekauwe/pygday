@@ -185,7 +185,7 @@ class Gday(object):
                 
                 #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
                 #print self.fluxes.gpp * 100, self.state.lai
-                
+                #print self.fluxes.gpp * 100, self.state.lai
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -272,11 +272,8 @@ class Gday(object):
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
         
-        if float_eq(self.state.root, 0.0):
-            self.state.shootnc = 0.0
-        else:
-            self.state.rootnc = self.state.rootn / self.state.root
-       
+        self.state.rootnc = max(0.0, self.state.rootn / self.state.root)
+                
         # total plant, soil & litter nitrogen
         self.state.soiln = (self.state.inorgn + self.state.activesoiln +
                             self.state.slowsoiln + self.state.passivesoiln)
