@@ -595,7 +595,7 @@ class PlantGrowth(object):
         
         if self.state.root < tolerance:
             self.fluxes.deadrootn += self.state.rootn
-            self.fluxes.deadroot += self.state.root
+            self.fluxes.deadroots += self.state.root
             self.state.root = 0.0
             self.state.rootn = 0.0
     
