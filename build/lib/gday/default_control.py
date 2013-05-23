@@ -20,10 +20,9 @@ grazing = False            # Is foliage grazed?
 use_eff_nc = 0             # use constant leaf n:c for  metfrac s
 strfloat = 0               # Structural pool input N:C varies=1, fixed=0
 use_leuning = 0    
-co2_conc = "AMB"           # "AMB"=ambient, "ELE"=elevated
-fixed_stem_nc = 1          # 0=vary stem N:C with foliage, 1=fixed stem N:C
+fixed_stem_nc = True       # False=vary stem N:C with foliage, True=fixed stem N:C
 deciduous_model = False    # evergreen_model=False, deciduous_model=True
-calc_sw_params = 0         # 0=user supplies field capacity and wilting point, 1=calculate them based on cosby et al.
-water_stress = True           # water stress modifier turned on=1 (default)...ability to turn off to test things without drought stress = 0
-modeljm = True                # modeljm=0, Jmax and Vcmax parameters are read in, modeljm=1, parameters are calculated from leaf N content
+calc_sw_params = False     # false=user supplies field capacity and wilting point, true=calculate them based on cosby et al.
+water_stress = True        # water stress modifier turned on=1 (default)...ability to turn off to test things without drought stress = 0
+modeljm = True             # modeljm=0, Jmax and Vcmax parameters are read in, modeljm=1, parameters are calculated from leaf N content
 model_optroot = False      # Ross's optimal root model...not sure if this works yet...0=off, 1=on

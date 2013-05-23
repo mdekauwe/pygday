@@ -80,12 +80,6 @@ class Mate(object):
         self.Ec = 79430.0
         self.Eo = 36380.0   # Note there is a typo in the R mate code here...  
         self.Egamma = 37830.0
-        self.co2_flag = self.control.co2_conc 
-        if self.control.co2_conc == "AMB":
-            self.co2_flag = 'amb_co2'
-        elif self.control.co2_conc == "ELE":
-            self.co2_flag = 'ele_co2'
-
         
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
@@ -206,13 +200,12 @@ class Mate(object):
         par : float
             average daytime PAR [umol m-2 d-1]
         ca : float
-            atmospheric co2, depending on flag set in param file this will be
-            ambient or elevated. [umol mol-1]
+            atmospheric co2 [umol mol-1]
 
         """
         temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
         vpd = [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
-        ca = self.met_data[self.co2_flag][day]
+        ca = self.met_data["co2"][day]
         
         # if PAR is supplied by the user then use this data, otherwise use the
         # standard conversion factor. This was added as the NCEAS run had a

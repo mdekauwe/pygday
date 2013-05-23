@@ -50,11 +50,6 @@ class WaterBalance(object):
                                 z0h_z0m=self.params.z0h_z0m)
         self.am = 0
         self.pm = 1
-        self.co2_flag = self.control.co2_conc 
-        if self.control.co2_conc == "AMB":
-            self.co2_flag = 'amb_co2'
-        elif self.control.co2_conc == "ELE":
-            self.co2_flag = 'ele_co2'
             
     def calculate_water_balance(self, day, daylen):
         """ Calculate water balance
@@ -119,8 +114,7 @@ class WaterBalance(object):
         vpd : float
             average daily vpd [kPa]
         ca : float
-            atmospheric co2, depending on flag set in param file this will be
-            ambient or elevated. [umol mol-1]
+            atmospheric co2 [umol mol-1]
         wind : float
             average daily wind speed [mm s-1]
         press : float
@@ -128,7 +122,7 @@ class WaterBalance(object):
 
         """
         am, pm = self.am, self.pm
-        ca = self.met_data[self.co2_flag][day]
+        ca = self.met_data['co2'][day]
         temp_avg = self.met_data['tair'][day]
         temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
         sw_rad_avg = self.met_data['sw_rad'][day]
@@ -215,8 +209,7 @@ class WaterBalance(object):
         wind : float
             average daily wind speed [m s-1]
         ca : float
-            atmospheric co2, depending on flag set in param file this will be
-            ambient or elevated. [umol mol-1]
+            atmospheric co2 [umol mol-1]
         daylen : float
             daylength in hours
         press : float
@@ -255,8 +248,7 @@ class WaterBalance(object):
         wind : float
             daily wind speed [m s-1]
         ca : float
-            atmospheric co2, depending on flag set in param file this will be
-            ambient or elevated. [umol mol-1]
+            atmospheric co2 [umol mol-1]
         daylen : float
             daylength in hours
         press : float
@@ -308,8 +300,7 @@ class WaterBalance(object):
         vpd : float
             average daily vpd [kPa]
         ca : float
-            atmospheric co2, depending on flag set in param file this will be
-            ambient or elevated. [umol mol-1]
+            atmospheric co2 [umol mol-1]
         daylen : float
             daylength in hours, passing half day as AM and PM
 
