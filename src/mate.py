@@ -73,13 +73,6 @@ class Mate(object):
         self.met_data = met_data
         self.am = 0 # morning index
         self.pm = 1 # afternoon index
-        self.gamstar25 = 42.75
-        self.Oi = 205000.0
-        self.Kc25 = 404.9 
-        self.Ko25 = 278400.0 
-        self.Ec = 79430.0
-        self.Eo = 36380.0   # Note there is a typo in the R mate code here...  
-        self.Egamma = 37830.0
         
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
@@ -234,7 +227,10 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        return [self.arrh(self.gamstar25, self.Egamma, Tk[k]) for k in am, pm]
+        self.params.gamstar25 = gamstar25
+        self.params.Egamma = Egamma
+        
+        return [self.arrh(gamstar25, Egamma, Tk[k]) for k in am, pm]
     
     def calculate_quantum_efficiency(self, temp):
         """ Quantum efficiency for AM/PM periods following Sands 1996, it
@@ -283,15 +279,20 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
+        self.params.Ec = Ec
+        self.params.Eo = Eo
+        self.params.Kc25 = Kc25
+        self.params.Ko25 = Ko25
+        self.params.Oi = Oi
         
         # Michaelis-Menten coefficents for carboxylation by Rubisco
-        Kc = [self.arrh(self.Kc25, self.Ec, Tk[k]) for k in am, pm]
+        Kc = [self.arrh(Kc25, Ec, Tk[k]) for k in am, pm]
         
         # Michaelis-Menten coefficents for oxygenation by Rubisco
-        Ko = [self.arrh(self.Ko25, self.Eo, Tk[k]) for k in am, pm]
+        Ko = [self.arrh(Ko25, Eo, Tk[k]) for k in am, pm]
         
         # return effectinve Michaelis-Menten coeffeicent for CO2
-        return [Kc[k] * (1.0 + self.Oi / Ko[k]) for k in am, pm]
+        return [Kc[k] * (1.0 + Oi / Ko[k]) for k in am, pm]
                 
     def calculate_top_of_canopy_n(self):  
         """ Calculate the canopy N at the top of the canopy (g N m-2), N0.
