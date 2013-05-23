@@ -48,23 +48,6 @@ class Mate(object):
             model fluxes
         met_data : floats, dictionary
             meteorological forcing data
-        gamstar25 : float
-            co2 compensation partial pressure in the absence of dark resp at 
-            25 degC [umol mol-1]
-        Oi : float
-            intercellular concentration of O2 [umol mol-1]
-        Kc25 : float
-            Michaelis-Menten coefficents for carboxylation by Rubisco at 
-            25degC [umol mol-1]
-        Ko25: float
-            Michaelis-Menten coefficents for oxygenation by Rubisco at 
-            25degC [umol mol-1]. Note value in Bernacchie 2001 is in mmol!!
-        Ec : float
-            Activation energy for carboxylation [J mol-1]
-        Eo : float
-            Activation energy for oxygenation [J mol-1]
-        Egamma : float
-            Activation energy at CO2 compensation point [J mol-1]
         """
         self.params = params
         self.fluxes = fluxes
@@ -279,11 +262,11 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        self.params.Ec = Ec
-        self.params.Eo = Eo
-        self.params.Kc25 = Kc25
-        self.params.Ko25 = Ko25
-        self.params.Oi = Oi
+        Ec = self.params.Ec
+        Eo = self.params.Eo
+        Kc25 = self.params.Kc25 
+        Ko25 = self.params.Ko25 
+        Oi = self.params.Oi 
         
         # Michaelis-Menten coefficents for carboxylation by Rubisco
         Kc = [self.arrh(Kc25, Ec, Tk[k]) for k in am, pm]
