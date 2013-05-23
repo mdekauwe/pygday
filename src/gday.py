@@ -202,7 +202,7 @@ class Gday(object):
             
         # close output files
         if self.control.print_options == "END" and self.spin_up == False:
-                self.print_output_file()
+            self.print_output_file()
         self.pr.clean_up()
 
     def print_output_file(self):

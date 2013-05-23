@@ -32,7 +32,7 @@ class Phenology(object):
         self.Tbase = 5.0 # degC
         self.last_yrs_accumulated_ncd = previous_ncd
         self.accumulated_ncd = 0.0
-        self.accumulated_gdd = 0.0
+        self.accum_gdd = 0.0
         self.project_day = 0    
         self.leaf_on = 0.0
         self.leaf_off = 0.0
@@ -83,7 +83,7 @@ class Phenology(object):
         
     def ini_phen_calcs(self):
         self.accumulated_ncd = 0.0
-        self.accumulated_gdd = 0.0
+        self.accum_gdd = 0.0
         self.leaf_on = 0.0
         self.leaf_off = 0.0
         self.leaf_on_found = False
@@ -110,14 +110,15 @@ class Phenology(object):
             else:
                 # i.e. end of year, didn't find this so have no effect
                 Tsoil_next_3days = 999.9 
-            self.accumulated_gdd += self.calc_gdd(Tmean)
+            self.accum_gdd += self.calc_gdd(Tmean)
             
-            if self.leaf_on_found == False and self.accumulated_gdd >= gdd_thresh:
+            if self.leaf_on_found == False and self.accum_gdd >= gdd_thresh:
                 self.leaf_on = d
                 self.leaf_on_found = True
-            if self.leaf_off_found == False and (self.accumulated_gdd >= gdd_thresh):
+            if self.leaf_off_found == False and (self.accum_gdd >= gdd_thresh):
                 
-                self.drop_leaves = self.leaf_drop(daylen[d], Tsoil, Tsoil_next_3days)   
+                self.drop_leaves = self.leaf_drop(daylen[d], Tsoil, 
+                                                  Tsoil_next_3days)   
                 if self.drop_leaves:
                     self.leaf_off_found = True
                     self.leaf_off = d
@@ -187,17 +188,10 @@ class Phenology(object):
                               self.len_groloss**2)
         self.fluxes.bnrate = (2.0 * self.state.n_to_alloc_branch / 
                               self.len_groloss**2)
-        #self.fluxes.wnrate = (2.0 * self.state.n_to_alloc_stem / 
-        #                      self.len_groloss**2)
-        #self.fluxes.rnrate = (2.0 * self.state.n_to_alloc_root / 
-        #                      self.len_groloss**2)
         self.fluxes.wnimrate = (2.0 * self.state.n_to_alloc_stemimm / 
                               self.len_groloss**2)
         self.fluxes.wnmobrate = (2.0 * self.state.n_to_alloc_stemmob / 
                               self.len_groloss**2)
-        
-        
-        # Use the wrate to calculate wnrate as I need to fraction N to 
-        # immobile and mobile components
+       
         
         
