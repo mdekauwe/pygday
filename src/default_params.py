@@ -45,7 +45,7 @@ edj               = 2e+05          # Deactivation energy fro electron transport 
 delsj             = 644.4338       # J mol-1 k-1
 theta             = 0.7            # curvature of photosynthetic light response curve
 cue               = 0.5            # carbon use efficiency, or the ratio of NPP to GPP
-g1                = 4.8            # fitted param, proportional to sqrt(gamma_star * marginal water cost of carbon)
+g1                = 4.8            # fitted param, slope of reln btw gs and assimilation.
 
 #set carbon allocation & grazing parameters
 callocf          = 0.25  #allocation to leaves at leaf n_crit
