@@ -256,10 +256,7 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        
-        # values from sands paper, should these be params that user can change?
-        alpha0 = 0.05  # quantum efficiency at 20 degC.
-        alpha1 = 0.016 # characterises strength of the temp dependance of alpha
+        alpha0, alpha1 = self.params.alpha0, self.params.alpha1
         
         return [alpha0 * (1.0 - alpha1 * (temp[k] - 20.0)) for k in am, pm]
     
@@ -408,10 +405,6 @@ class Mate(object):
         g1w = self.params.g1 * self.state.wtfac_root
         
         return g1w / (g1w + sqrt(vpd))
-       
-       
-       #CiCa_am = (1.0 - ((1.6 * sqrt(vpdam)) / (gi + sqrt(vpdam))))
-       
        
     def epsilon(self, amax, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996. 
