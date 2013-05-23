@@ -227,8 +227,8 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        self.params.gamstar25 = gamstar25
-        self.params.Egamma = Egamma
+        gamstar25 = self.params.gamstar25
+        Egamma = self.params.Egamma
         
         return [self.arrh(gamstar25, Egamma, Tk[k]) for k in am, pm]
     
