@@ -11,34 +11,29 @@ __version__ = "1.0 (14.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 
-#set environment parameters
-finesoil          = 0.5             #clay+silt fraction
-co2_unlim_c_prod  = 1.0             #unlimited C prodn (t/ha/yr)
-co2_effect_on_wue = 0.705           #CO2 effect on WUE (btwn 0 and 1# try )
+# set environment parameters
+finesoil          = 0.5            # clay+silt fraction
 
-#set photosynthetic parameters
-n_crit            = 0.04           #critical leaf n/c ratio for no prod n loss, Kirschbaum etal 1994, pg 1086, =0.016/0.45
-ncpower           = 1.0            #n/c power for n-limitation (try 1)
-ci_ca_ratio       = 0.666667       #ci/ca ratio
-kext              = 0.5            #extinction coefficient
-slainit           = 3.9            #specific leaf area (m2 one-sided/kg DW)
-slazero           = 3.9            #specific leaf area new fol at zero leaf N/C (m2 one-sided/kg DW)
-slamax            = 3.9            #specofic leaf area new fol at max leaf N/C (m2 one-sided/kg DW)
-lai_cover         = 0.5            #Onesided LAI correspdg to complete ground cover
-cfracts           = 0.5            #carbon fraction of dry biomass
-nmin              = 0.95           #minimum leaf n for +ve p/s (g/m2)
-jmaxna            = 40.462         #slope of the reln btween jmax and leaf N content (g N m-2) - (umol/g n/s)
-jmaxnb            = 13.691         #intercept of jmax vs n (umol/g n/s)
-jmax              = -999.9         #maximum rate of electron transport (umol m-2 s-1)
-vcmaxna           = 20.497         #slope of the reln btween vcmax and leaf N content (g N m-2) - (umol/g n/s)
-vcmaxnb           = 8.403          #intercept of vcmax vs n (umol/g n/s)
-vcmax             = -999.9         #maximum rate of carboxylation (umol m-2 s-1)
-growth_efficiency = 0.7            #growth efficiency (yg)
+# set photosynthetic parameters
+n_crit            = 0.04           # critical leaf n/c ratio for no prod n loss, Kirschbaum etal 1994, pg 1086, =0.016/0.45
+kext              = 0.5            # extinction coefficient
+slainit           = 3.9            # specific leaf area (m2 one-sided/kg DW)
+slazero           = 3.9            # specific leaf area new fol at zero leaf N/C (m2 one-sided/kg DW)
+slamax            = 3.9            # specofic leaf area new fol at max leaf N/C (m2 one-sided/kg DW)
+lai_cover         = 0.5            # Onesided LAI correspdg to complete ground cover
+cfracts           = 0.5            # carbon fraction of dry biomass
+nmin              = 0.95           # minimum leaf n for +ve p/s (g/m2)
+jmaxna            = 40.462         # slope of the reln btween jmax and leaf N content (g N m-2) - (umol/g n/s)
+jmaxnb            = 13.691         # intercept of jmax vs n (umol/g n/s)
+jmax              = -999.9         # maximum rate of electron transport (umol m-2 s-1)
+vcmaxna           = 20.497         # slope of the reln btween vcmax and leaf N content (g N m-2) - (umol/g n/s)
+vcmaxnb           = 8.403          # intercept of vcmax vs n (umol/g n/s)
+vcmax             = -999.9         # maximum rate of carboxylation (umol m-2 s-1)
+growth_efficiency = 0.7            # growth efficiency (yg)
 alpha_j           = 0.3            # initial slope of rate of electron transport
 alpha             = 0.05           # quantum yield (mol mol-1) used in mate
-direct_frac       = 0.5            #direct beam fraction of incident radiation
-kq10              = 0.08           #exponential coefficient for Rm vs T
-epsilon           = 1.0
+direct_frac       = 0.5            # direct beam fraction of incident radiation
+kq10              = 0.08           # exponential coefficient for Rm vs T
 eav               = 51560.0        # Activation energy for Rubisco (J mol-1)
 eaj               = 43790.0        # Activation energy for electron transport (J mol-1)
 edj               = 2e+05          # Deactivation energy fro electron transport (J mol-1)
@@ -47,7 +42,7 @@ theta             = 0.7            # curvature of photosynthetic light response 
 cue               = 0.5            # carbon use efficiency, or the ratio of NPP to GPP
 g1                = 4.8            # fitted param, slope of reln btw gs and assimilation.
 
-#set carbon allocation & grazing parameters
+# set carbon allocation & grazing parameters
 callocf          = 0.25  #allocation to leaves at leaf n_crit
 callocfz         = 0.25  #allocation to leaves at zero leaf n/c
 callocrx         = 0.0   #allocation to root exudate
@@ -63,12 +58,12 @@ fractosoil       = 0.85  #Fractn of grazed N recycled to soil:faeces+urine
 rhizresp         = 0.5   #0.33-0.67 C translocated from shoot to root is respired, so assume a value of 0.5 based on Lambers and Poot 2003.
 
 #nitrogen cycling paramsa
-rateuptake       = 5.7            #rate of N uptake from mineral N pool (/yr) from here? http://face.ornl.gov/Finzi-PNAS.pdf
-rateloss         = 0.5            #Rate of N loss from mineral N pool (/yr)
-fretrans         = 0.5            #foliage n retranslocation fraction
-rretrans         = 0.0            #root n retranslocation fraction
-bretrans         = 0.0            #branch n retranslocation fraction
-wretrans         = 0.0            #mobile wood N retranslocation fraction
+rateuptake       = 5.7            # rate of N uptake from mineral N pool (/yr) from here? http://face.ornl.gov/Finzi-PNAS.pdf
+rateloss         = 0.5            # Rate of N loss from mineral N pool (/yr)
+fretrans         = 0.5            # foliage n retranslocation fraction
+rretrans         = 0.0            # root n retranslocation fraction
+bretrans         = 0.0            # branch n retranslocation fraction
+wretrans         = 0.0            # mobile wood N retranslocation fraction
 uo               = 2.737850787E-4 # Supply rate of available N (0.01 kg N m-2 yr-1 to t/ha/day)
 kr               = 0.5            # N uptake coefficent (0.05 kg C m-2 to 0.5 tonnes/ha)
 vxfix            = 0.005          # N fixation per unit rhizodeposition (tonnes N tonnes-1 C)
@@ -136,7 +131,6 @@ topsoil_type      = None
 rootsoil_type     = None
 fractup_soil      = 0.5   #fraction of uptake from top soil layer
 extraction        = 0.007 #water extractn by unit root mass(ha/tC/d)
-wue0              = 3.0   #WUE if VPD=1kPa, CO2=350ppm (gC*kPa/kgH2O)
 wetloss           = 0.5   #daily rainfall lost per lai (mm/day)
 rfmult            = 1.0
 
