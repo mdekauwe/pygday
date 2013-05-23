@@ -10,6 +10,7 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (14.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
+# Carbon fluxes
 gpp_gCm2 = None
 npp_gCm2 = None
 gpp_am_pm = [0.0, 0.0]
@@ -20,7 +21,7 @@ auto_resp = None
 hetero_resp = None
 retrans = None
 
-# n
+# Nitrogen fluxes
 nuptake = None
 nloss = None
 npassive = None # n passive -> active
@@ -28,6 +29,7 @@ ngross = None   # N gross mineralisation
 nimmob = None   # N immobilisation in SOM
 nlittrelease = None # N rel litter = struct + metab
 activelossf = None # frac of active C -> CO2
+nmineralisation = None
 
 # water fluxes
 wue = 0.0
@@ -37,6 +39,9 @@ transpiration = 0.0
 erain = 0.0
 interception = 0.0
 runoff = 0.0
+gs_mol_m2_sec = 0.0
+ga_mol_m2_sec = 0.0
+omega = 0.0
 
 # daily C production
 cpleaf = None
@@ -72,7 +77,6 @@ nurine = None       # Rate of N input to soil in urine (t/ha/y)
 #C N root/shoot to struct and metab pools
 cresid = [None] * 4  # Cshoot -> surf struct, Croot -> soil sturct, Cshoot -> surf metab, Croot ->surf
 nresid = [None] * 4  # Nshoot -> surf struct, Nroot -> soil sturct, Nshoot -> surf metab, Nroot ->surf metab
-
 cstruct = [None] * 4  # Csurf struct -> slow, Csurf struct -> active, Csoil struct -> slow, Csoil struct -> active
 nstruct = [None] * 4  # Nsurf struct -> slow, Nsurf struct -> active, Nsoil struct -> slow, Nsoil struct -> active
 
@@ -80,28 +84,20 @@ cact = 0.0 # C source flux from the active pool
 cslo = 0.0 # C source flux from the slow pool
 cpas = 0.0 # C source flux from the passive pool
 
-
-
 # C flows to the air
 co2_to_air = [None] * 7 
 
 cactive = [None] * 2 # C active -> slow/passive
 nactive = [None] * 2 # N active -> slow/passive
 passive = None
-
 nslow = [None] * 2 # Nslow -> active and -> passive
 cslow = [None] * 2  # Cslow -> active and -> passive
 nmetab = [None] * 2 # N surf metab and N soil metab -> active
 cmetab = [None] * 2 # C surf metab and C soil metab -> active
 
+# Misc stuff
 cica_avg = None # used in water balance, only when running mate model
-nmineralisation = None
 apar = None
-
 rabove = 0.0
 microbial_resp = 0.0
 
-
-gs_mol_m2_sec = 0.0
-ga_mol_m2_sec = 0.0
-omega = 0.0
