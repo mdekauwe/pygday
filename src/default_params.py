@@ -41,6 +41,13 @@ eaj               = 43790.0        # Activation energy for electron transport (J
 edj               = 2e+05          # Deactivation energy fro electron transport (J mol-1)
 delsj             = 644.4338       # J mol-1 k-1
 theta             = 0.7            # curvature of photosynthetic light response curve
+gamstar25         = 42.75
+Oi                = 205000.0       # intercellular concentration of O2 [umol mol-1]
+Kc25              = 404.9          # Michaelis-Menten coefficents for carboxylation by Rubisco at 25degC [mmol mol-1]
+Ko25              = 278400.0       # Michaelis-Menten coefficents for oxygenation by Rubisco at 25degC [umol mol-1]. Note value in Bernacchie 2001 is in mmol!!
+Ec                = 79430.0        # Activation energy for carboxylation [J mol-1]
+Eo                = 36380.0        # Activation energy for oxygenation [J mol-1]
+Egamma            = 37830.0        # Activation energy at CO2 compensation point [J mol-1]
 cue               = 0.5            # carbon use efficiency, or the ratio of NPP to GPP
 g1                = 4.8            # fitted param, slope of reln btw gs and assimilation.
 
