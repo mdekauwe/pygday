@@ -170,7 +170,6 @@ class Gday(object):
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
                 
-                
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
@@ -183,8 +182,6 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                #print self.fluxes.gpp * 100, self.state.lai, self.state.shootnc
-                #print self.fluxes.gpp * 100, self.state.lai
                 #print self.fluxes.gpp * 100, self.state.lai
                 # =============== #
                 #   END OF DAY    #
