@@ -262,11 +262,11 @@ class Mate(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        self.params.Ec = Ec
-        self.params.Eo = Eo
-        self.params.Kc25 = Kc25
-        self.params.Ko25 = Ko25
-        self.params.Oi = Oi
+        Ec = self.params.Ec
+        Eo = self.params.Eo
+        Kc25 = self.params.Kc25 
+        Ko25 = self.params.Ko25 
+        Oi = self.params.Oi 
         
         # Michaelis-Menten coefficents for carboxylation by Rubisco
         Kc = [self.arrh(Kc25, Ec, Tk[k]) for k in am, pm]
