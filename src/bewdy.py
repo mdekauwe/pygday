@@ -123,11 +123,7 @@ class Bewdy(object):
         """
         temp = self.met_data['tair'][day]
         sw_rad = self.met_data['sw_rad'][day]
-
-        if self.control.co2_conc == "AMB":
-            ca = self.met_data['amb_co2'][day]
-        elif self.control.co2_conc == "ELE":
-            ca = self.met_data['ele_co2'][day]
+        ca = self.met_data['co2'][day]
         vpd = self.met_data['vpd_avg'][day]
         
         return temp, sw_rad, ca, vpd
@@ -211,7 +207,7 @@ class Bewdy(object):
         """
 
         arg1 = (1.0 / self.params.kext *
-                (1.0 - exp(-self.params.kext * lai_mod)))
+               (1.0 - exp(-self.params.kext * lai_mod)))
         arg2 = (n * s * (n + s) + b * n**2) / (n + s)**2
 
         return arg1 * arg2
@@ -238,7 +234,7 @@ class Bewdy(object):
 
         arg1 = 1.0 / self.params.kext * (b**2 * n**2) / (n + s)**3.0
         arg2 = (log(((n + s) * exp(-self.params.kext *
-                    lai_mod) + b) / (n + s + b)))
+                lai_mod) + b) / (n + s + b)))
 
         return arg1 * arg2
 
@@ -264,12 +260,12 @@ class Bewdy(object):
             self.fluxes.auto_resp = self.calc_autotrophic_respiration(temp)
 
             npp = (self.params.growth_efficiency *
-                    (self.fluxes.gpp * frac_gcover * const.G_M2_2_TON_HEC -
-                    self.fluxes.auto_resp))
+                  (self.fluxes.gpp * frac_gcover * const.G_M2_2_TON_HEC -
+                   self.fluxes.auto_resp))
         else:
             # use proportionality with GPP
             npp = (self.params.cue * self.fluxes.gpp * frac_gcover *
-                    const.G_AS_TONNES / const.M2_AS_HA)
+                   const.G_AS_TONNES / const.M2_AS_HA)
         
         return npp
 
