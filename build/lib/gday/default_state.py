@@ -11,7 +11,7 @@ __email__   = "mdekauwe@gmail.com"
 
 
 
-#set initial carbon pools (t/ha)
+# Carbon state variables (t/ha)
 shoot           = 3.38042             # shoot c
 root            = 0.614058            # root c
 branch          = 0.0                 # branch c
@@ -23,8 +23,9 @@ metabsoil       = 0.0                 # soil metabolic c
 activesoil      = 3.607960            # active c
 slowsoil        = 61.052441           # slow c
 passivesoil     = 29.694              # passive c
+cstore          = 0.0                    # C store for deciduous model
 
-#set initial nitrogen pools (t/ha)
+# Nitrogen state variables (t/ha)
 shootn       = 0.0635                 # shoot n
 rootn        = 0.006951               # root n
 branchn      = 0.0                    # branch n
@@ -39,22 +40,18 @@ slowsoiln    = 2.583660               # slow n
 passivesoiln = 2.9694                 # passive n
 inorgn       = 0.007740               # Inorganic soil N pool - dynamic (t/ha)
 stemn        = stemnimm + stemnmob    # Stem N (t/ha)
+nstore       = 0.0                    # N store for deciduous model
 
-#set various initial states
-pawater_root     = 200.0              # plant available water - root zone (mm)
-pawater_tsoil    = 50.0               # plant available water - top soil(mm)
-carbon_loss      = 0.0
+# Misc state variables
+pawater_root  = 200.0              # plant available water - root zone (mm)
+pawater_tsoil = 50.0               # plant available water - top soil(mm)
+wtfac_root = None
+wtfac_tsoil = None
+carbon_loss   = 0.0
 lai = None
 sla = None
 light_interception = None
 ncontent = None
-wtfac_root = None
-wtfac_tsoil = None
-
-left_over_n  = 0.0
-left_over_c  = 0.0
-cstore = 0.0
-nstore = 0.0
 age = 0.0                               #Current stand age (years)
 
 # C allocated fracs - NB these are at the annual timestep for the deciduous model
@@ -76,16 +73,9 @@ n_to_alloc_root = 0.0
 n_to_alloc_shoot = 0.0
 n_to_alloc_stem = 0.0
 n_to_alloc_branch = 0.0
-
 n_to_alloc_stemimm = 0.0
 n_to_alloc_stemmob = 0.0
 n_to_alloc_branch =0.0
-
-
-
-
-shootnc_yr = 0.0 # constant N:C of foliage during the growing season
-N0 = 0.0
 
 # annual NPP
 anpp = 0.0

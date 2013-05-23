@@ -62,12 +62,19 @@ class WaterBalance(object):
             length of day in hours.
 
         """
-        # met forcing
-        (temp, temp_avg, rain, sw_rad, 
-         sw_rad_avg, vpd, vpd_avg, wind, 
-         wind_avg, net_rad, net_rad_avg, 
-         ca, press) = self.get_met_data(day, daylen)
+        half_day = daylen/2.0
+        (am, pm) = self.am, self.pm # morning/afternoon
         
+        # met forcing
+        (tair_ampm, tair_day, rain, sw_rad_ampm, 
+         sw_rad_day, vpd_ampm, vpd_day, wind_ampm, 
+         wind_day, ca, press) = self.get_met_data(day, daylen)
+        
+        net_rad_day = self.calc_radiation(tair_day, sw_rad_day, daylen)
+        net_rad_ampm = [self.calc_radiation(tair_ampm[am], sw_rad_ampm[am], \
+                                            half_day), \
+                        self.calc_radiation(tair_ampm[pm], sw_rad_ampm[pm], \
+                                            half_day)]
         # calculate water fluxes
         if self.control.trans_model == 0:
             # transpiration calculated from WUE...
@@ -75,20 +82,22 @@ class WaterBalance(object):
         elif self.control.trans_model == 1:
         
             if self.control.assim_model == "BEWDY":
-                self.calc_transpiration_penmon(vpd_avg, net_rad_avg, temp_avg, 
-                                               wind_avg, ca, daylen, press)
+                self.calc_transpiration_penmon(vpd_day, net_rad_day, tair_day, 
+                                               wind_day, ca, daylen, press)
+            
             elif self.control.assim_model == "MATE":
-                self.calc_transpiration_penmon_am_pm(net_rad, wind, ca, daylen, 
-                                                     press, vpd, temp)
+                self.calc_transpiration_penmon_am_pm(net_rad_ampm, wind_ampm, 
+                                                     ca, daylen, press, 
+                                                     vpd_ampm, tair_ampm)
         
         elif self.control.trans_model == 2:
-            self.calc_transpiration_priestay(net_rad_avg, temp_avg, press)
+            self.calc_transpiration_priestay(net_rad_avg, tair_day, press)
     
         self.calc_infiltration(rain)
-        self.fluxes.soil_evap = self.calc_soil_evaporation(temp_avg, 
-                                                           net_rad_avg,
+        self.fluxes.soil_evap = self.calc_soil_evaporation(tair_day, 
+                                                           net_rad_day,
                                                            press, daylen, 
-                                                           sw_rad_avg)
+                                                           sw_rad_day)
         self.fluxes.et = (self.fluxes.transpiration + self.fluxes.soil_evap +
                           self.fluxes.interception)
         self.fluxes.runoff = self.update_water_storage()
@@ -123,19 +132,16 @@ class WaterBalance(object):
         """
         am, pm = self.am, self.pm
         ca = self.met_data['co2'][day]
-        temp_avg = self.met_data['tair'][day]
-        temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
-        sw_rad_avg = self.met_data['sw_rad'][day]
-        sw_rad = [self.met_data['sw_rad_am'][day], \
-                  self.met_data['sw_rad_pm'][day]]
+        tair_day = self.met_data['tair'][day]
+        tair_ampm = [self.met_data['tam'][day], self.met_data['tpm'][day]]
+        sw_rad_day = self.met_data['sw_rad'][day]
+        sw_rad_ampm = [self.met_data['sw_rad_am'][day], \
+                       self.met_data['sw_rad_pm'][day]]
         rain = self.met_data['rain'][day]
-        vpd_avg = self.met_data['vpd_avg'][day] # daytime average
-        vpd = [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
-        wind = [self.met_data['wind_am'][day], self.met_data['wind_pm'][day]]
-        wind_avg = self.met_data['wind'][day]
-        net_rad_avg = self.calc_radiation(temp_avg, sw_rad_avg, daylen)
-        net_rad = [self.calc_radiation(temp[am], sw_rad[am], daylen/2.0), \
-                   self.calc_radiation(temp[pm], sw_rad[pm], daylen/2.0)]
+        vpd_day = self.met_data['vpd_avg'][day] # daytime average
+        vpd_ampm= [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
+        wind_ampm = [self.met_data['wind_am'][day], self.met_data['wind_pm'][day]]
+        wind_day = self.met_data['wind'][day]
         
         if ('atmos_press' in self.met_data and not
             self.met_data['atmos_press'] is None):
@@ -143,8 +149,8 @@ class WaterBalance(object):
         else:
             press = None # use method below to calculate pressure
 
-        return (temp, temp_avg, rain, sw_rad, sw_rad_avg, vpd, vpd_avg,  wind, 
-                wind_avg,  net_rad, net_rad_avg, ca, press)
+        return (tair_ampm, tair_day, rain, sw_rad_ampm, sw_rad_day, vpd_ampm, 
+                vpd_day,  wind_ampm, wind_day, ca, press)
 
     def calc_infiltration(self, rain):
         """ Estimate "effective" rain, or infiltration I guess.
@@ -231,7 +237,7 @@ class WaterBalance(object):
         self.fluxes.transpiration = transp * tconv
         
     def calc_transpiration_penmon_am_pm(self, net_rad, wind, ca, 
-                                        daylen, press, vpd, temp):
+                                        daylen, press, vpd, tair):
         """ Calculate canopy transpiration using the Penman-Monteith equation
         using am and pm data [mm/day]
         
@@ -243,8 +249,8 @@ class WaterBalance(object):
             net radiation [mj m-2 s-1] (morning)
         net_rad_pm : float
             net radiation [mj m-2 s-1] (afternoon)
-        tavg : float
-            average daytime temp [degC] am/pm
+        tair : float
+            AM/PM air temp [degC] am/pm
         wind : float
             daily wind speed [m s-1]
         ca : float
@@ -255,23 +261,24 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-     
-        gs_mol = [None]*2
-        ga = [None]*2
-        gs = [None]*2  # m s-1
-        trans = [None]*2
-        omegax = [None]*2
+        gs_mol = make_empty_list_of_zeros(2)
+        ga = make_empty_list_of_zeros(2)
+        gs = make_empty_list_of_zeros(2) # m s-1
+        trans = make_empty_list_of_zeros(2)
+        omegax = make_empty_list_of_zeros(2)
         gpp = self.fluxes.gpp_am_pm # list
+        
         for i in self.am, self.pm:
-            (gs[i], gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, 
-                                                                daylen/2., 
-                                                                gpp[i], press, 
-                                                                temp[i])
+            (gs[i], 
+             gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, daylen/2., 
+                                                         gpp[i], press, tair[i])
+            
             ga[i] = self.P.canopy_boundary_layer_conductance(wind[i])
-            trans[i], omegax[i] = self.P.calc_evaporation(vpd[i], wind[i], 
-                                                          gs[i], net_rad[i], 
-                                                          temp[i], press, 
-                                                          ga=ga[i])
+            
+            (trans[i], 
+             omegax[i]) = self.P.calc_evaporation(vpd[i], wind[i], gs[i], 
+                                                  net_rad[i], tair[i], press, 
+                                                  ga=ga[i])
         # print out pre-noon values
         #print self.fluxes.omega = omegax[0]
         self.fluxes.omega = sum(omegax) / 2.0                                  
@@ -964,3 +971,6 @@ class PriestleyTaylor(PenmanMonteith):
         return (pt_coeff / lambdax) * (slope / (slope + gamma)) * net_rad
 
 
+def make_empty_list_of_zeros(size):
+    """ create an empty (zero'd) list of a given size """
+    return [0.0]*size 
