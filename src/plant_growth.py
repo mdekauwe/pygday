@@ -62,7 +62,7 @@ class PlantGrowth(object):
                                     top_soil_depth=self.params.top_soil_depth)
    
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
-                        days_in_yr):
+                        days_in_yr, yr_index):
         """Evolve plant state, photosynthesis, distribute N and C"
 
         Parameters:
@@ -85,7 +85,7 @@ class PlantGrowth(object):
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
         
         # figure out the C allocation fractions 
-        self.calc_carbon_allocation_fracs(nitfac)
+        self.calc_carbon_allocation_fracs(nitfac, yr_index)
         
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
@@ -208,7 +208,7 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
     
-    def calc_carbon_allocation_fracs(self, nitfac):
+    def calc_carbon_allocation_fracs(self, nitfac, yr_index):
         """Carbon allocation fractions to move photosynthate through the plant.
 
         Parameters:
@@ -234,11 +234,31 @@ class PlantGrowth(object):
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
         
-        self.state.alleaf = (self.params.callocf + nitfac *
-                            (self.params.callocf - self.params.callocfz))
+        #self.state.alleaf = (self.params.callocf + nitfac *
+        #                    (self.params.callocf - self.params.callocfz))
+        
+        if type(self.params.callocr) == type(list()):
+            aw = self.params.callocr[yr_index]
+            awz = self.params.callocrz[yr_index]
+        else:
+            aw = self.params.callocr
+            awz = self.params.callocrz
     
-        self.state.alroot = (self.params.callocr + nitfac *
-                            (self.params.callocr - self.params.callocrz))
+        
+        self.state.alroot = aw + nitfac * (aw - awz)
+        
+        if type(self.params.callocf) == type(list()):
+            af = self.params.callocf[yr_index]
+            afz = self.params.callocrz[yr_index]
+        else:
+            af = self.params.callocf
+            afz = self.params.callocfz
+    
+        
+        self.state.alleaf = af + nitfac * (af - afz)
+        
+        #self.state.alroot = (self.params.callocr + nitfac *
+        #                    (self.params.callocr - self.params.callocrz))
 
         self.state.albranch = (self.params.callocb + nitfac *
                               (self.params.callocb - self.params.callocbz))
@@ -289,14 +309,19 @@ class PlantGrowth(object):
         # Calculate remaining N left to allocate to leaves and roots 
         ntot = (self.state.nstore - self.state.n_to_alloc_stemimm -
                 self.state.n_to_alloc_stemmob - self.state.n_to_alloc_branch)
-        
+        """
         # allocate remaining N to flexible-ratio pools
         self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
                                       (self.state.alleaf + 
                                        self.state.alroot *
                                        self.params.ncrfac))
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
+        """
+        self.state.n_to_alloc_root = (ntot * self.state.alroot / 
+                                      (self.state.alroot + 
+                                       self.state.alleaf *
+                                       self.params.ncrfac))
+        self.state.n_to_alloc_shoot = ntot - self.state.n_to_alloc_root
         
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                             days_in_yr):
