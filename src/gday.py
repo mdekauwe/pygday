@@ -99,7 +99,7 @@ class Gday(object):
                               self.fluxes, self.met_data)
         
         if self.control.deciduous_model:
-            self.pg.calc_carbon_allocation_fracs(0.0)
+            self.pg.calc_carbon_allocation_fracs(0.0, 0)
             self.pg.allocate_stored_c_and_n()
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
@@ -173,7 +173,7 @@ class Gday(object):
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
-                                        float(days_in_year[i]))
+                                        float(days_in_year[i]), i)
             
                 # soil C & N model fluxes
                 self.cs.calculate_csoil_flows(project_day)
@@ -241,6 +241,8 @@ class Gday(object):
         
         if output == False:
             for i in time_constants:
+                
+                
                 setattr(self.params, i, getattr(self.params, i) / conv)
         else:
             for i in time_constants:

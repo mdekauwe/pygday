@@ -57,9 +57,11 @@ class CarbonSoilFlows(object):
         # plant litter inputs to the metabolic and structural pools determined 
         # by ratio of lignin/N ratio 
         (lnleaf, lnroot) = self.ligin_nratio()
+        
+        
+        
         self.params.fmleaf = self.metafract(lnleaf)
         self.params.fmroot = self.metafract(lnroot)
-       
         self.flux_from_grazers() # input from faeces
         self.cflux_from_plants()
         self.cfluxes_from_struct_pool()
@@ -170,15 +172,22 @@ class CarbonSoilFlows(object):
         nceroot = self.ratio_of_litternc_to_live_rootnc()
         
         if float_eq(nceleaf, 0.0):
-            #lnleaf = 1E20 # This is in the code, but why, this seems a mental thing to do???
-            lnleaf = 0.0 
-            
+            # This is effectively a hack that results in fluxes being turned
+            # off into the metabolic pool. It seems that the century code
+            # would effectively result in no metabolic fluxes. Might be worth
+            # looking at the latest century code to see how they get around 
+            # this? 
+            lnleaf = 1E20 
         else:
             lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
-            
+
         if float_eq(nceroot, 0.0):
-            #lnroot = 1E20 # This is in the code, but why, this seems a mental thing to do???
-            lnroot = 0.0
+            # This is effectively a hack that results in fluxes being turned
+            # off into the metabolic pool. It seems that the century code
+            # would effectively result in no metabolic fluxes. Might be worth
+            # looking at the latest century code to see how they get around 
+            # this? 
+            lnroot = 1E20 
         else:
             lnroot = self.params.ligroot / self.params.cfracts / nceroot
 
@@ -228,8 +237,8 @@ class CarbonSoilFlows(object):
         return nceroot
 
     def metafract(self, lig2n):
-        """Partition fraction to metabolic pool.
-        As a function of lignin to nitrogen ratio. First two eqn in section A7
+        """ Calculate what fraction of the litter will be partitioned to the 
+        metabolic pool which is given by the lignin:N ratio.
 
         Parameters:
         -----------
@@ -238,16 +247,14 @@ class CarbonSoilFlows(object):
 
         Returns:
         --------
-        frac : float
+        metabolic fraction : float
             partitioned fraction to metabolic pool
 
         """
-        frac = self.params.metfrac0 + self.params.metfrac1 * lig2n
-        if float_gt(frac, 0.0):
-            return frac
-        else:
-            return 0.0
-
+        # metabolic fraction of litter must be above zero
+        return max(0.0, self.params.metfrac0 + (self.params.metfrac1 * lig2n))
+        
+        
     def cflux_from_plants(self):
         """ C flux from plants into soil/surface struct and metabolic pools """
         # -> into surface structural
@@ -266,7 +273,6 @@ class CarbonSoilFlows(object):
         # -> into metabolic surface
         self.fluxes.cresid[2] = (self.fluxes.deadleaves * self.params.fmleaf +
                                  self.fluxes.faecesc * self.params.fmfaeces)
-
         # -> into metabolic soil
         self.fluxes.cresid[3] = (self.fluxes.deadroots * self.params.fmroot + 
                                  self.fluxes.cprootexudate)
@@ -292,7 +298,8 @@ class CarbonSoilFlows(object):
         self.fluxes.cstruct[3] = structout2 * (1. - self.params.ligroot) * 0.45
         self.fluxes.co2_to_air[1] = (structout2 * (self.params.ligroot * 0.3 +
                                     (1. - self.params.ligroot) * 0.55))
-
+       
+    
     def cfluxes_from_metabolic_pool(self):
         """C fluxes from metabolic pools """
 
@@ -384,7 +391,6 @@ class CarbonSoilFlows(object):
         # zero can end up becoming zero but to a silly decimal place
         self.state.metabsurf += (cmtsu - (self.fluxes.cmetab[0] +
                                  self.fluxes.co2_to_air[2]))
-        
         self.state.metabsoil += (cmtsl - (self.fluxes.cmetab[1] +
                                  self.fluxes.co2_to_air[3]))
         self.state.activesoil += (self.fluxes.cact - (self.fluxes.cactive[0] +
@@ -397,7 +403,30 @@ class CarbonSoilFlows(object):
                                    self.fluxes.co2_to_air[6]))
         self.state.carbon_loss += self.fluxes.hetero_resp
         
+        # When nothing is being added to the metabolic pools, there is the 
+        # potential scenario with the way the model works for tiny bits to be
+        # removed with each timestep. Effectively with time this value which is
+        # zero can end up becoming zero but to a silly decimal place
+        self.precision_control()
         
+    def precision_control(self, tolerance=1E-08):
+        """ Detect very low values in state variables and force to zero to 
+        avoid rounding and overflow errors """       
+        
+        # C & N state variables 
+        if self.state.metabsurf < tolerance:
+            excess = self.state.metabsurf
+            self.fluxes.cmetab[0] = excess * 0.45 # to active pool
+            self.fluxes.co2_to_air[2] = excess * 0.55 # to air
+            self.state.metabsurf = 0.0
+        
+       
+        if self.state.metabsoil < tolerance:
+            excess = self.state.metabsoil
+            self.fluxes.cmetab[1] = excess * 0.45 # to active pool
+            self.fluxes.co2_to_air[3] = excess * 0.55 # to air
+            self.state.metabsoil = 0.0  
+       
                     
 class NitrogenSoilFlows(object):
     """ Calculate daily nitrogen fluxes"""
@@ -743,14 +772,17 @@ class NitrogenSoilFlows(object):
                                               self.state.metabsurfn,
                                               1.0/25.0, 1.0/10.0)
         
-        # When nothing is being added to the metabolic pools, there is the 
-        # potential scenario with the way the model works for tiny bits to be
-        # removed with each timestep. Effectively with time this value which is
-        # zero can end up becoming zero but to a silly decimal place
+        
         self.state.metabsoiln += nmtsl - lmtsl
         self.state.metabsoiln += self.nclimit(self.state.metabsoil,
                                               self.state.metabsoiln,
                                               1.0/25.0, 1.0/10.0)
+        
+        # When nothing is being added to the metabolic pools, there is the 
+        # potential scenario with the way the model works for tiny bits to be
+        # removed with each timestep. Effectively with time this value which is
+        # zero can end up becoming zero but to a silly decimal place
+        self.precision_control()
         
         # N:C of the SOM pools increases linearly btw prescribed min and max 
         # values as the Nconc of the soil increases.
@@ -822,6 +854,21 @@ class NitrogenSoilFlows(object):
         else:
             return 0.0 
 
+    
+    
+    def precision_control(self, tolerance=1E-08):
+        """ Detect very low values in state variables and force to zero to 
+        avoid rounding and overflow errors """       
+        
+        if self.state.metabsurfn < tolerance:
+            excess = self.state.metabsurfn
+            self.fluxes.nmetab[0] = excess 
+            self.state.metabsurfn = 0.0
+       
+        if self.state.metabsoiln < tolerance:
+            excess = self.state.metabsoiln
+            self.fluxes.nmetab[1] = excess 
+            self.state.metabsoiln = 0.0
 
 def ncflux(cflux, nflux, nc_ratio):
     """Returns the amount of N fixed
