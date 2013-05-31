@@ -356,11 +356,6 @@ class PlantGrowth(object):
         
         if self.control.model_optroot == True:    
             
-            # Attempt at floating rateuptake
-            #slope = (20.0 - 0.1) / ((6.0) - 0.0)
-            #y = slope * self.state.root + 0.0
-            #nsupply = (y/365.25) * self.state.inorgn
-            
             # convert t ha-1 day-1 to gN m-2 year-1
             nsupply = self.calculate_nuptake() * const.TONNES_HA_2_G_M2 * 365.25
             

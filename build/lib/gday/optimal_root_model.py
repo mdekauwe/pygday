@@ -108,7 +108,7 @@ class RootingDepthModel(object):
         
         #args=(rtoti, self.r0, self.d0)
         #result = scipy.optimize.minimize(self.rtot_wrapper2, depth_guess, 
-         #                                method="COBYLA",  constraints=cons,
+        #                                 method="COBYLA",  constraints=cons,
         #                                 args=args)
         
         
@@ -116,14 +116,12 @@ class RootingDepthModel(object):
         #print root_depth, result.x
         
        
-        
-       
        
         # check optimised value is sensible?
         min_rtot = round(self.rtot(root_depth, rtoti, self.r0, self.d0), 4)
         gday_rtot = round(rtoti, 4)
         if float_ne(min_rtot, gday_rtot):
-            msg = "Error, rtot supplied = %f but min = %f" % (rtoti, smin_rtot)
+            msg = "Error, rtot supplied = %f but min = %f" % (rtoti, min_rtot)
             raise RuntimeError(msg)
             
         return root_depth
@@ -145,6 +143,7 @@ class RootingDepthModel(object):
         val  : float
             A optimised rooting depth iteration
         """
+        
         return self.rtot(*args) - args[1]  
     
     def rtot_wrapper2(self, *args):
