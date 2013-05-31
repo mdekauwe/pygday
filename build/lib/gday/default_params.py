@@ -161,10 +161,10 @@ top_soil_depth = 0.3 # depth (cm) of soil assumed by G'DAY
 
 
 # penman-monteith params
-canht            = 17.0     # Canopy height increased from 16m in 2001 to 18m in 2004 at Duke
-dz0v_dh          = 0.075    # Rate of change of vegetation roughness length for momentum with height.
-displace_ratio   = 0.78     # Value for coniferous forest from Jarvis et al 1976, taken from Jones 1992 pg 67.
-z0h_z0m          = 1.0      # Assume z0m = z0h, probably a big assumption [as z0h often < z0m.], see comment in code!!
+canht            = 17.0     # Canopy height (m)
+dz0v_dh          = 0.123    # Rate of change of vegetation roughness length for momentum with height. Value from Jarvis? for conifer 0.075
+displace_ratio   = 0.67     # Value for coniferous forest (0.78) from Jarvis et al 1976, taken from Jones 1992 pg 67. More standard assumption is 2/3
+z0h_z0m          = 0.1      # Assume z0m = z0h, probably a big assumption [as z0h often < z0m.], see comment in code!! But 0.1 might be a better assumption
 
 # decid model
 ncfmin = 0.0151
