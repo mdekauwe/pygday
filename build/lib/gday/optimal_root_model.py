@@ -310,7 +310,7 @@ if __name__ == "__main__":
     
     #========Params=======
     d0x = 0.35
-    r0 = .265#0.1325
+    r0 = 0.1325#.265#
     top_soil_depth = 0.3
     depth_guess=1.0
     #=====================
@@ -328,12 +328,14 @@ if __name__ == "__main__":
         
         plt.plot(rtot, dmax, label="N supply = %.2f" %(nsup))
     plt.xlim(0, 1.0)
-    plt.legend(numpoints=1, loc="best")
+    plt.ylim(0, 1.5)
+    
     plt.ylabel("Maximum rooting depth (D$_{max}$, m)")
     plt.xlabel("Total root mass (R$_{tot}$, kg DM m$^{-2}$)")
     plt.title("Fig2a: d$_0$ = %.2f, r$_0$ = %.4f, top_soil_depth = %.2f" % \
               (d0x, r0, top_soil_depth))
     plt.rcParams.update({'legend.fontsize': 8})
+    plt.legend(numpoints=1, loc="lower right")
     pdf.savefig() 
     plt.clf()
     
