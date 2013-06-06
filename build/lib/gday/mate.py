@@ -3,7 +3,7 @@
 
 from math import exp, sqrt, sin, pi
 import constants as const
-from utilities import float_eq, float_gt
+from utilities import float_eq, float_gt, float_lt
 import sys
 
 __author__  = "Martin De Kauwe"
@@ -127,6 +127,10 @@ class Mate(object):
         
         # Note that these are gross photosynthetic rates.
         asat = [min(aj[k], ac[k]) for k in am, pm]
+        #print asat[0], aj[0], ac[0], asat[1], aj[1], ac[1]
+        #print ci[0], gamma_star[0], jmax[0]
+              
+        
         
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
@@ -364,7 +368,10 @@ class Mate(object):
         assimilation_rate : float
             assimilation rate assuming either light or rubisco limitation.
         """
-        return a1 * (ci - gamma_star) / (a2 + ci) 
+        if float_lt(ci, gamma_star):
+            return 0.0
+        else:
+            return a1 * (ci - gamma_star) / (a2 + ci) 
    
     def calculate_ci_ca_ratio(self, vpd):
         """ Calculate the ratio of intercellular to atmos CO2 conc

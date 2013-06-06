@@ -3,7 +3,7 @@
 
 from math import exp, sqrt, sin, pi
 import constants as const
-from utilities import float_eq, float_gt
+from utilities import float_eq, float_gt, float_lt
 import sys
 
 __author__  = "Martin De Kauwe"
@@ -364,7 +364,10 @@ class Mate(object):
         assimilation_rate : float
             assimilation rate assuming either light or rubisco limitation.
         """
-        return a1 * (ci - gamma_star) / (a2 + ci) 
+        if float_lt(ci, gamma_star):
+            return 0.0
+        else:
+            return a1 * (ci - gamma_star) / (a2 + ci) 
    
     def calculate_ci_ca_ratio(self, vpd):
         """ Calculate the ratio of intercellular to atmos CO2 conc
