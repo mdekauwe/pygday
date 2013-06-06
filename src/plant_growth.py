@@ -95,7 +95,8 @@ class PlantGrowth(object):
                                  days_in_yr)
         
         self.update_plant_state(fdecay, rdecay, project_day, doy)
-        self.precision_control()
+        if self.control.deciduous_model:
+            self.precision_control()
         
     def calculate_ncwood_ratios(self, nitfac):
         """ Estimate the N:C ratio in the branch and stem. Option to vary
@@ -378,7 +379,7 @@ class PlantGrowth(object):
                                     (1.0 - self.params.rretrans) * 
                                     self.fluxes.deadroots)
             
-            #print  root_depth
+            
             #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
             #      self.fluxes.nuptake *100.
             #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
