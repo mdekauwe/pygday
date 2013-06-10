@@ -57,11 +57,9 @@ class CarbonSoilFlows(object):
         # plant litter inputs to the metabolic and structural pools determined 
         # by ratio of lignin/N ratio 
         (lnleaf, lnroot) = self.ligin_nratio()
-        
-        
-        
         self.params.fmleaf = self.metafract(lnleaf)
         self.params.fmroot = self.metafract(lnroot)
+        
         self.flux_from_grazers() # input from faeces
         self.cflux_from_plants()
         self.cfluxes_from_struct_pool()
