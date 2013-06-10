@@ -310,19 +310,14 @@ class PlantGrowth(object):
         # Calculate remaining N left to allocate to leaves and roots 
         ntot = (self.state.nstore - self.state.n_to_alloc_stemimm -
                 self.state.n_to_alloc_stemmob - self.state.n_to_alloc_branch)
-        """
+        
         # allocate remaining N to flexible-ratio pools
         self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
                                       (self.state.alleaf + 
                                        self.state.alroot *
                                        self.params.ncrfac))
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        """
-        self.state.n_to_alloc_root = (ntot * self.state.alroot / 
-                                      (self.state.alroot + 
-                                       self.state.alleaf *
-                                       self.params.ncrfac))
-        self.state.n_to_alloc_shoot = ntot - self.state.n_to_alloc_root
+        
         
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                             days_in_yr):

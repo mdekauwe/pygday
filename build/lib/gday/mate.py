@@ -127,10 +127,6 @@ class Mate(object):
         
         # Note that these are gross photosynthetic rates.
         asat = [min(aj[k], ac[k]) for k in am, pm]
-        #print asat[0], aj[0], ac[0], asat[1], aj[1], ac[1]
-        #print ci[0], gamma_star[0], jmax[0]
-              
-        
         
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
