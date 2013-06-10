@@ -184,6 +184,7 @@ class Gday(object):
                 
                 #print self.state.shoot, self.state.lai
                 #print self.fluxes.gpp * 100, self.state.lai
+                
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -267,9 +268,6 @@ class Gday(object):
         # update N:C of plant pools
         if float_eq(self.state.shoot, 0.0):
             self.state.shootnc = 0.0
-        elif self.control.deciduous_model:
-            self.state.shootnc = max(self.state.shootn / self.state.shoot,
-                                     self.params.ncfmin)
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
         
