@@ -515,7 +515,7 @@ class SoilMoisture(object):
             self.cp_root = self.params.fwpmax_root
             self.wp_root = self.params.fwpmin_root
        
-        #print (self.cp_tsoil-self.wp_tsoil) * 400.0
+        #print (self.cp_tsoil-self.wp_tsoil) * 450.0
         #print (self.cp_root-self.wp_root) * 2500.0
         #print self.cp_tsoil, self.wp_tsoil
         #print self.cp_root, self.wp_root 
