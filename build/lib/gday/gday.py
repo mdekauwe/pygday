@@ -100,7 +100,7 @@ class Gday(object):
         
         if self.control.deciduous_model:
             self.pg.calc_carbon_allocation_fracs(0.0, 0)
-            self.pg.allocate_stored_c_and_n()
+            self.pg.allocate_stored_c_and_n(init=True)
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
                                store_transfer_len=self.params.store_transfer_len)
@@ -156,6 +156,7 @@ class Gday(object):
         #   YEAR LOOP     #
         # =============== #
         for i, yr in enumerate(years):
+            print yr
             self.day_output = [] # empty daily storage list for outputs
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
@@ -194,7 +195,7 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
-                self.pg.allocate_stored_c_and_n()
+                self.pg.allocate_stored_c_and_n(init=False)
 
             if self.control.print_options == "DAILY" and self.spin_up == False:
                 self.print_output_file()
