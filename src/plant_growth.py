@@ -277,7 +277,7 @@ class PlantGrowth(object):
         Allocate stored C&N. This is either down as the model is initialised 
         for the first time or at the end of each year. 
         """
-        """ # JUST here for phase stuff as first year of ele should have last years alloc fracs
+        """# JUST here for phase stuff as first year of ele should have last years alloc fracs
         if init == True:
             self.state.alleaf = 0.26
             self.state.alroot = 0.11
