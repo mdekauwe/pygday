@@ -294,7 +294,7 @@ class PlantGrowth(object):
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
         #                                     self.state.cstore)
         
-        #print self.state.alleaf , self.state.alroot, self.state.albranch, self.state.alstem,
+        #print self.state.alleaf , self.state.alroot, self.state.albranch, self.state.alstem
         
         
         # =========
