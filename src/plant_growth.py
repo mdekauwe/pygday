@@ -277,13 +277,13 @@ class PlantGrowth(object):
         Allocate stored C&N. This is either down as the model is initialised 
         for the first time or at the end of each year. 
         """
-        """# JUST here for phase stuff as first year of ele should have last years alloc fracs
+        # JUST here for phase stuff as first year of ele should have last years alloc fracs
         if init == True:
             self.state.alleaf = 0.26
             self.state.alroot = 0.11
             self.state.albranch = 0.06
             self.state.alstem = 0.57
-        """
+        
         # ========================
         # Carbon - fixed fractions
         # ========================
@@ -294,7 +294,7 @@ class PlantGrowth(object):
         #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
         #                                     self.state.cstore)
         
-        #print self.state.alleaf , self.state.alroot, self.state.albranch, self.state.alstem,
+        #print self.state.alleaf , self.state.alroot, self.state.albranch, self.state.alstem
         
         
         # =========

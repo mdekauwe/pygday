@@ -156,7 +156,6 @@ class Gday(object):
         #   YEAR LOOP     #
         # =============== #
         for i, yr in enumerate(years):
-            print yr
             self.day_output = [] # empty daily storage list for outputs
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:

@@ -467,7 +467,7 @@ class WaterBalance(object):
                                      self.fluxes.transpiration *
                                      self.params.fractup_soil -
                                      self.fluxes.soil_evap)
-
+        
         self.state.pawater_tsoil = clip(self.state.pawater_tsoil, min=0.0,
                                         max=self.params.wcapac_topsoil) 
         
