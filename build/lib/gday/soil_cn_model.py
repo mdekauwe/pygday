@@ -88,7 +88,7 @@ class CarbonSoilFlows(object):
         """
         # temperature factor for decomposition
         tempact = self.soil_temp_factor(project_day)
-        rate_scalar = self.state.wtfac_tsoil * tempact
+        rate_scalar = self.state.wtfac_root * tempact
         
         # decay rate of surface structural pool
         self.params.decayrate[0] = (self.params.kdec1 *
@@ -467,9 +467,10 @@ class NitrogenSoilFlows(object):
         
         # gross N mineralisation 
         self.fluxes.ngross = self.calculate_nmineralisation()
-
+        
         # calculate N immobilisation
         self.fluxes.nimmob = self.calculate_nimmobilisation()
+        
         
         # Update model soil N pools
         self.calculate_npools()
@@ -815,7 +816,6 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nrootexudate + self.fluxes.nurine - 
                                self.fluxes.nimmob - self.fluxes.nloss - 
                                self.fluxes.nuptake) + self.fluxes.nlittrelease)
-        
         
     def nclimit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
