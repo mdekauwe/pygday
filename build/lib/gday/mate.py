@@ -94,12 +94,12 @@ class Mate(object):
         (am, pm) = self.am, self.pm # morning/afternoon
         (temp, par, vpd, ca) = self.get_met_data(day)
         Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
-        
+
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(Tk)
         km = self.calculate_michaelis_menten_parameter(Tk)
         N0 = self.calculate_top_of_canopy_n()
-        alpha = self.calculate_quantum_efficiency(temp)
+        
         
         if self.control.modeljm == True: 
             jmax = self.calculate_jmax_parameter(Tk, N0)
@@ -112,6 +112,7 @@ class Mate(object):
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         ci = [i * ca for i in cica]
+        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
         
         # store value as needed in water balance calculation - actually no
         # longer used...
@@ -215,29 +216,48 @@ class Mate(object):
         
         return [self.arrh(gamstar25, Egamma, Tk[k]) for k in am, pm]
     
-    def calculate_quantum_efficiency(self, temp):
-        """ Quantum efficiency for AM/PM periods following Sands 1996, it
-        declines linearly with increasing temperature.
-
-        Parameters:
-        ----------
-        temp : float
-            air temperature
-        alpha0 : float
-            Value of alpha at 20 deg C [umol CO2 m-1 PAR]
-        alpha1 : float
-            temperature sensitivity of alpha [degC-1]
+    #def calculate_quantum_efficiency(self, temp):
+    #    """ Quantum efficiency for AM/PM periods following Sands 1996, it
+    #    declines linearly with increasing temperature.
+    #
+    #    Parameters:
+    #    ----------
+    #    temp : float
+    #        air temperature
+    #    alpha0 : float
+    #        Value of alpha at 20 deg C [umol CO2 m-1 PAR]
+    #    alpha1 : float
+    #        temperature sensitivity of alpha [degC-1]
+    #    
+    #    Returns:
+    #    -------
+    #    alpha : float, list [am, pm]
+    #        mol co2 mol-1 PAR
+    #    """
+    #    # local var for tidyness
+    #    am, pm = self.am, self.pm # morning/afternoon
+    #    alpha0, alpha1 = self.params.alpha0, self.params.alpha1
+    #    
+    #    return [alpha0 * (1.0 - alpha1 * (temp[k] - 20.0)) for k in am, pm]
+    
+    def calculate_quantum_efficiency(self, ci, gamma_star):
+        """ Quantum efficiency for AM/PM periods replacing Sands 1996 
+        temperature dependancy function with eqn. from Medlyn, 2000 which is 
+        based on McMurtrie and Wang 1983.
         
-        Returns:
-        -------
-        alpha : float, list [am, pm]
-            mol co2 mol-1 PAR
+        References:
+        -----------
+        * Medlyn et al. (2000) Can. J. For. Res, 30, 873-888
+        * McMurtrie and Wang (1983) PCE, 16, 1-13.
+        
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        alpha0, alpha1 = self.params.alpha0, self.params.alpha1
+        alpha_j = 0.26 # initial slope
         
-        return [alpha0 * (1.0 - alpha1 * (temp[k] - 20.0)) for k in am, pm]
+        return [self.assim(ci[k], gamma_star[k], a1=alpha_j/4.0, \
+                a2=2.0*gamma_star[k]) for k in am, pm]
+        
     
     def calculate_michaelis_menten_parameter(self, Tk):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
