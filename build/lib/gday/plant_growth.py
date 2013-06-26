@@ -278,11 +278,11 @@ class PlantGrowth(object):
         for the first time or at the end of each year. 
         """
         # JUST here for phase stuff as first year of ele should have last years alloc fracs
-        if init == True:
-            self.state.alleaf = 0.26
-            self.state.alroot = 0.11
-            self.state.albranch = 0.06
-            self.state.alstem = 0.57
+        #if init == True:
+        #    self.state.alleaf = 0.26
+        #    self.state.alroot = 0.11
+        #    self.state.albranch = 0.06
+        #    self.state.alstem = 0.57
         
         # ========================
         # Carbon - fixed fractions
