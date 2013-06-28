@@ -232,7 +232,6 @@ class PlantGrowth(object):
         -----------
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
-        
         self.state.alleaf = (self.params.callocf + nitfac *
                             (self.params.callocf - self.params.callocfz))
           
