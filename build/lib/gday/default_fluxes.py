@@ -48,7 +48,6 @@ cpleaf = None
 cproot = None
 cpbranch = None
 cpstem = None
-cprootexudate = None
 
 # daily N production
 npleaf = None
@@ -56,7 +55,6 @@ nproot = None
 npbranch = None
 npstemimm = None
 npstemmob = None
-nrootexudate = None
 
 # dying stuff
 deadleaves = None   # Leaf litter C production (t/ha/yr)
