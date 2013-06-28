@@ -99,7 +99,7 @@ class Gday(object):
                               self.fluxes, self.met_data)
         
         if self.control.deciduous_model:
-            self.pg.calc_carbon_allocation_fracs(0.0, 0)
+            self.pg.calc_carbon_allocation_fracs(0.0)
             self.pg.allocate_stored_c_and_n(init=True)
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
@@ -173,7 +173,7 @@ class Gday(object):
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
-                                        float(days_in_year[i]), i)
+                                        float(days_in_year[i]))
             
                 # soil C & N model fluxes
                 self.cs.calculate_csoil_flows(project_day)
@@ -181,7 +181,7 @@ class Gday(object):
     
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
-                
+
                 #print self.state.shoot, self.state.lai
                 #print self.fluxes.gpp * 100, self.state.lai
                 # =============== #
@@ -189,7 +189,6 @@ class Gday(object):
                 # =============== #
                 self.save_daily_outputs(yr, doy+1)
                 project_day += 1
-            
             # =============== #
             #   END OF YEAR   #
             # =============== #
@@ -243,8 +242,6 @@ class Gday(object):
         
         if output == False:
             for i in time_constants:
-                
-                
                 setattr(self.params, i, getattr(self.params, i) / conv)
         else:
             for i in time_constants:
@@ -306,7 +303,6 @@ class Gday(object):
             # N Net mineralisation, i.e. excess of N outflows over inflows
             self.fluxes.nmineralisation = (self.fluxes.ninflow +
                                             self.fluxes.ngross +
-                                            self.fluxes.nrootexudate -
                                             self.fluxes.nimmob +
                                             self.fluxes.nlittrelease)
             # calculate NEP

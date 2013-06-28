@@ -54,7 +54,6 @@ g1                = 4.8            # fitted param, slope of reln btw gs and assi
 # set carbon allocation & grazing parameters
 callocf          = 0.25  #allocation to leaves at leaf n_crit
 callocfz         = 0.25  #allocation to leaves at zero leaf n/c
-callocrx         = 0.0   #allocation to root exudate
 callocr          = 0.05  #allocation to roots at root n_crit
 callocrz         = 0.05  #allocation to roots at zero root n/c
 callocb          = 0.2   #allocation to branches at branch n_crit
@@ -75,7 +74,6 @@ bretrans         = 0.0            # branch n retranslocation fraction
 wretrans         = 0.0            # mobile wood N retranslocation fraction
 uo               = 2.737850787E-4 # Supply rate of available N (0.01 kg N m-2 yr-1 to t/ha/day)
 kr               = 0.5            # N uptake coefficent (0.05 kg C m-2 to 0.5 tonnes/ha) see Silvia's PhD
-vxfix            = 0.005          # N fixation per unit rhizodeposition (tonnes N tonnes-1 C)
 
 #set nitrogen allocation parameters
 ncwnewz          = 0.003          #New stem ring N:C at zero leaf N:C (mobile)

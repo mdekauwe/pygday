@@ -62,7 +62,7 @@ class PlantGrowth(object):
                                     top_soil_depth=self.params.top_soil_depth)
    
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
-                        days_in_yr, yr_index):
+                        days_in_yr):
         """Evolve plant state, photosynthesis, distribute N and C"
 
         Parameters:
@@ -85,7 +85,7 @@ class PlantGrowth(object):
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
         
         # figure out the C allocation fractions 
-        self.calc_carbon_allocation_fracs(nitfac, yr_index)
+        self.calc_carbon_allocation_fracs(nitfac)
         
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
@@ -209,7 +209,7 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
     
-    def calc_carbon_allocation_fracs(self, nitfac, yr_index):
+    def calc_carbon_allocation_fracs(self, nitfac):
         """Carbon allocation fractions to move photosynthate through the plant.
 
         Parameters:
@@ -227,50 +227,23 @@ class PlantGrowth(object):
             allocation fraction for branches
         alstem : float
             allocation fraction for stem
-        alroot_exudate : float
-            allocation fraction for root exudate 
        
         References:
         -----------
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
-        
-        #self.state.alleaf = (self.params.callocf + nitfac *
-        #                    (self.params.callocf - self.params.callocfz))
-        
-        if type(self.params.callocr) == type(list()):
-            aw = self.params.callocr[yr_index]
-            awz = self.params.callocrz[yr_index]
-        else:
-            aw = self.params.callocr
-            awz = self.params.callocrz
-    
-        
-        self.state.alroot = aw + nitfac * (aw - awz)
-        
-        if type(self.params.callocf) == type(list()):
-            af = self.params.callocf[yr_index]
-            afz = self.params.callocrz[yr_index]
-        else:
-            af = self.params.callocf
-            afz = self.params.callocfz
-    
-        
-        self.state.alleaf = af + nitfac * (af - afz)
-        
-        #self.state.alroot = (self.params.callocr + nitfac *
-        #                    (self.params.callocr - self.params.callocrz))
+        self.state.alleaf = (self.params.callocf + nitfac *
+                            (self.params.callocf - self.params.callocfz))
+          
+        self.state.alroot = (self.params.callocr + nitfac *
+                            (self.params.callocr - self.params.callocrz))
 
         self.state.albranch = (self.params.callocb + nitfac *
                               (self.params.callocb - self.params.callocbz))
         
-        # Remove some of the allocation to wood and instead allocate it to
-        # root exudation. Following McMurtrie et al. 2000
-        self.state.alroot_exudate = self.params.callocrx
-        
         # allocate remainder to stem
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
-                             self.state.albranch - self.state.alroot_exudate)
+                             self.state.albranch)
         
     def allocate_stored_c_and_n(self, init):
         """
@@ -291,8 +264,6 @@ class PlantGrowth(object):
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
-        #self.state.c_to_alloc_rootexudate = (self.state.alroot_exudate *
-        #                                     self.state.cstore)
         
         #print self.state.alleaf , self.state.alroot, self.state.albranch, self.state.alstem
         
@@ -384,25 +355,12 @@ class PlantGrowth(object):
                                     (1.0 - self.params.rretrans) * 
                                     self.fluxes.deadroots)
             
-            
-            #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
-            #      self.fluxes.nuptake *100.
-            #print self.fluxes.gpp*100, self.state.lai, self.state.root*100, \
-            #      root_depth, self.fluxes.nuptake *100.
-        
-        
-        #print self.fluxes.nuptake* 365.25, self.fluxes.deadroots
-        # N lost from system is proportional to the soil inorganic N pool, 
-        # where the rate constant empirically defines gaseous and leaching 
-        # losses, see McMurtrie et al. 2001.
+           
+        # Mineralised nitrogen lost from the system by volatilisation/leaching
         self.fluxes.nloss = self.params.rateloss * self.state.inorgn
     
         # total nitrogen to allocate 
         ntot = self.fluxes.nuptake + self.fluxes.retrans
-        
-        # N flux into root exudation, see McMurtrie et al. 2000
-        self.fluxes.nrootexudate = (self.fluxes.npp * self.state.alroot_exudate * 
-                                    self.params.vxfix)
         
         if self.control.deciduous_model:
             # allocate N to pools with fixed N:C ratios
@@ -535,25 +493,6 @@ class PlantGrowth(object):
         -----------
         nitfac : float
             leaf N:C as a fraction of 'Ncmaxfyoung' (max 1.0)
-        
-        References:
-        -----------
-        
-        * Hale, M. G. et al. (1981) Factors affecting root exudation and 
-          significance for the rhizosphere ecoystems. Biological and chemical 
-          interactions in the rhizosphere. Stockholm. Sweden: Ecological 
-          Research Committee of NFR. pg. 43--71.
-        * Lambers, J. T. and Poot, P. (2003) Structure and Functioning of 
-          Cluster Roots and Plant Responses to Phosphate Deficiency.
-        * Martin, J. K. and Puckjeridge, D. W. (1982) Carbon flow through the 
-          rhizosphere of wheat crops in South Australia. The cyclcing of carbon,
-          nitrogen, sulpher and phosphorous in terrestrial and aquatic
-          ecosystems. Canberra: Australian Academy of Science. pg 77--82.
-        * McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
-        
-        Also see:
-        * Rovira, A. D. (1969) Plant Root Exudates. Botanical Review, 35, 
-          pg 35--57.
         """
         if self.control.deciduous_model:
             days_left = self.state.growing_days[doy]
@@ -566,14 +505,6 @@ class PlantGrowth(object):
             self.fluxes.cproot = self.fluxes.npp * self.state.alroot
             self.fluxes.cpbranch = self.fluxes.npp * self.state.albranch
             self.fluxes.cpstem = self.fluxes.npp * self.state.alstem
-        
-        # C flux into root exudation, see McMurtrie et al. 2000. There is no 
-        # reference given for the 0.15 in McM, however 14c work by Hale et al and
-        # Martin and Puckeridge suggest values range between 10-20% of NPP. So
-        # presumably this is where this values of 0.15 (i.e. the average) comes
-        # from
-        self.fluxes.cprootexudate = self.fluxes.npp * self.state.alroot_exudate
-        #self.fluxes.cprootexudate = 0.0
         
         # evaluate SLA of new foliage accounting for variation in SLA 
         # with tree and leaf age (Sands and Landsberg, 2002). Assume 
@@ -676,9 +607,7 @@ class PlantGrowth(object):
                                 self.state.stemnmob -
                                 self.params.retransmob * self.state.stemnmob)
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
-        #self.state.exu_pool += self.fluxes.cprootexudate
-        #self.fluxes.microbial_resp = self.calc_microbial_resp(project_day)
-        #self.state.exu_pool -= self.fluxes.microbial_resp        
+
         if self.control.deciduous_model:
             self.calculate_cn_store()
         
