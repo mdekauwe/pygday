@@ -243,12 +243,12 @@ class Mate(object):
     def calculate_quantum_efficiency(self, ci, gamma_star):
         """ Quantum efficiency for AM/PM periods replacing Sands 1996 
         temperature dependancy function with eqn. from Medlyn, 2000 which is 
-        based on McMurtrie and Wang 1983.
+        based on McMurtrie and Wang 1993.
         
         References:
         -----------
         * Medlyn et al. (2000) Can. J. For. Res, 30, 873-888
-        * McMurtrie and Wang (1983) PCE, 16, 1-13.
+        * McMurtrie and Wang (1993) PCE, 16, 1-13.
         
         """
         # local var for tidyness

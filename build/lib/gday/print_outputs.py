@@ -129,7 +129,7 @@ class PrintOutput(object):
                   'fmfaeces', 'light_interception', 'wtfac_tsoil', \
                   'wtfac_root', 'remaining_days', 'growing_days', \
                   'leaf_out_days', 'albranch', 'alleaf', 'alroot', \
-                  'alroot_exudate', 'alstem', 'c_to_alloc_branch', \
+                  'alstem', 'c_to_alloc_branch', \
                   'c_to_alloc_root', 'c_to_alloc_shoot', 'c_to_alloc_stem', \
                   'n_to_alloc_branch', 'n_to_alloc_root', 'n_to_alloc_shoot',\
                    'n_to_alloc_stem', 'ncontent']
