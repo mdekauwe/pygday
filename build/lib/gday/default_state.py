@@ -59,7 +59,6 @@ alleaf = 0.0
 alroot = 0.0
 albranch = 0.0
 alstem = 0.0
-alroot_exudate = 0.0
 
 
 # decid model

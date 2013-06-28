@@ -272,8 +272,7 @@ class CarbonSoilFlows(object):
         self.fluxes.cresid[2] = (self.fluxes.deadleaves * self.params.fmleaf +
                                  self.fluxes.faecesc * self.params.fmfaeces)
         # -> into metabolic soil
-        self.fluxes.cresid[3] = (self.fluxes.deadroots * self.params.fmroot + 
-                                 self.fluxes.cprootexudate)
+        self.fluxes.cresid[3] = self.fluxes.deadroots * self.params.fmroot
 
     def cfluxes_from_struct_pool(self):
         """C fluxes from structural pools """
@@ -813,9 +812,9 @@ class NitrogenSoilFlows(object):
         # (grazer urine n goes directly into inorganic pool) nb inorgn may be
         # unstable if rateuptake is large
         self.state.inorgn += ((self.fluxes.ngross + self.fluxes.ninflow + 
-                               self.fluxes.nrootexudate + self.fluxes.nurine - 
-                               self.fluxes.nimmob - self.fluxes.nloss - 
-                               self.fluxes.nuptake) + self.fluxes.nlittrelease)
+                               self.fluxes.nurine - self.fluxes.nimmob - 
+                               self.fluxes.nloss - self.fluxes.nuptake) + 
+                               self.fluxes.nlittrelease)
         
     def nclimit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep

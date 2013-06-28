@@ -9,6 +9,7 @@ __version__ = "1.0 (01.03.2013)"
 __email__   = "mdekauwe@gmail.com"
 
 
+
 class RootingDepthModel(object):
     """ Ross's Optimal rooting depth model.
     
@@ -304,6 +305,8 @@ if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
     from matplotlib.backends.backend_pdf import PdfPages
+    
+    
     
     # Create the PdfPages object to which we will save the pages:
     pdf = PdfPages('/Users/mdekauwe/Desktop/root_model_test.pdf')
