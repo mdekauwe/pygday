@@ -89,7 +89,7 @@ class CarbonSoilFlows(object):
         
         # abiotic decomposition factor - impact of soil moisture 
         # and soil temperature on microbial activity
-        adf = self.state.wtfac_root * self.soil_temp_factor(project_day)
+        adfac = self.state.wtfac_root * self.soil_temp_factor(project_day)
         
         # soil texture effect (silt + clay content)
         soil_text = 1.0 - (0.75 * self.params.finesoil)
@@ -99,25 +99,25 @@ class CarbonSoilFlows(object):
         lignin_cont_root = exp(-3.0 * self.params.ligroot)
         
         # decay rate of surface structural pool
-        self.params.decayrate[0] = self.params.kdec1 * lignin_cont_leaf * adf
+        self.params.decayrate[0] = self.params.kdec1 * lignin_cont_leaf * adfac
                                    
         # decay rate of surface metabolic pool
-        self.params.decayrate[1] = self.params.kdec2 * adf
+        self.params.decayrate[1] = self.params.kdec2 * adfac
 
         # decay rate of soil structural pool
-        self.params.decayrate[2] = self.params.kdec3 * lignin_cont_root * adf
+        self.params.decayrate[2] = self.params.kdec3 * lignin_cont_root * adfac
 
         # decay rate of soil metabolic pool
-        self.params.decayrate[3] = self.params.kdec4 * adf
+        self.params.decayrate[3] = self.params.kdec4 * adfac
 
         # decay rate of active pool
-        self.params.decayrate[4] = self.params.kdec5 * soil_text * adf
+        self.params.decayrate[4] = self.params.kdec5 * soil_text * adfac
                                         
         # decay rate of slow pool
-        self.params.decayrate[5] = self.params.kdec6 * adf
+        self.params.decayrate[5] = self.params.kdec6 * adfac
 
         # decay rate of passive pool
-        self.params.decayrate[6] = self.params.kdec7 * adf
+        self.params.decayrate[6] = self.params.kdec7 * adfac
 
     def soil_temp_factor(self, project_day):
         """Soil-temperature activity factor (A9).
@@ -208,7 +208,7 @@ class CarbonSoilFlows(object):
             ncleaf = self.fluxes.deadleafn / self.fluxes.deadleaves
         
         if self.control.use_eff_nc:
-            nceleaf = self.params.liteffnc  * (1. - self.params.fretrans)
+            nceleaf = self.params.liteffnc  * (1.0 - self.params.fretrans)
         else:
             nceleaf = ncleaf
 
@@ -248,10 +248,8 @@ class CarbonSoilFlows(object):
         Returns:
         --------
         metabolic fraction : float
-            partitioned fraction to metabolic pool
-
+            partitioned fraction to metabolic pool [must be positive]
         """
-        # metabolic fraction of litter must be above zero
         return max(0.0, 0.85 - (0.018 * lig2n))
         
     def cflux_from_plants(self):
