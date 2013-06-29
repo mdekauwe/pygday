@@ -91,7 +91,8 @@ class CarbonSoilFlows(object):
         # and soil temperature on microbial activity
         adfac = self.state.wtfac_root * self.soil_temp_factor(project_day)
         
-        # soil texture effect (silt + clay content)
+        # Effect of soil texture (silt + clay content) on active SOM turnover
+        # -> higher turnover for sandy soils
         soil_text = 1.0 - (0.75 * self.params.finesoil)
         
         # Impact of lignin content
@@ -120,7 +121,7 @@ class CarbonSoilFlows(object):
         self.params.decayrate[6] = self.params.kdec7 * adfac
 
     def soil_temp_factor(self, project_day):
-        """Soil-temperature activity factor (A9).
+        """Soil-temperature activity factor (A9). Fit to Parton's fig 2a 
 
         Parameters:
         -----------
@@ -343,9 +344,7 @@ class CarbonSoilFlows(object):
                                      self.params.decayrate[6] * 0.55)
 
         # total co2 production
-        self.fluxes.hetero_resp = (sum(self.fluxes.co2_to_air) + 
-                                   self.fluxes.microbial_resp)
-
+        self.fluxes.hetero_resp = sum(self.fluxes.co2_to_air)
 
         # insert following line so value of resp obeys c conservn if fix
         # passive pool
@@ -661,8 +660,6 @@ class NitrogenSoilFlows(object):
         nimob : float
             N immobilsed
         """
-        conv = const.M2_AS_HA / const.G_AS_TONNES
-        
         # N:C new SOM - active, slow and passive
         self.state.actncslope = self.calculate_nc_slope(self.params.actncmax, 
                                                         self.params.actncmin)
