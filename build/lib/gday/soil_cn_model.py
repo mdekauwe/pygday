@@ -86,36 +86,38 @@ class CarbonSoilFlows(object):
             current simulation day (index)
 
         """
-        # temperature factor for decomposition
-        tempact = self.soil_temp_factor(project_day)
-        rate_scalar = self.state.wtfac_root * tempact
+        
+        # abiotic decomposition factor - impact of soil moisture 
+        # and soil temperature on microbial activity
+        adf = self.state.wtfac_root * self.soil_temp_factor(project_day)
+        
+        # soil texture effect (silt + clay content)
+        soil_text = 1.0 - (0.75 * self.params.finesoil)
+        
+        # Impact of lignin content
+        lignin_cont_leaf = exp(-3.0 * self.params.ligshoot)
+        lignin_cont_root = exp(-3.0 * self.params.ligroot)
         
         # decay rate of surface structural pool
-        self.params.decayrate[0] = (self.params.kdec1 *
-                                    exp(-3. * self.params.ligshoot) *
-                                    rate_scalar)
-        
+        self.params.decayrate[0] = self.params.kdec1 * lignin_cont_leaf * adf
+                                   
         # decay rate of surface metabolic pool
-        self.params.decayrate[1] = self.params.kdec2 * rate_scalar
+        self.params.decayrate[1] = self.params.kdec2 * adf
 
         # decay rate of soil structural pool
-        self.params.decayrate[2] = (self.params.kdec3 * 
-                                    exp(-3.0 * self.params.ligroot) * 
-                                    rate_scalar)
+        self.params.decayrate[2] = self.params.kdec3 * lignin_cont_root * adf
 
         # decay rate of soil metabolic pool
-        self.params.decayrate[3] = self.params.kdec4 * rate_scalar
+        self.params.decayrate[3] = self.params.kdec4 * adf
 
         # decay rate of active pool
-        self.params.decayrate[4] = (self.params.kdec5 *
-                                    (1.0 - 0.75 * self.params.finesoil) *
-                                    rate_scalar)
+        self.params.decayrate[4] = self.params.kdec5 * soil_text * adf
                                         
         # decay rate of slow pool
-        self.params.decayrate[5] = self.params.kdec6 * rate_scalar
+        self.params.decayrate[5] = self.params.kdec6 * adf
 
         # decay rate of passive pool
-        self.params.decayrate[6] = self.params.kdec7 * rate_scalar
+        self.params.decayrate[6] = self.params.kdec7 * adf
 
     def soil_temp_factor(self, project_day):
         """Soil-temperature activity factor (A9).
@@ -668,38 +670,38 @@ class NitrogenSoilFlows(object):
         self.state.actncslope = self.calculate_nc_slope(self.params.actncmax, 
                                                         self.params.actncmin)
         self.state.slowncslope = self.calculate_nc_slope(self.params.slowncmax, 
-                                                        self.params.slowncmin)
+                                                         self.params.slowncmin)
         self.state.passncslope = self.calculate_nc_slope(self.params.passncmax, 
-                                                        self.params.passncmin) 
-        
+                                                         self.params.passncmin) 
+
         nmin = self.params.nmin0 * const.G_M2_2_TONNES_HA
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
                 (self.params.passncmin - self.state.passncslope * nmin))
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
-                self.fluxes.cactive[0]) *
+                 self.fluxes.cactive[0]) *
                 (self.params.slowncmin - self.state.slowncslope * nmin))
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
-                sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                self.fluxes.passive) * (self.params.actncmin - 
-                self.state.actncslope * nmin))
+                 sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                 self.fluxes.passive) * (self.params.actncmin - 
+                 self.state.actncslope * nmin))
         numer1 = arg1 + arg2 + arg3
         
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
-                self.params.passncmax)
+                 self.params.passncmax)
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
-                self.fluxes.cactive[0]) * self.params.slowncmax)
+                 self.fluxes.cactive[0]) * self.params.slowncmax)
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
-                sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                self.fluxes.passive) * self.params.actncmax)
+                 sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                 self.fluxes.passive) * self.params.actncmax)
         numer2 = arg1 + arg2 + arg3
 
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) * 
-                self.state.passncslope)
+                 self.state.passncslope)
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
-                self.fluxes.cactive[0]) * self.state.slowncslope)
+                 self.fluxes.cactive[0]) * self.state.slowncslope)
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
-                sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                self.fluxes.passive) * self.state.actncslope)
+                 sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
+                 self.fluxes.passive) * self.state.actncslope)
         denom = arg1 + arg2 + arg3
         
         # evaluate N immobilisation in new SOM
