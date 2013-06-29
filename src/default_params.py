@@ -118,12 +118,12 @@ kdec6            = 0.198279       #slow pool decay rate (1/yr)
 kdec7            = 0.006783       #passive pool decay rate (1/yr)
 
 # Set N:C ratios of soil pools [units: g/m2]
-actncmax         = 0.333333  # Active pool (=1/3) N:C ratio of new SOM - maximum [units: g/m2]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
-actnc0           = 0.066667  # Active pool (=1/15) N:C of new SOM - when Nmin=Nmin0 [units: g/m2]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
-slowncmax        = 0.066667  # Slow pool (=1/15) N:C ratio of new SOM - maximum [units: g/m2]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
-slownc0          = 0.025     # Slow pool (=1/40) N:C of new SOM - when Nmin=Nmin0" [units: g/m2]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
-passncmax        = 0.142857  # Passive pool (=1/7) N:C ratio of new SOM - maximum [units: g/m2]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
-passnc0          = 0.1       # Passive pool (=1/10) N:C of new SOM - when Nmin=Nmin0 [units: g/m2]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
+actncmax         = 0.333333  # Active pool (=1/3) N:C ratio of new SOM - maximum [units: gN/gC]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
+actncmin         = 0.066667  # Active pool (=1/15) N:C of new SOM - when Nmin=Nmin0 [units: gN/gC]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
+slowncmax        = 0.066667  # Slow pool (=1/15) N:C ratio of new SOM - maximum [units: gN/gC]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
+slowncmin        = 0.025     # Slow pool (=1/40) N:C of new SOM - when Nmin=Nmin0" [units: gN/gC]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
+passncmax        = 0.142857  # Passive pool (=1/7) N:C ratio of new SOM - maximum [units: gN/gC]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
+passncmin        = 0.1       # Passive pool (=1/10) N:C of new SOM - when Nmin=Nmin0 [units: gN/gC]. Based on forest version of CENTURY (Parton et al. 1993), see Appendix, McMurtrie 2001, Tree Physiology.
 nmincrit         = 2.0       # Critical mineral N pool at max soil N:C (g/m2) (Parton et al 1993, McMurtrie et al 2001).
 nmin0            = 0.0       # Mineral N pool corresponding to Actnc0,etc (g/m2)
 

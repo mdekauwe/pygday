@@ -251,11 +251,11 @@ class PlantGrowth(object):
         for the first time or at the end of each year. 
         """
         # JUST here for phase stuff as first year of ele should have last years alloc fracs
-        #if init == True:
-        #    self.state.alleaf = 0.26
-        #    self.state.alroot = 0.11
-        #    self.state.albranch = 0.06
-        #    self.state.alstem = 0.57
+        if init == True:
+            self.state.alleaf = 0.26
+            self.state.alroot = 0.11
+            self.state.albranch = 0.06
+            self.state.alstem = 0.57
         
         # ========================
         # Carbon - fixed fractions
@@ -543,13 +543,15 @@ class PlantGrowth(object):
         if self.state.shoot < tolerance:
             self.fluxes.deadleaves += self.state.shoot
             self.fluxes.deadleafn += self.state.shootn
-            self.fluxes.deadbranch += self.state.branch
-            self.fluxes.deadbranchn += self.state.branchn
             self.state.shoot = 0.0 
             self.state.shootn = 0.0 
+            
+        if self.state.branch < tolerance:
+            self.fluxes.deadbranch += self.state.branch
+            self.fluxes.deadbranchn += self.state.branchn
             self.state.branch = 0.0
             self.state.branchn = 0.0
-        
+
         if self.state.root < tolerance:
             self.fluxes.deadrootn += self.state.rootn
             self.fluxes.deadroots += self.state.root

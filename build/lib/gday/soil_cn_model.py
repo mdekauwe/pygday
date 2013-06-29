@@ -8,7 +8,7 @@ Passive pool -> very resistant to decomp, turnover time of > 400 yrs.
 """
 
 from math import exp
-
+import sys
 import constants as const
 from utilities import float_eq, float_lt, float_le, float_gt, float_ge
 
@@ -646,7 +646,7 @@ class NitrogenSoilFlows(object):
         """ Calculated N immobilised in new soil organic matter
         
          General equation for new soil N:C ratio vs Nmin, expressed as linear 
-         equation passing through point Nmin0, actnc0 (etc). Values can be 
+         equation passing through point Nmin0, actncmin (etc). Values can be 
          Nmin0=0, Actnc0=Actncmin 
          
          if Nmin < Nmincrit:
@@ -666,26 +666,24 @@ class NitrogenSoilFlows(object):
         
         # N:C new SOM - active, slow and passive
         self.state.actncslope = self.calculate_nc_slope(self.params.actncmax, 
-                                                        self.params.actnc0)
+                                                        self.params.actncmin)
         self.state.slowncslope = self.calculate_nc_slope(self.params.slowncmax, 
-                                                        self.params.slownc0)
+                                                        self.params.slowncmin)
         self.state.passncslope = self.calculate_nc_slope(self.params.passncmax, 
-                                                        self.params.passnc0) 
+                                                        self.params.passncmin) 
         
+        nmin = self.params.nmin0 * const.G_M2_2_TONNES_HA
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
-                (self.params.passnc0 - self.state.passncslope * 
-                self.params.nmin0 / conv))
+                (self.params.passncmin - self.state.passncslope * nmin))
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
                 self.fluxes.cactive[0]) *
-                (self.params.slownc0 - self.state.slowncslope *
-                self.params.nmin0 / conv))
+                (self.params.slowncmin - self.state.slowncslope * nmin))
         arg3 = ((self.fluxes.cstruct[1] + self.fluxes.cstruct[3] +
                 sum(self.fluxes.cmetab) + self.fluxes.cslow[0] +
-                self.fluxes.passive) * (self.params.actnc0 - 
-                self.state.actncslope * self.params.nmin0 / conv))
+                self.fluxes.passive) * (self.params.actncmin - 
+                self.state.actncslope * nmin))
         numer1 = arg1 + arg2 + arg3
-
-
+        
         arg1 = ((self.fluxes.cactive[1] + self.fluxes.cslow[1]) *
                 self.params.passncmax)
         arg2 = ((self.fluxes.cstruct[0] + self.fluxes.cstruct[2] +
@@ -714,10 +712,10 @@ class NitrogenSoilFlows(object):
     def calculate_nc_slope(self, pool_ncmax, pool_ncmin):
         """ Returns N:C ratio of the mineral pool slope """
         arg1 = (pool_ncmax - pool_ncmin)
-        arg2 = (self.params.nmincrit - self.params.nmin0) 
-        arg3 = const.M2_AS_HA / const.G_AS_TONNES
+        arg2 = ((self.params.nmincrit - self.params.nmin0) * 
+                 const.G_M2_2_TONNES_HA)
         
-        return arg1 / arg2 * arg3 #slope
+        return arg1 / arg2 
     
     def calculate_npools(self):
         """ Calculate new soil N pools. """
@@ -787,21 +785,21 @@ class NitrogenSoilFlows(object):
         arg = (self.state.inorgn - self.params.nmin0 / const.M2_AS_HA * 
                 const.G_AS_TONNES)
         # active
-        actnc = self.params.actnc0 + self.state.actncslope * arg
+        actnc = self.params.actncmin + self.state.actncslope * arg
         if float_gt(actnc, self.params.actncmax):
             actnc = self.params.actncmax
         fixn = ncflux(self.fluxes.cact, nact, actnc)
         self.state.activesoiln += nact + fixn - lact
 
         # slow
-        slownc = self.params.slownc0 + self.state.slowncslope * arg
+        slownc = self.params.slowncmin + self.state.slowncslope * arg
         if float_gt(slownc, self.params.slowncmax):
             slownc = self.params.slowncmax
         fixn = ncflux(self.fluxes.cslo, nslo, slownc)
         self.state.slowsoiln += nslo + fixn - lslo
 
         # passive
-        passnc = self.params.passnc0 + self.state.passncslope * arg
+        passnc = self.params.passncmin + self.state.passncslope * arg
         if float_gt(passnc, self.params.passncmax):
             passnc = self.params.passncmax
         fixn = ncflux(self.fluxes.cpas, npas, passnc)
