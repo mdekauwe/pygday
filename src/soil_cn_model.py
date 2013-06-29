@@ -252,8 +252,7 @@ class CarbonSoilFlows(object):
 
         """
         # metabolic fraction of litter must be above zero
-        return max(0.0, self.params.metfrac0 + (self.params.metfrac1 * lig2n))
-        
+        return max(0.0, 0.85 - (0.018 * lig2n))
         
     def cflux_from_plants(self):
         """ C flux from plants into soil/surface struct and metabolic pools """
@@ -315,7 +314,7 @@ class CarbonSoilFlows(object):
                                      self.params.decayrate[3] * 0.55)
 
         # c fluxes from active pool
-        self.fluxes.activelossf = 0.85 - 0.68 * self.params.finesoil
+        self.fluxes.activelossf = 0.85 - (0.68 * self.params.finesoil)
         activeout = self.state.activesoil * self.params.decayrate[4]
 
         # -> slow
