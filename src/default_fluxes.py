@@ -82,7 +82,7 @@ cact = 0.0 # C source flux from the active pool
 cslo = 0.0 # C source flux from the slow pool
 cpas = 0.0 # C source flux from the passive pool
 
-# C flows to the air
+# Microbial respiration -> CO2
 co2_to_air = [None] * 7 
 
 cactive = [None] * 2 # C active -> slow/passive
