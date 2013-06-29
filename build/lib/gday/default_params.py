@@ -104,8 +104,6 @@ ligshoot         = 0.25           #shoot litter lignin as fraction of c
 ligroot          = 0.25           #root litter lignin as fraction of c
 brabove          = 0.5            #above-ground fraction of branch pool litter
 structcn         = 150.0          #C:N ratio of structural bit of litter input
-metfrac0         = 0.85           #litter metabolic fraction
-metfrac1         = -0.018         #litter metabolic fraction
 structrat        = 0.0            #structural input n:c as fraction of metab
 
 #set decomposition parameters - converted from yr to day in model!
