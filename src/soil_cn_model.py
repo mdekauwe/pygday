@@ -481,9 +481,6 @@ class NitrogenSoilFlows(object):
         # calculate N net mineralisation
         self.fluxes.nmineralisation = self.calc_nmin()
         
-        #NBAL = (NFIX + NDEP)  - (NVOL + NLEACH)
-        
-        
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
         if self.control.grazing:
@@ -719,7 +716,7 @@ class NitrogenSoilFlows(object):
     
     def calc_nmin(self):
         """ N Net mineralisation, i.e. excess of N outflows over inflows """
-        return (self.fluxes.ninflow + self.fluxes.ngross + self.fluxes.nimmob +
+        return (self.fluxes.ninflow + self.fluxes.ngross - self.fluxes.nimmob +
                 self.fluxes.nlittrelease)
     
     def calculate_nc_slope(self, pool_ncmax, pool_ncmin):
