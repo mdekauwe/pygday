@@ -250,7 +250,7 @@ class PlantGrowth(object):
         Allocate stored C&N. This is either down as the model is initialised 
         for the first time or at the end of each year. 
         """
-        # JUST here for phase stuff as first year of ele should have last years alloc fracs
+        # JUST here for FACE stuff as first year of ele should have last years alloc fracs
         #if init == True:
         #    self.state.alleaf = 0.26
         #    self.state.alroot = 0.11
@@ -329,15 +329,15 @@ class PlantGrowth(object):
         self.fluxes.nuptake = self.calculate_nuptake()
         
         # Ross's Root Model.
-        # NOT WORKING YET
-        
         if self.control.model_optroot == True:    
             
             # convert t ha-1 day-1 to gN m-2 year-1
-            nsupply = self.calculate_nuptake() * const.TONNES_HA_2_G_M2 * 365.25
+            nsupply = (self.calculate_nuptake() * const.TONNES_HA_2_G_M2 * 
+                       const.DAYS_IN_YRS)
             
-            # covnert t ha-1 to kg m-2
-            rtot = self.state.root * const.TONNES_HA_2_KG_M2
+            # covnert t ha-1 to kg DM m-2
+            rtot = (self.state.root * const.TONNES_HA_2_KG_M2 / 
+                    self.params.cfracts)
             
             (self.state.root_depth, 
              self.fluxes.nuptake,
@@ -345,15 +345,17 @@ class PlantGrowth(object):
             
             
             # covert nuptake from gN m-2 year-1  to t ha-1 day-1
-            self.fluxes.nuptake = self.fluxes.nuptake * const.G_M2_2_TONNES_HA / 365.25
+            self.fluxes.nuptake = (self.fluxes.nuptake * 
+                                   const.G_M2_2_TONNES_HA * const.YRS_IN_DAYS)
             
-            # covert from kg N m-2 to t ha-1
+            # covert from kg DM N m-2 to t ha-1
             self.fluxes.deadroots = (self.params.rdecay * self.fluxes.rabove * 
+                                     self.params.cfracts * 
                                      const.KG_M2_2_TONNES_HA)
             
             self.fluxes.deadrootn = (self.state.rootnc * 
                                     (1.0 - self.params.rretrans) * 
-                                    self.fluxes.deadroots)
+                                     self.fluxes.deadroots)
             
            
         # Mineralised nitrogen lost from the system by volatilisation/leaching
