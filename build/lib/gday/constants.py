@@ -48,7 +48,8 @@ TONNES_HA_2_KG_M2 = 0.1
 TONNES_HA_2_G_M2 = 100.0
 G_M2_2_TONNES_HA = 0.01
 KG_M2_2_TONNES_HA = 10.0
-
+YRS_IN_DAYS = 1.0 / 365.25
+DAYS_IN_YRS = 365.25
 # Converts conductance from units of mol m-2 s-1 to m s-1 at 25 degC
 # See Jones Appendix 3 or Diaz et al 2007.
 CONV_CONDUCT = 0.0245

@@ -121,7 +121,7 @@ class CarbonSoilFlows(object):
         self.params.decayrate[6] = self.params.kdec7 * adfac
 
     def soil_temp_factor(self, project_day):
-        """Soil-temperature activity factor (A9).
+        """Soil-temperature activity factor (A9). Fit to Parton's fig 2a 
 
         Parameters:
         -----------
@@ -660,8 +660,6 @@ class NitrogenSoilFlows(object):
         nimob : float
             N immobilsed
         """
-        conv = const.M2_AS_HA / const.G_AS_TONNES
-        
         # N:C new SOM - active, slow and passive
         self.state.actncslope = self.calculate_nc_slope(self.params.actncmax, 
                                                         self.params.actncmin)
