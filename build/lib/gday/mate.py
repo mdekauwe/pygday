@@ -216,30 +216,6 @@ class Mate(object):
         
         return [self.arrh(gamstar25, Egamma, Tk[k]) for k in am, pm]
     
-    #def calculate_quantum_efficiency(self, temp):
-    #    """ Quantum efficiency for AM/PM periods following Sands 1996, it
-    #    declines linearly with increasing temperature.
-    #
-    #    Parameters:
-    #    ----------
-    #    temp : float
-    #        air temperature
-    #    alpha0 : float
-    #        Value of alpha at 20 deg C [umol CO2 m-1 PAR]
-    #    alpha1 : float
-    #        temperature sensitivity of alpha [degC-1]
-    #    
-    #    Returns:
-    #    -------
-    #    alpha : float, list [am, pm]
-    #        mol co2 mol-1 PAR
-    #    """
-    #    # local var for tidyness
-    #    am, pm = self.am, self.pm # morning/afternoon
-    #    alpha0, alpha1 = self.params.alpha0, self.params.alpha1
-    #    
-    #    return [alpha0 * (1.0 - alpha1 * (temp[k] - 20.0)) for k in am, pm]
-    
     def calculate_quantum_efficiency(self, ci, gamma_star):
         """ Quantum efficiency for AM/PM periods replacing Sands 1996 
         temperature dependancy function with eqn. from Medlyn, 2000 which is 
@@ -255,6 +231,9 @@ class Mate(object):
         am, pm = self.am, self.pm # morning/afternoon
         alpha_j = 0.26 # initial slope
         
+        # McM '08
+        #return [0.07 * (ca - gamma_star[k]) / (cia  + (2.0*gamma_star[k])) \
+        #        for k in am, pm]
         return [self.assim(ci[k], gamma_star[k], a1=alpha_j/4.0, \
                 a2=2.0*gamma_star[k]) for k in am, pm]
         
