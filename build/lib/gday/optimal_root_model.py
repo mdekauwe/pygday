@@ -250,12 +250,6 @@ class RootingDepthModel(object):
         Umax = self.calc_umax(nsupply)
         arg2 = (1.0 - exp(-root_depth / (2.0 * self.d0)))**2
         
-        
-        # Eqn B7
-        #arg3 = nsup * d0
-        #arg4 = (1.0 - exp(-root_depth/top_soil_depth))**2
-        #print arg1 * arg2, arg3*arg4 
-        
         return Umax * arg2   
     
     def calc_umax(self, nsupply):
