@@ -69,6 +69,10 @@ class CarbonSoilFlows(object):
         # update the C pools
         self.calculate_cpools()
         
+        # calculate NEP
+        self.fluxes.nep = (self.fluxes.npp - self.fluxes.hetero_resp -
+                           self.fluxes.ceaten * (1. - self.params.fracfaeces))
+        
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
         and moisture dependency. Note same temperature is assumed for all 3 
@@ -425,7 +429,7 @@ class CarbonSoilFlows(object):
                     
 class NitrogenSoilFlows(object):
     """ Calculate daily nitrogen fluxes"""
-    def __init__(self, control, params, state, fluxes):
+    def __init__(self, control, params, state, fluxes, met_data):
         """
         Parameters
         ----------
@@ -443,9 +447,12 @@ class NitrogenSoilFlows(object):
         self.fluxes = fluxes
         self.control = control
         self.state = state
+        self.met_data = met_data
 
-    def calculate_nsoil_flows(self):
-
+    def calculate_nsoil_flows(self, project_day):
+        
+        self.fluxes.ninflow = self.met_data['ndep'][project_day]
+        
         self.grazer_inputs()
         (nsurf, nsoil) = self.inputs_from_plant_litter()
         self.inputs_from_structrual_pool(nsurf, nsoil)
@@ -468,9 +475,14 @@ class NitrogenSoilFlows(object):
         # calculate N immobilisation
         self.fluxes.nimmob = self.calculate_nimmobilisation()
         
-        
         # Update model soil N pools
         self.calculate_npools()
+        
+        # calculate N net mineralisation
+        self.fluxes.nmineralisation = self.calc_nmin()
+        
+        #NBAL = (NFIX + NDEP)  - (NVOL + NLEACH)
+        
         
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
@@ -704,7 +716,12 @@ class NitrogenSoilFlows(object):
             nimmob = numer2
         
         return nimmob
- 
+    
+    def calc_nmin(self):
+        """ N Net mineralisation, i.e. excess of N outflows over inflows """
+        return (self.fluxes.ninflow + self.fluxes.ngross + self.fluxes.nimmob +
+                self.fluxes.nlittrelease)
+    
     def calculate_nc_slope(self, pool_ncmax, pool_ncmin):
         """ Returns N:C ratio of the mineral pool slope """
         arg1 = (pool_ncmax - pool_ncmin)
@@ -844,8 +861,6 @@ class NitrogenSoilFlows(object):
             return fix
         else:
             return 0.0 
-
-    
     
     def precision_control(self, tolerance=1E-08):
         """ Detect very low values in state variables and force to zero to 
