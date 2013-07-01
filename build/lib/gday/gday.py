@@ -93,7 +93,7 @@ class Gday(object):
         self.cs = CarbonSoilFlows(self.control, self.params, self.state,
                                   self.fluxes, self.met_data)
         self.ns = NitrogenSoilFlows(self.control, self.params, self.state,
-                                    self.fluxes)
+                                    self.fluxes, self.met_data)
         self.lf = Litter(self.control, self.params, self.state, self.fluxes)
         self.pg = PlantGrowth(self.control, self.params, self.state,
                               self.fluxes, self.met_data)
@@ -177,7 +177,7 @@ class Gday(object):
             
                 # soil C & N model fluxes
                 self.cs.calculate_csoil_flows(project_day)
-                self.ns.calculate_nsoil_flows()
+                self.ns.calculate_nsoil_flows(project_day)
     
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
@@ -259,8 +259,6 @@ class Gday(object):
             logical defining whether it is the first day of the simulation
 
         """
-        self.fluxes.ninflow = self.met_data['ndep'][prjday]
-        
         # update N:C of plant pools
         if float_eq(self.state.shoot, 0.0):
             self.state.shootnc = 0.0
@@ -299,17 +297,7 @@ class Gday(object):
         if INIT == False:
             #Required so max leaf & root N:C can depend on Age
             self.state.age += 1.0 / days_in_year
-
-            # N Net mineralisation, i.e. excess of N outflows over inflows
-            self.fluxes.nmineralisation = (self.fluxes.ninflow +
-                                            self.fluxes.ngross +
-                                            self.fluxes.nimmob +
-                                            self.fluxes.nlittrelease)
-            # calculate NEP
-            self.fluxes.nep = (self.fluxes.npp - self.fluxes.hetero_resp -
-                               self.fluxes.ceaten * 
-                               (1. - self.params.fracfaeces))
-                           
+               
     def save_daily_outputs(self, year, doy):
         """ Save the daily fluxes + state in a big list.
 
