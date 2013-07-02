@@ -38,14 +38,36 @@ def main(experiment_id):
     met_fname = os.path.join(met_dir, mtag)
     out_fname = os.path.join(run_dir, out_fn)
     replace_dict = { 
-                     "out_param_fname": '"%s"' % (out_param_fname),
-                     "cfg_fname": '"%s"' % (cfg_fname),
-                     "met_fname": '"%s"' % (met_fname),
-                     "out_fname": '"%s"' % (out_fname),
-                     "age": "12.0",
-                     "print_options": '"daily"',
-                     "co2_conc": '"AMB"',
-                     "canht": "17.0",   # m
+                     # files
+                         "out_param_fname": '"%s"' % (out_param_fname),
+                         "cfg_fname": '"%s"' % (cfg_fname),
+                         "met_fname": '"%s"' % (met_fname),
+                         "out_fname": '"%s"' % (out_fname),
+                         
+                         # state 
+                         "age": "14.0",
+                          
+                             
+                         # parameters
+                         "previous_ncd": "35.0",
+                         
+                         # control
+                         "assim_model": '"mate"',
+                         "calc_sw_params": "0",   #0 uses fwp values, 1= derive them
+                         "deciduous_model": '"true"',
+                         "fixed_stem_nc": "1",
+                         "fixleafnc": '"false"',
+                         "grazing": '"false"',
+                         "model_optroot": '"false"',
+                         "modeljm": '"true"',
+                         "nuptake_model": "1",
+                         "passiveconst": '"false"',
+                         "print_options": '"daily"',
+                         "strfloat": "0",
+                         "trans_model": "1",
+                         "use_eff_nc": "0",
+                         "use_leuning": "0",
+                         "water_stress": '"true"',
                     }
     ad.adjust_param_file(cfg_fname, replace_dict)
     
