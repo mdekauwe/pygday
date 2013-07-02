@@ -1,12 +1,10 @@
-""" Really need to fix these units so that there are consistent with G'DAY!!!"""
-
 from math import exp
 from utilities import float_ne
 import math
 import sys
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (01.03.2013)"
+__version__ = "1.0 (01.07.2013)"
 __email__   = "mdekauwe@gmail.com"
 
 
@@ -20,7 +18,7 @@ class RootingDepthModel(object):
     
     References:
     ----------
-    * McMurtire, R. et al (2011) Increased nitrogen-uptake efficiency at 
+    * McMurtire, R. et al (2012) Increased nitrogen-uptake efficiency at 
       elevated  CO2 explained by an hypothesis of optimal root function. Ecology 
       and Evolution, 2, 1235--1250
     """
@@ -62,18 +60,14 @@ class RootingDepthModel(object):
         rabove : float
             
         """
-        # step 2: determine maximum rooting depth for model for a value rtoti
-        # from G'DAY
+        # Determine maximum rooting depth for model for a value root C
         root_depth = self.estimate_max_root_depth(rtoti, depth_guess)
         
-        # step 6: calculate plant N uptake -> eqn B8.
+        # Optimised plant N uptake
         nuptake = self.calc_plant_nuptake(root_depth, nsupply)
         
-        # step 7: daily root litter calculation. G'DAY requires root litter
-        # input to the top 30 cm of soil, so the G'DAY needs changing. So
-        # mortality below 30 cm should be ignored. Ross assumes that root
-        # longevity and root N:C are independent of depth, thus avoiding the
-        # integrals
+        # G'DAY requires root litter input to the top 30 cm of soil, so 
+        # return the roots above this depth
         rabove = self.calculate_root_mass_above_depth(rtoti, root_depth)
         
         return (root_depth, nuptake, rabove)
@@ -312,7 +306,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from matplotlib.backends.backend_pdf import PdfPages
     
-    
+    # RECREATE PLOTS IN ROSS's PAPER
     
     #rateuptake = 10 # N yr-1
     #inorgan = 0.8 # g N /m2
