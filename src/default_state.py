@@ -59,7 +59,7 @@ alleaf = 0.0
 alroot = 0.0
 albranch = 0.0
 alstem = 0.0
-
+delta_sw_store = 0.0
 
 # decid model
 c_to_alloc_shoot = 0.0
