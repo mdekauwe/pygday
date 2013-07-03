@@ -13,7 +13,7 @@ from plant_growth import PlantGrowth
 from print_outputs import PrintOutput
 from litter_production import Litter
 from soil_cn_model import CarbonSoilFlows, NitrogenSoilFlows
-
+from check_balance import CheckBalance
 from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
 
@@ -97,7 +97,8 @@ class Gday(object):
         self.lf = Litter(self.control, self.params, self.state, self.fluxes)
         self.pg = PlantGrowth(self.control, self.params, self.state,
                               self.fluxes, self.met_data)
-        
+        self.cb = CheckBalance(self.control, self.params, self.state,
+                               self.fluxes, self.met_data)
         if self.control.deciduous_model:
             self.pg.calc_carbon_allocation_fracs(0.0)
             self.pg.allocate_stored_c_and_n(init=True)
@@ -188,6 +189,8 @@ class Gday(object):
                 #   END OF DAY    #
                 # =============== #
                 self.save_daily_outputs(yr, doy+1)
+                self.cb.check_water_balance(project_day)
+                
                 project_day += 1
             # =============== #
             #   END OF YEAR   #
