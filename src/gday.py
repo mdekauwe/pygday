@@ -189,7 +189,9 @@ class Gday(object):
                 #   END OF DAY    #
                 # =============== #
                 self.save_daily_outputs(yr, doy+1)
-                self.cb.check_water_balance(project_day)
+                
+                # check the daily water balance
+                #self.cb.check_water_balance(project_day)
                 
                 project_day += 1
             # =============== #
