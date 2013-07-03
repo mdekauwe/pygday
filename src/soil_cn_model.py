@@ -93,7 +93,7 @@ class CarbonSoilFlows(object):
         
         # abiotic decomposition factor - impact of soil moisture 
         # and soil temperature on microbial activity
-        adfac = self.state.wtfac_root * self.soil_temp_factor(project_day)
+        adfac = self.state.wtfac_tsoil * self.soil_temp_factor(project_day)
         
         # Effect of soil texture (silt + clay content) on active SOM turnover
         # -> higher turnover for sandy soils

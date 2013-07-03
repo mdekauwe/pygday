@@ -282,12 +282,12 @@ class WaterBalance(object):
         # print out pre-noon values
         #print self.fluxes.omega = omegax[0]
         self.fluxes.omega = sum(omegax) / 2.0                                  
-        self.fluxes.gs_mol_m2_sec = sum(gs_mol) / 2.0
+        self.fluxes.gs_mol_m2_sec = sum(gs_mol) #/ 2.0
         
         #ga = P.canopy_boundary_layer_conductance(wind_avg)
         self.fluxes.ga_mol_m2_sec = (sum(ga) / 2.0) / const.CONV_CONDUCT
-        tconv = 60.0 * 60.0 * daylen # seconds to day
-        self.fluxes.transpiration = (sum(trans) / 2.0) * tconv
+        tconv = 60.0 * 60.0 * daylen/2. # seconds to day
+        self.fluxes.transpiration = sum(trans) * tconv
         
     def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
         """ Calculate stomatal conductance, note assimilation rate has been
@@ -434,7 +434,7 @@ class WaterBalance(object):
         return soil_evap * tconv
         
         
-    def update_water_storage(self):
+    def update_water_storage(self, tolerance=1E-08):
         """ Calculate root and top soil plant available water and runoff.
         
         Soil drainage is estimated using a "leaky-bucket" approach with two
@@ -447,31 +447,37 @@ class WaterBalance(object):
         outflow : float
             outflow [mm d-1]
         """
-        # Total root zone
-        prev = self.state.pawater_root
-        self.state.pawater_root += (self.fluxes.erain -
-                                    self.fluxes.transpiration -
-                                    self.fluxes.soil_evap)
-        
-        if self.state.pawater_root > self.params.wcapac_root:
-            runoff = self.state.pawater_root - self.params.wcapac_root 
-            
-        else:
-            runoff = 0.0
-        
-        self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
-                                        max=self.params.wcapac_root)
+        # reduce transpiration from the top soil if it is dry
+        trans_frac = (self.params.fractup_soil * self.state.wtfac_tsoil)
         
         # Total soil layer
         self.state.pawater_tsoil += (self.fluxes.erain -
-                                     self.fluxes.transpiration *
-                                     self.params.fractup_soil -
+                                    (self.fluxes.transpiration *
+                                     trans_frac) -
                                      self.fluxes.soil_evap)
         
         self.state.pawater_tsoil = clip(self.state.pawater_tsoil, min=0.0,
                                         max=self.params.wcapac_topsoil) 
         
-        return runoff
+        # Total root zone
+        previous = self.state.pawater_root
+        self.state.pawater_root += (self.fluxes.erain -
+                                    self.fluxes.transpiration -
+                                    self.fluxes.soil_evap)
+        
+        # calculate runoff and remove any excess from rootzone
+        if self.state.pawater_root > self.params.wcapac_root:
+            runoff = self.state.pawater_root - self.params.wcapac_root
+            self.state.pawater_root -= runoff 
+        else:
+            runoff = 0.0
+        
+        self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
+                                       max=self.params.wcapac_root)
+        
+        self.state.delta_sw_store = self.state.pawater_root - previous
+        
+        return runoff 
 
 
 class SoilMoisture(object):
@@ -612,8 +618,7 @@ class SoilMoisture(object):
         smc_root = self.state.pawater_root / self.params.wcapac_root
         smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
         
-        # Calculate a soil moisture availability factor, used to adjust
-        # ci/ca ratio in the face of limited water supply.
+        # Calculate a soil moisture availability factor
         wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
                         (self.cp_tsoil - self.wp_tsoil))
        
