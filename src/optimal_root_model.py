@@ -236,7 +236,7 @@ class RootingDepthModel(object):
         nuptake : float
             plant N uptake [g N m-2 day-]
         Nr : float
-            nitrogen concentration of the fine roots [kg Dm-1]
+            nitrogen concentration of the fine roots (N:C ratio) [kg Dm-1]
         rabove : float
             root mass above depth (top soil in gday)
         root_lifespan : float
