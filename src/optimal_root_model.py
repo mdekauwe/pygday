@@ -33,7 +33,6 @@ class RootingDepthModel(object):
         top_soil_depth : float
             depth of soil assumed by G'DAY, note Ross comment about 30 cm 
             [email]
-            
         """
         self.d0 = d0x   
         self.r0 = r0      
@@ -44,7 +43,7 @@ class RootingDepthModel(object):
         Parameters:
         -----------
         rtoti : float
-            Initial fine root C mass -> from G'DAY [kg m-2] -> paper says DM?!
+            Initial fine root C mass -> from G'DAY 
         nsupply : float
             daily net N mineralisation in top soil layer from G'DAY
         depth_guess : float
@@ -79,9 +78,6 @@ class RootingDepthModel(object):
         
         Parameters:
         -----------
-        dmax_iteration : float
-            An iteration of the rooting depth defined by the optimisation scheme
-            [NOT USED]
         rtoti : float
             Initial fine root root C mass [from G'DAY] 
             [kg m-2] -> paper says DM?! 
@@ -96,35 +92,13 @@ class RootingDepthModel(object):
         """
         root_depth = newton(self.rtot_wrapper, self.rtot_derivative, 
                             depth_guess, args=(rtoti, self.r0, self.d0))
-       
-       
-        
-        #cons = ({'type': 'ineq', 'fun': self.constraint})
-        #import scipy.optimize
-        
-        #args=(rtoti, self.r0, self.d0)
-        #result = scipy.optimize.minimize(self.rtot_wrapper2, depth_guess, 
-        #                                 method="COBYLA",  constraints=cons,
-        #                                 args=args)
-        
-        
-       
-        #print root_depth, result.x
-        
-       
-       
-        # check optimised value is sensible?
-        min_rtot = round(self.rtot(root_depth, rtoti, self.r0, self.d0), 4)
-        gday_rtot = round(rtoti, 4)
-        if float_ne(min_rtot, gday_rtot):
-            msg = "Error, rtot supplied = %f but min = %f" % (rtoti, min_rtot)
-            raise RuntimeError(msg)
-            
+    
         return root_depth
         
     def rtot_wrapper(self, *args):    
-        """ Wrapper method that calls rtot, but subtracts rtoti from the result
-        to give you the rooting depth (dmax)
+        """ Wrapper method that calls rtot. Need to subtract rtoti because we
+        are optimising the depth (Dmax) but the rtot estimate has to match the 
+        rtot from GDAY, i.e. diff = 0.0
         
         Parameters:
         -----------
@@ -141,10 +115,6 @@ class RootingDepthModel(object):
         """
         
         return self.rtot(*args) - args[1]  
-    
-    def rtot_wrapper2(self, *args):
-        sign = -1.0
-        return (self.rtot(*args) - args[1]) * sign
     
     def rtot(self, *args):
         """ Estimate the total root biomass per unit ground area, i.e. the 
@@ -248,24 +218,11 @@ class RootingDepthModel(object):
     
     def calc_umax(self, nsupply):
         """ Calculate total N availability """
-        
         return nsupply / (1.0 - exp(-self.top_soil_depth / self.d0))
     
     def calc_net_n_uptake(self, nuptake, rootn, rabove, root_lifespan):
-        
         return nuptake - (rootn * rabove / root_lifespan)
-        
-        
-    
-    def constraint(self, x):
-        """ root_depth > 0.0 
-        
-        returns a positive number if within bound and 0.0 it is exactly on the 
-        edge of the bound
-        """
-        return x
    
-
 def newton(f, fprime, x0, args=(), tol=1E-6, maxiter=250):
     """ Newton-Raphson: finds a zero of the func, given an inital guess
     
