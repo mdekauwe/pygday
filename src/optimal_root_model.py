@@ -80,7 +80,6 @@ class RootingDepthModel(object):
         -----------
         rtoti : float
             Initial fine root root C mass [from G'DAY] 
-            [kg m-2] -> paper says DM?! 
         depth_guess : float
             initial starting guess at the root depth [m]
             
@@ -152,7 +151,6 @@ class RootingDepthModel(object):
             Rooting depth [m]
         rtoti : float
             Initial fine root root C mass [from G'DAY]
-            [kg m-2] -> paper says DM?!
         r0 : float
             Root C at half-max N uptake.
         d0 : float
@@ -175,7 +173,6 @@ class RootingDepthModel(object):
         ----------
         rtoti : float
             Initial fine root root C mass [from G'DAY]
-            [kg m-2] -> paper says DM?!
         root_depth : float
             model rooting depth (m)
 
@@ -217,10 +214,40 @@ class RootingDepthModel(object):
         return Umax * arg2   
     
     def calc_umax(self, nsupply):
-        """ Calculate total N availability """
+        """ Calculate potential N uptake integrated over all soil depths
+        
+        Parameters
+        ----------
+        nsupply : float
+            N supply rate to a specified soil depth (probably 30 cm)
+            
+        Returns
+        -------
+        Umax : float
+            potential N uptake integrated over all soil depths
+        """
         return nsupply / (1.0 - exp(-self.top_soil_depth / self.d0))
     
-    def calc_net_n_uptake(self, nuptake, rootn, rabove, root_lifespan):
+    def calc_net_n_uptake(self, nuptake, Nr, rabove, root_lifespan):
+        """ Calculate total potential N uptake
+        
+        Parameters
+        ----------
+        nuptake : float
+            plant N uptake [g N m-2 day-]
+        Nr : float
+            nitrogen concentration of the fine roots [kg Dm-1]
+        rabove : float
+            root mass above depth (top soil in gday)
+        root_lifespan : float
+            root lifespan [year]
+           
+        Returns
+        -------
+        Umax : float
+            potential N uptake integrated over all soil depths
+        
+        """
         return nuptake - (rootn * rabove / root_lifespan)
    
 def newton(f, fprime, x0, args=(), tol=1E-6, maxiter=250):
