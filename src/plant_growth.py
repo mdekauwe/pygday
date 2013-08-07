@@ -62,7 +62,7 @@ class PlantGrowth(object):
                                     top_soil_depth=self.params.top_soil_depth)
    
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
-                        days_in_yr):
+                        days_in_yr, yr_index):
         """Evolve plant state, photosynthesis, distribute N and C"
 
         Parameters:
@@ -85,7 +85,7 @@ class PlantGrowth(object):
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
         
         # figure out the C allocation fractions 
-        self.calc_carbon_allocation_fracs(nitfac)
+        self.calc_carbon_allocation_fracs(nitfac, yr_index)
         
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
@@ -209,7 +209,7 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
     
-    def calc_carbon_allocation_fracs(self, nitfac):
+    def calc_carbon_allocation_fracs(self, nitfac, yr_index):
         """Carbon allocation fractions to move photosynthate through the plant.
 
         Parameters:
@@ -232,6 +232,28 @@ class PlantGrowth(object):
         -----------
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
+        """
+        if type(self.params.callocr) == type(list()):
+            ar = self.params.callocr[yr_index]
+            arz = self.params.callocrz[yr_index]
+        else:
+            ar = self.params.callocr
+            arz = self.params.callocrz
+        
+        self.state.alleaf = (self.params.callocf + nitfac *
+                            (self.params.callocf - self.params.callocfz))
+          
+        self.state.alroot = ar + nitfac * (ar - arz)
+
+        self.state.albranch = (self.params.callocb + nitfac *
+                              (self.params.callocb - self.params.callocbz))
+        
+        # allocate remainder to stem
+        self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
+                             self.state.albranch)
+        
+        #print self.state.alleaf, self.state.alroot, self.state.albranch, self.state.alstem
+        """
         self.state.alleaf = (self.params.callocf + nitfac *
                             (self.params.callocf - self.params.callocfz))
           
@@ -244,6 +266,7 @@ class PlantGrowth(object):
         # allocate remainder to stem
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch)
+        
         
     def allocate_stored_c_and_n(self, init):
         """
@@ -264,9 +287,6 @@ class PlantGrowth(object):
         self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
-        
-        #print self.state.alleaf , self.state.alroot, self.state.albranch, self.state.alstem
-        
         
         # =========
         # Nitrogen
@@ -343,6 +363,8 @@ class PlantGrowth(object):
              self.fluxes.nuptake,
              self.fluxes.rabove) = self.rm.main(rtot, nsupply, depth_guess=1.0)
             
+            #umax = self.rm.calc_umax(self.fluxes.nuptake)
+            #print umax
             
             # covert nuptake from gN m-2 year-1  to t ha-1 day-1
             self.fluxes.nuptake = (self.fluxes.nuptake * 
@@ -511,7 +533,8 @@ class PlantGrowth(object):
         # evaluate SLA of new foliage accounting for variation in SLA 
         # with tree and leaf age (Sands and Landsberg, 2002). Assume 
         # SLA of new foliage is linearly related to leaf N:C ratio 
-        # via nitfac
+        # via nitfac. Based on date from two E.globulus stands in SW Aus, see
+        # Corbeels et al (2005) Ecological Modelling, 187, 449-474.
         # (m2 onesided/kg DW)
         self.state.sla = (self.params.slazero + nitfac *
                          (self.params.slamax - self.params.slazero))

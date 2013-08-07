@@ -100,7 +100,7 @@ class Gday(object):
         self.cb = CheckBalance(self.control, self.params, self.state,
                                self.fluxes, self.met_data)
         if self.control.deciduous_model:
-            self.pg.calc_carbon_allocation_fracs(0.0)
+            self.pg.calc_carbon_allocation_fracs(0.0, 0)
             self.pg.allocate_stored_c_and_n(init=True)
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
@@ -174,7 +174,7 @@ class Gday(object):
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
-                                        float(days_in_year[i]))
+                                        float(days_in_year[i]), i)
             
                 # soil C & N model fluxes
                 self.cs.calculate_csoil_flows(project_day)
@@ -189,7 +189,9 @@ class Gday(object):
                 #   END OF DAY    #
                 # =============== #
                 self.save_daily_outputs(yr, doy+1)
-                self.cb.check_water_balance(project_day)
+                
+                # check the daily water balance
+                #self.cb.check_water_balance(project_day)
                 
                 project_day += 1
             # =============== #
