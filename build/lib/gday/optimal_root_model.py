@@ -1,12 +1,10 @@
-""" Really need to fix these units so that there are consistent with G'DAY!!!"""
-
 from math import exp
 from utilities import float_ne
 import math
 import sys
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (01.03.2013)"
+__version__ = "1.0 (01.07.2013)"
 __email__   = "mdekauwe@gmail.com"
 
 
@@ -20,7 +18,7 @@ class RootingDepthModel(object):
     
     References:
     ----------
-    * McMurtire, R. et al (2011) Increased nitrogen-uptake efficiency at 
+    * McMurtire, R. et al (2012) Increased nitrogen-uptake efficiency at 
       elevated  CO2 explained by an hypothesis of optimal root function. Ecology 
       and Evolution, 2, 1235--1250
     """
@@ -35,7 +33,6 @@ class RootingDepthModel(object):
         top_soil_depth : float
             depth of soil assumed by G'DAY, note Ross comment about 30 cm 
             [email]
-            
         """
         self.d0 = d0x   
         self.r0 = r0      
@@ -46,7 +43,7 @@ class RootingDepthModel(object):
         Parameters:
         -----------
         rtoti : float
-            Initial fine root C mass -> from G'DAY [kg m-2] -> paper says DM?!
+            Initial fine root C mass -> from G'DAY 
         nsupply : float
             daily net N mineralisation in top soil layer from G'DAY
         depth_guess : float
@@ -62,18 +59,14 @@ class RootingDepthModel(object):
         rabove : float
             
         """
-        # step 2: determine maximum rooting depth for model for a value rtoti
-        # from G'DAY
+        # Determine maximum rooting depth for model for a value root C
         root_depth = self.estimate_max_root_depth(rtoti, depth_guess)
         
-        # step 6: calculate plant N uptake -> eqn B8.
+        # Optimised plant N uptake
         nuptake = self.calc_plant_nuptake(root_depth, nsupply)
         
-        # step 7: daily root litter calculation. G'DAY requires root litter
-        # input to the top 30 cm of soil, so the G'DAY needs changing. So
-        # mortality below 30 cm should be ignored. Ross assumes that root
-        # longevity and root N:C are independent of depth, thus avoiding the
-        # integrals
+        # G'DAY requires root litter input to the top 30 cm of soil, so 
+        # return the roots above this depth
         rabove = self.calculate_root_mass_above_depth(rtoti, root_depth)
         
         return (root_depth, nuptake, rabove)
@@ -85,12 +78,8 @@ class RootingDepthModel(object):
         
         Parameters:
         -----------
-        dmax_iteration : float
-            An iteration of the rooting depth defined by the optimisation scheme
-            [NOT USED]
         rtoti : float
             Initial fine root root C mass [from G'DAY] 
-            [kg m-2] -> paper says DM?! 
         depth_guess : float
             initial starting guess at the root depth [m]
             
@@ -102,35 +91,13 @@ class RootingDepthModel(object):
         """
         root_depth = newton(self.rtot_wrapper, self.rtot_derivative, 
                             depth_guess, args=(rtoti, self.r0, self.d0))
-       
-       
-        
-        #cons = ({'type': 'ineq', 'fun': self.constraint})
-        #import scipy.optimize
-        
-        #args=(rtoti, self.r0, self.d0)
-        #result = scipy.optimize.minimize(self.rtot_wrapper2, depth_guess, 
-        #                                 method="COBYLA",  constraints=cons,
-        #                                 args=args)
-        
-        
-       
-        #print root_depth, result.x
-        
-       
-       
-        # check optimised value is sensible?
-        min_rtot = round(self.rtot(root_depth, rtoti, self.r0, self.d0), 4)
-        gday_rtot = round(rtoti, 4)
-        if float_ne(min_rtot, gday_rtot):
-            msg = "Error, rtot supplied = %f but min = %f" % (rtoti, min_rtot)
-            raise RuntimeError(msg)
-            
+    
         return root_depth
         
     def rtot_wrapper(self, *args):    
-        """ Wrapper method that calls rtot, but subtracts rtoti from the result
-        to give you the rooting depth (dmax)
+        """ Wrapper method that calls rtot. Need to subtract rtoti because we
+        are optimising the depth (Dmax) but the rtot estimate has to match the 
+        rtot from GDAY, i.e. diff = 0.0
         
         Parameters:
         -----------
@@ -147,10 +114,6 @@ class RootingDepthModel(object):
         """
         
         return self.rtot(*args) - args[1]  
-    
-    def rtot_wrapper2(self, *args):
-        sign = -1.0
-        return (self.rtot(*args) - args[1]) * sign
     
     def rtot(self, *args):
         """ Estimate the total root biomass per unit ground area, i.e. the 
@@ -188,7 +151,6 @@ class RootingDepthModel(object):
             Rooting depth [m]
         rtoti : float
             Initial fine root root C mass [from G'DAY]
-            [kg m-2] -> paper says DM?!
         r0 : float
             Root C at half-max N uptake.
         d0 : float
@@ -211,7 +173,6 @@ class RootingDepthModel(object):
         ----------
         rtoti : float
             Initial fine root root C mass [from G'DAY]
-            [kg m-2] -> paper says DM?!
         root_depth : float
             model rooting depth (m)
 
@@ -253,25 +214,42 @@ class RootingDepthModel(object):
         return Umax * arg2   
     
     def calc_umax(self, nsupply):
-        """ Calculate total N availability """
+        """ Calculate potential N uptake integrated over all soil depths
         
+        Parameters
+        ----------
+        nsupply : float
+            N supply rate to a specified soil depth (probably 30 cm)
+            
+        Returns
+        -------
+        Umax : float
+            potential N uptake integrated over all soil depths
+        """
         return nsupply / (1.0 - exp(-self.top_soil_depth / self.d0))
     
-    def calc_net_n_uptake(self, nuptake, rootn, rabove, root_lifespan):
+    def calc_net_n_uptake(self, nuptake, Nr, rabove, root_lifespan):
+        """ Calculate total potential N uptake
         
-        return nuptake - (rootn * rabove / root_lifespan)
+        Parameters
+        ----------
+        nuptake : float
+            plant N uptake [g N m-2 day-]
+        Nr : float
+            nitrogen concentration of the fine roots (N:C ratio) [kg Dm-1]
+        rabove : float
+            root mass above depth (top soil in gday)
+        root_lifespan : float
+            root lifespan [year]
+           
+        Returns
+        -------
+        Umax : float
+            potential N uptake integrated over all soil depths
         
-        
-    
-    def constraint(self, x):
-        """ root_depth > 0.0 
-        
-        returns a positive number if within bound and 0.0 it is exactly on the 
-        edge of the bound
         """
-        return x
+        return nuptake - (rootn * rabove / root_lifespan)
    
-
 def newton(f, fprime, x0, args=(), tol=1E-6, maxiter=250):
     """ Newton-Raphson: finds a zero of the func, given an inital guess
     
@@ -312,7 +290,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from matplotlib.backends.backend_pdf import PdfPages
     
-    
+    # RECREATE PLOTS IN ROSS's PAPER
     
     #rateuptake = 10 # N yr-1
     #inorgan = 0.8 # g N /m2

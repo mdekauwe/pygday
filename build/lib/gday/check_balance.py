@@ -47,5 +47,5 @@ class CheckBalance(object):
         stores = self.state.delta_sw_store
         balance = sources - sinks - stores
         if fabs(balance) > tolerance:
-            raise ValueError("Water balance check error on project day: %d" % project_day)
-        
+            raise ValueError("Water balance check error on project day: %d" \
+                              % project_day)
