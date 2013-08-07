@@ -68,7 +68,7 @@ rhizresp         = 0.5   #0.33-0.67 C translocated from shoot to root is respire
 #nitrogen cycling paramsa
 rateuptake       = 5.7            # rate of N uptake from mineral N pool (/yr) from here? http://face.ornl.gov/Finzi-PNAS.pdf
 rateloss         = 0.5            # Rate of N loss from mineral N pool (/yr)
-fretrans         = 0.5            # foliage n retranslocation fraction
+fretrans         = 0.5            # foliage n retranslocation fraction - 46-57% in young E. globulus trees - see Corbeels et al 2005 ecological modelling 187, pg 463
 rretrans         = 0.0            # root n retranslocation fraction
 bretrans         = 0.0            # branch n retranslocation fraction
 wretrans         = 0.0            # mobile wood N retranslocation fraction
