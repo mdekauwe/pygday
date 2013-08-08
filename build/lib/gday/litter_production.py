@@ -115,7 +115,8 @@ class Litter(object):
 
     def decay_in_dry_soils(self, decay_rate, decay_rate_dry):
         """Decay rates (e.g. leaf litterfall) can increase in dry soil, adjust
-        decay param
+        decay param. This is based on field measurements by F. J. Hingston 
+        (unpublished) cited in Corbeels.
 
         Parameters:
         -----------
@@ -128,7 +129,11 @@ class Litter(object):
         --------
         decay_rate : float
             adjusted deacy rate if the soil is dry [tonnes C/ha/day]
-
+        
+        Reference:
+        ----------
+        Corbeels et al. (2005) Ecological Modelling, 187, 449-474.
+        
         """
         # turn into fraction...
         smc_root = self.state.pawater_root / self.params.wcapac_root
