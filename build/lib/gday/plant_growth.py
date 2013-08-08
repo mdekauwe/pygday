@@ -200,7 +200,9 @@ class PlantGrowth(object):
             # really this should only be a debugging option!
             self.state.wtfac_tsoil = 1.0
             self.state.wtfac_root = 1.0
-            
+        
+        print self.state.wtfac_tsoil, self.state.wtfac_root
+          
         # Estimate photosynthesis 
         if self.control.assim_model == "BEWDY":
             self.bw.calculate_photosynthesis(frac_gcover, project_day, daylen)
@@ -232,7 +234,7 @@ class PlantGrowth(object):
         -----------
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
-        
+        """
         if type(self.params.callocr) == type(list()):
             ar = self.params.callocr[yr_index]
             arz = self.params.callocrz[yr_index]
@@ -266,7 +268,7 @@ class PlantGrowth(object):
         # allocate remainder to stem
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch)
-        """
+        
         
     def allocate_stored_c_and_n(self, init):
         """
@@ -533,7 +535,8 @@ class PlantGrowth(object):
         # evaluate SLA of new foliage accounting for variation in SLA 
         # with tree and leaf age (Sands and Landsberg, 2002). Assume 
         # SLA of new foliage is linearly related to leaf N:C ratio 
-        # via nitfac
+        # via nitfac. Based on date from two E.globulus stands in SW Aus, see
+        # Corbeels et al (2005) Ecological Modelling, 187, 449-474.
         # (m2 onesided/kg DW)
         self.state.sla = (self.params.slazero + nitfac *
                          (self.params.slamax - self.params.slazero))

@@ -515,11 +515,20 @@ class SoilMoisture(object):
             fsoil_root = self.get_soil_fracs(self.params.rootsoil_type)  
             (self.wp_tsoil, self.cp_tsoil) = self.calc_soil_params(fsoil_top)
             (self.wp_root, self.cp_root) = self.calc_soil_params(fsoil_root)
+            
+            (self.ctheta_tsoil, 
+             self.ntheta_tsoil) = self.get_soil_params(self.params.topsoil_type)
+            (self.ctheta_root, 
+             self.ntheta_root) = self.get_soil_params(self.params.rootsoil_type)  
         else:
             self.cp_tsoil = self.params.fwpmax_tsoil
             self.wp_tsoil = self.params.fwpmin_tsoil
             self.cp_root = self.params.fwpmax_root
             self.wp_root = self.params.fwpmin_root
+            self.ctheta_tsoil = self.params.ctheta_tsoil
+            self.ntheta_tsoil = self.params.ntheta_tsoil
+            self.ctheta_root = self.params.ctheta_root
+            self.ntheta_root = self.params.ntheta_root
        
         #print (self.cp_tsoil-self.wp_tsoil) * 450.0
         #print (self.cp_root-self.wp_root) * 2500.0
@@ -557,6 +566,35 @@ class SoilMoisture(object):
             sys.exit()
         return fsoil
     
+    def get_soil_params(self, soil_type):
+        """ For a given soil type, get the parameters for the soil
+        moisture availability based on Landsberg and Waring.
+        
+        Reference
+        ---------
+        * Landsberg and Waring (1997) Forest Ecology & Management, 95, 209-228.
+         """
+        soil_types = ["sand", "sandy_loam", "clay_loam", "clay"]
+        fsoil = None
+        if soil_type == "sand":
+            c_theta = 0.7
+            n_theta = 9.0
+        elif soil_type == "sandy_loam":
+            c_theta = 0.6
+            n_theta = 7.0
+        elif soil_type == "clay_loam":
+            c_theta = 0.5
+            n_theta = 5.0
+        elif soil_type == "clay":
+            c_theta = 0.4
+            n_theta = 3.0
+        
+        else:
+            print 'There are no parameters for your soil type. Either use the'
+            print 'other soil water stress model or specify the parameters.'
+            sys.exit()
+        return c_theta, n_theta
+       
     def calc_soil_params(self, fsoil):
         """ Calculate the primary hydraulic parameters 
         
@@ -618,17 +656,31 @@ class SoilMoisture(object):
         smc_root = self.state.pawater_root / self.params.wcapac_root
         smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
         
-        # Calculate a soil moisture availability factor
-        wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
-                        (self.cp_tsoil - self.wp_tsoil))
+        if self.control.soil_water_model == 0:
+        
+            # Calculate a soil moisture availability factor
+            wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
+                            (self.cp_tsoil - self.wp_tsoil))
        
-        wtfac_root = (smc_root - self.wp_root) / (self.cp_root - self.wp_root)
+            wtfac_root = ((smc_root - self.wp_root) / 
+                          (self.cp_root - self.wp_root))
+        
+        elif self.control.soil_water_model == 1:
+       
+            wtfac_tsoil = self.calc_sw_l_and_w(smc_topsoil, self.ctheta_tsoil, 
+                                               self.ntheta_tsoil)
+  
+            wtfac_root = self.calc_sw_l_and_w(smc_root, self.ctheta_root, 
+                                               self.ntheta_root)
         
         return (clip(wtfac_tsoil, min=0.0, max=1.0), 
-                clip(wtfac_root, min=0.0, max=1.0))   
+                clip(wtfac_root, min=0.0, max=1.0)) 
+           
+    def calc_sw_l_and_w(self, theta, c_theta, n_theta):
+        """ From Landsberg and Waring """
+        return 1.0  / (1.0 + ((1.0 - theta) / c_theta)**n_theta)
         
-
-
+  
 
 class PenmanMonteith(object):
 
