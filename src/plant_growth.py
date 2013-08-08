@@ -1,7 +1,7 @@
 """ Estimate daily Carbon fixed and pass around the aboveground portion of the
 plant. """
 import sys
-from math import exp
+from math import exp, log
 import sys
 import constants as const
 from utilities import float_eq, float_lt, float_gt
@@ -253,6 +253,7 @@ class PlantGrowth(object):
                              self.state.albranch)
         
         #print self.state.alleaf, self.state.alroot, self.state.albranch, self.state.alstem
+        
         """
         self.state.alleaf = (self.params.callocf + nitfac *
                             (self.params.callocf - self.params.callocfz))
@@ -266,8 +267,6 @@ class PlantGrowth(object):
         # allocate remainder to stem
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch)
-        
-        
         
         
         

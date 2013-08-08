@@ -1,7 +1,7 @@
 """ Estimate daily Carbon fixed and pass around the aboveground portion of the
 plant. """
 import sys
-from math import exp
+from math import exp, log
 import sys
 import constants as const
 from utilities import float_eq, float_lt, float_gt
@@ -232,7 +232,7 @@ class PlantGrowth(object):
         -----------
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         """
-        """
+        
         if type(self.params.callocr) == type(list()):
             ar = self.params.callocr[yr_index]
             arz = self.params.callocrz[yr_index]
@@ -254,6 +254,7 @@ class PlantGrowth(object):
         
         #print self.state.alleaf, self.state.alroot, self.state.albranch, self.state.alstem
         """
+        """
         self.state.alleaf = (self.params.callocf + nitfac *
                             (self.params.callocf - self.params.callocfz))
           
@@ -267,7 +268,7 @@ class PlantGrowth(object):
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch)
         
-        #"""
+        """
         tonnes_2_kg = 1000.0
         N = 1430.0 # stocking (stem numbers) trees ha-1  # 1713 pines (+2589 hardwood, think ignore?) for Duke, 2800 for ornl
         aS = 0.095 # constant in the stem mass v. diameter reln
@@ -279,31 +280,34 @@ class PlantGrowth(object):
         
         pFS2 = 1.0  # foliage:stem partioning ratio at DBH = 2 cm
         pFS20 = 0.15 # foliage:stem partioning ratio at DBH = 20 cm
-        from math import log
+        
         np = log(pFS20 / pFS2) / log(10)
         ap = pFS2 / 2.0**np
 
         PFS = ap * dbh**np
 
-        m0 = 0.0
-        FR = 1.0
-        m = m0 + (1 - m0) * FR
+        #m0 = 0.0
+        #FR = 1.0
+        #m = m0 + (1 - m0) * FR
+        #arx = 0.25
+        #arn = 0.01
+        #ar = arx * arn / (arn + (arx - arn) * self.state.wtfac_root * m)
         
-        arx = 0.25
-        arn = 0.01
-        ar = arx * arn / (arn + (arx - arn) * self.state.wtfac_root * m)
-        #ar = 0.05
+        # Fix root allocation
+        ar = self.params.callocr
+        
+        
         aw = (1.0 - ar) / (1.0 + PFS)
         af = 1.0 - aw - ar
-        print af, aw, ar
+        
 
         self.state.alleaf = af
         self.state.alroot = ar
-        self.state.albranch = 0.1 * aw
-        self.state.alstem = aw = self.state.albranch
-        #"""
+        self.state.albranch = 0.09 * aw
+        self.state.alstem = aw - self.state.albranch
         
-        
+        #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
+        """
         
     def allocate_stored_c_and_n(self, init):
         """
