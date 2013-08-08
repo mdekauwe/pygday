@@ -267,6 +267,43 @@ class PlantGrowth(object):
         self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                              self.state.albranch)
         
+        """
+        tonnes_2_kg = 1000.0
+        N = 1430.0 # stocking (stem numbers) trees ha-1  # 1713 pines (+2589 hardwood, think ignore?) for Duke, 2800 for ornl
+        aS = 0.095 # constant in the stem mass v. diameter reln
+        nS = 2.4   # power in the stem mass v. diameter reln
+        Ws = self.state.stem * tonnes_2_kg / N # kg/tree
+        dbh = (Ws / aS)**(1.0 / nS)  # stand based mean dbh (cm)
+        
+
+        
+        pFS2 = 1.0  # foliage:stem partioning ratio at DBH = 2 cm
+        pFS20 = 0.15 # foliage:stem partioning ratio at DBH = 20 cm
+        from math import log
+        np = log(pFS20 / pFS2) / log(10)
+        ap = pFS2 / 2.0**np
+
+        PFS = ap * dbh**np
+
+        m0 = 0.0
+        FR = 1.0
+        m = m0 + (1 - m0) * FR
+        
+        arx = 0.25
+        arn = 0.01
+        ar = arx * arn / (arn + (arx - arn) * self.state.wtfac_root * m)
+        #ar = 0.05
+        aw = (1.0 - ar) / (1.0 + PFS)
+        af = 1.0 - aw - ar
+        print af, aw, ar
+
+        self.state.alleaf = af
+        self.state.alroot = ar
+        self.state.albranch = 0.1 * aw
+        self.state.alstem = aw = self.state.albranch
+        """
+        
+        
         
     def allocate_stored_c_and_n(self, init):
         """
