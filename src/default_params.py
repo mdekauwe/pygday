@@ -129,11 +129,15 @@ nmin0            = 0.0       # Mineral N pool corresponding to Actnc0,etc (g/m2)
 wcapac_root       = 240.0 #Max plant avail soil water -root zone, i.e. total (mm) (smc_sat-smc_wilt) * root_depth (750mm) = [mm (water) / m (soil depth)]
 wcapac_topsoil    = 100.0 #Max plant avail soil water -top soil (mm)
 fwpmax_tsoil      = None  #Fractional water content at field capacity (max production). By default not set, values derived from Cosby eqns
-fwpmin_tsoil      = None   #Fractional water content at wilting point (no production). By default not set, values derived from Cosby eqns
+fwpmin_tsoil      = None  #Fractional water content at wilting point (no production). By default not set, values derived from Cosby eqns
 fwpmax_root       = None  #Fractional water content at field capacity (max production). By default not set, values derived from Cosby eqns
-fwpmin_root       = None   #Fractional water content at wilting point (no production). By default not set, values derived from Cosby eqns
+fwpmin_root       = None  #Fractional water content at wilting point (no production). By default not set, values derived from Cosby eqns
 topsoil_type      = None
 rootsoil_type     = None
+ctheta_tsoil      = None # Fitted parameter based on Landsberg and Waring
+ntheta_tsoil      = None # Fitted parameter based on Landsberg and Waring
+ctheta_root       = None # Fitted parameter based on Landsberg and Waring
+ntheta_root       = None # Fitted parameter based on Landsberg and Waring
 fractup_soil      = 0.5   #fraction of uptake from top soil layer
 extraction        = 0.007 #water extractn by unit root mass(ha/tC/d)
 wetloss           = 0.5   #daily rainfall lost per lai (mm/day)
