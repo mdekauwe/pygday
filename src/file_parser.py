@@ -77,7 +77,7 @@ def initialise_model_data(fname, DUMP=True):
 
 def turn_strings_into_bools(control):
     flags = ['model_optroot', "deciduous_model", "grazing", "modeljm", \
-             "water_stress", "fixleafnc", "passiveconst", "soil_water_model"]
+             "water_stress", "fixleafnc", "passiveconst", "sw_stress_model"]
     for i in flags:
         setattr(control, i, str2boolean(getattr(control, i)))
         
