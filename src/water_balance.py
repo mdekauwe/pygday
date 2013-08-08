@@ -656,7 +656,7 @@ class SoilMoisture(object):
         smc_root = self.state.pawater_root / self.params.wcapac_root
         smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
         
-        if self.control.soil_water_model == 0:
+        if self.control.sw_stress_model == 0:
         
             # Calculate a soil moisture availability factor
             wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
@@ -665,7 +665,7 @@ class SoilMoisture(object):
             wtfac_root = ((smc_root - self.wp_root) / 
                           (self.cp_root - self.wp_root))
         
-        elif self.control.soil_water_model == 1:
+        elif self.control.sw_stress_model == 1:
        
             wtfac_tsoil = self.calc_sw_l_and_w(smc_topsoil, self.ctheta_tsoil, 
                                                self.ntheta_tsoil)
