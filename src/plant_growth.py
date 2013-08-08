@@ -200,7 +200,7 @@ class PlantGrowth(object):
             # really this should only be a debugging option!
             self.state.wtfac_tsoil = 1.0
             self.state.wtfac_root = 1.0
-            
+       
         # Estimate photosynthesis 
         if self.control.assim_model == "BEWDY":
             self.bw.calculate_photosynthesis(frac_gcover, project_day, daylen)
