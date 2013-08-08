@@ -184,7 +184,7 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                 
                 #print self.state.shoot, self.state.lai
-                #print self.fluxes.gpp * 100, self.state.lai
+                print self.fluxes.gpp * 100, self.state.lai
                 #print self.fluxes.nuptake,self.state.inorgn
                 # =============== #
                 #   END OF DAY    #
