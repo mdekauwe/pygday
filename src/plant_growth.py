@@ -236,7 +236,9 @@ class PlantGrowth(object):
        
         References:
         -----------
+        Corbeels, M. et al (2005) Ecological Modelling, 187, 449-474.
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
+        
         """
         """
         if type(self.params.callocr) == type(list()):
