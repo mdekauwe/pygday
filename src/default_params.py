@@ -98,6 +98,7 @@ rdecay           = 0.5            #root decay rate (1/yr)
 rdecaydry        = 0.5            #root decay rate - dry soil (1/yr)
 bdecay           = 0.03           #branch and large root decay rate (1/yr)
 wdecay           = 0.02           #wood decay rate (1/yr)
+sapdecay         = 0.1            #sapwood decay rate (1/yr)
 watdecaydry      = 0.0            #water fractn for dry litterfall rates
 watdecaywet      = 0.1            #water fractn for wet litterfall rates
 ligshoot         = 0.25           #shoot litter lignin as fraction of c
@@ -105,6 +106,26 @@ ligroot          = 0.25           #root litter lignin as fraction of c
 brabove          = 0.5            #above-ground fraction of branch pool litter
 structcn         = 150.0          #C:N ratio of structural bit of litter input
 structrat        = 0.0            #structural input n:c as fraction of metab
+
+# allometric parameters
+heighto = 4.826     # constant in avg tree height (m) - stem (t C/ha) reln
+htpower = 0.35      # Exponent in avg tree height (m) - stem (t C/ha) reln
+height0 = 5.0       # Height when leaf:sap area ratio = leafsap0 (trees)
+height1 = 30.0      # Height when leaf:sap area ratio = leafsap1 (trees)
+leafsap0 = 7500.0   # leaf area  to sapwood cross sectional area ratio when Height = Height0 (trees)
+leafsap1 = 2700.0   # leaf to sap area ratio when Height = Height1 (trees)
+branch0 = 5.61      # constant in branch-stem allometry (trees)
+branch1 = 0.346     # exponent in branch-stem allometry
+targ_sens = 0.5     # sensitivity of allocation (leaf/branch) to target
+density = 420.0     # kg DM m-3 (trees)
+af_max = 0.5        # maximum allocation to leaves
+ab_max = 0.2        # maximum allocation to branch
+ar_max = 0.25       # maximum allocation to fine roots
+ar_min = 0.05       # minimum allocation to fine roots
+nf_min = 0.009      # leaf N:C when N limits productivity
+nf_max = 0.06       # leaf N:C when N is not limiting productivity 
+
+
 
 #set decomposition parameters - converted from yr to day in model!
 kdec1            = 3.965571       #surface structural decay rate (1/yr)

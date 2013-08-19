@@ -10,6 +10,7 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (05.09.2011)"
 __email__   = "mdekauwe@gmail.com"
 
+alloc_model = "fixed"      # C allocation -> fixed or allometric
 assim_model = "mate"       # bewdy or mate?
 nuptake_model = 1          # 0=constant uptake, 1=func of N inorgn, 2=depends on rate of soil N availability
 trans_model = 1            # 0=trans from WUE, 1=Penman-Monteith, 2=Priestley-Taylor
