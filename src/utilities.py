@@ -99,7 +99,7 @@ def str2boolean(value):
     else:  
         raise ValueError("%s is no recognized as a boolean value" % value)
     
-class Simplemovingaverage():
+class SimpleMovingAverage():
     def __init__(self, period):
         assert period == int(period) and period > 0, "Period must be an integer >0"
         self.period = period

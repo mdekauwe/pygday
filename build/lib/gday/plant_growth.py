@@ -4,7 +4,7 @@ import sys
 from math import exp, log
 import sys
 import constants as const
-from utilities import float_eq, float_lt, float_gt
+from utilities import float_eq, float_lt, float_gt, SimpleMovingAverage, clip
 from bewdy import Bewdy
 from water_balance import WaterBalance, SoilMoisture
 from mate import Mate
@@ -60,7 +60,13 @@ class PlantGrowth(object):
         
         self.rm = RootingDepthModel(d0x=self.params.d0x, r0=self.params.r0, 
                                     top_soil_depth=self.params.top_soil_depth)
-   
+        
+        # Window size = root lifespan in days...
+        self.window_size = (int((self.params.rdecay * const.NDAYS_IN_YR) * 
+                            const.NDAYS_IN_YR))
+        self.sma = SimpleMovingAverage(self.window_size)
+        
+        
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
                         days_in_yr, yr_index):
         """Evolve plant state, photosynthesis, distribute N and C"
@@ -85,7 +91,7 @@ class PlantGrowth(object):
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
         
         # figure out the C allocation fractions 
-        self.calc_carbon_allocation_fracs(nitfac, yr_index)
+        self.calc_carbon_allocation_fracs(nitfac, yr_index, project_day)
         
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
@@ -209,7 +215,7 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
     
-    def calc_carbon_allocation_fracs(self, nitfac, yr_index):
+    def calc_carbon_allocation_fracs(self, nitfac, yr_index, project_day):
         """Carbon allocation fractions to move photosynthate through the plant.
 
         Parameters:
@@ -358,7 +364,12 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-         
+        print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height
+        
+    def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
+        arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
+        return max(0.0, alloc_max * min(1.0, arg))    
+       
     def allocate_stored_c_and_n(self, init):
         """
         Allocate stored C&N. This is either down as the model is initialised 

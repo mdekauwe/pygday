@@ -4,12 +4,11 @@ import sys
 from math import exp, log
 import sys
 import constants as const
-from utilities import float_eq, float_lt, float_gt
+from utilities import float_eq, float_lt, float_gt, SimpleMovingAverage, clip
 from bewdy import Bewdy
 from water_balance import WaterBalance, SoilMoisture
 from mate import Mate
 from optimal_root_model import RootingDepthModel
-from utilities import Simplemovingaverage
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (23.02.2011)"
@@ -65,7 +64,7 @@ class PlantGrowth(object):
         # Window size = root lifespan in days...
         self.window_size = (int((self.params.rdecay * const.NDAYS_IN_YR) * 
                             const.NDAYS_IN_YR))
-        self.sma = Simplemovingaverage(self.window_size)
+        self.sma = SimpleMovingAverage(self.window_size)
         
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
@@ -92,7 +91,7 @@ class PlantGrowth(object):
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
         
         # figure out the C allocation fractions 
-        self.calc_carbon_allocation_fracs(nitfac, yr_index)
+        self.calc_carbon_allocation_fracs(nitfac, yr_index, project_day)
         
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
@@ -216,7 +215,7 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
     
-    def calc_carbon_allocation_fracs(self, nitfac, yr_index):
+    def calc_carbon_allocation_fracs(self, nitfac, yr_index, project_day):
         """Carbon allocation fractions to move photosynthate through the plant.
 
         Parameters:
@@ -365,7 +364,12 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-         
+        print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height
+        
+    def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
+        arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
+        return max(0.0, alloc_max * min(1.0, arg))    
+       
     def allocate_stored_c_and_n(self, init):
         """
         Allocate stored C&N. This is either down as the model is initialised 
@@ -798,35 +802,7 @@ class PlantGrowth(object):
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
   
-    def calc_microbial_resp(self, project_day):
-        """ Based on LPJ-why
-        
-        References:
-        * Wania (2009) Integrating peatlands and permafrost into a dynamic 
-          global vegetation model: 1. Evaluation and sensitivity of physical 
-          land surface processes. GBC, 23, GB3014.
-        * Also part 2 and the geosci paper in 2010
-        """
-        tsoil = self.met_data['tsoil'][project_day]
-        
-        # Lloyd and Taylor, 1994
-        if tsoil < -10.0:
-            temp_resp = 0.0
-        else:
-            temp_resp = (exp(308.56 * ((1.0 / 56.02) - (1.0 / 
-                        (tsoil + const.DEG_TO_KELVIN - 227.13)))))
-        
-        moist_resp = ((1.0 - exp(-1.0 * self.state.wtfac_tsoil)) /  
-                        (1.0 - exp(-1.0)))
-        
-        # Pool turnover rate = every 2 weeks -> days. Check you have this right
-        # and turn into a parameter if so
-        k_exu10 = 0.0714128571 
-        k_exu = k_exu10 * temp_resp * moist_resp
-        
-        return  self.state.exu_pool * (1.0 - exp(-k_exu))
-
-  
+    
         
 if __name__ == "__main__":
     
