@@ -417,12 +417,6 @@ class PlantGrowth(object):
                 self.state.n_to_alloc_stemmob - self.state.n_to_alloc_branch)
         
         # allocate remaining N to flexible-ratio pools
-        #self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
-        #                              (self.state.alleaf + 
-        #                               self.state.alroot *
-        #                               self.params.ncrfac))
-        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
         self.state.n_to_alloc_root = ((ntot * self.params.ncrfac * 
                                        self.state.alroot) / 
                                       (self.state.alleaf + 
@@ -548,12 +542,15 @@ class PlantGrowth(object):
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
                         self.fluxes.npstemmob)
             
-            # allocate remaining N to flexible-ratio pools
-            self.fluxes.npleaf = (ntot * self.state.alleaf / 
-                                 (self.state.alleaf + self.state.alroot *
-                                 self.params.ncrfac))
-            self.fluxes.nproot = ntot - self.fluxes.npleaf
-        
+            
+            self.fluxes.nproot = ((ntot * self.params.ncrfac * 
+                                           self.state.alroot) / 
+                                          (self.state.alleaf + 
+                                           self.state.alroot *
+                                           self.params.ncrfac))
+            self.fluxes.npleaf = ntot - self.fluxes.nproot
+            
+            
         
     def nitrogen_retrans(self, fdecay, rdecay, doy):
         """ Nitrogen retranslocated from senesced plant matter.
