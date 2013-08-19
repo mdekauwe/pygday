@@ -73,6 +73,12 @@ class Litter(object):
         # ====================
         self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
         
+        
+        print (self.fluxes.deadleafn / ncflit) / self.fluxes.deadleaves, self.state.shootnc
+        
+        
+        import sys; sys.exit()
+        
         # Assuming fraction is retranslocated before senescence, i.e. a fracion 
         # of nutrients is stored within the plant
         self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit

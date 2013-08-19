@@ -57,6 +57,15 @@ class CarbonSoilFlows(object):
         # plant litter inputs to the metabolic and structural pools determined 
         # by ratio of lignin/N ratio 
         (lnleaf, lnroot) = self.ligin_nratio()
+        
+        #if lnleaf* 0.018 > 0.85:
+        #    print "%s, %d, %.7f, %s, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f" % ("*", project_day, lnleaf, "---", self.params.ligshoot, self.params.cfracts, self.fluxes.deadleafn / self.fluxes.deadleaves, 1.0 / (self.fluxes.deadleafn / self.fluxes.deadleaves), self.fluxes.deadleafn , self.fluxes.deadleaves, self.state.shootnc, self.state.shoot, self.state.shootn)
+        #else:
+        #    print "%s, %d, %.7f, %s, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f" % ("o", project_day, lnleaf, "---", self.params.ligshoot, self.params.cfracts, self.fluxes.deadleafn / self.fluxes.deadleaves, 1.0 / (self.fluxes.deadleafn / self.fluxes.deadleaves), self.fluxes.deadleafn , self.fluxes.deadleaves, self.state.shootnc, self.state.shoot, self.state.shootn)
+        
+        
+        
+        
         self.params.fmleaf = self.metafract(lnleaf)
         self.params.fmroot = self.metafract(lnroot)
         
@@ -185,6 +194,7 @@ class CarbonSoilFlows(object):
             lnleaf = 1E20 
         else:
             lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
+            
 
         if float_eq(nceroot, 0.0):
             # This is effectively a hack that results in fluxes being turned
