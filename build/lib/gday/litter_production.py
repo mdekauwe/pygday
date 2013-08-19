@@ -60,6 +60,8 @@ class Litter(object):
         self.fluxes.deadroots = rdecay * self.state.root   # ditto
         self.fluxes.deadstems = self.params.wdecay * self.state.stem
         self.fluxes.deadbranch = self.params.bdecay * self.state.branch
+        self.fluxes.deadsapwood = ((self.params.wdecay + self.params.sapdecay) * 
+                                    self.state.sapwood)
         
         if self.control.deciduous_model:
             self.fluxes.deadleaves = (self.fluxes.lrate * 
@@ -74,10 +76,8 @@ class Litter(object):
         self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
         
         
-        print (self.fluxes.deadleafn / ncflit) / self.fluxes.deadleaves, self.state.shootnc
-        
-        
-        import sys; sys.exit()
+        #print (self.fluxes.deadleafn ) / self.fluxes.deadleaves, self.state.shootnc
+        #import sys; sys.exit()
         
         # Assuming fraction is retranslocated before senescence, i.e. a fracion 
         # of nutrients is stored within the plant
