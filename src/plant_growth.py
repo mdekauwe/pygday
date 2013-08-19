@@ -9,6 +9,7 @@ from bewdy import Bewdy
 from water_balance import WaterBalance, SoilMoisture
 from mate import Mate
 from optimal_root_model import RootingDepthModel
+from utilities import Simplemovingaverage
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (23.02.2011)"
@@ -60,7 +61,13 @@ class PlantGrowth(object):
         
         self.rm = RootingDepthModel(d0x=self.params.d0x, r0=self.params.r0, 
                                     top_soil_depth=self.params.top_soil_depth)
-   
+        
+        # Window size = root lifespan in days...
+        self.window_size = (int((self.params.rdecay * const.NDAYS_IN_YR) * 
+                            const.NDAYS_IN_YR))
+        self.sma = Simplemovingaverage(self.window_size)
+        
+        
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
                         days_in_yr, yr_index):
         """Evolve plant state, photosynthesis, distribute N and C"
