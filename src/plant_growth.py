@@ -366,7 +366,7 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-        print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height
+        #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
@@ -417,12 +417,18 @@ class PlantGrowth(object):
                 self.state.n_to_alloc_stemmob - self.state.n_to_alloc_branch)
         
         # allocate remaining N to flexible-ratio pools
-        self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
+        #self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
+        #                              (self.state.alleaf + 
+        #                               self.state.alroot *
+        #                               self.params.ncrfac))
+        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        
+        self.state.n_to_alloc_root = ((ntot * self.params.ncrfac * 
+                                       self.state.alroot) / 
                                       (self.state.alleaf + 
                                        self.state.alroot *
                                        self.params.ncrfac))
-        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
+        self.state.n_to_alloc_shoot = ntot - self.state.n_to_alloc_root
         
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                             days_in_yr):
