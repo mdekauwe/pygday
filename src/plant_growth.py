@@ -255,21 +255,110 @@ class PlantGrowth(object):
         #print self.state.alleaf, self.state.alroot, self.state.albranch, self.state.alstem
         
         """
-        self.state.alleaf = (self.params.callocf + nitfac *
-                            (self.params.callocf - self.params.callocfz))
+        if self.control.alloc_model == "FIXED":
+        
+            self.state.alleaf = (self.params.callocf + nitfac *
+                                (self.params.callocf - self.params.callocfz))
           
-        self.state.alroot = (self.params.callocr + nitfac *
-                            (self.params.callocr - self.params.callocrz))
+            self.state.alroot = (self.params.callocr + nitfac *
+                                (self.params.callocr - self.params.callocrz))
 
-        self.state.albranch = (self.params.callocb + nitfac *
-                              (self.params.callocb - self.params.callocbz))
+            self.state.albranch = (self.params.callocb + nitfac *
+                                  (self.params.callocb - self.params.callocbz))
         
-        # allocate remainder to stem
-        self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
-                             self.state.albranch)
+            # allocate remainder to stem
+            self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
+                                 self.state.albranch)
         
+        elif self.control.alloc_model == "ALLOMETRIC":
+            
+            # leaf N availability
+            nf = self.state.shootnc
+            if nf <= self.params.nf_min:
+                nlim = 0.0
+            elif self.params.nf_min < nf and nf < self.params.nf_max:
+                nlim = ((self.params.nf_max - nf) / 
+                        (self.params.nf_max - self.params.nf_min))
+            elif nf >= self.params.nf_max:
+                nlim = 1.0
         
+            # need to have stored the first 300 ish days (depends on root 
+            # lifespan) in order to calculate running mean
+            if project_day > self.window_size:
+                # limitation is the miniumum of the soil water availability and
+                # leaf N availability.
+                limitation = self.sma(min(nlim, self.state.wtfac_root))
+            else:
+                limitation = 1.0
         
+            # figure out root allocation given available water & nutrients
+            self.state.alroot = (self.params.ar_max * self.params.ar_min / 
+                                (self.params.ar_min + 
+                                (self.params.ar_max - self.params.ar_min) * 
+                                limitation))
+        
+            # Calculate tree height: allometric reln using the power function 
+            # (Causton, 1985)
+            height = self.params.heighto * self.state.stem**self.params.htpower
+        
+            # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
+            # (dimensionless)
+            # Assume it varies between LS0 and LS1 as a linear function of tree
+            # height (m) 
+            sap_cross_sec_area = (((self.state.sapwood * 
+                                    const.TONNES_AS_KG * 
+                                    const.M2_AS_HA) / 
+                                    self.params.cfracts) / 
+                                    height / 
+                                    self.params.density)
+            leaf2sap = self.state.lai / sap_cross_sec_area
+        
+            # Allocation to leaves dependant on height. Modification of pipe 
+            # theory, leaf-to-sapwood ratio is not constant above a certain 
+            # height, due to hydraulic constraints.
+            if self.params.leafsap0 < self.params.leafsap1:
+                min_target = self.params.leafsap0
+            else:
+                min_target = self.params.leafsap1
+            
+            if self.params.leafsap0 > self.params.leafsap1:
+                max_target = self.params.leafsap0
+            else:
+                max_target = self.params.leafsap1
+          
+            leaf2sa_target = (self.params.leafsap0 + 
+                             (self.params.leafsap1 - self.params.leafsap0) * 
+                             (height - self.params.height0) / 
+                             (self.params.height1 - self.params.height0))
+            leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
+        
+            self.state.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
+                                                     self.params.af_max, 
+                                                     self.params.targ_sens) 
+            
+            # Allocation to branch dependent on relationship between the stem
+            # and branch
+            target_branch = (self.params.branch0 * 
+                             self.state.stem**self.params.branch1)
+            self.state.albranch = self.alloc_goal_seek(self.state.branch, 
+                                                       target_branch, 
+                                                       self.params.ab_max, 
+                                                       self.params.targ_sens) 
+            
+            # allocation to stem is the residual
+            self.state.alstem = (1.0 - self.state.alroot - 
+                                       self.state.albranch - 
+                                       self.state.alleaf)
+        else:
+            raise AttributeError('Unknown C allocation model')
+        
+        # Total allocation should be one, if not print warning:
+        total_alloc = (self.state.alroot + self.state.alleaf + 
+                       self.state.albranch + self.state.alstem)
+        if float_gt(total_alloc, 1.0):
+            raise RuntimeError, "Allocation fracs > 1" 
+        
+         
     def allocate_stored_c_and_n(self, init):
         """
         Allocate stored C&N. This is either down as the model is initialised 
@@ -612,7 +701,7 @@ class PlantGrowth(object):
         self.state.root += self.fluxes.cproot - self.fluxes.deadroots
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
-        
+        self.state.sapwood += self.fluxes.cpstem - self.fluxes.deadsapwood
         # 
         # Nitrogen pools
         #
