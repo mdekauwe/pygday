@@ -29,6 +29,7 @@ cstore          = 0.0                    # C store for deciduous model
 shootn       = 0.0635                 # shoot n
 rootn        = 0.006951               # root n
 branchn      = 0.0                    # branch n
+sapwood      = 0.0                    # Sapwood: Stem=sapwood+heartwood
 stemnimm     = 0.807270               # Immobile stem N (t/ha)
 stemnmob     = 0.0                    # Stem N mobile pool
 structsurfn  = 0.068504               # surface structural n
