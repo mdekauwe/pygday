@@ -236,7 +236,9 @@ class PlantGrowth(object):
        
         References:
         -----------
+        Corbeels, M. et al (2005) Ecological Modelling, 187, 449-474.
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
+        
         """
         """
         if type(self.params.callocr) == type(list()):
@@ -364,7 +366,7 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-        print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height
+        #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
@@ -415,12 +417,18 @@ class PlantGrowth(object):
                 self.state.n_to_alloc_stemmob - self.state.n_to_alloc_branch)
         
         # allocate remaining N to flexible-ratio pools
-        self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
+        #self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
+        #                              (self.state.alleaf + 
+        #                               self.state.alroot *
+        #                               self.params.ncrfac))
+        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        
+        self.state.n_to_alloc_root = ((ntot * self.params.ncrfac * 
+                                       self.state.alroot) / 
                                       (self.state.alleaf + 
                                        self.state.alroot *
                                        self.params.ncrfac))
-        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
+        self.state.n_to_alloc_shoot = ntot - self.state.n_to_alloc_root
         
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                             days_in_yr):
@@ -802,35 +810,7 @@ class PlantGrowth(object):
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
   
-    def calc_microbial_resp(self, project_day):
-        """ Based on LPJ-why
-        
-        References:
-        * Wania (2009) Integrating peatlands and permafrost into a dynamic 
-          global vegetation model: 1. Evaluation and sensitivity of physical 
-          land surface processes. GBC, 23, GB3014.
-        * Also part 2 and the geosci paper in 2010
-        """
-        tsoil = self.met_data['tsoil'][project_day]
-        
-        # Lloyd and Taylor, 1994
-        if tsoil < -10.0:
-            temp_resp = 0.0
-        else:
-            temp_resp = (exp(308.56 * ((1.0 / 56.02) - (1.0 / 
-                        (tsoil + const.DEG_TO_KELVIN - 227.13)))))
-        
-        moist_resp = ((1.0 - exp(-1.0 * self.state.wtfac_tsoil)) /  
-                        (1.0 - exp(-1.0)))
-        
-        # Pool turnover rate = every 2 weeks -> days. Check you have this right
-        # and turn into a parameter if so
-        k_exu10 = 0.0714128571 
-        k_exu = k_exu10 * temp_resp * moist_resp
-        
-        return  self.state.exu_pool * (1.0 - exp(-k_exu))
-
-  
+    
         
 if __name__ == "__main__":
     
