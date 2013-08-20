@@ -100,7 +100,9 @@ class Gday(object):
         self.cb = CheckBalance(self.control, self.params, self.state,
                                self.fluxes, self.met_data)
         if self.control.deciduous_model:
-            self.pg.calc_carbon_allocation_fracs(0.0, 0)
+            #self.control.alloc_model = "FIXED"
+            self.pg.calc_carbon_allocation_fracs(0.0, 0, 0)
+            #self.control.alloc_model = "ALLOMETRIC"
             self.pg.allocate_stored_c_and_n(init=True)
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
@@ -203,7 +205,7 @@ class Gday(object):
             # =============== #
             if self.control.deciduous_model:
                 self.pg.allocate_stored_c_and_n(init=False)
-
+                
             if self.control.print_options == "DAILY" and self.spin_up == False:
                 self.print_output_file()
             
