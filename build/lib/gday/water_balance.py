@@ -516,10 +516,11 @@ class SoilMoisture(object):
             (self.wp_tsoil, self.cp_tsoil) = self.calc_soil_params(fsoil_top)
             (self.wp_root, self.cp_root) = self.calc_soil_params(fsoil_root)
             
-            (self.ctheta_tsoil, 
-             self.ntheta_tsoil) = self.get_soil_params(self.params.topsoil_type)
-            (self.ctheta_root, 
-             self.ntheta_root) = self.get_soil_params(self.params.rootsoil_type)  
+            if self.control.sw_stress_model == 1:            
+                (self.ctheta_tsoil, 
+                 self.ntheta_tsoil) = self.get_soil_params(self.params.topsoil_type)
+                (self.ctheta_root, 
+                 self.ntheta_root) = self.get_soil_params(self.params.rootsoil_type)  
         else:
             self.cp_tsoil = self.params.fwpmax_tsoil
             self.wp_tsoil = self.params.fwpmin_tsoil
