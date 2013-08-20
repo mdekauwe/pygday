@@ -366,7 +366,7 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-        #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height
+        print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height,self.params.leafsap1
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
