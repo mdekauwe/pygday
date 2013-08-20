@@ -304,7 +304,24 @@ class PlantGrowth(object):
                                 (self.params.ar_min + 
                                 (self.params.ar_max - self.params.ar_min) * 
                                 limitation))
+            
+            #tonnes_2_kg = 1000.0
+            #N = 1430.0 # stocking (stem numbers) trees ha-1  # 1713 pines (+2589 hardwood, think ignore?) for Duke, 2800 for ornl
+            #aS = 0.095 # constant in the stem mass v. diameter reln
+            #nS = 2.4   # power in the stem mass v. diameter reln
+            #Ws = self.state.stem * tonnes_2_kg / N # kg/tree
+            #dbh = (Ws / aS)**(1.0 / nS)  # stand based mean dbh (cm)
         
+
+        
+            #pFS2 = 1.0  # foliage:stem partioning ratio at DBH = 2 cm
+            #pFS20 = 0.15 # foliage:stem partioning ratio at DBH = 20 cm
+        
+            #np = log(pFS20 / pFS2) / log(10)
+            #ap = pFS2 / 2.0**np
+
+            #PFS = ap * dbh**np
+            
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
             height = self.params.heighto * self.state.stem**self.params.htpower
@@ -366,7 +383,7 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-        print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height,self.params.leafsap1
+        #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot, self.state.lai,height,self.params.leafsap1
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
