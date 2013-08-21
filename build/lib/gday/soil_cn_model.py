@@ -58,14 +58,6 @@ class CarbonSoilFlows(object):
         # by ratio of lignin/N ratio 
         (lnleaf, lnroot) = self.ligin_nratio()
         
-        #if lnleaf* 0.018 > 0.85:
-        #    print "%s, %d, %.7f, %s, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f" % ("*", project_day, lnleaf, "---", self.params.ligshoot, self.params.cfracts, self.fluxes.deadleafn / self.fluxes.deadleaves, 1.0 / (self.fluxes.deadleafn / self.fluxes.deadleaves), self.fluxes.deadleafn , self.fluxes.deadleaves, self.state.shootnc, self.state.shoot, self.state.shootn)
-        #else:
-        #    print "%s, %d, %.7f, %s, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f, %.7f" % ("o", project_day, lnleaf, "---", self.params.ligshoot, self.params.cfracts, self.fluxes.deadleafn / self.fluxes.deadleaves, 1.0 / (self.fluxes.deadleafn / self.fluxes.deadleaves), self.fluxes.deadleafn , self.fluxes.deadleaves, self.state.shootnc, self.state.shoot, self.state.shootn)
-        
-        
-        
-        
         self.params.fmleaf = self.metafract(lnleaf)
         self.params.fmroot = self.metafract(lnroot)
         
@@ -186,23 +178,15 @@ class CarbonSoilFlows(object):
         nceroot = self.ratio_of_litternc_to_live_rootnc()
         
         if float_eq(nceleaf, 0.0):
-            # This is effectively a hack that results in fluxes being turned
-            # off into the metabolic pool. It seems that the century code
-            # would effectively result in no metabolic fluxes. Might be worth
-            # looking at the latest century code to see how they get around 
-            # this? 
-            lnleaf = 1E20 
+            # catch divide by zero if we have no leaves 
+            lnleaf = 0.0 
         else:
             lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
-            
+            #print self.params.ligshoot
 
         if float_eq(nceroot, 0.0):
-            # This is effectively a hack that results in fluxes being turned
-            # off into the metabolic pool. It seems that the century code
-            # would effectively result in no metabolic fluxes. Might be worth
-            # looking at the latest century code to see how they get around 
-            # this? 
-            lnroot = 1E20 
+            # catch divide by zero if we have no roots
+            lnroot = 0.0 
         else:
             lnroot = self.params.ligroot / self.params.cfracts / nceroot
 
@@ -275,7 +259,7 @@ class CarbonSoilFlows(object):
                                  self.fluxes.deadbranch * self.params.brabove +
                                  self.fluxes.deadstems + self.fluxes.faecesc *
                                  (1.0 - self.params.fmfaeces))
-
+        
         # -> into soil structural
         self.fluxes.cresid[1] = (self.fluxes.deadroots *
                                  (1.0 - self.params.fmroot) +
@@ -285,6 +269,7 @@ class CarbonSoilFlows(object):
         # -> into metabolic surface
         self.fluxes.cresid[2] = (self.fluxes.deadleaves * self.params.fmleaf +
                                  self.fluxes.faecesc * self.params.fmfaeces)
+        
         # -> into metabolic soil
         self.fluxes.cresid[3] = self.fluxes.deadroots * self.params.fmroot
 
