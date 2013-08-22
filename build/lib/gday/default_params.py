@@ -72,7 +72,6 @@ fretrans         = 0.5            # foliage n retranslocation fraction - 46-57% 
 rretrans         = 0.0            # root n retranslocation fraction
 bretrans         = 0.0            # branch n retranslocation fraction
 wretrans         = 0.0            # mobile wood N retranslocation fraction
-uo               = 2.737850787E-4 # Supply rate of available N (0.01 kg N m-2 yr-1 to t/ha/day)
 kr               = 0.5            # N uptake coefficent (0.05 kg C m-2 to 0.5 tonnes/ha) see Silvia's PhD
 
 #set nitrogen allocation parameters
@@ -101,8 +100,8 @@ wdecay           = 0.02           #wood decay rate (1/yr)
 sapdecay         = 0.1            #sapwood decay rate (1/yr)
 watdecaydry      = 0.0            #water fractn for dry litterfall rates
 watdecaywet      = 0.1            #water fractn for wet litterfall rates
-ligshoot         = 0.25           #shoot litter lignin as fraction of c
-ligroot          = 0.25           #root litter lignin as fraction of c
+ligshoot         = 0.25           #lignin-to-biomass ratio in leaf litter
+ligroot          = 0.25           #lignin-to-biomass ratio in root litter
 brabove          = 0.5            #above-ground fraction of branch pool litter
 structcn         = 150.0          #C:N ratio of structural bit of litter input
 structrat        = 0.0            #structural input n:c as fraction of metab
