@@ -584,8 +584,8 @@ class PlantGrowth(object):
         return arg1 + arg2
     
     def calculate_nuptake(self):
-        """ N uptake from the soil, note as it stands root biomass does not
-        affect N uptake.
+        """ N uptake depends on the rate at which soil mineral N is made 
+        available to the plants.
         
         Returns:
         --------
@@ -612,7 +612,7 @@ class PlantGrowth(object):
             Kr = self.params.kr
             nuptake = max(U0 * self.state.root / (self.state.root + Kr), 0.0)
         else:
-            raise AttributeError('Unknown N uptake assumption')
+            raise AttributeError('Unknown N uptake option')
         
         return nuptake
     
