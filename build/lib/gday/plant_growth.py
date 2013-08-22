@@ -584,8 +584,8 @@ class PlantGrowth(object):
         return arg1 + arg2
     
     def calculate_nuptake(self):
-        """ N uptake from the soil, note as it stands root biomass does not
-        affect N uptake.
+        """ N uptake depends on the rate at which soil mineral N is made 
+        available to the plants.
         
         Returns:
         --------
@@ -604,24 +604,15 @@ class PlantGrowth(object):
             # evaluate nuptake : proportional to dynamic inorganic N pool
             nuptake = self.params.rateuptake * self.state.inorgn
         elif self.control.nuptake_model == 2:
-            # Assume N uptake depends on the rate at which soil mineral
-            # N is made available (self.params.Uo) and the value or root C
-            # at which 50% of the available N is taken up (Dewar and McM).
-            #arg = (self.params.uo * self.state.inorgn *
-            #        (self.state.root / (self.state.root + self.params.kr)))
-            #nuptake = max(arg, 0.0)
+            # Assume rate of N uptake depends on the rate at which soil mineral
+            # N is made available (U0) and the value or root C
             
-            Kr = 0.5
-            #up = self.params.rateuptake
-            up = 9.7/365.25
-            nuptake = max(up*self.state.inorgn*self.state.root/(self.state.root + Kr), 0.0)	
-            
-            nuptake = max(up*self.state.inorgn*self.state.root/(self.state.root + Kr), 0.0)	
-
-            
-            
+            # supply rate of available mineral N
+            U0 = self.params.rateuptake * self.state.inorgn
+            Kr = self.params.kr
+            nuptake = max(U0 * self.state.root / (self.state.root + Kr), 0.0)
         else:
-            raise AttributeError('Unknown N uptake assumption')
+            raise AttributeError('Unknown N uptake option')
         
         return nuptake
     
