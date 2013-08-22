@@ -187,7 +187,16 @@ class Gday(object):
                 
                 
                 #print "%d, %d, %.7f, %.7f, %.7f, %.7f" % (project_day, doy, 1.0 / (self.fluxes.deadleafn / self.fluxes.deadleaves), 1.0/self.state.shootnc, self.state.lai, self.fluxes.gpp*100)
-        
+                
+                if float_eq(self.fluxes.deadleaves, 0.0):
+                    ncleaf = 0.0
+                else:
+                    ncleaf = self.fluxes.deadleafn / self.fluxes.deadleaves
+                
+                lig2n = self.params.ligshoot / self.params.cfracts / ncleaf
+                fm = max(0.0, 0.85 - (0.018 * lig2n))
+                
+                print fm, 1.0/ncleaf, self.fluxes.gpp * 100, self.state.lai
                 
                 #print self.state.shoot, self.state.lai
                 #print self.fluxes.gpp * 100, self.state.lai
