@@ -607,9 +607,19 @@ class PlantGrowth(object):
             # Assume N uptake depends on the rate at which soil mineral
             # N is made available (self.params.Uo) and the value or root C
             # at which 50% of the available N is taken up (Dewar and McM).
-            arg = (self.params.uo * self.state.inorgn *
-                    (self.state.root / (self.state.root + self.params.kr)))
-            nuptake = max(arg, 0.0)
+            #arg = (self.params.uo * self.state.inorgn *
+            #        (self.state.root / (self.state.root + self.params.kr)))
+            #nuptake = max(arg, 0.0)
+            
+            Kr = 0.5
+            #up = self.params.rateuptake
+            up = 9.7/365.25
+            nuptake = max(up*self.state.inorgn*self.state.root/(self.state.root + Kr), 0.0)	
+            
+            nuptake = max(up*self.state.inorgn*self.state.root/(self.state.root + Kr), 0.0)	
+
+            
+            
         else:
             raise AttributeError('Unknown N uptake assumption')
         
