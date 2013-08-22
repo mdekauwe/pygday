@@ -72,7 +72,6 @@ fretrans         = 0.5            # foliage n retranslocation fraction - 46-57% 
 rretrans         = 0.0            # root n retranslocation fraction
 bretrans         = 0.0            # branch n retranslocation fraction
 wretrans         = 0.0            # mobile wood N retranslocation fraction
-uo               = 2.737850787E-4 # Supply rate of available N (0.01 kg N m-2 yr-1 to t/ha/day)
 kr               = 0.5            # N uptake coefficent (0.05 kg C m-2 to 0.5 tonnes/ha) see Silvia's PhD
 
 #set nitrogen allocation parameters
