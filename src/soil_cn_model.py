@@ -631,7 +631,8 @@ class NitrogenSoilFlows(object):
         """ N gross mineralisation rate is given by the excess of N outflows 
         over inflows. Nitrogen mineralisation is the process by which organic 
         N is converted to plant available inorganic N, i.e. microbes decompose
-        ogranic N from organic matter to ammonium.
+        organic N from organic matter to ammonia (NH3) and ammonium (NH4), 
+        called ammonification.
         
         Returns:
         --------
@@ -643,10 +644,11 @@ class NitrogenSoilFlows(object):
                  self.fluxes.npassive)
     
     def calculate_nimmobilisation(self):
-        """ Calculated N immobilised in new soil organic matter, the reverse of
+        """ N immobilised in new soil organic matter, the reverse of
         mineralisation. Micro-organisms in the soil compete with plants for N.
         Immobilisation is the process by which nitrate and ammonium are taken up
-        by the soil organisms and thus become unavailable to the plant.
+        by the soil organisms and thus become unavailable to the plant 
+        (->organic N).
         
         General equation for new soil N:C ratio vs Nmin, expressed as linear 
         equation passing through point Nmin0, actncmin (etc). Values can be 
