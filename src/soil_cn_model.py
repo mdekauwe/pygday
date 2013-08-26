@@ -474,7 +474,7 @@ class NitrogenSoilFlows(object):
         self.calculate_npools()
         
         # calculate N net mineralisation
-        self.fluxes.nmineralisation = self.calc_nmin()
+        self.fluxes.nmineralisation = self.calc_net_mineralisation()
         
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
@@ -633,7 +633,9 @@ class NitrogenSoilFlows(object):
 
     def calculate_nmineralisation(self):
         """ N gross mineralisation rate is given by the excess of N outflows 
-        over inflows
+        over inflows. Nitrogen mineralisation is the process by which organic 
+        N is converted to plant available inorganic N, i.e. microbes decompose
+        ogranic N from organic matter to ammonium.
         
         Returns:
         --------
@@ -645,16 +647,19 @@ class NitrogenSoilFlows(object):
                  self.fluxes.npassive)
     
     def calculate_nimmobilisation(self):
-        """ Calculated N immobilised in new soil organic matter
+        """ Calculated N immobilised in new soil organic matter, the reverse of
+        mineralisation. Micro-organisms in the soil compete with plants for N.
+        Immobilisation is the process by which nitrate and ammonium are taken up
+        by the soil organisms and thus become unavailable to the plant.
         
-         General equation for new soil N:C ratio vs Nmin, expressed as linear 
-         equation passing through point Nmin0, actncmin (etc). Values can be 
-         Nmin0=0, Actnc0=Actncmin 
-         
-         if Nmin < Nmincrit:
+        General equation for new soil N:C ratio vs Nmin, expressed as linear 
+        equation passing through point Nmin0, actncmin (etc). Values can be 
+        Nmin0=0, Actnc0=Actncmin 
+
+        if Nmin < Nmincrit:
             New soil N:C = soil N:C (when Nmin=0) + slope * Nmin
-         
-         if Nmin > Nmincrit
+
+        if Nmin > Nmincrit
             New soil N:C = max soil N:C       
         
         NB N:C ratio of new passive SOM can change even if assume Passiveconst
@@ -709,7 +714,7 @@ class NitrogenSoilFlows(object):
         
         return nimmob
     
-    def calc_nmin(self):
+    def calc_net_mineralisation(self):
         """ N Net mineralisation, i.e. excess of N outflows over inflows """
         return (self.fluxes.ninflow + self.fluxes.ngross - self.fluxes.nimmob +
                 self.fluxes.nlittrelease)
