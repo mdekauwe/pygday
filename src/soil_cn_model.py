@@ -650,6 +650,11 @@ class NitrogenSoilFlows(object):
         by the soil organisms and thus become unavailable to the plant 
         (->organic N).
         
+        When C:N ratio is high the microorganisms need more nitrogen from 
+        the soil to decompose the carbon in organic materials. This N will be
+        immobilised until these microorganisms die and the nitrogen is 
+        released.
+        
         General equation for new soil N:C ratio vs Nmin, expressed as linear 
         equation passing through point Nmin0, actncmin (etc). Values can be 
         Nmin0=0, Actnc0=Actncmin 
