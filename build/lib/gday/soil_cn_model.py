@@ -174,21 +174,21 @@ class CarbonSoilFlows(object):
         lnroot : float
             lignin:N ratio of fine root
         """
-        nceleaf = self.ratio_of_litternc_to_live_leafnc()
-        nceroot = self.ratio_of_litternc_to_live_rootnc()
+        nc_leaf_litter = self.ratio_of_litternc_to_live_leafnc()
+        nc_root_litter = self.ratio_of_litternc_to_live_rootnc()
         
-        if float_eq(nceleaf, 0.0):
+        if float_eq(nc_leaf_litter, 0.0):
             # catch divide by zero if we have no leaves 
             lnleaf = 0.0 
         else:
-            lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
+            lnleaf = self.params.ligshoot / self.params.cfracts / nc_leaf_litter
             #print self.params.ligshoot
 
-        if float_eq(nceroot, 0.0):
+        if float_eq(nc_root_litter, 0.0):
             # catch divide by zero if we have no roots
             lnroot = 0.0 
         else:
-            lnroot = self.params.ligroot / self.params.cfracts / nceroot
+            lnroot = self.params.ligroot / self.params.cfracts / nc_root_litter
 
         return (lnleaf, lnroot)
 
@@ -197,43 +197,39 @@ class CarbonSoilFlows(object):
 
         Returns:
         --------
-        nceleaf : float
+        nc_leaf_litter : float
             N:C ratio of litter to foliage
 
         """
-        if float_eq(self.fluxes.deadleaves, 0.0):
-            ncleaf = 0.0
-        else:
-            ncleaf = self.fluxes.deadleafn / self.fluxes.deadleaves
-        
         if self.control.use_eff_nc:
-            nceleaf = self.params.liteffnc  * (1.0 - self.params.fretrans)
+            nc_leaf_litter = self.params.liteffnc * (1.0 - self.params.fretrans)
         else:
-            nceleaf = ncleaf
+            if float_eq(self.fluxes.deadleaves, 0.0):
+                nc_leaf_litter = 0.0
+            else:
+                nc_leaf_litter = self.fluxes.deadleafn / self.fluxes.deadleaves
 
-        return nceleaf
+        return nc_leaf_litter
 
     def ratio_of_litternc_to_live_rootnc(self):
         """ratio of litter N:C to live root N:C
 
         Returns:
         --------
-        nceroot : float
+        nc_root_litter : float
             N:C ratio of litter to live root
 
         """
-        if float_eq(self.fluxes.deadroots, 0.0):
-            ncroot = 0.0
-        else:
-            ncroot = self.fluxes.deadrootn / self.fluxes.deadroots
-
         if self.control.use_eff_nc:
-            nceroot = (self.params.liteffnc * self.params.ncrfac *
-                      (1.0 - self.params.rretrans))
+            nc_root_litter = (self.params.liteffnc * self.params.ncrfac *
+                             (1.0 - self.params.rretrans))
         else:
-            nceroot = ncroot
+            if float_eq(self.fluxes.deadroots, 0.0):
+                nc_root_litter = 0.0
+            else:
+                nc_root_litter = self.fluxes.deadrootn / self.fluxes.deadroots
 
-        return nceroot
+        return nc_root_litter
 
     def metafract(self, lig2n):
         """ Calculate what fraction of the litter will be partitioned to the 
@@ -474,7 +470,7 @@ class NitrogenSoilFlows(object):
         self.calculate_npools()
         
         # calculate N net mineralisation
-        self.fluxes.nmineralisation = self.calc_nmin()
+        self.fluxes.nmineralisation = self.calc_net_mineralisation()
         
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
@@ -633,7 +629,9 @@ class NitrogenSoilFlows(object):
 
     def calculate_nmineralisation(self):
         """ N gross mineralisation rate is given by the excess of N outflows 
-        over inflows
+        over inflows. Nitrogen mineralisation is the process by which organic 
+        N is converted to plant available inorganic N, i.e. microbes decompose
+        ogranic N from organic matter to ammonium.
         
         Returns:
         --------
@@ -645,16 +643,19 @@ class NitrogenSoilFlows(object):
                  self.fluxes.npassive)
     
     def calculate_nimmobilisation(self):
-        """ Calculated N immobilised in new soil organic matter
+        """ Calculated N immobilised in new soil organic matter, the reverse of
+        mineralisation. Micro-organisms in the soil compete with plants for N.
+        Immobilisation is the process by which nitrate and ammonium are taken up
+        by the soil organisms and thus become unavailable to the plant.
         
-         General equation for new soil N:C ratio vs Nmin, expressed as linear 
-         equation passing through point Nmin0, actncmin (etc). Values can be 
-         Nmin0=0, Actnc0=Actncmin 
-         
-         if Nmin < Nmincrit:
+        General equation for new soil N:C ratio vs Nmin, expressed as linear 
+        equation passing through point Nmin0, actncmin (etc). Values can be 
+        Nmin0=0, Actnc0=Actncmin 
+
+        if Nmin < Nmincrit:
             New soil N:C = soil N:C (when Nmin=0) + slope * Nmin
-         
-         if Nmin > Nmincrit
+
+        if Nmin > Nmincrit
             New soil N:C = max soil N:C       
         
         NB N:C ratio of new passive SOM can change even if assume Passiveconst
@@ -709,7 +710,7 @@ class NitrogenSoilFlows(object):
         
         return nimmob
     
-    def calc_nmin(self):
+    def calc_net_mineralisation(self):
         """ N Net mineralisation, i.e. excess of N outflows over inflows """
         return (self.fluxes.ninflow + self.fluxes.ngross - self.fluxes.nimmob +
                 self.fluxes.nlittrelease)
