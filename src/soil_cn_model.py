@@ -177,14 +177,14 @@ class CarbonSoilFlows(object):
         nc_leaf_litter = self.ratio_of_litternc_to_live_leafnc()
         nc_root_litter = self.ratio_of_litternc_to_live_rootnc()
         
-        if float_eq(nceleaf, 0.0):
+        if float_eq(nc_leaf_litter, 0.0):
             # catch divide by zero if we have no leaves 
             lnleaf = 0.0 
         else:
             lnleaf = self.params.ligshoot / self.params.cfracts / nc_leaf_litter
             #print self.params.ligshoot
 
-        if float_eq(nceroot, 0.0):
+        if float_eq(nc_root_litter, 0.0):
             # catch divide by zero if we have no roots
             lnroot = 0.0 
         else:
