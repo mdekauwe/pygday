@@ -245,7 +245,12 @@ class CarbonSoilFlows(object):
         metabolic fraction : float
             partitioned fraction to metabolic pool [must be positive]
         """
-        return max(0.0, 0.85 - (0.018 * lig2n))
+        #return max(0.0, 0.85 - (0.018 * lig2n))
+        
+        # At least 2% goes to metabolic in CENTURY 4 code and as stated in
+        # Nalder and Wein (1996) Ecological Modelling, 192, 37-66, which is 
+        # presumably based on CENTURY 4 codebase.
+        return max(0.2, 0.85 - (0.018 * lig2n))
         
     def cflux_from_plants(self):
         """ C flux from plants into soil/surface struct and metabolic pools """
