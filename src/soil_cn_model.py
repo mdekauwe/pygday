@@ -174,21 +174,21 @@ class CarbonSoilFlows(object):
         lnroot : float
             lignin:N ratio of fine root
         """
-        nceleaf = self.ratio_of_litternc_to_live_leafnc()
-        nceroot = self.ratio_of_litternc_to_live_rootnc()
+        nc_leaf_litter = self.ratio_of_litternc_to_live_leafnc()
+        nc_root_litter = self.ratio_of_litternc_to_live_rootnc()
         
         if float_eq(nceleaf, 0.0):
             # catch divide by zero if we have no leaves 
             lnleaf = 0.0 
         else:
-            lnleaf = self.params.ligshoot / self.params.cfracts / nceleaf
+            lnleaf = self.params.ligshoot / self.params.cfracts / nc_leaf_litter
             #print self.params.ligshoot
 
         if float_eq(nceroot, 0.0):
             # catch divide by zero if we have no roots
             lnroot = 0.0 
         else:
-            lnroot = self.params.ligroot / self.params.cfracts / nceroot
+            lnroot = self.params.ligroot / self.params.cfracts / nc_root_litter
 
         return (lnleaf, lnroot)
 
@@ -197,43 +197,39 @@ class CarbonSoilFlows(object):
 
         Returns:
         --------
-        nceleaf : float
+        nc_leaf_litter : float
             N:C ratio of litter to foliage
 
         """
-        if float_eq(self.fluxes.deadleaves, 0.0):
-            ncleaf = 0.0
-        else:
-            ncleaf = self.fluxes.deadleafn / self.fluxes.deadleaves
-        
         if self.control.use_eff_nc:
-            nceleaf = self.params.liteffnc  * (1.0 - self.params.fretrans)
+            nc_leaf_litter = self.params.liteffnc * (1.0 - self.params.fretrans)
         else:
-            nceleaf = ncleaf
+            if float_eq(self.fluxes.deadleaves, 0.0):
+                nc_leaf_litter = 0.0
+            else:
+                nc_leaf_litter = self.fluxes.deadleafn / self.fluxes.deadleaves
 
-        return nceleaf
+        return nc_leaf_litter
 
     def ratio_of_litternc_to_live_rootnc(self):
         """ratio of litter N:C to live root N:C
 
         Returns:
         --------
-        nceroot : float
+        nc_root_litter : float
             N:C ratio of litter to live root
 
         """
-        if float_eq(self.fluxes.deadroots, 0.0):
-            ncroot = 0.0
-        else:
-            ncroot = self.fluxes.deadrootn / self.fluxes.deadroots
-
         if self.control.use_eff_nc:
-            nceroot = (self.params.liteffnc * self.params.ncrfac *
-                      (1.0 - self.params.rretrans))
+            nc_root_litter = (self.params.liteffnc * self.params.ncrfac *
+                             (1.0 - self.params.rretrans))
         else:
-            nceroot = ncroot
+            if float_eq(self.fluxes.deadroots, 0.0):
+                nc_root_litter = 0.0
+            else:
+                nc_root_litter = self.fluxes.deadrootn / self.fluxes.deadroots
 
-        return nceroot
+        return nc_root_litter
 
     def metafract(self, lig2n):
         """ Calculate what fraction of the litter will be partitioned to the 
