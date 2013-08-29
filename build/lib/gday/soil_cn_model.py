@@ -539,6 +539,7 @@ class NitrogenSoilFlows(object):
         # calculate N net mineralisation
         self.fluxes.nmineralisation = self.calc_net_mineralisation()
         
+        
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
         if self.control.grazing:
