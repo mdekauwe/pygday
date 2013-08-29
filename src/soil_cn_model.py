@@ -13,7 +13,7 @@ import constants as const
 from utilities import float_eq, float_lt, float_le, float_gt, float_ge
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (22.04.2013)"
+__version__ = "1.0 (28.08.2013)"
 __email__   = "mdekauwe@gmail.com"
 
 
