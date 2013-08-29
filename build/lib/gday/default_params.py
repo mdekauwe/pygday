@@ -180,6 +180,9 @@ r0 = 0.1325 # root C at half-maximum N uptake (kg C/m3)
 top_soil_depth = 0.3 # depth (cm) of soil assumed by G'DAY
 
 
+
+ft = None # fraction of C lost due to microbial respiration
+
 # penman-monteith params
 canht            = 17.0     # Canopy height (m)
 dz0v_dh          = 0.123    # Rate of change of vegetation roughness length for momentum with height. Value from Jarvis? for conifer 0.075

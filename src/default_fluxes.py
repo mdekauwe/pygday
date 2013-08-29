@@ -72,26 +72,64 @@ neaten = None       # N consumed by grazers (t C/ha/y)
 faecesc = None      # Flux determined by faeces C:N
 nurine = None       # Rate of N input to soil in urine (t/ha/y)
 
-#C N root/shoot to struct and metab pools
-cresid = [None] * 4  # Cshoot -> surf struct, Croot -> soil sturct, Cshoot -> surf metab, Croot ->surf
-nresid = [None] * 4  # Nshoot -> surf struct, Nroot -> soil sturct, Nshoot -> surf metab, Nroot ->surf metab
-cstruct = [None] * 4  # Csurf struct -> slow, Csurf struct -> active, Csoil struct -> slow, Csoil struct -> active
-nstruct = [None] * 4  # Nsurf struct -> slow, Nsurf struct -> active, Nsoil struct -> slow, Nsoil struct -> active
 
-cact = 0.0 # C source flux from the active pool
-cslo = 0.0 # C source flux from the slow pool
-cpas = 0.0 # C source flux from the passive pool
+# C&N Surface litter
+surf_struct_litter = None
+surf_metab_litter = None
+n_surf_struct_litter = None
+n_surf_metab_litter = None
+
+# C&N Root Litter
+soil_struct_litter = None
+soil_metab_litter = None
+n_soil_struct_litter = None
+n_soil_metab_litter = None
+
+# C&N litter fluxes to slow pool
+surf_struct_to_slow = None
+soil_struct_to_slow = None
+n_surf_struct_to_slow = None
+n_soil_struct_to_slow = None
+
+# C&N litter fluxes to active pool
+surf_struct_to_active = None
+soil_struct_to_active = None
+n_surf_struct_to_active = None
+n_soil_struct_to_active = None
+
+# Metabolic fluxes to active pool
+surf_metab_to_active = None
+soil_metab_to_active = None
+n_surf_metab_to_active = None
+n_surf_metab_to_active = None
+
+# C fluxes out of active pool
+active_to_slow = None
+active_to_passive = None
+n_active_to_slow = None
+n_active_to_passive = None
+
+# C&N fluxes from slow to active pool
+slow_to_active = None
+slow_to_passive = None
+n_slow_to_active = None
+n_slow_to_passive = None
+
+# C&N fluxes from passive to active pool
+passive_to_active = None
+n_passive_to_active = None
+
+# C & N source fluxes from the active, slow and passive pools
+c_into_active = None  
+c_into_slow = None    
+c_into_passive = None 
+n_into_active = None  
+n_into_slow = None    
+n_into_passive = None 
 
 # Microbial respiration -> CO2
 co2_to_air = [None] * 7 
 
-cactive = [None] * 2 # C active -> slow/passive
-nactive = [None] * 2 # N active -> slow/passive
-passive = None
-nslow = [None] * 2 # Nslow -> active and -> passive
-cslow = [None] * 2  # Cslow -> active and -> passive
-nmetab = [None] * 2 # N surf metab and N soil metab -> active
-cmetab = [None] * 2 # C surf metab and C soil metab -> active
 
 # Misc stuff
 cica_avg = None # used in water balance, only when running mate model
