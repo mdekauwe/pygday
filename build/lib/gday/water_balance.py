@@ -140,7 +140,8 @@ class WaterBalance(object):
         rain = self.met_data['rain'][day]
         vpd_day = self.met_data['vpd_avg'][day] # daytime average
         vpd_ampm= [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
-        wind_ampm = [self.met_data['wind_am'][day], self.met_data['wind_pm'][day]]
+        wind_ampm = [self.met_data['wind_am'][day], \
+                     self.met_data['wind_pm'][day]]
         wind_day = self.met_data['wind'][day]
         
         if ('atmos_press' in self.met_data and not
@@ -169,7 +170,8 @@ class WaterBalance(object):
         if self.state.lai > 0.0:
             self.fluxes.erain = max(0.0, rain * self.params.rfmult -
                                     self.state.lai * self.params.wetloss)
-            self.fluxes.interception = rain * self.params.rfmult - self.fluxes.erain
+            self.fluxes.interception = (rain * self.params.rfmult - 
+                                        self.fluxes.erain)
         else:
             self.fluxes.erain = max(0.0, rain)
             self.fluxes.interception = 0.0
@@ -321,7 +323,8 @@ class WaterBalance(object):
        
         # time unit conversion day-1 -> seconds-1
         tconv =  1.0 / (60.0 * 60.0 * daylen)
-        gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * tconv)
+        gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
+                           tconv)
         
         arg1 = 1.6 * (1.0 + (g1_c * self.state.wtfac_root) / sqrt(vpd))
         arg2 = gpp_umol_m2_sec / ca # umol mol-1
