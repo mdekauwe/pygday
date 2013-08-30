@@ -821,7 +821,24 @@ class NitrogenSoilFlows(object):
                 self.fluxes.nlittrelease)
     
     def calculate_nc_slope(self, ncmax, ncmin):
-        """ Returns N:C ratio of the mineral pool slope """
+        """ Returns N:C ratio of the mineral pool slope 
+        
+        based on fig 4 of Parton et al 1993. Standard slow pool C:N is different
+        to the values in Parton. Bill quotes 12-20, whereas McMurtrie et al '01
+        use 10-40.
+        
+        Parameters
+        ----------
+        ncmax : float
+            SOM pools maximum N:C
+        ncmin: float
+            SOM pools minimum N:C
+        
+        Returns:
+        --------
+        value : float
+            SOM pool N:C ratio 
+        """
         arg1 = ncmax - ncmin
         arg2 = self.params.nmincrit - self.params.nmin0
         conv = const.M2_AS_HA / const.G_AS_TONNES
