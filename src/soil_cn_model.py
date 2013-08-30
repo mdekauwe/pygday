@@ -849,7 +849,7 @@ class NitrogenSoilFlows(object):
                          passive_nc_slope):
         """ Calculate new soil N pools. """
 
-        # net source fluxes.
+        # C flux entering SOM pools
         self.fluxes.n_into_active = (self.fluxes.n_surf_struct_to_active + 
                                      self.fluxes.n_soil_struct_to_active +
                                      self.fluxes.n_surf_metab_to_active + 
