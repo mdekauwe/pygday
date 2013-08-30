@@ -920,31 +920,31 @@ class NitrogenSoilFlows(object):
         arg = (self.state.inorgn - self.params.nmin0 / const.M2_AS_HA * 
                 const.G_AS_TONNES)
         # active
-        actnc = self.params.actncmin + active_nc_slope * arg
-        if float_gt(actnc, self.params.actncmax):
-            actnc = self.params.actncmax
+        active_nc = self.params.actncmin + active_nc_slope * arg
+        if float_gt(active_nc, self.params.actncmax):
+            active_nc = self.params.actncmax
         
         
         
-        fixn = self.fluxes.c_into_active * actnc - self.fluxes.n_into_active
+        fixn = self.fluxes.c_into_active * active_nc - self.fluxes.n_into_active
         self.state.activesoiln += (self.fluxes.n_into_active + fixn - 
                                   (self.fluxes.n_active_to_slow + 
                                    self.fluxes.n_active_to_passive))
 
         # slow
-        slownc = self.params.slowncmin + slow_nc_slope * arg
-        if float_gt(slownc, self.params.slowncmax):
-            slownc = self.params.slowncmax
-        fixn = self.fluxes.c_into_slow * slownc -  self.fluxes.n_into_slow
+        slow_nc = self.params.slowncmin + slow_nc_slope * arg
+        if float_gt(slow_nc, self.params.slowncmax):
+            slow_nc = self.params.slowncmax
+        fixn = self.fluxes.c_into_slow * slow_nc -  self.fluxes.n_into_slow
         self.state.slowsoiln += (self.fluxes.n_into_slow + fixn - 
                                 (self.fluxes.n_slow_to_active + 
                                  self.fluxes.n_slow_to_passive))
 
         # passive
-        passnc = self.params.passncmin + passive_nc_slope * arg
+        pass_nc = self.params.passncmin + passive_nc_slope * arg
         if float_gt(passnc, self.params.passncmax):
-            passnc = self.params.passncmax
-        fixn = self.fluxes.c_into_passive * passnc - self.fluxes.n_into_passive
+            pass_nc = self.params.passncmax
+        fixn = self.fluxes.c_into_passive * pass_nc - self.fluxes.n_into_passive
         
         # update passive pool only if passiveconst=0
         self.state.passivesoiln += (self.fluxes.n_into_passive + fixn - 
