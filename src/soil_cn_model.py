@@ -942,7 +942,7 @@ class NitrogenSoilFlows(object):
 
         # passive
         pass_nc = self.params.passncmin + passive_nc_slope * arg
-        if float_gt(passnc, self.params.passncmax):
+        if float_gt(pass_nc, self.params.passncmax):
             pass_nc = self.params.passncmax
         fixn = self.fluxes.c_into_passive * pass_nc - self.fluxes.n_into_passive
         
