@@ -831,13 +831,13 @@ class NitrogenSoilFlows(object):
         return (self.fluxes.ninflow + self.fluxes.ngross - self.fluxes.nimmob +
                 self.fluxes.nlittrelease)
     
-    def calculate_nc_slope(self, pool_ncmax, pool_ncmin):
+    def calculate_nc_slope(self, ncmax, ncmin):
         """ Returns N:C ratio of the mineral pool slope """
-        arg1 = (pool_ncmax - pool_ncmin)
-        arg2 = ((self.params.nmincrit - self.params.nmin0) * 
-                 const.G_M2_2_TONNES_HA)
+        arg1 = ncmax - ncmin
+        arg2 = self.params.nmincrit - self.params.nmin0
+        conv = const.M2_AS_HA / const.G_AS_TONNES
         
-        return arg1 / arg2 
+        return arg1 / arg2 * conv
     
     def calculate_npools(self):
         """ Calculate new soil N pools. """
