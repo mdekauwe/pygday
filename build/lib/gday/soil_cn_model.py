@@ -531,10 +531,11 @@ class NitrogenSoilFlows(object):
         self.fluxes.ngross = self.calculate_n_mineralisation()
         
         # calculate N immobilisation
-        self.fluxes.nimmob = self.calculate_n_immobilisation()
+        (self.fluxes.nimmob, active_nc_slope, 
+         slow_nc_slope, passive_nc_slope) = self.calculate_n_immobilisation()
         
         # Update model soil N pools
-        self.calculate_npools()
+        self.calculate_npools(active_nc_slope, slow_nc_slope, passive_nc_slope)
         
         # calculate N net mineralisation
         self.fluxes.nmineralisation = self.calc_net_mineralisation()
@@ -767,56 +768,44 @@ class NitrogenSoilFlows(object):
             N immobilsed
         """
         # N:C new SOM - active, slow and passive
-        self.state.actncslope = self.calculate_nc_slope(self.params.actncmax, 
-                                                        self.params.actncmin)
-        self.state.slowncslope = self.calculate_nc_slope(self.params.slowncmax, 
-                                                         self.params.slowncmin)
-        self.state.passncslope = self.calculate_nc_slope(self.params.passncmax, 
-                                                         self.params.passncmin) 
-
-        nmin = self.params.nmin0 * const.G_M2_2_TONNES_HA
-        arg1 = ((self.fluxes.active_to_passive + self.fluxes.slow_to_passive) *
-                (self.params.passncmin - self.state.passncslope * nmin))
-        arg2 = ((self.fluxes.surf_struct_to_slow + 
-                 self.fluxes.soil_struct_to_slow +
-                 self.fluxes.active_to_slow) *
-                (self.params.slowncmin - self.state.slowncslope * nmin))
-        arg3 = ((self.fluxes.surf_struct_to_active + 
-                 self.fluxes.soil_struct_to_active +
-                 self.fluxes.surf_metab_to_active + 
-                 self.fluxes.soil_metab_to_active +
-                 self.fluxes.slow_to_active +
-                 self.fluxes.passive_to_active) * 
-                 (self.params.actncmin - self.state.actncslope * nmin))
+        active_nc_slope = self.calculate_nc_slope(self.params.actncmax, 
+                                                  self.params.actncmin)
+        slow_nc_slope = self.calculate_nc_slope(self.params.slowncmax, 
+                                                self.params.slowncmin)
+        passive_nc_slope = self.calculate_nc_slope(self.params.passncmax, 
+                                                   self.params.passncmin) 
+        
+        active_influxes = (self.fluxes.surf_struct_to_active + 
+                           self.fluxes.soil_struct_to_active +
+                           self.fluxes.surf_metab_to_active + 
+                           self.fluxes.soil_metab_to_active +
+                           self.fluxes.slow_to_active +
+                           self.fluxes.passive_to_active)
+        
+        slow_influxes = (self.fluxes.surf_struct_to_slow + 
+                         self.fluxes.soil_struct_to_slow +
+                         self.fluxes.active_to_slow)
+        
+        passive_influxes = (self.fluxes.active_to_passive + 
+                            self.fluxes.slow_to_passive)
+                            
+        # convert units
+        nmin = self.params.nmin0 / const.M2_AS_HA * const.G_AS_TONNES              
+        
+        arg1 = ((self.params.passncmin - passive_nc_slope * nmin) * 
+                 passive_influxes)
+        arg2 = (self.params.slowncmin - slow_nc_slope * nmin) * slow_influxes
+        arg3 = active_influxes * (self.params.actncmin - active_nc_slope * nmin)
         numer1 = arg1 + arg2 + arg3
         
-        arg1 = ((self.fluxes.active_to_passive + self.fluxes.slow_to_passive) *
-                 self.params.passncmax)
-        arg2 = ((self.fluxes.surf_struct_to_slow + 
-                 self.fluxes.soil_struct_to_slow +
-                 self.fluxes.active_to_slow) * self.params.slowncmax)
-        arg3 = ((self.fluxes.surf_struct_to_active + 
-                 self.fluxes.soil_struct_to_active +
-                 self.fluxes.surf_metab_to_active + 
-                 self.fluxes.soil_metab_to_active +
-                 self.fluxes.slow_to_active +
-                 self.fluxes.passive_to_active) * 
-                 self.params.actncmax)
+        arg1 = passive_influxes * self.params.passncmax
+        arg2 = slow_influxes * self.params.slowncmax
+        arg3 = active_influxes * self.params.actncmax
         numer2 = arg1 + arg2 + arg3
 
-        arg1 = ((self.fluxes.active_to_passive + self.fluxes.slow_to_passive) * 
-                 self.state.passncslope)
-        arg2 = ((self.fluxes.surf_struct_to_slow + 
-                 self.fluxes.soil_struct_to_slow +
-                 self.fluxes.active_to_slow) * 
-                 self.state.slowncslope)
-        arg3 = ((self.fluxes.surf_struct_to_active + 
-                 self.fluxes.soil_struct_to_active +
-                 self.fluxes.surf_metab_to_active + 
-                 self.fluxes.soil_metab_to_active +
-                 self.fluxes.slow_to_active +
-                 self.fluxes.passive_to_active) * 
-                 self.state.actncslope)
+        arg1 = passive_influxes * passive_nc_slope
+        arg2 = slow_influxes * slow_nc_slope
+        arg3 = active_influxes * active_nc_slope
         denom = arg1 + arg2 + arg3
         
         # evaluate N immobilisation in new SOM
@@ -824,7 +813,7 @@ class NitrogenSoilFlows(object):
         if float_gt(nimmob, numer2):
             nimmob = numer2
         
-        return nimmob
+        return nimmob, active_nc_slope, slow_nc_slope, passive_nc_slope
     
     def calc_net_mineralisation(self):
         """ N Net mineralisation, i.e. excess of N outflows over inflows """
@@ -835,16 +824,12 @@ class NitrogenSoilFlows(object):
         """ Returns N:C ratio of the mineral pool slope """
         arg1 = ncmax - ncmin
         arg2 = self.params.nmincrit - self.params.nmin0
-        arg3 = ((self.params.nmincrit - self.params.nmin0) * 
-                 const.G_M2_2_TONNES_HA)
         conv = const.M2_AS_HA / const.G_AS_TONNES
-        print arg1 / arg2 * conv
-        print arg1 / arg3
-        sys.exit()
         
-        return arg1 / arg2 
+        return arg1 / arg2 * conv
     
-    def calculate_npools(self):
+    def calculate_npools(self, active_nc_slope, slow_nc_slope, 
+                         passive_nc_slope):
         """ Calculate new soil N pools. """
 
         # net source fluxes.
@@ -916,7 +901,7 @@ class NitrogenSoilFlows(object):
         arg = (self.state.inorgn - self.params.nmin0 / const.M2_AS_HA * 
                 const.G_AS_TONNES)
         # active
-        actnc = self.params.actncmin + self.state.actncslope * arg
+        actnc = self.params.actncmin + active_nc_slope * arg
         if float_gt(actnc, self.params.actncmax):
             actnc = self.params.actncmax
         fixn = ncflux(self.fluxes.c_into_active, self.fluxes.n_into_active, 
@@ -926,7 +911,7 @@ class NitrogenSoilFlows(object):
                                    self.fluxes.n_active_to_passive))
 
         # slow
-        slownc = self.params.slowncmin + self.state.slowncslope * arg
+        slownc = self.params.slowncmin + slow_nc_slope * arg
         if float_gt(slownc, self.params.slowncmax):
             slownc = self.params.slowncmax
         fixn = ncflux(self.fluxes.c_into_slow, self.fluxes.n_into_slow, slownc)
@@ -935,7 +920,7 @@ class NitrogenSoilFlows(object):
                                  self.fluxes.n_slow_to_passive))
 
         # passive
-        passnc = self.params.passncmin + self.state.passncslope * arg
+        passnc = self.params.passncmin + passive_nc_slope * arg
         if float_gt(passnc, self.params.passncmax):
             passnc = self.params.passncmax
         fixn = ncflux(self.fluxes.c_into_passive, self.fluxes.n_into_passive, 
