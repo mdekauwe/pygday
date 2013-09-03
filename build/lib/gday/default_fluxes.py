@@ -123,9 +123,6 @@ n_passive_to_active = None
 c_into_active = None  
 c_into_slow = None    
 c_into_passive = None 
-n_into_active = None  
-n_into_slow = None    
-n_into_passive = None 
 
 # Microbial respiration -> CO2
 co2_to_air = [None] * 7 
