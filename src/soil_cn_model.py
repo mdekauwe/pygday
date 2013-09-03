@@ -899,6 +899,8 @@ class NitrogenSoilFlows(object):
         # zero can end up becoming zero but to a silly decimal place
         self.precision_control()
         
+        # Update SOM pools
+        
         n_into_active = (self.fluxes.n_surf_struct_to_active + 
                          self.fluxes.n_soil_struct_to_active +
                          self.fluxes.n_surf_metab_to_active + 
