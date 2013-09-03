@@ -717,6 +717,7 @@ class PlantGrowth(object):
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
         self.state.sapwood += self.fluxes.cpstem - self.fluxes.deadsapwood
+        
         # 
         # Nitrogen pools
         #
