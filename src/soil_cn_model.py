@@ -775,21 +775,11 @@ class NitrogenSoilFlows(object):
         passive_nc_slope = self.calculate_nc_slope(self.params.passncmax, 
                                                    self.params.passncmin) 
         
-        # C flux entering SOM pools
-        active_influxes = (self.fluxes.surf_struct_to_active + 
-                           self.fluxes.soil_struct_to_active +
-                           self.fluxes.surf_metab_to_active + 
-                           self.fluxes.soil_metab_to_active +
-                           self.fluxes.slow_to_active +
-                           self.fluxes.passive_to_active)
+        # C flux entering SOM pools - use short names
+        active_influxes = self.fluxes.c_into_active
+        slow_influxes = self.fluxes.c_into_slow
+        passive_influxes = self.fluxes.c_into_passive
         
-        slow_influxes = (self.fluxes.surf_struct_to_slow + 
-                         self.fluxes.soil_struct_to_slow +
-                         self.fluxes.active_to_slow)
-        
-        passive_influxes = (self.fluxes.active_to_passive + 
-                            self.fluxes.slow_to_passive)
-                            
         # convert units
         nmin = self.params.nmin0 / const.M2_AS_HA * const.G_AS_TONNES              
         
@@ -923,9 +913,6 @@ class NitrogenSoilFlows(object):
         active_nc = self.params.actncmin + active_nc_slope * arg
         if float_gt(active_nc, self.params.actncmax):
             active_nc = self.params.actncmax
-        
-        
-        
         fixn = self.fluxes.c_into_active * active_nc - self.fluxes.n_into_active
         self.state.activesoiln += (self.fluxes.n_into_active + fixn - 
                                   (self.fluxes.n_active_to_slow + 
