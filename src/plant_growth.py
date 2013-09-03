@@ -694,6 +694,12 @@ class PlantGrowth(object):
             self.state.stem = 0.0
             self.state.stemnimm = 0.0
             self.state.stemnmob = 0.0
+        
+        # need separate one as this will become very small if there is no
+        # mobile stem N
+        if self.state.stem < tolerance: 
+            self.fluxes.deadstemn += self.state.stemnmob
+            self.state.stemnmob = 0.0  
             
         # should add check for soil pools - excess goes where?
         
@@ -764,7 +770,7 @@ class PlantGrowth(object):
             ncmaxf = (self.params.ncmaxfyoung - 
                      (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
                       age_effect)
-    
+            print age_effect, ncmaxf, self.params.ncmaxfold, self.params.ncmaxfyoung
             if float_lt(ncmaxf, self.params.ncmaxfold):
                 ncmaxf = self.params.ncmaxfold
 
