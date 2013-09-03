@@ -409,22 +409,6 @@ class CarbonSoilFlows(object):
     def calculate_cpools(self):
         """Calculate new soil carbon pools. """
         
-        # store the C SOM fluxes for Nitrogen calculations
-        self.fluxes.c_into_active = (self.fluxes.surf_struct_to_active + 
-                                     self.fluxes.soil_struct_to_active +
-                                     self.fluxes.surf_metab_to_active + 
-                                     self.fluxes.soil_metab_to_active +
-                                     self.fluxes.slow_to_active +
-                                     self.fluxes.passive_to_active)
-        
-        self.fluxes.c_into_slow = (self.fluxes.surf_struct_to_slow + 
-                                   self.fluxes.soil_struct_to_slow +
-                                   self.fluxes.active_to_slow)
-        
-        self.fluxes.c_into_passive = (self.fluxes.active_to_passive + 
-                                      self.fluxes.slow_to_passive)
-        
-        
         # update pools
         self.state.structsurf += (self.fluxes.surf_struct_litter - 
                                  (self.fluxes.surf_struct_to_slow +
@@ -447,7 +431,23 @@ class CarbonSoilFlows(object):
         self.state.metabsoil += (self.fluxes.soil_metab_litter - 
                                 (self.fluxes.soil_metab_to_active +
                                  self.fluxes.co2_to_air[3]))
-                                 
+        
+        # store the C SOM fluxes for Nitrogen calculations
+        self.fluxes.c_into_active = (self.fluxes.surf_struct_to_active + 
+                                     self.fluxes.soil_struct_to_active +
+                                     self.fluxes.surf_metab_to_active + 
+                                     self.fluxes.soil_metab_to_active +
+                                     self.fluxes.slow_to_active +
+                                     self.fluxes.passive_to_active)
+        
+        self.fluxes.c_into_slow = (self.fluxes.surf_struct_to_slow + 
+                                   self.fluxes.soil_struct_to_slow +
+                                   self.fluxes.active_to_slow)
+        
+        self.fluxes.c_into_passive = (self.fluxes.active_to_passive + 
+                                      self.fluxes.slow_to_passive)
+        
+                              
         self.state.activesoil += (self.fluxes.c_into_active - 
                                  (self.fluxes.active_to_slow +
                                   self.fluxes.active_to_passive +
@@ -626,9 +626,9 @@ class NitrogenSoilFlows(object):
                  self.fluxes.n_surf_struct_litter = 0.0
             else:
                  self.fluxes.n_surf_struct_litter = (nsurf * 
-                                              self.fluxes.surf_struct_litter *
-                                              self.params.structrat / 
-                                              c_surf_struct_litter)
+                                                     self.fluxes.surf_struct_litter *
+                                                     self.params.structrat / 
+                                                     c_surf_struct_litter)
             
             c_soil_struct_litter = (self.fluxes.soil_struct_litter * 
                                     self.params.structrat +
@@ -775,21 +775,11 @@ class NitrogenSoilFlows(object):
         passive_nc_slope = self.calculate_nc_slope(self.params.passncmax, 
                                                    self.params.passncmin) 
         
-        # C flux entering SOM pools
-        active_influxes = (self.fluxes.surf_struct_to_active + 
-                           self.fluxes.soil_struct_to_active +
-                           self.fluxes.surf_metab_to_active + 
-                           self.fluxes.soil_metab_to_active +
-                           self.fluxes.slow_to_active +
-                           self.fluxes.passive_to_active)
+        # C flux entering SOM pools - use short names
+        active_influxes = self.fluxes.c_into_active
+        slow_influxes = self.fluxes.c_into_slow
+        passive_influxes = self.fluxes.c_into_passive
         
-        slow_influxes = (self.fluxes.surf_struct_to_slow + 
-                         self.fluxes.soil_struct_to_slow +
-                         self.fluxes.active_to_slow)
-        
-        passive_influxes = (self.fluxes.active_to_passive + 
-                            self.fluxes.slow_to_passive)
-                            
         # convert units
         nmin = self.params.nmin0 / const.M2_AS_HA * const.G_AS_TONNES              
         
@@ -850,25 +840,19 @@ class NitrogenSoilFlows(object):
     
     def calculate_npools(self, active_nc_slope, slow_nc_slope, 
                          passive_nc_slope):
-        """ Calculate new soil N pools. """
-
-        self.fluxes.n_into_active = (self.fluxes.n_surf_struct_to_active + 
-                                     self.fluxes.n_soil_struct_to_active +
-                                     self.fluxes.n_surf_metab_to_active + 
-                                     self.fluxes.n_soil_metab_to_active +
-                                     self.fluxes.n_slow_to_active + 
-                                     self.fluxes.n_passive_to_active)
+        """  
+        Update N pools in the soil
         
-        self.fluxes.n_into_slow = (self.fluxes.n_surf_struct_to_slow + 
-                                   self.fluxes.n_soil_struct_to_slow +
-                                   self.fluxes.n_active_to_slow)
-                                   
-        self.fluxes.n_into_passive = (self.fluxes.n_active_to_passive + 
-                                      self.fluxes.n_slow_to_passive)
-
+        Parameters
+        ----------
+        active_nc_slope : float
+            active NC slope
+        slow_nc_slope: float
+            slow NC slope
+        passive_nc_slope : float
+            passive NC slope
         
-        # Update N soil pools
-        
+        """ 
         # net N release implied by separation of litter into structural
         # & metabolic. The following pools only fix or release N at their 
         # limiting n:c values. 
@@ -915,6 +899,28 @@ class NitrogenSoilFlows(object):
         # zero can end up becoming zero but to a silly decimal place
         self.precision_control()
         
+        n_into_active = (self.fluxes.n_surf_struct_to_active + 
+                         self.fluxes.n_soil_struct_to_active +
+                         self.fluxes.n_surf_metab_to_active + 
+                         self.fluxes.n_soil_metab_to_active +
+                         self.fluxes.n_slow_to_active + 
+                         self.fluxes.n_passive_to_active)
+        
+        n_out_of_active = (self.fluxes.n_active_to_slow +
+                           self.fluxes.n_active_to_passive)
+        
+        n_into_slow = (self.fluxes.n_surf_struct_to_slow + 
+                       self.fluxes.n_soil_struct_to_slow +
+                       self.fluxes.n_active_to_slow)
+        
+        n_out_of_slow = (self.fluxes.n_slow_to_active + 
+                         self.fluxes.n_slow_to_passive)
+                                   
+        n_into_passive = (self.fluxes.n_active_to_passive + 
+                          self.fluxes.n_slow_to_passive)
+
+        n_out_of_passive = self.fluxes.n_passive_to_active
+        
         # N:C of the SOM pools increases linearly btw prescribed min and max 
         # values as the Nconc of the soil increases.
         arg = (self.state.inorgn - self.params.nmin0 / const.M2_AS_HA * 
@@ -923,32 +929,23 @@ class NitrogenSoilFlows(object):
         active_nc = self.params.actncmin + active_nc_slope * arg
         if float_gt(active_nc, self.params.actncmax):
             active_nc = self.params.actncmax
-        
-        
-        
-        fixn = self.fluxes.c_into_active * active_nc - self.fluxes.n_into_active
-        self.state.activesoiln += (self.fluxes.n_into_active + fixn - 
-                                  (self.fluxes.n_active_to_slow + 
-                                   self.fluxes.n_active_to_passive))
+        fixn = self.fluxes.c_into_active * active_nc - n_into_active
+        self.state.activesoiln += n_into_active + fixn - n_out_of_active
 
         # slow
         slow_nc = self.params.slowncmin + slow_nc_slope * arg
         if float_gt(slow_nc, self.params.slowncmax):
             slow_nc = self.params.slowncmax
-        fixn = self.fluxes.c_into_slow * slow_nc -  self.fluxes.n_into_slow
-        self.state.slowsoiln += (self.fluxes.n_into_slow + fixn - 
-                                (self.fluxes.n_slow_to_active + 
-                                 self.fluxes.n_slow_to_passive))
-
-        # passive
+        fixn = self.fluxes.c_into_slow * slow_nc -  n_into_slow
+        self.state.slowsoiln += n_into_slow + fixn - n_out_of_slow
+                                
+        # passive, update passive pool only if passiveconst=0
         pass_nc = self.params.passncmin + passive_nc_slope * arg
         if float_gt(pass_nc, self.params.passncmax):
             pass_nc = self.params.passncmax
-        fixn = self.fluxes.c_into_passive * pass_nc - self.fluxes.n_into_passive
-        
-        # update passive pool only if passiveconst=0
-        self.state.passivesoiln += (self.fluxes.n_into_passive + fixn - 
-                                    self.fluxes.n_passive_to_active)
+        fixn = self.fluxes.c_into_passive * pass_nc - n_into_passive
+        self.state.passivesoiln += n_into_passive + fixn - n_out_of_passive
+                                    
 
         # Daily increment of soil inorganic N pool, diff btw in and effluxes
         # (grazer urine n goes directly into inorganic pool) nb inorgn may be
@@ -957,7 +954,8 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nurine - self.fluxes.nimmob - 
                                self.fluxes.nloss - self.fluxes.nuptake) + 
                                self.fluxes.nlittrelease)
-        
+    
+    
     def nclimit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
         the  N:C ratio of a litter pool within the range 'ncmin' to 'ncmax'.
