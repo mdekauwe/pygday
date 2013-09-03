@@ -770,7 +770,7 @@ class PlantGrowth(object):
             ncmaxf = (self.params.ncmaxfyoung - 
                      (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
                       age_effect)
-            print age_effect, ncmaxf, self.params.ncmaxfold, self.params.ncmaxfyoung
+            
             if float_lt(ncmaxf, self.params.ncmaxfold):
                 ncmaxf = self.params.ncmaxfold
 
@@ -782,7 +782,7 @@ class PlantGrowth(object):
 
                 if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
                     extras = self.state.shootn - self.state.shoot * ncmaxf
-
+                    
                     # Ensure N uptake cannot be reduced below zero.
                     if float_gt(extras, self.fluxes.nuptake):
                         extras = self.fluxes.nuptake
