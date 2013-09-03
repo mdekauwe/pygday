@@ -133,7 +133,7 @@ class PlantGrowth(object):
         # n:c ratio of new branch wood
         ncbnew = (self.params.ncbnew + nitfac *
                  (self.params.ncbnew - self.params.ncbnewz))
-        self.state.branchnc = ncbnew
+        
         
         # fixed N:C in the stemwood
         if self.control.fixed_stem_nc == 1:
@@ -717,6 +717,7 @@ class PlantGrowth(object):
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
         self.state.sapwood += self.fluxes.cpstem - self.fluxes.deadsapwood
+        
         # 
         # Nitrogen pools
         #

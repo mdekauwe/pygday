@@ -78,8 +78,6 @@ n_to_alloc_branch =0.0
 
 # annual NPP
 anpp = 0.0
-an = 0.0
-exu_pool = 0.0
 
 remaining_days = None
 growing_days = None
