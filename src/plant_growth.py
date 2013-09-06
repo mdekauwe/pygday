@@ -605,8 +605,8 @@ class PlantGrowth(object):
             # evaluate nuptake : proportional to dynamic inorganic N pool
             nuptake = self.params.rateuptake * self.state.inorgn
         elif self.control.nuptake_model == 2:
-            # Assume rate of N uptake depends on the rate at which soil mineral
-            # N is made available (U0) and the value or root C
+            # N uptake is a saturating function on root biomass following
+            # Dewar and McMurtrie, 1996.
             
             # supply rate of available mineral N
             U0 = self.params.rateuptake * self.state.inorgn
