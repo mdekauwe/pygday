@@ -463,6 +463,7 @@ class PlantGrowth(object):
             # covnert t ha-1 to kg DM m-2
             rtot = (self.state.root * const.TONNES_HA_2_KG_M2 / 
                     self.params.cfracts)
+            self.fluxes.nuptake_old = self.fluxes.nuptake
             
             (self.state.root_depth, 
              self.fluxes.nuptake,
@@ -813,8 +814,6 @@ class PlantGrowth(object):
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
   
-    
-        
 if __name__ == "__main__":
     
     # timing...
