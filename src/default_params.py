@@ -190,7 +190,6 @@ displace_ratio   = 0.67     # Value for coniferous forest (0.78) from Jarvis et 
 z0h_z0m          = 0.1      # Assume z0m = z0h, probably a big assumption [as z0h often < z0m.], see comment in code!! But 0.1 might be a better assumption
 
 # decid model
-ncfmin = 0.0151
 previous_ncd = 17 # In the first year we don't have last years data, so I have precalculated the average of all the november-jan chilling values
 store_transfer_len = None
 #============== Not publicly accessible to the user ==========================#
