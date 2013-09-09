@@ -118,10 +118,10 @@ class Gday(object):
                           const.KG_AS_TONNES / self.params.cfracts *
                           self.state.shoot)
                           
-    def spin_up_pools(self, tolerance=1E-03):
+    def spin_up_pools(self, tolerance=5E-03):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
-           or at steady state to 3 d.p.
+           by more than 0.005 units per 1000 yrs.
 
         References:
         ----------
@@ -131,19 +131,22 @@ class Gday(object):
         """
         prev_plantc = 9999.9
         prev_soilc = 9999.9
-        
+        prev_litterc = 9999.9
         while True:
             if (fabs(prev_plantc - self.state.plantc) < tolerance and
-                fabs(prev_soilc - self.state.soilc) < tolerance):
+                fabs(prev_soilc - self.state.soilc) < tolerance and 
+                fabs(prev_litterc - self.state.litterc) < tolerance):
                 break
             else:            
                 prev_plantc = self.state.plantc
                 prev_soilc = self.state.soilc
+                prev_litterc = self.state.litterc
                 self.run_sim() # run the model...
                 
                 # Have we reached a steady state?
-                sys.stderr.write("Spinup: Plant C - %f, Soil C - %f\n" % \
-                                (self.state.plantc, self.state.soilc))
+                msg = "Spinup: Plant C - %f, Soil C - %f\n, Litter C - %f\n" % \
+                       (self.state.plantc, self.state.soilc, self.state.litterc)
+                sys.stderr.write(msg)
         self.print_output_file()
     
     def run_sim(self):
