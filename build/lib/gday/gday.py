@@ -125,7 +125,7 @@ class Gday(object):
                              for yr in self.years]
         
                        
-    def spin_up_pools(self, tolerance=5E-03):
+    def spin_up_pools(self, tolerance=1E-03):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
            by more than 0.005 units per 1000 yrs.
@@ -193,9 +193,8 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                      
-                #print self.state.shoot, self.state.lai
+                
                 #print self.fluxes.gpp * 100, self.state.lai
-                #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
