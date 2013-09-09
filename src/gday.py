@@ -253,7 +253,7 @@ class Gday(object):
         """ adjust rate constants for the number of days in years """
         time_constants = ['rateuptake', 'rateloss', 'retransmob',
                           'fdecay', 'fdecaydry', 'rdecay', 'rdecaydry',
-                          'bdecay', 'wdecay', 'sapdecay','kdec1', 'kdec2', 
+                          'bdecay', 'wdecay', 'sapturnover','kdec1', 'kdec2', 
                           'kdec3', 'kdec4', 'kdec5', 'kdec6', 'kdec7', 
                           'nuptakez']
         conv = const.NDAYS_IN_YR
