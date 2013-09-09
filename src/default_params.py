@@ -159,7 +159,6 @@ ntheta_tsoil      = None # Fitted parameter based on Landsberg and Waring
 ctheta_root       = None # Fitted parameter based on Landsberg and Waring
 ntheta_root       = None # Fitted parameter based on Landsberg and Waring
 fractup_soil      = 0.5   #fraction of uptake from top soil layer
-extraction        = 0.007 #water extractn by unit root mass(ha/tC/d)
 wetloss           = 0.5   #daily rainfall lost per lai (mm/day)
 rfmult            = 1.0
 
