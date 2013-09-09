@@ -117,7 +117,14 @@ class Gday(object):
         self.state.lai = (self.params.slainit * const.M2_AS_HA /
                           const.KG_AS_TONNES / self.params.cfracts *
                           self.state.shoot)
-                          
+        
+        # figure out the number of years for simulation and the number of
+        # days in each year
+        self.years = uniq(self.met_data["year"])
+        self.days_in_year = [self.met_data["year"].count(yr) \
+                             for yr in self.years]
+        
+                       
     def spin_up_pools(self, tolerance=5E-03):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
@@ -144,23 +151,21 @@ class Gday(object):
                 self.run_sim() # run the model...
                 
                 # Have we reached a steady state?
-                msg = "Spinup: Plant C - %f, Soil C - %f\n, Litter C - %f\n" % \
+                msg = "Spinup: Plant C - %f, Soil C - %f, Litter C - %f\n" % \
                        (self.state.plantc, self.state.soilc, self.state.litterc)
                 sys.stderr.write(msg)
         self.print_output_file()
     
     def run_sim(self):
-        """ Run model simulation! """
-        project_day = 0
-        
-        # figure out the number of years for simulation and the number of
-        # days in each year
-        years = uniq(self.met_data["year"])
-        days_in_year = [self.met_data["year"].count(yr) for yr in years]
+        """ Run model simulation! """    
+        # local variables
+        years = self.years
+        days_in_year = self.days_in_year
         
         # =============== #
         #   YEAR LOOP     #
         # =============== #
+        project_day = 0
         for i, yr in enumerate(years):
             self.day_output = [] # empty daily storage list for outputs
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
