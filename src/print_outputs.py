@@ -132,8 +132,9 @@ class PrintOutput(object):
                   'alstem', 'c_to_alloc_branch', \
                   'c_to_alloc_root', 'c_to_alloc_shoot', 'c_to_alloc_stem', \
                   'n_to_alloc_branch', 'n_to_alloc_root', 'n_to_alloc_shoot',\
-                   'n_to_alloc_stem', 'n_to_alloc_stemimm', \
-                   'n_to_alloc_stemmob', 'ncontent', 'fmleaf', 'fmroot']
+                  'n_to_alloc_stem', 'n_to_alloc_stemimm', \
+                  'n_to_alloc_stemmob', 'ncontent', 'fmleaf', 'fmroot',\
+                  'ctheta_tsoil', 'theta_tsoil', 'ctheta_root', 'ntheta_root']
 
         special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
                    'deciduous_model', 'fixleafnc', 'grazing', 'model_optroot',\
