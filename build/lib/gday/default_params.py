@@ -20,7 +20,7 @@ kext              = 0.5            # extinction coefficient
 slainit           = 3.9            # specific leaf area (m2 one-sided/kg DW)
 slazero           = 3.9            # specific leaf area new fol at zero leaf N/C (m2 one-sided/kg DW)
 slamax            = 3.9            # specofic leaf area new fol at max leaf N/C (m2 one-sided/kg DW)
-lai_cover         = 0.5            # Onesided LAI correspdg to complete ground cover
+lai_cover         = 0.5            # One-sided LAI corresponding to 100% (complete) ground cover
 cfracts           = 0.5            # carbon fraction of dry biomass
 nmin              = 0.95           # minimum leaf n for +ve p/s (g/m2)
 jmaxna            = 40.462         # slope of the reln btween jmax and leaf N content (g N m-2) - (umol/g n/s)
@@ -97,7 +97,6 @@ rdecay           = 0.5            #root decay rate (1/yr)
 rdecaydry        = 0.5            #root decay rate - dry soil (1/yr)
 bdecay           = 0.03           #branch and large root decay rate (1/yr)
 wdecay           = 0.02           #wood decay rate (1/yr)
-sapdecay         = 0.1            #sapwood decay rate (1/yr)
 watdecaydry      = 0.0            #water fractn for dry litterfall rates
 watdecaywet      = 0.1            #water fractn for wet litterfall rates
 ligshoot         = 0.25           #lignin-to-biomass ratio in leaf litter
@@ -107,12 +106,13 @@ structcn         = 150.0          #C:N ratio of structural bit of litter input
 structrat        = 0.0            #structural input n:c as fraction of metab
 
 # allometric parameters
+sapturnover = 0.1   #rate of conversion of sapwood to heartwood (1/yr)
 heighto = 4.826     # constant in avg tree height (m) - stem (t C/ha) reln
 htpower = 0.35      # Exponent in avg tree height (m) - stem (t C/ha) reln
 height0 = 5.0       # Height when leaf:sap area ratio = leafsap0 (trees)
 height1 = 30.0      # Height when leaf:sap area ratio = leafsap1 (trees)
-leafsap0 = 7500.0   # leaf area  to sapwood cross sectional area ratio when Height = Height0 (trees)
-leafsap1 = 2700.0   # leaf to sap area ratio when Height = Height1 (trees)
+leafsap0 = 7500.0   # leaf area  to sapwood cross sectional area ratio when Height = Height0 (mm^2/mm^2)
+leafsap1 = 2700.0   # leaf to sap area ratio when Height = Height1 (mm^2/mm^2)
 branch0 = 5.61      # constant in branch-stem allometry (trees)
 branch1 = 0.346     # exponent in branch-stem allometry
 targ_sens = 0.5     # sensitivity of allocation (leaf/branch) to target

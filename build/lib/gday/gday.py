@@ -195,6 +195,8 @@ class Gday(object):
                      
                 
                 #print self.fluxes.gpp * 100, self.state.lai
+                #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
+
                 # =============== #
                 #   END OF DAY    #
                 # =============== #

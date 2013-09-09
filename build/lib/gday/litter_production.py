@@ -60,7 +60,8 @@ class Litter(object):
         self.fluxes.deadroots = rdecay * self.state.root   # ditto
         self.fluxes.deadstems = self.params.wdecay * self.state.stem
         self.fluxes.deadbranch = self.params.bdecay * self.state.branch
-        self.fluxes.deadsapwood = ((self.params.wdecay + self.params.sapdecay) * 
+        self.fluxes.deadsapwood = ((self.params.wdecay + 
+                                    self.params.sapturnover) * 
                                     self.state.sapwood)
         
         if self.control.deciduous_model:
