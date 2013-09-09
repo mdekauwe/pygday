@@ -125,7 +125,7 @@ class Gday(object):
                              for yr in self.years]
         
                        
-    def spin_up_pools(self, tolerance=5E-03):
+    def spin_up_pools(self, tolerance=1E-03):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 1000 years and check if C pools are changing
            by more than 0.005 units per 1000 yrs.
