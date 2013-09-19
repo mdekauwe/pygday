@@ -265,14 +265,14 @@ class WaterBalance(object):
         """
         gs_mol = make_empty_list_of_zeros(2)
         ga = make_empty_list_of_zeros(2)
-        gs = make_empty_list_of_zeros(2) # m s-1
+        gs = make_empty_list_of_zeros(2) # m s-1 (but per half day)
         trans = make_empty_list_of_zeros(2)
         omegax = make_empty_list_of_zeros(2)
         gpp = self.fluxes.gpp_am_pm # list
-        
+        half_day = daylen / 2.0
         for i in self.am, self.pm:
             (gs[i], 
-             gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, daylen/2., 
+             gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, half_day, 
                                                          gpp[i], press, tair[i])
             
             ga[i] = self.P.canopy_boundary_layer_conductance(wind[i])
@@ -288,7 +288,10 @@ class WaterBalance(object):
         
         #ga = P.canopy_boundary_layer_conductance(wind_avg)
         self.fluxes.ga_mol_m2_sec = (sum(ga) / 2.0) / const.CONV_CONDUCT
-        tconv = 60.0 * 60.0 * daylen/2. # seconds to day
+        
+        # seconds to day, note daylength divided by 2, because fluxes were
+        # calculated per half day
+        tconv = 60.0 * 60.0 * half_day
         self.fluxes.transpiration = sum(trans) * tconv
         
     def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
