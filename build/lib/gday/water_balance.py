@@ -288,7 +288,7 @@ class WaterBalance(object):
         
         #ga = P.canopy_boundary_layer_conductance(wind_avg)
         self.fluxes.ga_mol_m2_sec = (sum(ga) / 2.0) / const.CONV_CONDUCT
-        tconv = 60.0 * 60.0 * daylen # seconds to day
+        tconv = 60.0 * 60.0 * daylen/2. # seconds to day
         self.fluxes.transpiration = sum(trans) * tconv
         
     def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
