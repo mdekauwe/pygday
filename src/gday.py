@@ -193,7 +193,7 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                      
-                
+               
                 #print self.fluxes.gpp * 100, self.state.lai
                 #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
 
