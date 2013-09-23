@@ -265,14 +265,14 @@ class WaterBalance(object):
         """
         gs_mol = make_empty_list_of_zeros(2)
         ga = make_empty_list_of_zeros(2)
-        gs = make_empty_list_of_zeros(2) # m s-1
+        gs = make_empty_list_of_zeros(2) # m s-1 (but per half day)
         trans = make_empty_list_of_zeros(2)
         omegax = make_empty_list_of_zeros(2)
         gpp = self.fluxes.gpp_am_pm # list
-        
+        half_day = daylen / 2.0
         for i in self.am, self.pm:
             (gs[i], 
-             gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, daylen/2., 
+             gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, half_day, 
                                                          gpp[i], press, tair[i])
             
             ga[i] = self.P.canopy_boundary_layer_conductance(wind[i])
@@ -288,7 +288,10 @@ class WaterBalance(object):
         
         #ga = P.canopy_boundary_layer_conductance(wind_avg)
         self.fluxes.ga_mol_m2_sec = (sum(ga) / 2.0) / const.CONV_CONDUCT
-        tconv = 60.0 * 60.0 * daylen/2. # seconds to day
+        
+        # seconds to day, note daylength divided by 2, because fluxes were
+        # calculated per half day
+        tconv = 60.0 * 60.0 * half_day
         self.fluxes.transpiration = sum(trans) * tconv
         
     def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
@@ -518,12 +521,6 @@ class SoilMoisture(object):
             fsoil_root = self.get_soil_fracs(self.params.rootsoil_type)  
             (self.wp_tsoil, self.cp_tsoil) = self.calc_soil_params(fsoil_top)
             (self.wp_root, self.cp_root) = self.calc_soil_params(fsoil_root)
-            
-            if self.control.sw_stress_model == 1:            
-                (self.ctheta_tsoil, 
-                 self.ntheta_tsoil) = self.get_soil_params(self.params.topsoil_type)
-                (self.ctheta_root, 
-                 self.ntheta_root) = self.get_soil_params(self.params.rootsoil_type)  
         else:
             self.cp_tsoil = self.params.fwpmax_tsoil
             self.wp_tsoil = self.params.fwpmin_tsoil
@@ -659,31 +656,33 @@ class SoilMoisture(object):
         # turn into fraction...
         smc_root = self.state.pawater_root / self.params.wcapac_root
         smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
+            
+        # Calculate a soil moisture availability factor
+        wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
+                       (self.cp_tsoil - self.wp_tsoil))
         
-        if self.control.sw_stress_model == 0:
+        if wtfac_tsoil < 0.0:
+            wtfac_tsoil = 0.0
+        elif wtfac_tsoil > 1.0:
+            wtfac_tsoil = 1.0
+        else:
+            # qs scales non-linearity of stress modifier
+            wtfac_tsoil = wtfac_tsoil**self.params.qs
         
-            # Calculate a soil moisture availability factor
-            wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
-                            (self.cp_tsoil - self.wp_tsoil))
-       
-            wtfac_root = ((smc_root - self.wp_root) / 
-                          (self.cp_root - self.wp_root))
+        wtfac_root = ((smc_root - self.wp_root) / 
+                      (self.cp_root - self.wp_root))
         
-        elif self.control.sw_stress_model == 1:
-       
-            wtfac_tsoil = self.calc_sw_l_and_w(smc_topsoil, self.ctheta_tsoil, 
-                                               self.ntheta_tsoil)
-  
-            wtfac_root = self.calc_sw_l_and_w(smc_root, self.ctheta_root, 
-                                               self.ntheta_root)
+        if wtfac_root < 0.0:
+            wtfac_root = 0.0
+        elif wtfac_root > 1.0:
+            wtfac_root = 1.0
+        else:
+            # qs scales non-linearity of stress modifier
+            wtfac_root = wtfac_root**self.params.qs
+            
         
-        return (clip(wtfac_tsoil, min=0.0, max=1.0), 
-                clip(wtfac_root, min=0.0, max=1.0)) 
-           
-    def calc_sw_l_and_w(self, theta, c_theta, n_theta):
-        """ From Landsberg and Waring """
-        return 1.0  / (1.0 + ((1.0 - theta) / c_theta)**n_theta)
-        
+        return (wtfac_tsoil, wtfac_root) 
+             
   
 
 class PenmanMonteith(object):
