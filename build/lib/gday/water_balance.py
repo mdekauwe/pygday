@@ -635,17 +635,18 @@ class SoilMoisture(object):
         """ Estimate a relative water availability factor [0..1]
 
         A drying soil results in physiological stress that can induce stomatal
-        closure and reduce transpiration. Further N mineralisation depends on 
+        closure and reduce transpiration. Further, N mineralisation depends on 
         top soil moisture.
 
         References:
         -----------
+        * Egea et al. (2011) Agricultural Forest Meteorology, 151, 1370-1384.
         * Pepper et al. (2008) Functional Change Biology, 35, 493-508
 
         But similarly see:
         * van Genuchten (1981) Soil Sci. Soc. Am. J, 44, 892--898.
         * Wang and Leuning (1998) Ag Forest Met, 91, 89-111.
-
+       
         Returns:
         --------
         wtfac_tsoil : float
