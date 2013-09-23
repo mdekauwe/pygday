@@ -29,6 +29,7 @@ jmax              = -999.9         # maximum rate of electron transport (umol m-
 vcmaxna           = 20.497         # slope of the reln btween vcmax and leaf N content (g N m-2) - (umol/g n/s)
 vcmaxnb           = 8.403          # intercept of vcmax vs n (umol/g n/s)
 vcmax             = -999.9         # maximum rate of carboxylation (umol m-2 s-1)
+measurement_temp  = 25.0           # temperature Vcmax/Jmax are measured at, typical 25.0 (celsius) 
 growth_efficiency = 0.7            # growth efficiency (yg)
 alpha_j           = 0.3            # initial slope of rate of electron transport
 alpha             = 0.05           # quantum yield (mol mol-1) used in mate
@@ -50,6 +51,7 @@ Eo                = 36380.0        # Activation energy for oxygenation [J mol-1]
 Egamma            = 37830.0        # Activation energy at CO2 compensation point [J mol-1]
 cue               = 0.5            # carbon use efficiency, or the ratio of NPP to GPP
 g1                = 4.8            # fitted param, slope of reln btw gs and assimilation.
+qs                = 1.0            # exponent in water stress modifier, =1.0 JULES type representation, the smaller the values the more curved the depletion. 
 
 # set carbon allocation & grazing parameters
 callocf          = 0.25  #allocation to leaves at leaf n_crit
