@@ -521,12 +521,6 @@ class SoilMoisture(object):
             fsoil_root = self.get_soil_fracs(self.params.rootsoil_type)  
             (self.wp_tsoil, self.cp_tsoil) = self.calc_soil_params(fsoil_top)
             (self.wp_root, self.cp_root) = self.calc_soil_params(fsoil_root)
-            
-            if self.control.sw_stress_model == 1:            
-                (self.ctheta_tsoil, 
-                 self.ntheta_tsoil) = self.get_soil_params(self.params.topsoil_type)
-                (self.ctheta_root, 
-                 self.ntheta_root) = self.get_soil_params(self.params.rootsoil_type)  
         else:
             self.cp_tsoil = self.params.fwpmax_tsoil
             self.wp_tsoil = self.params.fwpmin_tsoil
@@ -662,31 +656,33 @@ class SoilMoisture(object):
         # turn into fraction...
         smc_root = self.state.pawater_root / self.params.wcapac_root
         smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
+            
+        # Calculate a soil moisture availability factor
+        wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
+                       (self.cp_tsoil - self.wp_tsoil))
         
-        if self.control.sw_stress_model == 0:
+        if wtfac_tsoil < 0.0:
+            wtfac_tsoil = 0.0
+        elif wtfac_tsoil > 1.0:
+            wtfac_tsoil = 1.0
+        else:
+            # qs scales non-linearity of stress modifier
+            wtfac_tsoil = wtfac_tsoil**self.params.qs
         
-            # Calculate a soil moisture availability factor
-            wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
-                            (self.cp_tsoil - self.wp_tsoil))
-       
-            wtfac_root = ((smc_root - self.wp_root) / 
-                          (self.cp_root - self.wp_root))
+        wtfac_root = ((smc_root - self.wp_root) / 
+                      (self.cp_root - self.wp_root))
         
-        elif self.control.sw_stress_model == 1:
-       
-            wtfac_tsoil = self.calc_sw_l_and_w(smc_topsoil, self.ctheta_tsoil, 
-                                               self.ntheta_tsoil)
-  
-            wtfac_root = self.calc_sw_l_and_w(smc_root, self.ctheta_root, 
-                                               self.ntheta_root)
+        if wtfac_root < 0.0:
+            wtfac_root = 0.0
+        elif wtfac_root > 1.0:
+            wtfac_root = 1.0
+        else:
+            # qs scales non-linearity of stress modifier
+            wtfac_root = wtfac_root**self.params.qs
+            
         
-        return (clip(wtfac_tsoil, min=0.0, max=1.0), 
-                clip(wtfac_root, min=0.0, max=1.0)) 
-           
-    def calc_sw_l_and_w(self, theta, c_theta, n_theta):
-        """ From Landsberg and Waring """
-        return 1.0  / (1.0 + ((1.0 - theta) / c_theta)**n_theta)
-        
+        return (wtfac_tsoil, wtfac_root) 
+             
   
 
 class PenmanMonteith(object):
