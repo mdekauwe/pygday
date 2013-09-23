@@ -55,8 +55,7 @@ class Mate(object):
         self.state = state
         self.met_data = met_data
         self.am = 0 # morning index
-        self.pm = 1 # afternoon index
-        self.params.measurement_temp += const.DEG_TO_KELVIN
+        self.pm = 1 # afternoon index        
         
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
@@ -466,7 +465,7 @@ class Mate(object):
         -----------
         * Medlyn et al. 2002, PCE, 25, 1167-1179.   
         """
-        mt = self.params.measurement_temp
+        mt = self.params.measurement_temp + const.DEG_TO_KELVIN
         return k25 * exp((Ea * (Tk - mt)) / (mt * const.RGAS * Tk))
     
     def peaked_arrh(self, k25, Ea, Tk, deltaS, Hd):
@@ -496,7 +495,7 @@ class Mate(object):
         * Medlyn et al. 2002, PCE, 25, 1167-1179. 
         
         """
-        mt = self.params.measurement_temp
+        mt = self.params.measurement_temp + const.DEG_TO_KELVIN
         arg1 = self.arrh(k25, Ea, Tk)
         arg2 = 1.0 + exp((mt * deltaS - Hd) / mt * const.RGAS)
         arg3 = 1.0 + exp((Tk * deltaS - Hd) / Tk * const.RGAS)
