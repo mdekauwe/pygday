@@ -565,7 +565,8 @@ class SoilMoisture(object):
         return fsoil
     
     def calc_soil_params(self, fsoil):
-        """ Calculate the primary hydraulic parameters 
+        """ Calculate the soil pressure-volume coefficients from texture data
+        using the regression eqns from Cosby et al. 1984. 
         
         Parameters:
         ----------
@@ -579,14 +580,15 @@ class SoilMoisture(object):
         cp : float
             critical point
         """
-        b = 3.1 + 15.7 * fsoil[self.clay_index] - 0.3 * fsoil[self.clay_index] 
+        b = 3.1 + 15.7 * fsoil[self.clay_index] - 0.3 * fsoil[self.sand_index] 
+        
         # saturated hydraulic conductivity kg m-2 s-1
-        sathh = 0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * \
-                fsoil[self.clay_index])
+        sathh = (0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * 
+                               fsoil[self.sand_index]))
         
         # volumetric soil moisture concentrations at the saturation point
-        sp = 0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * \
-             fsoil[self.sand_index]
+        sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
+              fsoil[self.sand_index])
        
         # volumetric soil moisture concentrations at the wilting point
         # assumed to = to a suction of -1.5 MPa or a depth of water of 152.9 m
