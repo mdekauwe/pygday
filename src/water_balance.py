@@ -526,10 +526,7 @@ class SoilMoisture(object):
             self.wp_tsoil = self.params.fwpmin_tsoil
             self.cp_root = self.params.fwpmax_root
             self.wp_root = self.params.fwpmin_root
-            self.ctheta_tsoil = self.params.ctheta_tsoil
-            self.ntheta_tsoil = self.params.ntheta_tsoil
-            self.ctheta_root = self.params.ctheta_root
-            self.ntheta_root = self.params.ntheta_root
+            
        
         #print (self.cp_tsoil-self.wp_tsoil) * 450.0
         #print (self.cp_root-self.wp_root) * 2500.0
