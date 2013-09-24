@@ -567,35 +567,6 @@ class SoilMoisture(object):
             sys.exit()
         return fsoil
     
-    def get_soil_params(self, soil_type):
-        """ For a given soil type, get the parameters for the soil
-        moisture availability based on Landsberg and Waring.
-        
-        Reference
-        ---------
-        * Landsberg and Waring (1997) Forest Ecology & Management, 95, 209-228.
-         """
-        soil_types = ["sand", "sandy_loam", "clay_loam", "clay"]
-        fsoil = None
-        if soil_type == "sand":
-            c_theta = 0.7
-            n_theta = 9.0
-        elif soil_type == "sandy_loam":
-            c_theta = 0.6
-            n_theta = 7.0
-        elif soil_type == "clay_loam":
-            c_theta = 0.5
-            n_theta = 5.0
-        elif soil_type == "clay":
-            c_theta = 0.4
-            n_theta = 3.0
-        
-        else:
-            print 'There are no parameters for your soil type. Either use the'
-            print 'other soil water stress model or specify the parameters.'
-            sys.exit()
-        return c_theta, n_theta
-       
     def calc_soil_params(self, fsoil):
         """ Calculate the primary hydraulic parameters 
         
