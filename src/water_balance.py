@@ -646,8 +646,8 @@ class SoilMoisture(object):
         """ Cosby parameters for use within the Clapp Hornberger soil hydraulics
         scheme are calculated based on the texture components of the soil.
         
-        NB: Cosby are ambiguous in their paper as to what log base to use. Here      
-            using base 10.
+        NB: Cosby et al were ambiguous in their paper as to what log base to 
+        use.  The correct implementation is base 10, as below.
         
         Parameters:
         ----------
@@ -665,7 +665,7 @@ class SoilMoisture(object):
         pressure_head_wilt = 152.9
         pressure_head_crit = 3.364
         
-        # Clapp Hornberger parameter
+        # Clapp Hornberger exponent
         b = 3.1 + 15.7 * fsoil[self.clay_index] - 0.3 * fsoil[self.sand_index] 
         
         # saturated soil water suction kg m-2 s-1
