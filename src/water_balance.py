@@ -558,7 +558,7 @@ class SoilMoisture(object):
             (self.params.ctheta_root, 
              self.params.ntheta_root) = self.get_soil_params(rootsoil_type)  
         
-        
+        """
         print self.params.wcapac_topsoil
         print self.params.wcapac_root
         print 
@@ -581,7 +581,7 @@ class SoilMoisture(object):
         ##print self.cp_tsoil, self.wp_tsoil
         #print self.cp_root, self.wp_root 
         sys.exit()
-        
+        """
         
     def get_soil_params(self, soil_type):
         """ For a given soil type, get the parameters for the soil
@@ -675,8 +675,7 @@ class SoilMoisture(object):
         # volumetric soil moisture concentrations at the saturation point
         theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
                      fsoil[self.sand_index])
-        print theta_sp
-        print theta_sp *2000.
+        
         # volumetric soil moisture concentrations at the wilting point
         # assumed to = to a suction of -1.5 MPa or a depth of water of 152.9 m
         theta_wp = theta_sp * (sathh / pressure_head_wilt)**(1.0 / b)

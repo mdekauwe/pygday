@@ -558,7 +558,7 @@ class SoilMoisture(object):
             (self.params.ctheta_root, 
              self.params.ntheta_root) = self.get_soil_params(rootsoil_type)  
         
-        
+        """
         print self.params.wcapac_topsoil
         print self.params.wcapac_root
         print 
@@ -581,7 +581,7 @@ class SoilMoisture(object):
         ##print self.cp_tsoil, self.wp_tsoil
         #print self.cp_root, self.wp_root 
         sys.exit()
-        
+        """
         
     def get_soil_params(self, soil_type):
         """ For a given soil type, get the parameters for the soil
@@ -675,8 +675,7 @@ class SoilMoisture(object):
         # volumetric soil moisture concentrations at the saturation point
         theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
                      fsoil[self.sand_index])
-        print theta_sp
-        print theta_sp *2000.
+        
         # volumetric soil moisture concentrations at the wilting point
         # assumed to = to a suction of -1.5 MPa or a depth of water of 152.9 m
         theta_wp = theta_sp * (sathh / pressure_head_wilt)**(1.0 / b)
@@ -694,16 +693,19 @@ class SoilMoisture(object):
         A drying soil results in physiological stress that can induce stomatal
         closure and reduce transpiration. Further, N mineralisation depends on 
         top soil moisture.
-
+        
+        self.params.qs = 0.2 in SDGVM
+        
         References:
         -----------
         * Landsberg and Waring (1997) Forest Ecology and Management, 95, 209-228.
           See --> Figure 2.
+        * Egea et al. (2011) Agricultural Forest Meteorology, 151, 1370-1384.
           
         But similarly see:
         * van Genuchten (1981) Soil Sci. Soc. Am. J, 44, 892--898.
         * Wang and Leuning (1998) Ag Forest Met, 91, 89-111.
-        * Egea et al. (2011) Agricultural Forest Meteorology, 151, 1370-1384.
+        
         * Pepper et al. (2008) Functional Change Biology, 35, 493-508
        
         Returns:
@@ -718,10 +720,8 @@ class SoilMoisture(object):
         smc_root = self.state.pawater_root / self.params.wcapac_root
         
         if self.control.sw_stress_model == 0:
-            self.params.qs = 0.2
             wtfac_topsoil = smc_topsoil**self.params.qs  
             wtfac_root = smc_root**self.params.qs  
-            
             
         elif self.control.sw_stress_model == 1:
             wtfac_topsoil = self.calc_sw_modifier(smc_topsoil, 
