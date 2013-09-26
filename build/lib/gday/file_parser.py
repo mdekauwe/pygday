@@ -53,7 +53,7 @@ def initialise_model_data(fname, DUMP=True):
     config_dict = R.load_files()
     (user_control, user_params, user_state,
         user_files, user_fluxes, user_print) = R.get_config_dicts(config_dict)
-   
+
     # get driving data
     forcing_data = read_met_forcing(fname=user_files['met_fname'])
 

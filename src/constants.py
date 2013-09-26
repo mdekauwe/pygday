@@ -13,6 +13,7 @@ active radiation against leaf photosynthesis data. A
 gricultural Meteorology, 10, 442-453.
 
 """
+MM_TO_M = 0.001
 M2_AS_HA = 1E-4
 HA_AS_M2 = 1.0 / 1E-4
 G_AS_TONNES = 1E-6
