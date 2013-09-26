@@ -57,9 +57,10 @@ class PlantGrowth(object):
         
         self.sm = SoilMoisture(self.control, self.params, self.state, 
                                self.fluxes)
+        self.sm.initialise_parameters()
         
         self.rm = RootingDepthModel(d0x=self.params.d0x, r0=self.params.r0, 
-                                    top_soil_depth=self.params.top_soil_depth)
+                                    top_soil_depth=self.params.topsoil_depth*const.MM_TO_M)
         
         # Window size = root lifespan in days...
         self.window_size = (int((self.params.rdecay * const.NDAYS_IN_YR) * 
@@ -200,7 +201,7 @@ class PlantGrowth(object):
         if self.control.water_stress:
             # Calculate the soil moisture availability factors [0,1] in the 
             # topsoil and the entire root zone
-            (self.state.wtfac_tsoil, 
+            (self.state.wtfac_topsoil, 
              self.state.wtfac_root) = self.sm.calculate_soil_water_fac()
         else:
             # really this should only be a debugging option!

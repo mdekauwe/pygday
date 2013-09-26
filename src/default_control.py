@@ -27,3 +27,4 @@ calc_sw_params = False     # false=user supplies field capacity and wilting poin
 water_stress = True        # water stress modifier turned on=1 (default)...ability to turn off to test things without drought stress = 0
 modeljm = True             # modeljm=0, Jmax and Vcmax parameters are read in, modeljm=1, parameters are calculated from leaf N content
 model_optroot = False      # Ross's optimal root model...not sure if this works yet...0=off, 1=on
+sw_stress_model = 1        # JULES type linear stress func, or Landsberg and Waring non-linear func

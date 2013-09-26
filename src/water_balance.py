@@ -434,7 +434,7 @@ class WaterBalance(object):
         soil_evap *= exp(-0.398 * self.state.lai)
         
         # reduce soil evaporation if top soil is dry
-        soil_evap *= self.state.wtfac_tsoil
+        soil_evap *= self.state.wtfac_topsoil
         tconv = 60.0 * 60.0 * daylen # seconds to day
         
         return soil_evap * tconv
@@ -454,15 +454,15 @@ class WaterBalance(object):
             outflow [mm d-1]
         """
         # reduce transpiration from the top soil if it is dry
-        trans_frac = (self.params.fractup_soil * self.state.wtfac_tsoil)
+        trans_frac = (self.params.fractup_soil * self.state.wtfac_topsoil)
         
         # Total soil layer
-        self.state.pawater_tsoil += (self.fluxes.erain -
+        self.state.pawater_topsoil += (self.fluxes.erain -
                                     (self.fluxes.transpiration *
                                      trans_frac) -
                                      self.fluxes.soil_evap)
         
-        self.state.pawater_tsoil = clip(self.state.pawater_tsoil, min=0.0,
+        self.state.pawater_topsoil = clip(self.state.pawater_topsoil, min=0.0,
                                         max=self.params.wcapac_topsoil) 
         
         # Total root zone
@@ -513,29 +513,107 @@ class SoilMoisture(object):
         self.silt_index = 0
         self.sand_index = 1
         self.clay_index = 2
-        
+    
+    def initialise_parameters(self):
         # initialise parameters, if these are not known for the site use
-        # values derived from Cosby et al will be used instead.
+        # values derived from Cosby et al to calculate the amount of plant
+        # available water.
+        
+        # local variable
+        topsoil_type = self.params.topsoil_type
+        rootsoil_type = self.params.rootsoil_type
+
         if self.control.calc_sw_params:
-            fsoil_top = self.get_soil_fracs(self.params.topsoil_type)
-            fsoil_root = self.get_soil_fracs(self.params.rootsoil_type)  
-            (self.wp_tsoil, self.cp_tsoil) = self.calc_soil_params(fsoil_top)
-            (self.wp_root, self.cp_root) = self.calc_soil_params(fsoil_root)
-        else:
-            self.cp_tsoil = self.params.fwpmax_tsoil
-            self.wp_tsoil = self.params.fwpmin_tsoil
-            self.cp_root = self.params.fwpmax_root
-            self.wp_root = self.params.fwpmin_root
+            fsoil_top = self.get_soil_fracs(topsoil_type)
+            fsoil_root = self.get_soil_fracs(rootsoil_type)  
             
-       
+            # topsoil
+            (self.theta_fc_tsoil, 
+             self.theta_wp_tsoil) = self.calc_soil_params(fsoil_top)
+            
+            # Plant available water in top soil (mm)
+            self.params.wcapac_topsoil = (self.params.topsoil_depth * 
+                                         (self.theta_fc_tsoil - 
+                                          self.theta_wp_tsoil))
+            
+            # Rootzone
+            (self.theta_fc_root, 
+             self.theta_wp_root) = self.calc_soil_params(fsoil_root)
+            
+            # Plant available water in rooting zone (mm)
+            self.params.wcapac_root = (self.params.rooting_depth * 
+                                      (self.theta_fc_root - 
+                                       self.theta_wp_root))
+        
+        # calculate Landsberg and Waring SW modifier parameters if not
+        # specified by the user based on a site calibration
+        if (self.params.ctheta_topsoil is None and 
+            self.params.ntheta_topsoil is None and
+            self.params.ctheta_root is None and 
+            self.params.ntheta_root):      
+            
+            (self.params.ctheta_topsoil, 
+             self.params.ntheta_topsoil) = self.get_soil_params(topsoil_type)
+            
+            (self.params.ctheta_root, 
+             self.params.ntheta_root) = self.get_soil_params(rootsoil_type)  
+        
+        
+        print self.params.wcapac_topsoil
+        print self.params.wcapac_root
+        print 
+        
+        print "theta_wilt", self.theta_wp_root
+        print "theta_field_capacity", self.theta_fc_root
+        
+        print
+        
+        
+        
+        print "theta_wilt", self.theta_wp_root * 2000.0
+        print "theta_field_capacity", self.theta_fc_root * 2000.0
+        
+        
+        #print self.params.topsoil_type
+        #print self.params.rootsoil_type
         #print (self.cp_tsoil-self.wp_tsoil) * 450.0
-        #print (self.cp_root-self.wp_root) * 2500.0
-        #print self.cp_tsoil, self.wp_tsoil
+        #print (self.cp_root-self.wp_root) * 2000.0
+        ##print self.cp_tsoil, self.wp_tsoil
         #print self.cp_root, self.wp_root 
-        #sys.exit()
+        sys.exit()
+        
+        
+    def get_soil_params(self, soil_type):
+        """ For a given soil type, get the parameters for the soil
+        moisture availability based on Landsberg and Waring.
+        
+        Reference
+        ---------
+        * Landsberg and Waring (1997) Forest Ecology & Management, 95, 209-228.
+         """
+        soil_types = ["sand", "sandy_loam", "clay_loam", "clay"]
+        fsoil = None
+        if soil_type == "sand":
+            c_theta = 0.7
+            n_theta = 9.0
+        elif soil_type == "sandy_loam":
+            c_theta = 0.6
+            n_theta = 7.0
+        elif soil_type == "clay_loam":
+            c_theta = 0.5
+            n_theta = 5.0
+        elif soil_type == "clay":
+            c_theta = 0.4
+            n_theta = 3.0
+        else:
+            print 'There are no parameters for your soil type. Either use the'
+            print 'other soil water stress model or specify the parameters.'
+            sys.exit()
+        return c_theta, n_theta   
+        
        
     def get_soil_fracs(self, soil_type):
-        """ Based on Table 2 in Cosby et al """
+        """ Based on Table 2 in Cosby et al 1984, page 2."""
         fsoil = None
         if soil_type == "sand":
             fsoil = [0.05, 0.92, 0.03]
@@ -565,8 +643,11 @@ class SoilMoisture(object):
         return fsoil
     
     def calc_soil_params(self, fsoil):
-        """ Calculate the soil pressure-volume coefficients from texture data
-        using the regression eqns from Cosby et al. 1984. 
+        """ Cosby parameters for use within the Clapp Hornberger soil hydraulics
+        scheme are calculated based on the texture components of the soil.
+        
+        NB: Cosby are ambiguous in their paper as to what log base to use. Here      
+            using base 10.
         
         Parameters:
         ----------
@@ -575,31 +656,37 @@ class SoilMoisture(object):
         
         Returns:
         --------
-        wp : float
-            wilting point
-        cp : float
-            critical point
+        theta_fc : float
+            volumetric soil water concentration at field capacity
+        theta_wp : float
+            volumetric soil water concentration at the wilting point
+            
         """
+        pressure_head_wilt = 152.9
+        pressure_head_crit = 3.364
+        
+        # Clapp Hornberger parameter
         b = 3.1 + 15.7 * fsoil[self.clay_index] - 0.3 * fsoil[self.sand_index] 
         
-        # saturated hydraulic conductivity kg m-2 s-1
+        # saturated soil water suction kg m-2 s-1
         sathh = (0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * 
                                fsoil[self.sand_index]))
         
         # volumetric soil moisture concentrations at the saturation point
-        sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
-              fsoil[self.sand_index])
-       
+        theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
+                     fsoil[self.sand_index])
+        print theta_sp
+        print theta_sp *2000.
         # volumetric soil moisture concentrations at the wilting point
         # assumed to = to a suction of -1.5 MPa or a depth of water of 152.9 m
-        wp = sp * (sathh / 152.9)**(1.0 / b)
-    
+        theta_wp = theta_sp * (sathh / pressure_head_wilt)**(1.0 / b)
         
-        # volumetric soil moisture concentrations at the critical point
-        # assumed to = to a suction of -0.033 MPa or a depth of water of 3.364 m
-        cp = sp * (sathh / 3.364)**(1.0 / b)
+        # volumetric soil moisture concentrations at the critical point (field
+        # capacity) assumed to equal a suction of -0.033 MPa or a 
+        # depth of water of 3.364 m
+        theta_fc = theta_sp * (sathh / pressure_head_crit)**(1.0 / b)
         
-        return wp, cp
+        return (theta_fc, theta_wp)
     
     def calculate_soil_water_fac(self):
         """ Estimate a relative water availability factor [0..1]
@@ -607,54 +694,49 @@ class SoilMoisture(object):
         A drying soil results in physiological stress that can induce stomatal
         closure and reduce transpiration. Further, N mineralisation depends on 
         top soil moisture.
-
+        
+        self.params.qs = 0.2 in SDGVM
+        
         References:
         -----------
+        * Landsberg and Waring (1997) Forest Ecology and Management, 95, 209-228.
+          See --> Figure 2.
         * Egea et al. (2011) Agricultural Forest Meteorology, 151, 1370-1384.
-        * Pepper et al. (2008) Functional Change Biology, 35, 493-508
-
+          
         But similarly see:
         * van Genuchten (1981) Soil Sci. Soc. Am. J, 44, 892--898.
         * Wang and Leuning (1998) Ag Forest Met, 91, 89-111.
+        
+        * Pepper et al. (2008) Functional Change Biology, 35, 493-508
        
         Returns:
         --------
-        wtfac_tsoil : float
+        wtfac_topsoil : float
             water availability factor for the top soil [0,1]
         wtfac_root : float
             water availability factor for the root zone [0,1]    
         """
         # turn into fraction...
+        smc_topsoil = self.state.pawater_topsoil / self.params.wcapac_topsoil
         smc_root = self.state.pawater_root / self.params.wcapac_root
-        smc_topsoil = self.state.pawater_tsoil / self.params.wcapac_topsoil
+        
+        if self.control.sw_stress_model == 0:
+            wtfac_topsoil = smc_topsoil**self.params.qs  
+            wtfac_root = smc_root**self.params.qs  
             
-        # Calculate a soil moisture availability factor
-        wtfac_tsoil = ((smc_topsoil - self.wp_tsoil) / 
-                       (self.cp_tsoil - self.wp_tsoil))
-        
-        if wtfac_tsoil < 0.0:
-            wtfac_tsoil = 0.0
-        elif wtfac_tsoil > 1.0:
-            wtfac_tsoil = 1.0
-        else:
-            # qs scales non-linearity of stress modifier
-            wtfac_tsoil = wtfac_tsoil**self.params.qs
-        
-        wtfac_root = ((smc_root - self.wp_root) / 
-                      (self.cp_root - self.wp_root))
-        
-        if wtfac_root < 0.0:
-            wtfac_root = 0.0
-        elif wtfac_root > 1.0:
-            wtfac_root = 1.0
-        else:
-            # qs scales non-linearity of stress modifier
-            wtfac_root = wtfac_root**self.params.qs
-            
-        
-        return (wtfac_tsoil, wtfac_root) 
-             
+        elif self.control.sw_stress_model == 1:
+            wtfac_topsoil = self.calc_sw_modifier(smc_topsoil, 
+                                                  self.params.ctheta_topsoil, 
+                                                  self.params.ntheta_topsoil)
   
+            wtfac_root = self.calc_sw_modifier(smc_root, 
+                                               self.params.ctheta_root, 
+                                               self.params.ntheta_root)
+        return (wtfac_topsoil, wtfac_root) 
+        
+    def calc_sw_modifier(self, theta, c_theta, n_theta):
+        """ From Landsberg and Waring """
+        return 1.0  / (1.0 + ((1.0 - theta) / c_theta)**n_theta)
 
 class PenmanMonteith(object):
 
