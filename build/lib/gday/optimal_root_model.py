@@ -31,7 +31,7 @@ class RootingDepthModel(object):
         r0 : float
             root C at half-maximum N uptake (kg C/m3)
         top_soil_depth : float
-            depth of soil assumed by G'DAY, note Ross comment about 30 cm 
+            depth of soil assumed by G'DAY, note Ross comment about 30 cm (units=m) 
             [email]
         """
         self.d0 = d0x   

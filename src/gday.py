@@ -111,7 +111,7 @@ class Gday(object):
         # calculate initial C:N ratios and zero annual flux sums
         self.day_end_calculations(0, INIT=True)
         self.state.pawater_root = self.params.wcapac_root
-        self.state.pawater_tsoil = self.params.wcapac_topsoil
+        self.state.pawater_topsoil = self.params.wcapac_topsoil
         self.spin_up = spin_up
         self.state.sla = self.params.slainit # Specific leaf area (m2/kg DW)
         self.state.lai = (self.params.slainit * const.M2_AS_HA /
