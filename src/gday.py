@@ -42,7 +42,7 @@ class Gday(object):
       873-888.
 
     """
-    def __init__(self, fname=None, DUMP=False, spin_up=False):
+    def __init__(self, fname=None, DUMP=False, spin_up=False, met_header=4):
 
         """ Set up model
 
@@ -58,7 +58,8 @@ class Gday(object):
             parse the cmd line?
         DUMP : logical
             dump a the default parameters to a file
-
+        met_header : int
+            row number of met file header with variable names
         Returns:
         -------
         Nothing
@@ -69,7 +70,8 @@ class Gday(object):
         (self.control, self.params,
             self.state, self.files,
             self.fluxes, self.met_data,
-            self.print_opts) = initialise_model_data(fname, DUMP=DUMP)
+            self.print_opts) = initialise_model_data(fname, met_header, 
+                                                     DUMP=DUMP)
         
         if self.control.water_stress == False:
             sys.stderr.write("**** You have turned off the drought stress")
