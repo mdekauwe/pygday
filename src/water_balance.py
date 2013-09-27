@@ -735,12 +735,6 @@ class SoilMoisture(object):
         
     def calc_sw_modifier(self, theta, c_theta, n_theta):
         """ From Landsberg and Waring """
-        print theta
-        print c_theta
-        print n_theta
-        print 
-        print self.params.ctheta_root
-        print
         return 1.0  / (1.0 + ((1.0 - theta) / c_theta)**n_theta)
 
 class PenmanMonteith(object):
