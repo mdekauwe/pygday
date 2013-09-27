@@ -5,6 +5,7 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (22.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
+import re
 import os
 import sys
 import keyword
@@ -16,7 +17,7 @@ import default_fluxes
 from configobj import ConfigObj, ConfigObjError
 from utilities import str2boolean
 
-def initialise_model_data(fname, DUMP=True):
+def initialise_model_data(fname, met_header, DUMP=True):
     """ Load default model data, met forcing and return
     If there are user supplied input files initialise model with these instead
 
@@ -24,6 +25,8 @@ def initialise_model_data(fname, DUMP=True):
     ----------
     fname : string
         filename of input options, parameters. Filename should include path!
+    met_header : int
+            row number of met file header with variable names
     DUMP : logical
         dump a the default parameters to a file
 
@@ -55,7 +58,7 @@ def initialise_model_data(fname, DUMP=True):
         user_files, user_fluxes, user_print) = R.get_config_dicts(config_dict)
 
     # get driving data
-    forcing_data = read_met_forcing(fname=user_files['met_fname'])
+    forcing_data = read_met_forcing(user_files['met_fname'], met_header)
 
     # read in default modules and then adjust these
     if DUMP == False:
@@ -154,7 +157,7 @@ class ReadConfigFile(object):
                 default_fluxes, user_print_opts)
 
 
-def read_met_forcing(fname, comment='#'):
+def read_met_forcing(fname, met_header, comment='#'):
     """ Read the driving data into a dictionary
     method searches for the hash tag followed by prjday in order to build the 
     named dictionary
@@ -163,6 +166,8 @@ def read_met_forcing(fname, comment='#'):
     -----------
     fname : string
         filename of parameter (CFG) file
+    met_header : int
+            row number of met file header with variable names
     comment : string, optional
         character defining a comment
 
@@ -175,11 +180,12 @@ def read_met_forcing(fname, comment='#'):
     try:
         data = {}
         f = open(fname, 'r')
-        for line in f:
-            if 'year' in line:
-                var_names = line[1:].split()
+        for line_number, line in enumerate(f):            
+            if line_number == met_header:
+                # remove comment tag
+                var_names = re.sub(r'#', ' ', line).lstrip().rstrip().split(",")
             elif not line.lstrip().startswith("#"):
-                values = [float(i) for i in line.split()]
+                values = [float(i) for i in line.split(",")]
                 for name, value in zip(var_names, values):
                     data.setdefault(name, []).append(value) 
         f.close()
