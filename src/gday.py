@@ -356,7 +356,7 @@ def main():
     G.run_sim()
 
     end_time = time.time()
-    sys.stderr.write("\nTotal simulation time: %.1f seconds\n\n" %
+    sys.stderr.write("\nTotal simulation time: %.3f seconds\n\n" %
                                                     (end_time - start_time))
 
 
