@@ -5,6 +5,7 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (22.02.2011)"
 __email__   = "mdekauwe@gmail.com"
 
+
 import re
 import os
 import sys
@@ -156,6 +157,37 @@ class ReadConfigFile(object):
         return (user_control, user_params, user_state, user_files,
                 default_fluxes, user_print_opts)
 
+#def read_met_forcing(fname, met_header, comment='#'):
+#    """ Read the driving data into a dictionary, assumes user has provided
+#    location of variables names.
+#
+#    Parameters:
+#    -----------
+#    fname : string
+#        filename of parameter (CFG) file
+#    met_header : int
+#            row number of met file header with variable names
+#    comment : string, optional
+#        character defining a comment
+#
+#    Returns:
+#    --------
+#    data : dictionary
+#        met forcing data
+#
+#    """
+#    f = open(fname, 'rb')
+#    # Skip crap
+#    for i in xrange(met_header):
+#        junk = csv.reader(f).next() 
+#    names = ','.join(csv.reader(f).next()) 
+#    col_names = re.sub(comment, ' ', names).lstrip().rstrip().split(",")
+#    rows = csv.reader(f, delimiter=',') 
+#    cols = map(list, zip(*rows)) # transpose the data
+#    data = dict(zip(col_names, [map(float, c) for c in cols]))
+#
+#    return data
+#
 
 def read_met_forcing(fname, met_header, comment='#'):
     """ Read the driving data into a dictionary
