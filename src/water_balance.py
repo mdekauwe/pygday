@@ -630,7 +630,9 @@ class SoilMoisture(object):
         
        
     def get_soil_fracs(self, soil_type):
-        """ Based on Table 2 in Cosby et al 1984, page 2."""
+        """ Based on Table 2 in Cosby et al 1984, page 2.
+        Fractions of silt, sand and clay (in that order)
+        """
         fsoil = None
         if soil_type == "sand":
             fsoil = [0.05, 0.92, 0.03]
