@@ -550,15 +550,15 @@ class SoilMoisture(object):
         if (self.params.ctheta_topsoil is None and 
             self.params.ntheta_topsoil is None and
             self.params.ctheta_root is None and 
-            self.params.ntheta_root):      
-            
+            self.params.ntheta_root is None):      
+            print "here"
             (self.params.ctheta_topsoil, 
              self.params.ntheta_topsoil) = self.get_soil_params(topsoil_type)
             
             (self.params.ctheta_root, 
              self.params.ntheta_root) = self.get_soil_params(rootsoil_type)  
         
-        """
+        print self.params.rooting_depth
         print self.params.wcapac_topsoil
         print self.params.wcapac_root
         print 
@@ -567,21 +567,18 @@ class SoilMoisture(object):
         print "theta_field_capacity", self.theta_fc_root
         
         print
+    
+        print "theta_wilt", self.theta_wp_root * self.params.wcapac_root
+        print "theta_field_capacity", self.theta_fc_root * self.params.wcapac_root
         
+        print 
+        print self.params.ctheta_topsoil
+        print self.params.ntheta_topsoil
+        print self.params.ctheta_root
+        print self.params.ntheta_root
         
-        
-        print "theta_wilt", self.theta_wp_root * 2000.0
-        print "theta_field_capacity", self.theta_fc_root * 2000.0
-        
-        
-        #print self.params.topsoil_type
-        #print self.params.rootsoil_type
-        #print (self.cp_tsoil-self.wp_tsoil) * 450.0
-        #print (self.cp_root-self.wp_root) * 2000.0
-        ##print self.cp_tsoil, self.wp_tsoil
-        #print self.cp_root, self.wp_root 
         sys.exit()
-        """
+        
         
     def get_soil_params(self, soil_type):
         """ For a given soil type, get the parameters for the soil
