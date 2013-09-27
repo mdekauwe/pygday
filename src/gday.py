@@ -351,7 +351,7 @@ def main():
 
     #fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
     fname = "/Users/mdekauwe/research/DUKE_ORNL_simulations/Duke/params/NCEAS_dk_youngforest.cfg"
-"
+
     G = Gday(fname)
     G.run_sim()
 
