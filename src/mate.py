@@ -443,6 +443,14 @@ class Mate(object):
         
         return lue
     
+    def integral(self):
+        sinx = sin(pi * i / 24.)
+        arg1 = sinx
+        arg2 = 1.0 + q * sinx 
+        arg3 = sqrt((1.0 + q * sinx)**2.0 - 4.0 * theta * q * sinx)
+        integral += arg1 / (arg2 + arg3) * delta
+    
+    
     def arrh(self, k25, Ea, Tk):
         """ Temperature dependence of kinetic parameters is described by an
         Arrhenius function
