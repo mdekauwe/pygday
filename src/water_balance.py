@@ -263,8 +263,6 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-        am, pm = self.am, self.pm
-        
         gs_mol = make_empty_list_of_zeros(2)
         ga = make_empty_list_of_zeros(2)
         gs = make_empty_list_of_zeros(2) # m s-1 (but per half day)
