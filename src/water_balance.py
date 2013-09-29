@@ -263,11 +263,11 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-        gs_mol = make_empty_list_of_zeros(2)
-        ga = make_empty_list_of_zeros(2)
-        gs = make_empty_list_of_zeros(2) # m s-1 (but per half day)
-        trans = make_empty_list_of_zeros(2)
-        omegax = make_empty_list_of_zeros(2)
+        gs_mol = [0.0]*2
+        ga = [0.0]*2
+        gs = [0.0]*2 # m s-1 (but per half day)
+        trans = [0.0]*2
+        omegax = [0.0]*2
         gpp = self.fluxes.gpp_am_pm # list
         half_day = daylen / 2.0
         
@@ -1104,7 +1104,3 @@ class PriestleyTaylor(PenmanMonteith):
 
         return (pt_coeff / lambdax) * (slope / (slope + gamma)) * net_rad
 
-
-def make_empty_list_of_zeros(size):
-    """ create an empty (zero'd) list of a given size """
-    return [0.0]*size 
