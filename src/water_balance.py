@@ -585,46 +585,51 @@ class SoilMoisture(object):
         
     def get_soil_params(self, soil_type):
         """ For a given soil type, get the parameters for the soil
-        moisture availability based on Landsberg and Waring.
+        moisture availability based on Landsberg and Waring, with updated
+        parameters from Landsberg and Sands (2011), pg 190, Table 7.1
         
         Reference
         ---------
+        * Landsberg and Sands (2011) Physiological ecology of forest production.
         * Landsberg and Waring (1997) Forest Ecology & Management, 95, 209-228.
-        * updated with additional values based on Ward et al. 2000 cited in
-          Feikema et al (2010) Description of the 3PG+ forest growth model
-         """
-        soil_types = ["sand", "sandy_loam", "clay_loam", "clay"]
+        """
         fsoil = None
-        if soil_type == "sand":
-            c_theta = 0.75
-            n_theta = 10.0
-        elif soil_type == "loamy_sand":
-            c_theta = 0.7
-            n_theta = 9.0
-        elif soil_type == "sandy_loam":
-            c_theta = 0.65
-            n_theta = 8.0
-        elif soil_type == "loam":
-            c_theta = 0.6
-            n_theta = 7.0
-        elif soil_type == "silty_loam":
-            c_theta = 0.55
-            n_theta = 6.0
-        elif soil_type == "silty_clay_loam":
-            c_theta = 0.5
-            n_theta = 5.0
-        elif soil_type == "clay_loam":
-            c_theta = 0.45
-            n_theta = 4.0
-        elif soil_type == "sandy_clay":
+        if soil_type == "clay":
             c_theta = 0.4
             n_theta = 3.0
+        elif soil_type == "clay_loam":
+            c_theta = 0.5
+            n_theta = 5.0
+        elif soil_type == "loam":
+            c_theta = 0.55
+            n_theta = 6.0
+        elif soil_type == "loamy_sand":
+            c_theta = 0.65
+            n_theta = 8.0
+        elif soil_type == "sand":
+            c_theta = 0.7
+            n_theta = 9.0
+        elif soil_type == "sandy_clay":
+            c_theta = 0.45
+            n_theta = 4.0
+        elif soil_type == "sandy_clay_loam":
+            c_theta = 0.525
+            n_theta = 5.5
+        elif soil_type == "sandy_loam":
+            c_theta = 0.6
+            n_theta = 7.0
+        elif soil_type == "silt":
+            c_theta = 0.625
+            n_theta = 7.5
         elif soil_type == "silty_clay":
-            c_theta = 0.35
-            n_theta = 2.0
-        elif soil_type == "clay":
-            c_theta = 0.3
-            n_theta = 1.0
+            c_theta = 0.425
+            n_theta = 3.5
+        elif soil_type == "silty_clay_loam":
+            c_theta = 0.475
+            n_theta = 4.5
+        elif soil_type == "silty_loam":
+            c_theta = 0.575
+            n_theta = 6.5
         else:
             print 'There are no parameters for your soil type. Either use the'
             print 'other soil water stress model or specify the parameters.'

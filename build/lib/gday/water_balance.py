@@ -263,15 +263,14 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-        am, pm = self.am, self.pm
-        
-        gs_mol = make_empty_list_of_zeros(2)
-        ga = make_empty_list_of_zeros(2)
-        gs = make_empty_list_of_zeros(2) # m s-1 (but per half day)
-        trans = make_empty_list_of_zeros(2)
-        omegax = make_empty_list_of_zeros(2)
+        gs_mol = [0.0]*2
+        ga = [0.0]*2
+        gs = [0.0]*2 # m s-1 (but per half day)
+        trans = [0.0]*2
+        omegax = [0.0]*2
         gpp = self.fluxes.gpp_am_pm # list
         half_day = daylen / 2.0
+        
         for i in self.am, self.pm:
             (gs[i], 
              gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, half_day, 
@@ -283,27 +282,7 @@ class WaterBalance(object):
              omegax[i]) = self.P.calc_evaporation(vpd[i], wind[i], gs[i], 
                                                   net_rad[i], tair[i], press, 
                                                   ga=ga[i])
-        """ IS THIS QUICKER? - test it
-        # AM
-        (gs[am], 
-         gs_mol[am]) = self.calc_stomatal_conductance(vpd[am], ca, half_day, 
-                                                      gpp[am], press, tair[am])
-        ga[am] = self.P.canopy_boundary_layer_conductance(wind[am])
-        (trans[am], 
-         omegax[am]) = self.P.calc_evaporation(vpd[am], wind[am], gs[am], 
-                                               net_rad[am], tair[am], press, 
-                                               ga=ga[am])
         
-        # PM
-        (gs[pm], 
-         gs_mol[pm]) = self.calc_stomatal_conductance(vpd[pm], ca, half_day, 
-                                                      gpp[pm], press, tair[pm])
-        ga[pm] = self.P.canopy_boundary_layer_conductance(wind[pm])
-        (trans[pm], 
-         omegax[pm]) = self.P.calc_evaporation(vpd[pm], wind[pm], gs[pm], 
-                                               net_rad[pm], tair[pm], press, 
-                                               ga=ga[pm])
-        """
         
         # print out pre-noon values
         #print self.fluxes.omega = omegax[0]
@@ -1125,7 +1104,3 @@ class PriestleyTaylor(PenmanMonteith):
 
         return (pt_coeff / lambdax) * (slope / (slope + gamma)) * net_rad
 
-
-def make_empty_list_of_zeros(size):
-    """ create an empty (zero'd) list of a given size """
-    return [0.0]*size 
