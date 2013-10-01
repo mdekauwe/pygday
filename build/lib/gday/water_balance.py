@@ -168,10 +168,18 @@ class WaterBalance(object):
 
         """
         if self.state.lai > 0.0:
-            self.fluxes.erain = max(0.0, rain * self.params.rfmult -
-                                    self.state.lai * self.params.wetloss)
-            self.fluxes.interception = (rain * self.params.rfmult - 
-                                        self.fluxes.erain)
+            #self.fluxes.erain = max(0.0, rain * self.params.rfmult -
+            #                        self.state.lai * self.params.wetloss)
+            #self.fluxes.interception = (rain * self.params.rfmult - 
+            #                           self.fluxes.erain)
+            
+            self.fluxes.interception = (rain * self.params.intercep_frac * 
+                                        min(1.0, self.state.lai / 
+                                                 self.params.max_intercep_lai))
+            
+            self.fluxes.erain = rain - self.fluxes.interception
+            
+            
         else:
             self.fluxes.erain = max(0.0, rain)
             self.fluxes.interception = 0.0
