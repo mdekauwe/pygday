@@ -560,25 +560,7 @@ class SoilMoisture(object):
             
             (self.params.ctheta_root, 
              self.params.ntheta_root) = self.get_soil_params(rootsoil_type)  
-        """
-        print self.params.rooting_depth
-        print self.params.wcapac_topsoil
-        print self.params.wcapac_root
-        print 
         
-        print "theta_wilt", theta_wp_topsoil, theta_wp_root
-        print "theta_field_capacity", theta_fc_topsoil, theta_fc_root
-        
-        print
-    
-        print 
-        print self.params.ctheta_topsoil
-        print self.params.ntheta_topsoil
-        print self.params.ctheta_root
-        print self.params.ntheta_root
-        
-        sys.exit()
-        """
         
     def get_soil_params(self, soil_type):
         """ For a given soil type, get the parameters for the soil

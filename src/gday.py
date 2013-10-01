@@ -150,12 +150,15 @@ class Gday(object):
                 prev_plantc = self.state.plantc
                 prev_soilc = self.state.soilc
                 prev_litterc = self.state.litterc
-                self.run_sim() # run the model...
+                (yr, doy) = self.run_sim() # run the model...
                 
                 # Have we reached a steady state?
                 msg = "Spinup: Plant C - %f, Soil C - %f, Litter C - %f\n" % \
                        (self.state.plantc, self.state.soilc, self.state.litterc)
                 sys.stderr.write(msg)
+        
+        self.save_daily_outputs(yr, doy)
+        self.pr.clean_up()
         self.print_output_file()
     
     def run_sim(self):
@@ -202,7 +205,8 @@ class Gday(object):
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
-                self.save_daily_outputs(yr, doy+1)
+                if not self.spin_up:
+                    self.save_daily_outputs(yr, doy+1)
                 
                 # check the daily water balance
                 #self.cb.check_water_balance(project_day)
@@ -214,14 +218,20 @@ class Gday(object):
             if self.control.deciduous_model:
                 self.pg.allocate_stored_c_and_n(init=False)
                 
-            if self.control.print_options == "DAILY" and self.spin_up == False:
+            if self.control.print_options == "DAILY" and not self.spin_up:
                 self.print_output_file()
             
         # close output files
-        if self.control.print_options == "END" and self.spin_up == False:
+        if self.control.print_options == "END" and not self.spin_up:
             self.print_output_file()
-        self.pr.clean_up()
-
+            
+        # only close printing file if not in spin up mode as we have yet
+        # written the daily output...
+        if self.spin_up:
+            return (yr, doy+1)
+        else:
+            self.pr.clean_up() 
+            
     def print_output_file(self):
         """ Either print the daily output file (at the end of the year) or
         print the final state + param file. """
