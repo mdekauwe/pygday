@@ -560,25 +560,7 @@ class SoilMoisture(object):
             
             (self.params.ctheta_root, 
              self.params.ntheta_root) = self.get_soil_params(rootsoil_type)  
-        """
-        print self.params.rooting_depth
-        print self.params.wcapac_topsoil
-        print self.params.wcapac_root
-        print 
         
-        print "theta_wilt", theta_wp_topsoil, theta_wp_root
-        print "theta_field_capacity", theta_fc_topsoil, theta_fc_root
-        
-        print
-    
-        print 
-        print self.params.ctheta_topsoil
-        print self.params.ntheta_topsoil
-        print self.params.ctheta_root
-        print self.params.ntheta_root
-        
-        sys.exit()
-        """
         
     def get_soil_params(self, soil_type):
         """ For a given soil type, get the parameters for the soil
@@ -699,16 +681,16 @@ class SoilMoisture(object):
         sathh = (0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * 
                                fsoil[self.sand_index]))
         
-        # volumetric soil moisture concentrations at the saturation point
+        # volumetric soil moisture concentrations at the saturation point, 0 kPa
         theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
                      fsoil[self.sand_index])
         
         # volumetric soil moisture concentrations at the wilting point
-        # assumed to = to a suction of -1.5 MPa or a depth of water of 152.9 m
+        # assumed to = to a suction of -1500 kPa or a depth of water of 152.9 m
         theta_wp = theta_sp * (sathh / pressure_head_wilt)**(1.0 / b)
         
         # volumetric soil moisture concentrations at the critical point (field
-        # capacity) assumed to equal a suction of -0.033 MPa or a 
+        # capacity) assumed to equal a suction of -33 kPa or a 
         # depth of water of 3.364 m
         theta_fc = theta_sp * (sathh / pressure_head_crit)**(1.0 / b)
         
