@@ -531,22 +531,22 @@ class SoilMoisture(object):
             fsoil_root = self.get_soil_fracs(rootsoil_type)  
             
             # topsoil
-            (self.theta_fc_tsoil, 
-             self.theta_wp_tsoil) = self.calc_soil_params(fsoil_top)
+            (theta_fc_topsoil, 
+             theta_wp_topsoil) = self.calc_soil_params(fsoil_top)
             
             # Plant available water in top soil (mm)
             self.params.wcapac_topsoil = (self.params.topsoil_depth * 
-                                         (self.theta_fc_tsoil - 
-                                          self.theta_wp_tsoil))
+                                         (theta_fc_topsoil - 
+                                          theta_wp_topsoil))
             
             # Rootzone
-            (self.theta_fc_root, 
-             self.theta_wp_root) = self.calc_soil_params(fsoil_root)
+            (theta_fc_root, 
+             theta_wp_root) = self.calc_soil_params(fsoil_root)
             
             # Plant available water in rooting zone (mm)
             self.params.wcapac_root = (self.params.rooting_depth * 
-                                      (self.theta_fc_root - 
-                                       self.theta_wp_root))
+                                      (theta_fc_root - 
+                                       theta_wp_root))
         
         # calculate Landsberg and Waring SW modifier parameters if not
         # specified by the user based on a site calibration
@@ -566,14 +566,11 @@ class SoilMoisture(object):
         print self.params.wcapac_root
         print 
         
-        print "theta_wilt", self.theta_wp_root
-        print "theta_field_capacity", self.theta_fc_root
+        print "theta_wilt", theta_wp_topsoil, theta_wp_root
+        print "theta_field_capacity", theta_fc_topsoil, theta_fc_root
         
         print
     
-        print "theta_wilt", self.theta_wp_root * self.params.wcapac_root
-        print "theta_field_capacity", self.theta_fc_root * self.params.wcapac_root
-        
         print 
         print self.params.ctheta_topsoil
         print self.params.ntheta_topsoil
@@ -587,6 +584,9 @@ class SoilMoisture(object):
         """ For a given soil type, get the parameters for the soil
         moisture availability based on Landsberg and Waring, with updated
         parameters from Landsberg and Sands (2011), pg 190, Table 7.1
+        
+        Table also has values from Saxton for soil texture, perhaps makes more
+        sense to use those than Cosby? Investigate?
         
         Reference
         ---------
@@ -699,16 +699,16 @@ class SoilMoisture(object):
         sathh = (0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * 
                                fsoil[self.sand_index]))
         
-        # volumetric soil moisture concentrations at the saturation point
+        # volumetric soil moisture concentrations at the saturation point, 0 kPa
         theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
                      fsoil[self.sand_index])
         
         # volumetric soil moisture concentrations at the wilting point
-        # assumed to = to a suction of -1.5 MPa or a depth of water of 152.9 m
+        # assumed to = to a suction of -1500 kPa or a depth of water of 152.9 m
         theta_wp = theta_sp * (sathh / pressure_head_wilt)**(1.0 / b)
         
         # volumetric soil moisture concentrations at the critical point (field
-        # capacity) assumed to equal a suction of -0.033 MPa or a 
+        # capacity) assumed to equal a suction of -33 kPa or a 
         # depth of water of 3.364 m
         theta_fc = theta_sp * (sathh / pressure_head_crit)**(1.0 / b)
         
