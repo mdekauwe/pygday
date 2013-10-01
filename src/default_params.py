@@ -159,8 +159,10 @@ ntheta_topsoil    = None # Fitted parameter based on Landsberg and Waring
 ctheta_root       = None # Fitted parameter based on Landsberg and Waring
 ntheta_root       = None # Fitted parameter based on Landsberg and Waring
 fractup_soil      = 0.5   #fraction of uptake from top soil layer
-wetloss           = 0.5   #daily rainfall lost per lai (mm/day)
-rfmult            = 1.0
+#wetloss           = 0.5   #daily rainfall lost per lai (mm/day)
+#rfmult            = 1.0
+intercep_frac     = 0.15  # Maximum intercepted fraction, values in Oishi et al 2008, AFM, 148, 1719-1732 ~13.9% +/- 4.1, so going to assume 15% following Landsberg and Sands 2011, pg. 193.
+max_intercep_lai  = 3.0   # canopy LAI at which interception is maximised.
 
 # misc
 latitude         = 39.11999 #latitude (degrees, negative for south)
