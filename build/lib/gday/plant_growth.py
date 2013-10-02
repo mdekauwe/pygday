@@ -183,12 +183,10 @@ class PlantGrowth(object):
         else:
             self.state.ncontent = 0.0
          
-        # fractional ground cover.
-        if float_lt(self.state.lai, self.params.lai_cover):
-            frac_gcover = self.state.lai / self.params.lai_cover
-        else:
-            frac_gcover = 1.0
-
+        # fractional ground cover. This has no real impact as lai_cover is 
+        # set 0.5, so if LAI is anything sensible, model assumes total Fcover.
+        frac_gcover = min(1.0, self.state.lai / self.params.lai_cover)
+        
         # Radiance intercepted by the canopy, accounting for partial closure
         # Jackson and Palmer (1981), derived from beer's law
         if self.state.lai > 0.0:
