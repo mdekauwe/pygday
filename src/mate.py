@@ -441,14 +441,14 @@ class Mate(object):
         
         if float_gt(asat, 0.0):
             q = pi * self.params.kext * alpha * par / (2.0 * h * asat)
-            integral = 0.0
+            integral_g = 0.0 
             for i in xrange(1, 13, 2):
                 sinx = sin(pi * i / 24.)
                 arg1 = sinx
                 arg2 = 1.0 + q * sinx 
                 arg3 = sqrt((1.0 + q * sinx)**2.0 - 4.0 * theta * q * sinx)
-                integral += arg1 / (arg2 + arg3) * delta
-            lue = alpha * integral * pi
+                integral_g += arg1 / (arg2 + arg3) * delta
+            lue = alpha * integral_g * pi
         else:
             lue = 0.0
         
