@@ -126,7 +126,7 @@ class Mate(object):
         aj = [self.assim(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
               a2=2.0*gamma_star[k]) for k in am, pm]
         
-        # Note that these are gross photosynthetic rates.
+        # light-saturated photosynthesis rate at the top of the canopy (gross)
         asat = [min(aj[k], ac[k]) for k in am, pm]
         
         # Assumption that the integral is symmetric about noon, so we average
@@ -141,7 +141,8 @@ class Mate(object):
             self.fluxes.apar = 0.0
         else:
             par_mol = par * const.UMOL_TO_MOL
-            self.fluxes.apar = par_mol * self.state.light_interception
+            # absorbed photosynthetically active radiation
+            self.fluxes.apar = par_mol * self.state.fipar
 
         # gC m-2 d-1
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
@@ -392,15 +393,26 @@ class Mate(object):
         
         return g1w / (g1w + sqrt(vpd))
        
-    def epsilon(self, amax, par, daylen, alpha):
+    def epsilon(self, asat, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996. 
         
-        Numerical integration of g is simplified to 6 intervals. Leaf 
-        transmission is assumed to be zero.
+        Sands derived daily canopy LUE from Asat by modelling the light response
+        of photosysnthesis as a non-rectangular hyperbola with a curvature 
+        (theta) and a quantum efficiency (alpha). 
+        
+        Assumptions of the approach are:
+         - horizontally uniform canopy
+         - PAR varies sinusoidally during daylight hours
+         - extinction coefficient is constant all day
+         - Asat and incident radiation decline through the canopy following 
+           Beer's Law.
+           
+        * Numerical integration of g is simplified to 6 intervals. Leaf 
+          transmission is assumed to be zero.
 
         Parameters:
         ----------
-        amax : float
+        asat : float
             photosynthetic rate at the top of the canopy
         par : float
             incident photosyntetically active radiation
@@ -428,8 +440,8 @@ class Mate(object):
         h = daylen * const.HRS_TO_SECS 
         theta = self.params.theta # local var
         
-        if float_gt(amax, 0.0):
-            q = pi * self.params.kext * alpha * par / (2.0 * h * amax)
+        if float_gt(asat, 0.0):
+            q = pi * self.params.kext * alpha * par / (2.0 * h * asat)
             integral = 0.0
             for i in xrange(1, 13, 2):
                 sinx = sin(pi * i / 24.)
@@ -571,7 +583,7 @@ if __name__ == "__main__":
             else:
                 frac_gcover = 1.0
 
-            state.light_interception = ((1.0 - exp(-params.kext *
+            state.fipar = ((1.0 - exp(-params.kext *
                                                 state.lai / frac_gcover)) *
                                                 frac_gcover)
             M.calculate_photosynthesis(project_day, daylen[doy])

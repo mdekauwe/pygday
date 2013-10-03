@@ -50,7 +50,7 @@ wtfac_root = None
 wtfac_topsoil = None
 lai = None
 sla = None
-light_interception = None
+fpar = None
 ncontent = None
 age = 0.0                               #Current stand age (years)
 
