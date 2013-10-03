@@ -195,6 +195,10 @@ class PlantGrowth(object):
         else:
             self.state.fipar = 0.0
         
+        # Canopy extinction coefficient if the canopy is open
+        #if cf < 1.0:
+        #    kext = -log(1.0 - self.state.fipar) / LAI
+        
         if self.control.water_stress:
             # Calculate the soil moisture availability factors [0,1] in the 
             # topsoil and the entire root zone
