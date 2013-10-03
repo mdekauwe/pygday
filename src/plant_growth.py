@@ -191,7 +191,8 @@ class PlantGrowth(object):
         # top of the canopy, accounting for partial closure based on Jackson
         # and Palmer (1981), derived from beer's law
         if self.state.lai > 0.0:
-            self.state.fipar = (1.0 - exp(-self.params.kext * LAI / cf)) * cf
+            self.state.fipar = ((1.0 - exp(-self.params.kext * 
+                                           self.state.lai / cf)) * cf)
         else:
             self.state.fipar = 0.0
         
