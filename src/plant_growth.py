@@ -186,7 +186,6 @@ class PlantGrowth(object):
         # When canopy is not closed, canopy light interception is reduced
         cf = min(1.0, self.state.lai / self.params.lai_cover)
         
-        
         # fIPAR - the fraction of intercepted PAR = IPAR/PAR incident at the 
         # top of the canopy, accounting for partial closure based on Jackson
         # and Palmer (1981), derived from beer's law
