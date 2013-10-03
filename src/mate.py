@@ -426,7 +426,7 @@ class Mate(object):
         Returns:
         -------
         lue : float
-            integrated light use efficiency over the canopy
+            integrated light use efficiency over the canopy (mol C mol-1 PAR)
 
         References:
         -----------
