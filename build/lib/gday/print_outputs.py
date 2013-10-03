@@ -126,7 +126,7 @@ class PrintOutput(object):
 
         """
         ignore = ['actncslope', 'slowncslope', 'passncslope', 'decayrate', \
-                  'fmfaeces', 'light_interception', 'wtfac_tsoil', \
+                  'fmfaeces', 'fipar', 'wtfac_tsoil', \
                   'wtfac_root', 'remaining_days', 'growing_days', \
                   'leaf_out_days', 'albranch', 'alleaf', 'alroot', \
                   'alstem', 'c_to_alloc_branch', \

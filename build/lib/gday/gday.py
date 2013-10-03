@@ -141,7 +141,6 @@ class Gday(object):
         prev_plantc = 9999.9
         prev_soilc = 9999.9
         prev_litterc = 9999.9
-        print self.state.shoot, self.state.stem, self.state.root
         while True:
             if (fabs(prev_plantc - self.state.plantc) < tolerance and
                 fabs(prev_soilc - self.state.soilc) < tolerance and 
