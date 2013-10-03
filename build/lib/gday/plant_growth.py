@@ -355,7 +355,7 @@ class PlantGrowth(object):
                                                        target_branch, 
                                                        self.params.ab_max, 
                                                        self.params.targ_sens) 
-            
+                    
             # allocation to stem is the residual
             self.state.alstem = (1.0 - self.state.alroot - 
                                        self.state.albranch - 
