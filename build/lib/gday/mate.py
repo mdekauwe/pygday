@@ -406,9 +406,9 @@ class Mate(object):
          - extinction coefficient is constant all day
          - Asat and incident radiation decline through the canopy following 
            Beer's Law.
+         - leaf transmission is assumed to be zero.
            
-        * Numerical integration of g is simplified to 6 intervals. Leaf 
-          transmission is assumed to be zero.
+        * Numerical integration of "g" is simplified to 6 intervals. 
 
         Parameters:
         ----------
@@ -433,7 +433,6 @@ class Mate(object):
         See assumptions above...
         * Sands, P. J. (1995) Australian Journal of Plant Physiology, 
           22, 601-14.
-        * LUE stuff comes from Sands 1996
 
         """
         delta = 0.16666666667 # subintervals scaler, i.e. 6 intervals
@@ -454,14 +453,6 @@ class Mate(object):
             lue = 0.0
         
         return lue
-    
-    def integral(self):
-        sinx = sin(pi * i / 24.)
-        arg1 = sinx
-        arg2 = 1.0 + q * sinx 
-        arg3 = sqrt((1.0 + q * sinx)**2.0 - 4.0 * theta * q * sinx)
-        integral += arg1 / (arg2 + arg3) * delta
-    
     
     def arrh(self, k25, Ea, Tk):
         """ Temperature dependence of kinetic parameters is described by an
