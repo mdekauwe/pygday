@@ -183,18 +183,17 @@ class PlantGrowth(object):
         else:
             self.state.ncontent = 0.0
          
-        # fractional ground cover. This has no real impact as lai_cover is 
-        # set 0.5, so if LAI is anything sensible, model assumes total Fcover.
-        frac_gcover = min(1.0, self.state.lai / self.params.lai_cover)
+        # When canopy is not closed, canopy light interception is reduced
+        cf = min(1.0, self.state.lai / self.params.lai_cover)
         
-        # Radiance intercepted by the canopy, accounting for partial closure
-        # Jackson and Palmer (1981), derived from beer's law
+        
+        # fIPAR - the fraction of intercepted PAR = IPAR/PAR incident at the 
+        # top of the canopy, accounting for partial closure based on Jackson
+        # and Palmer (1981), derived from beer's law
         if self.state.lai > 0.0:
-            self.state.light_interception = ((1.0 - exp(-self.params.kext *
-                                             self.state.lai / frac_gcover)) *
-                                             frac_gcover)
+            self.state.fipar = (1.0 - exp(-self.params.kext * LAI / cf)) * cf
         else:
-            self.state.light_interception = 0.0
+            self.state.fipar = 0.0
         
         if self.control.water_stress:
             # Calculate the soil moisture availability factors [0,1] in the 
@@ -875,7 +874,7 @@ if __name__ == "__main__":
         else:
             frac_gcover = 1.0
 
-        state.light_interception = ((1.0 - exp(-params.kext *
+        state.fpar = ((1.0 - exp(-params.kext *
                                             state.lai / frac_gcover)) *
                                             frac_gcover)
 
