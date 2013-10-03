@@ -417,7 +417,7 @@ class Mate(object):
         par : float
             incident photosyntetically active radiation
         daylen : float
-            length of day in hours.
+            length of day (hrs).
         theta : float
             curvature of photosynthetic light response curve 
         alpha : float
