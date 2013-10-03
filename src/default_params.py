@@ -118,7 +118,7 @@ leafsap1 = 2700.0   # leaf to sap area ratio when Height = Height1 (mm^2/mm^2)
 branch0 = 5.61      # constant in branch-stem allometry (trees)
 branch1 = 0.346     # exponent in branch-stem allometry
 targ_sens = 0.5     # sensitivity of allocation (leaf/branch) to target
-density = 420.0     # kg DM m-3 (trees)
+density = 420.0     # sapwood density kg DM m-3 (trees)
 af_max = 0.5        # maximum allocation to leaves
 ab_max = 0.2        # maximum allocation to branch
 ar_max = 0.25       # maximum allocation to fine roots
