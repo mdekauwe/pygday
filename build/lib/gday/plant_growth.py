@@ -361,7 +361,7 @@ class PlantGrowth(object):
                                        self.state.albranch - 
                                        self.state.alleaf)
                                        
-            print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
+            #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
         else:
             raise AttributeError('Unknown C allocation model')
         
