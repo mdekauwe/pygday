@@ -326,7 +326,8 @@ class PlantGrowth(object):
         
             # Allocation to leaves dependant on height. Modification of pipe 
             # theory, leaf-to-sapwood ratio is not constant above a certain 
-            # height, due to hydraulic constraints.
+            # height, due to hydraulic constraints (Magnani et al 2000; Deckmyn
+            # et al. 2006).
             if self.params.leafsap0 < self.params.leafsap1:
                 min_target = self.params.leafsap0
             else:
