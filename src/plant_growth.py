@@ -623,6 +623,14 @@ class PlantGrowth(object):
             # following a Michaelis-Menten approach 
             # See Raich et al. 1991, pg. 423.
             
+            adapt = 0.012/365.25 # day^-1
+            adapt = 0.1/365.25 # day^-1
+            vcn = 1.0 / 0.0215 # 46.4
+            arg1 = (vcn * self.state.shootn) - self.state.shoot
+            arg2 = (vcn * self.state.shootn) + self.state.shoot
+            self.params.ac += adapt * arg1 / arg2
+            self.params.ac = max(min(1.0, self.params.ac), 0.0)
+            
             # soil moisture is assumed to influence nutrient diffusion rate
             # through the soil, ks [0,1]
             theta = self.state.pawater_root / self.params.wcapac_root 
@@ -631,8 +639,8 @@ class PlantGrowth(object):
             arg1 = self.params.nmax * ks * self.state.inorgn 
             arg2 = self.params.knl + (ks * self.state.inorgn)
             arg3 = exp(0.0693 * self.met_data['tair'][project_day])
-            #arg4 = 1.0 - self.params.ac
-            nuptake = (arg1 / arg2) * arg3 #* arg4
+            arg4 = 1.0 - self.params.ac
+            nuptake = (arg1 / arg2) * arg3 * arg4
             
             #print self.params.nmax, self.params.knl, ks, exp(0.0693 * tavg) 
             
