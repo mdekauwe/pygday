@@ -199,7 +199,7 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                      
                 #print self.fluxes.gpp *100, self.fluxes.transpiration, self.state.pawater_root
-                print self.fluxes.gpp * 100, self.state.lai, self.fluxes.nuptake*100., self.params.ac, self.state.shootnc
+                #print self.fluxes.gpp * 100, self.state.lai, self.fluxes.nuptake*100., self.params.ac, self.state.shootnc
                 #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
 
                 # =============== #
@@ -267,7 +267,7 @@ class Gday(object):
                           'fdecay', 'fdecaydry', 'rdecay', 'rdecaydry',
                           'bdecay', 'wdecay', 'sapturnover','kdec1', 'kdec2', 
                           'kdec3', 'kdec4', 'kdec5', 'kdec6', 'kdec7', 
-                          'nuptakez','nmax']
+                          'nuptakez','nmax', 'adapt']
         conv = const.NDAYS_IN_YR
         
         if output == False:
