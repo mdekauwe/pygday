@@ -199,7 +199,7 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                      
                 #print self.fluxes.gpp *100, self.fluxes.transpiration, self.state.pawater_root
-                #print self.fluxes.gpp * 100, self.state.lai, self.fluxes.nuptake*100.
+                print self.fluxes.gpp * 100, self.state.lai, self.fluxes.nuptake*100., self.params.ac, self.state.shootnc
                 #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
 
                 # =============== #
