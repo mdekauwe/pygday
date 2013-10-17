@@ -153,6 +153,12 @@ class Mate(object):
                                       const.MOL_C_TO_GRAMS_C)
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
+        if self.control.nuptake_model == 3:
+            self.fluxes.gpp_gCm2 *= self.params.ac
+            self.fluxes.gpp_am_pm[am] *= self.params.ac
+            self.fluxes.gpp_am_pm[pm] *= self.params.ac
+            self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+            
         # g C m-2 to tonnes hectare-1 day-1
         conv = const.G_AS_TONNES / const.M2_AS_HA
         self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
