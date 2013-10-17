@@ -631,7 +631,8 @@ class PlantGrowth(object):
             arg1 = self.params.nmax * ks * self.state.inorgn 
             arg2 = self.params.knl + (ks * self.state.inorgn)
             arg3 = exp(0.0693 * self.met_data['tair'][project_day])
-            nuptake = (arg1 / arg2) * arg3
+            #arg4 = 1.0 - self.params.ac
+            nuptake = (arg1 / arg2) * arg3 #* arg4
             
             #print self.params.nmax, self.params.knl, ks, exp(0.0693 * tavg) 
             
