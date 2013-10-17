@@ -99,7 +99,7 @@ class PlantGrowth(object):
         
         (ncbnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
         self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
-                                 days_in_yr)
+                                 days_in_yr, project_day)
         
         self.update_plant_state(fdecay, rdecay, project_day, doy)
         if self.control.deciduous_model:
@@ -431,7 +431,7 @@ class PlantGrowth(object):
         
         
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
-                            days_in_yr):
+                            days_in_yr, project_day):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
         to the shoot and roots with flexible ratios.
@@ -456,7 +456,7 @@ class PlantGrowth(object):
         # N retranslocated proportion from dying plant tissue and stored within
         # the plant
         self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay, doy)
-        self.fluxes.nuptake = self.calculate_nuptake()
+        self.fluxes.nuptake = self.calculate_nuptake(project_day)
         
         # Ross's Root Model.
         if self.control.model_optroot == True:    
@@ -589,7 +589,7 @@ class PlantGrowth(object):
         
         return arg1 + arg2
     
-    def calculate_nuptake(self):
+    def calculate_nuptake(self, project_day):
         """ N uptake depends on the rate at which soil mineral N is made 
         available to the plants.
         
@@ -601,6 +601,7 @@ class PlantGrowth(object):
         References:
         -----------
         * Dewar and McMurtrie, 1996, Tree Physiology, 16, 161-171.    
+        * Raich et al. 1991, Ecological Applications, 1, 399-429.
             
         """
         if self.control.nuptake_model == 0:
@@ -617,6 +618,23 @@ class PlantGrowth(object):
             U0 = self.params.rateuptake * self.state.inorgn
             Kr = self.params.kr
             nuptake = max(U0 * self.state.root / (self.state.root + Kr), 0.0)
+        elif self.control.nuptake_model == 3:
+            # N uptake is a function of available soil N, soil moisture 
+            # following a Michaelis-Menten approach 
+            # See Raich et al. 1991, pg. 423.
+            
+            # soil moisture is assumed to influence nutrient diffusion rate
+            # through the soil, ks [0,1]
+            theta = self.state.pawater_root / self.params.wcapac_root 
+            ks = 0.9 * theta**3.0 + 0.1
+            
+            arg1 = self.params.nmax * ks * self.state.inorgn 
+            arg2 = self.params.knl + (ks * self.state.inorgn)
+            arg3 = exp(0.0693 * self.met_data['tair'][project_day])
+            nuptake = (arg1 / arg2) * arg3
+            
+            #print self.params.nmax, self.params.knl, ks, exp(0.0693 * tavg) 
+            
         else:
             raise AttributeError('Unknown N uptake option')
         
