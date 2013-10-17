@@ -178,6 +178,7 @@ a1 = 0.0
 
 nmax = 0.24  # Maximum rate of N uptake by the vegetation (tonnes/hectare/year)
 knl = 0.01   # Concentration of N available at which N uptake proceeds at one half its maximum rate (tonnes/hectare).
+ac = 0.5     # relative amount of effort allocation to C vs. N uptake[0,1].
 
 # root model stuff
 d0x = 0.35   # Length scale for exponential decline of Umax(z)
