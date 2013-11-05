@@ -332,17 +332,18 @@ class WaterBalance(object):
         gs : float
             stomatal conductance [m s-1]
         """
-        # convert conductance to water vapour units
-        g1_c = self.params.g1 / const.RATIO_DIFF_H2O_TO_CO2
-       
+        
         # time unit conversion day-1 -> seconds-1
         tconv =  1.0 / (60.0 * 60.0 * daylen)
         gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
                            tconv)
         
-        arg1 = 1.6 * (1.0 + (g1_c * self.state.wtfac_root) / sqrt(vpd))
+        g1 = self.params.g1 * self.state.wtfac_root
+        
+        
+        arg1 = const.COND_CO2_2_COND_H2O * (1.0 + (g1 / sqrt(vpd)))
         arg2 = gpp_umol_m2_sec / ca # umol mol-1
-        gs_mol_m2_sec = arg1 * arg2 * const.RATIO_DIFF_H2O_TO_CO2
+        gs_mol_m2_sec = arg1 * arg2
         
         # convert to mm s-1 and then to m s-1
         #return (gs_mol_m2_sec * const.MOL_TO_MILLIMOLES * const.CONV_CONDUCT * 
