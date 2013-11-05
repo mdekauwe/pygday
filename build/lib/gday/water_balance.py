@@ -295,10 +295,10 @@ class WaterBalance(object):
         # print out pre-noon values
         #print self.fluxes.omega = omegax[0]
         self.fluxes.omega = sum(omegax) / 2.0                                  
-        self.fluxes.gs_mol_m2_sec = sum(gs_mol) #/ 2.0
+        self.fluxes.gs_mol_m2_sec = sum(gs_mol)
         
         #ga = P.canopy_boundary_layer_conductance(wind_avg)
-        self.fluxes.ga_mol_m2_sec = (sum(ga) / 2.0) / const.CONV_CONDUCT
+        self.fluxes.ga_mol_m2_sec = (sum(ga) ) / const.CONV_CONDUCT
         
         # seconds to day, note daylength divided by 2, because fluxes were
         # calculated per half day
@@ -332,14 +332,12 @@ class WaterBalance(object):
         gs : float
             stomatal conductance [m s-1]
         """
+        g1 = self.params.g1 * self.state.wtfac_root
         
         # time unit conversion day-1 -> seconds-1
         tconv =  1.0 / (60.0 * 60.0 * daylen)
         gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
                            tconv)
-        
-        g1 = self.params.g1 * self.state.wtfac_root
-        
         
         arg1 = const.COND_CO2_2_COND_H2O * (1.0 + (g1 / sqrt(vpd)))
         arg2 = gpp_umol_m2_sec / ca # umol mol-1
