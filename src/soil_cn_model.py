@@ -534,12 +534,13 @@ class NitrogenSoilFlows(object):
         (self.fluxes.nimmob, active_nc_slope, 
          slow_nc_slope, passive_nc_slope) = self.calculate_n_immobilisation()
         
+        
+        
         # Update model soil N pools
         self.calculate_npools(active_nc_slope, slow_nc_slope, passive_nc_slope)
         
         # calculate N net mineralisation
         self.fluxes.nmineralisation = self.calc_net_mineralisation()
-        
         
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
@@ -965,7 +966,7 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nurine - self.fluxes.nimmob - 
                                self.fluxes.nloss - self.fluxes.nuptake) + 
                                self.fluxes.nlittrelease)
-    
+        
     
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
