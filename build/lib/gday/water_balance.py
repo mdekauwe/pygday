@@ -298,7 +298,7 @@ class WaterBalance(object):
         self.fluxes.gs_mol_m2_sec = sum(gs_mol)
         
         #ga = P.canopy_boundary_layer_conductance(wind_avg)
-        self.fluxes.ga_mol_m2_sec = (sum(ga) ) / const.CONV_CONDUCT
+        self.fluxes.ga_mol_m2_sec = sum(ga) / const.CONV_CONDUCT
         
         # seconds to day, note daylength divided by 2, because fluxes were
         # calculated per half day
@@ -311,13 +311,17 @@ class WaterBalance(object):
         
         gs = g0 + 1.6 * (1 + g1/sqrt(D)) * A / Ca 
 
-        units: m s-1 (conductance)
+        units: m s-1 (conductance H2O)
         References:
         -----------
         For conversion factor for conductance see...
         * Jones (1992) Plants and microclimate, pg 56 + Appendix 3
         * Diaz et al (2007) Forest Ecology and Management, 244, 32-40.
-
+        
+        Stomatal Model:
+        * Medlyn et al. (2011) Global Change Biology, 17, 2134-2144. 
+        **Note** Corrigendum -> Global Change Biology, 18, 3476.
+        
         Parameters:
         -----------
         vpd : float
@@ -332,14 +336,13 @@ class WaterBalance(object):
         gs : float
             stomatal conductance [m s-1]
         """
-        g1 = self.params.g1 * self.state.wtfac_root
         
         # time unit conversion day-1 -> seconds-1
         tconv =  1.0 / (60.0 * 60.0 * daylen)
         gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
                            tconv)
         
-        arg1 = const.COND_CO2_2_COND_H2O * (1.0 + (g1 / sqrt(vpd)))
+        arg1 = 1.6 * (1.0 + self.params.g1 * self.state.wtfac_root / sqrt(vpd))
         arg2 = gpp_umol_m2_sec / ca # umol mol-1
         gs_mol_m2_sec = arg1 * arg2
         
