@@ -244,11 +244,11 @@ class WaterBalance(object):
         M_PER_SEC_2_MOL_SEC = 1.0 / MOL_SEC_2_M_PER_SEC
         
         gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC
-        ga_m_sec = self.P.canopy_boundary_layer_conductance(wind[i])
+        ga_m_per_sec = self.P.canopy_boundary_layer_conductance(wind[i])
         
         transp, omegax = self.P.calc_evaporation(vpd, wind, gs_m_per_sec, 
                                                  net_rad, tavg, press, 
-                                                 ga=ga_m_sec)
+                                                 ga=ga_m_per_sec)
         
         self.fluxes.gs_mol_m2_sec = gs_mol_m2_sec
         self.fluxes.ga_mol_m2_sec = ga_m_sec * M_PER_SEC_2_MOL_SEC
@@ -297,21 +297,20 @@ class WaterBalance(object):
             MOL_SEC_2_M_PER_SEC = const.MM_TO_M / (press / (const.RGAS * tk))
             M_PER_SEC_2_MOL_SEC = 1.0 / MOL_SEC_2_M_PER_SEC
             
-            ga_m_sec = self.P.canopy_boundary_layer_conductance(wind[i])
-            
+            ga_m_per_sec = self.P.canopy_boundary_layer_conductance(wind[i])
             gs_mol_m2_sec = self.calc_stomatal_conductance(vpd[i], ca, 
                                                            half_day, gpp[i], 
                                                            press, tair[i])
            
             # unit conversions
+            ga_mol_m2_hfday[i] = ga_m_sec * M_PER_SEC_2_MOL_SEC * SEC_2_HALF_DAY
             gs_mol_m2_hfday[i] = gs_mol_m2_sec * SEC_2_HALF_DAY
             gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC 
-            ga_mol_m2_hfday[i] = ga_m_sec * M_PER_SEC_2_MOL_SEC * SEC_2_HALF_DAY
             
             (trans[i], 
              omegax[i]) = self.P.calc_evaporation(vpd[i], wind[i], gs_m_per_sec, 
                                                   net_rad[i], tair[i], press, 
-                                                  ga=ga_m_sec)
+                                                  ga=ga_m_per_sec)
             
             # convert to mm/half day
             trans[i] *= SEC_2_HALF_DAY
