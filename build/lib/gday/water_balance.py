@@ -289,6 +289,7 @@ class WaterBalance(object):
         # time unit conversions
         SEC_2_HALF_DAY =  60.0 * 60.0 * half_day
         HALF_DAY_2_SEC = 1.0 / SEC_2_HALF_DAY
+        DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen)
         
         for i in self.am, self.pm:
             # Convert mol/sec to m/s See Jones, 1992, appendix
@@ -304,8 +305,8 @@ class WaterBalance(object):
            
             # unit conversions
             gs_mol_m2_hfday[i] = gs_mol_m2_sec * SEC_2_HALF_DAY
-            gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC
-            ga_mol_m2_hfday[i] = ga_m_sec * M_PER_SEC_2_MOL_SEC
+            gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC 
+            ga_mol_m2_hfday[i] = ga_m_sec * M_PER_SEC_2_MOL_SEC * SEC_2_HALF_DAY
             
             (trans[i], 
              omegax[i]) = self.P.calc_evaporation(vpd[i], wind[i], gs_m_per_sec, 
@@ -319,8 +320,8 @@ class WaterBalance(object):
         self.fluxes.omega = sum(omegax) / 2.0                                  
         
         # output in mol H20 m-2 s-1
-        self.fluxes.gs_mol_m2_sec = sum(gs_mol_m2_hfday) * HALF_DAY_2_SEC
-        self.fluxes.ga_mol_m2_sec = sum(ga_mol_m2_hfday) * HALF_DAY_2_SEC
+        self.fluxes.gs_mol_m2_sec = sum(gs_mol_m2_hfday) * DAY_2_SEC
+        self.fluxes.ga_mol_m2_sec = sum(ga_mol_m2_hfday) * DAY_2_SEC
         
         # mm day-1
         self.fluxes.transpiration = sum(trans)
