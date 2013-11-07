@@ -232,19 +232,27 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
+        SEC_2_DAY =  60.0 * 60.0 * daylen
+        DAY_2_SEC = 1.0 / SEC_2_DAY
+        gs_mol_m2_sec = self.calc_stomatal_conductance(vpd, ca, daylen, 
+                                                       self.fluxes.gpp_gCm2, 
+                                                       press, tavg)
+        # convert units
+        #  - mol/sec to m/s See Jones, 1992, appendix
+        tk = tavg + const.DEG_TO_KELVIN
+        MOL_SEC_2_M_PER_SEC = const.MM_TO_M / (press / (const.RGAS * tk))
+        M_PER_SEC_2_MOL_SEC = 1.0 / MOL_SEC_2_M_PER_SEC
         
-        gs, gs_mol = self.calc_stomatal_conductance(vpd, ca, daylen, 
-                                                    self.fluxes.gpp_gCm2, 
-                                                    press, tavg)
-        transp, omegax = self.P.calc_evaporation(vpd, wind, gs, net_rad, tavg, 
-                                                 press)
+        gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC
+        ga_m_sec = self.P.canopy_boundary_layer_conductance(wind[i])
         
-        self.fluxes.gs_mol_m2_sec = gs_mol
-        ga = self.P.canopy_boundary_layer_conductance(wind)
-        self.fluxes.ga_mol_m2_sec = ga / const.CONV_CONDUCT
-       
-        tconv = 60.0 * 60.0 * daylen # seconds to day
-        self.fluxes.transpiration = transp * tconv
+        transp, omegax = self.P.calc_evaporation(vpd, wind, gs_m_per_sec, 
+                                                 net_rad, tavg, press, 
+                                                 ga=ga_m_sec)
+        
+        self.fluxes.gs_mol_m2_sec = gs_mol_m2_sec
+        self.fluxes.ga_mol_m2_sec = ga_m_sec * M_PER_SEC_2_MOL_SEC
+        self.fluxes.transpiration = transp * SEC_2_DAY
         
     def calc_transpiration_penmon_am_pm(self, net_rad, wind, ca, 
                                         daylen, press, vpd, tair):
@@ -271,39 +279,51 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-        gs_mol = [0.0]*2
-        ga = [0.0]*2
-        gs = [0.0]*2 # m s-1 (but per half day)
+        gs_mol_m2_hfday = [0.0]*2
+        ga_mol_m2_hfday = [0.0]*2
         trans = [0.0]*2
         omegax = [0.0]*2
         gpp = self.fluxes.gpp_am_pm # list
         half_day = daylen / 2.0
         
+        # time unit conversions
+        SEC_2_HALF_DAY =  60.0 * 60.0 * half_day
+        HALF_DAY_2_SEC = 1.0 / SEC_2_HALF_DAY
+        
         for i in self.am, self.pm:
-            (gs[i], 
-             gs_mol[i]) = self.calc_stomatal_conductance(vpd[i], ca, half_day, 
-                                                         gpp[i], press, tair[i])
+            # Convert mol/sec to m/s See Jones, 1992, appendix
+            tk = tair[i] + const.DEG_TO_KELVIN
+            MOL_SEC_2_M_PER_SEC = const.MM_TO_M / (press / (const.RGAS * tk))
+            M_PER_SEC_2_MOL_SEC = 1.0 / MOL_SEC_2_M_PER_SEC
             
-            ga[i] = self.P.canopy_boundary_layer_conductance(wind[i])
+            ga_m_sec = self.P.canopy_boundary_layer_conductance(wind[i])
+            
+            gs_mol_m2_sec = self.calc_stomatal_conductance(vpd[i], ca, 
+                                                           half_day, gpp[i], 
+                                                           press, tair[i])
+           
+            # unit conversions
+            gs_mol_m2_hfday[i] = gs_mol_m2_sec * SEC_2_HALF_DAY
+            gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC
+            ga_mol_m2_hfday[i] = ga_m_sec * M_PER_SEC_2_MOL_SEC
             
             (trans[i], 
-             omegax[i]) = self.P.calc_evaporation(vpd[i], wind[i], gs[i], 
+             omegax[i]) = self.P.calc_evaporation(vpd[i], wind[i], gs_m_per_sec, 
                                                   net_rad[i], tair[i], press, 
-                                                  ga=ga[i])
-        
-        
-        # print out pre-noon values
-        #print self.fluxes.omega = omegax[0]
+                                                  ga=ga_m_sec)
+            
+            # convert to mm/half day
+            trans[i] *= SEC_2_HALF_DAY
+         
+        # Unit conversions...
         self.fluxes.omega = sum(omegax) / 2.0                                  
-        self.fluxes.gs_mol_m2_sec = sum(gs_mol)
         
-        #ga = P.canopy_boundary_layer_conductance(wind_avg)
-        self.fluxes.ga_mol_m2_sec = sum(ga) / const.CONV_CONDUCT
+        # output in mol H20 m-2 s-1
+        self.fluxes.gs_mol_m2_sec = sum(gs_mol_m2_hfday) * HALF_DAY_2_SEC
+        self.fluxes.ga_mol_m2_sec = sum(ga_mol_m2_hfday) * HALF_DAY_2_SEC
         
-        # seconds to day, note daylength divided by 2, because fluxes were
-        # calculated per half day
-        tconv = 60.0 * 60.0 * half_day
-        self.fluxes.transpiration = sum(trans) * tconv
+        # mm day-1
+        self.fluxes.transpiration = sum(trans)
         
     def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
         """ Calculate stomatal conductance, note assimilation rate has been
@@ -334,28 +354,20 @@ class WaterBalance(object):
         Returns:
         --------
         gs : float
-            stomatal conductance [m s-1]
+            stomatal conductance [mol m-2 s-1]
         """
         
-        # time unit conversion day-1 -> seconds-1
-        tconv =  1.0 / (60.0 * 60.0 * daylen)
+        # time unit conversions
+        # could be half day depending on func call
+        DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen)
+        
         gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
-                           tconv)
+                           DAY_2_SEC)
         
         arg1 = 1.6 * (1.0 + self.params.g1 * self.state.wtfac_root / sqrt(vpd))
-        arg2 = gpp_umol_m2_sec / ca # umol mol-1
-        gs_mol_m2_sec = arg1 * arg2
+        arg2 = gpp_umol_m2_sec / ca 
         
-        # convert to mm s-1 and then to m s-1
-        #return (gs_mol_m2_sec * const.MOL_TO_MILLIMOLES * const.CONV_CONDUCT * 
-        #        const.MM_TO_M)
-        
-        # See Jones, 1992, appendix
-        tk = temp + const.DEG_TO_KELVIN
-        conv = const.MM_TO_M / (press / (const.RGAS * tk))
-        
-        # convert to mm s-1 to m s-1
-        return (gs_mol_m2_sec * conv, gs_mol_m2_sec) 
+        return arg1 * arg2 # mol m-2 s-1
    
     
     def calc_radiation(self, tavg, sw_rad, daylen):
