@@ -80,15 +80,25 @@ class WaterBalance(object):
             # transpiration calculated from WUE...
             self.calc_transpiration()
         elif self.control.trans_model == 1:
-        
-            if self.control.assim_model == "BEWDY":
-                self.calc_transpiration_penmon(vpd_day, net_rad_day, tair_day, 
-                                               wind_day, ca, daylen, press)
             
-            elif self.control.assim_model == "MATE":
-                self.calc_transpiration_penmon_am_pm(net_rad_ampm, wind_ampm, 
-                                                     ca, daylen, press, 
-                                                     vpd_ampm, tair_ampm)
+            # Whilst the AM and PM response to CO2 are proportional, because
+            # we sum AM and PM values within the code it results in a larger
+            # than proportional WUE response to CO2. Currently as I see it the
+            # best way to minimise this is to calculate gs at the daily time
+            # scale to reduce the influence of AM/PM VPD. I think the only
+            # correct fix would be to replace MATE with a daily time step GPP
+            # calculation.
+            self.calc_transpiration_penmon(vpd_day, net_rad_day, tair_day, 
+                                            wind_day, ca, daylen, press)
+                                               
+            #if self.control.assim_model == "BEWDY":
+            #    self.calc_transpiration_penmon(vpd_day, net_rad_day, tair_day, 
+            #                                   wind_day, ca, daylen, press)
+            #
+            #elif self.control.assim_model == "MATE":
+            #    self.calc_transpiration_penmon_am_pm(net_rad_ampm, wind_ampm, 
+            #                                         ca, daylen, press, 
+            #                                         vpd_ampm, tair_ampm)
         
         elif self.control.trans_model == 2:
             self.calc_transpiration_priestay(net_rad_avg, tair_day, press)
@@ -244,14 +254,14 @@ class WaterBalance(object):
         M_PER_SEC_2_MOL_SEC = 1.0 / MOL_SEC_2_M_PER_SEC
         
         gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC
-        ga_m_per_sec = self.P.canopy_boundary_layer_conductance(wind[i])
+        ga_m_per_sec = self.P.canopy_boundary_layer_conductance(wind)
         
         transp, omegax = self.P.calc_evaporation(vpd, wind, gs_m_per_sec, 
                                                  net_rad, tavg, press, 
                                                  ga=ga_m_per_sec)
         
         self.fluxes.gs_mol_m2_sec = gs_mol_m2_sec
-        self.fluxes.ga_mol_m2_sec = ga_m_sec * M_PER_SEC_2_MOL_SEC
+        self.fluxes.ga_mol_m2_sec = ga_m_per_sec * M_PER_SEC_2_MOL_SEC
         self.fluxes.transpiration = transp * SEC_2_DAY
         
     def calc_transpiration_penmon_am_pm(self, net_rad, wind, ca, 
@@ -303,7 +313,7 @@ class WaterBalance(object):
                                                            press, tair[i])
            
             # unit conversions
-            ga_mol_m2_hfday[i] = ga_m_sec * M_PER_SEC_2_MOL_SEC * SEC_2_HALF_DAY
+            ga_mol_m2_hfday[i] = ga_m_per_sec * M_PER_SEC_2_MOL_SEC * SEC_2_HALF_DAY
             gs_mol_m2_hfday[i] = gs_mol_m2_sec * SEC_2_HALF_DAY
             gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC 
             
@@ -349,7 +359,7 @@ class WaterBalance(object):
         ca : float
             atmospheric co2 [umol mol-1]
         daylen : float
-            daylength in hours, passing half day as AM and PM
+            daylength in hours
 
         Returns:
         --------
@@ -358,7 +368,6 @@ class WaterBalance(object):
         """
         
         # time unit conversions
-        # could be half day depending on func call
         DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen)
         
         gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
