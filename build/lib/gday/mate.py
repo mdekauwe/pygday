@@ -522,7 +522,20 @@ class Mate(object):
         return arg1 * arg2 / arg3
 
 
-
+    def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
+        
+        
+        # time unit conversions
+        # could be half day depending on func call
+        DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen)
+        
+        gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
+                           DAY_2_SEC)
+        
+        arg1 = 1.6 * (1.0 + self.params.g1 * self.state.wtfac_root / sqrt(vpd))
+        arg2 = gpp_umol_m2_sec / ca 
+        
+        return arg1 * arg2 # mol m-2 s-1
 
 
 if __name__ == "__main__":
@@ -537,29 +550,32 @@ if __name__ == "__main__":
     import datetime
     from utilities import float_eq, float_lt, float_gt, calculate_daylength, uniq
     
-    fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/params/NCEAS_or_youngforest.cfg"
+    met_header=4
+    
+    #fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/params/NCEAS_or_youngforest.cfg"
+    fname = "/Users/mdekauwe/research/EucFACE/GDAY_simulation/params/EUCFACE_model_indust_adj_var.cfg"
     (control, params, state, files,
         fluxes, met_data,
-            print_opts) = initialise_model_data(fname, DUMP=False)
-
+            print_opts) = initialise_model_data(fname, met_header, DUMP=False)
+    
+    
+    
     M = Mate(control, params, state, fluxes, met_data)
         
-    flai = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/experiments/silvias_LAI.txt"
-    lai_data = np.loadtxt(flai)
-    #state.lai = 6.0
+    #flai = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/experiments/silvias_LAI.txt"
+    #lai_data = np.loadtxt(flai)
+   
 
     # Specific LAI (m2 onesided/kg DW)
     state.sla = params.slainit
 
-    control.co2_conc = 0
-    
     
     project_day = 0
         
     # figure out the number of years for simulation and the number of
     # days in each year
     years = uniq(met_data["year"])
-    years = years[:-1] # dump last year as missing "site" LAI
+    #years = years[:-1] # dump last year as missing "site" LAI
     
     days_in_year = [met_data["year"].count(yr) for yr in years]
     
@@ -567,10 +583,10 @@ if __name__ == "__main__":
         daylen = calculate_daylength(days_in_year[i], params.latitude)
         for doy in xrange(days_in_year[i]):
             state.wtfac_root = 1.0
-            state.lai = lai_data[project_day]
-        
+            #state.lai = lai_data[project_day]
+            state.lai = 2.0
             if state.lai > 0.0:
-                state.shootnc = 0.0329#state.shootn / state.shoot
+                state.shootnc = 0.03 #state.shootn / state.shoot
                 state.ncontent = (state.shootnc * params.cfracts /
                                         state.sla * const.KG_AS_G)
             else:
@@ -583,10 +599,12 @@ if __name__ == "__main__":
                 frac_gcover = 1.0
 
             state.fipar = ((1.0 - exp(-params.kext *
-                                                state.lai / frac_gcover)) *
+                                      state.lai / frac_gcover)) *
                                                 frac_gcover)
+            
+            
             M.calculate_photosynthesis(project_day, daylen[doy])
 
-            print fluxes.gpp_gCm2#, state.lai
+            #print fluxes.gpp_gCm2#, state.lai
         
             project_day += 1
