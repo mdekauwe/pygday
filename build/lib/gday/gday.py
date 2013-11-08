@@ -183,6 +183,7 @@ class Gday(object):
             # =============== #  
             for doy in xrange(days_in_year[i]):
                 
+                
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
                 
@@ -201,7 +202,10 @@ class Gday(object):
                 #print self.fluxes.gpp *100, self.fluxes.transpiration, self.state.pawater_root
                 #print self.fluxes.gpp * 100, self.state.lai, self.fluxes.nuptake*100., self.params.ac, self.state.shootnc
                 #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
-
+                #DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen[doy])
+        
+                #print yr, self.met_data["co2"][project_day], self.fluxes.gpp_gCm2*const.GRAMS_C_TO_MOL_C*const.MOL_TO_UMOL*DAY_2_SEC, self.fluxes.gs_mol_m2_sec
+                
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
