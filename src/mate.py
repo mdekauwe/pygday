@@ -145,12 +145,16 @@ class Mate(object):
             self.fluxes.apar = par_mol * self.state.fipar
 
         # gC m-2 d-1
+        # Apply water limitation to A and slope following
+        # Zhou et al 2013
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
-                                    const.MOL_C_TO_GRAMS_C)
+                                const.MOL_C_TO_GRAMS_C * self.state.wtfac_root)
         self.fluxes.gpp_am_pm[am] = ((self.fluxes.apar / 2.0) * lue[am] * 
-                                      const.MOL_C_TO_GRAMS_C)
+                                      const.MOL_C_TO_GRAMS_C * 
+                                      self.state.wtfac_root)
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
-                                      const.MOL_C_TO_GRAMS_C)
+                                      const.MOL_C_TO_GRAMS_C * 
+                                      self.state.wtfac_root)
         
         
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
