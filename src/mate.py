@@ -108,6 +108,10 @@ class Mate(object):
             jmax = [self.params.jmax, self.params.jmax]
             vcmax = [self.params.vcmax, self.params.vcmax]
         
+        # reduce photosynthetic capacity with moisture stress
+        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
+        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]       
+        
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
@@ -145,16 +149,12 @@ class Mate(object):
             self.fluxes.apar = par_mol * self.state.fipar
 
         # gC m-2 d-1
-        # Apply water limitation to A and slope following
-        # Zhou et al 2013
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
-                                const.MOL_C_TO_GRAMS_C * self.state.wtfac_root)
+                                const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_am_pm[am] = ((self.fluxes.apar / 2.0) * lue[am] * 
-                                      const.MOL_C_TO_GRAMS_C * 
-                                      self.state.wtfac_root)
+                                      const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
-                                      const.MOL_C_TO_GRAMS_C * 
-                                      self.state.wtfac_root)
+                                      const.MOL_C_TO_GRAMS_C)
         
         
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
