@@ -138,7 +138,7 @@ class PrintOutput(object):
         special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
                    'deciduous_model', 'fixleafnc', 'grazing', 'model_optroot',\
                    'modeljm', 'passiveconst', 'print_options', 'water_stress',\
-                   'calc_sw_params', 'alloc_model']
+                   'calc_sw_params', 'alloc_model','fixed_stem_nc']
         self.dump_ini_data("[files]\n", self.files, ignore, special, oparams, 
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams, 

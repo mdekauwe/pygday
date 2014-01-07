@@ -79,6 +79,15 @@ class CarbonSoilFlows(object):
         self.fluxes.nep = (self.fluxes.npp - self.fluxes.hetero_resp -
                            self.fluxes.ceaten * (1.0 - self.params.fracfaeces))
         
+        # save fluxes for NCEAS output
+        self.fluxes.co2_release_from_fine_litter = (self.fluxes.co2_to_air[0] + 
+                                                    self.fluxes.co2_to_air[1])
+        self.fluxes.co2_release_from_coarse_litter = (self.fluxes.co2_to_air[2]+ 
+                                                      self.fluxes.co2_to_air[3])
+        self.fluxes.co2_release_from_active_pool = self.fluxes.co2_to_air[4]
+        self.fluxes.co2_release_from_slow_pool = self.fluxes.co2_to_air[5]
+        self.fluxes.co2_release_from_passive_pool = self.fluxes.co2_to_air[6]
+        
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
         and moisture dependency. Note same temperature is assumed for all 3 
@@ -147,15 +156,16 @@ class CarbonSoilFlows(object):
         tsoil = self.met_data['tsoil'][project_day]
 
         if float_gt(tsoil, 0.0):
-            tfac = (0.0326 + 0.00351 * tsoil**1.652 - (tsoil / 41.748)**7.19)
-            if float_lt(tfac, 0.0):
-                tfac = 0.0
+            self.fluxes.tfac_soil_decomp = (0.0326 + 0.00351 * tsoil**1.652 - 
+                                            (tsoil / 41.748)**7.19)
+            if float_lt(self.fluxes.tfac_soil_decomp, 0.0):
+                self.fluxes.tfac_soil_decomp = 0.0
         else:
             # negative number cannot be raised to a fractional power
             # number would need to be complex
-            tfac = 0.0
+            self.fluxes.tfac_soil_decomp = 0.0
 
-        return tfac
+        return self.fluxes.tfac_soil_decomp
     
     def flux_from_grazers(self):
         """ Input from faeces """
@@ -376,7 +386,7 @@ class CarbonSoilFlows(object):
         
         # Respiration fluxes
         self.fluxes.co2_to_air[5] = slowout * 0.55
-    
+        
     def cfluxes_from_passive_pool(self):
         """ C fluxes from passive pool """
        
@@ -387,7 +397,7 @@ class CarbonSoilFlows(object):
         # Respiration fluxes
         self.fluxes.co2_to_air[6] = (self.state.passivesoil *
                                      self.params.decayrate[6] * 0.55)
-
+        
     
     def calculate_soil_respiration(self):
         """ calculate the total soil respiration (heterotrophic) flux, i.e. 
