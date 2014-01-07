@@ -133,4 +133,9 @@ cica_avg = None # used in water balance, only when running mate model
 apar = None
 rabove = 0.0
 microbial_resp = 0.0
-
+tfac_soil_decomp = None 
+co2_release_from_fine_litter = None
+co2_release_from_coarse_litter = None
+co2_release_from_active_pool = None
+co2_release_from_slow_pool = None
+co2_release_from_passive_pool = None
