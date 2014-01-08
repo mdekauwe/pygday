@@ -206,6 +206,9 @@ class Gday(object):
         
                 #print yr, self.met_data["co2"][project_day], self.fluxes.gpp_gCm2*const.GRAMS_C_TO_MOL_C*const.MOL_TO_UMOL*DAY_2_SEC, self.fluxes.gs_mol_m2_sec
                 
+                #print yr, doy, self.met_data["co2"][project_day], self.met_data['ndep'][project_day]*100, self.fluxes.gpp_gCm2*100, self.state.lai
+                
+                
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
