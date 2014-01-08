@@ -322,6 +322,7 @@ class PlantGrowth(object):
                                     self.params.cfracts) / 
                                     height / 
                                     self.params.density)
+            
             leaf2sap = self.state.lai / sap_cross_sec_area
         
             # Allocation to leaves dependant on height. Modification of pipe 
