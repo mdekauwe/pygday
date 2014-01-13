@@ -80,13 +80,13 @@ class CarbonSoilFlows(object):
                            self.fluxes.ceaten * (1.0 - self.params.fracfaeces))
         
         # save fluxes for NCEAS output
-        self.fluxes.co2_release_from_fine_litter = (self.fluxes.co2_to_air[0] + 
-                                                    self.fluxes.co2_to_air[1])
-        self.fluxes.co2_release_from_coarse_litter = (self.fluxes.co2_to_air[2]+ 
-                                                      self.fluxes.co2_to_air[3])
-        self.fluxes.co2_release_from_active_pool = self.fluxes.co2_to_air[4]
-        self.fluxes.co2_release_from_slow_pool = self.fluxes.co2_to_air[5]
-        self.fluxes.co2_release_from_passive_pool = self.fluxes.co2_to_air[6]
+        self.fluxes.co2_rel_from_surf_struct_litter = self.fluxes.co2_to_air[0] 
+        self.fluxes.co2_rel_from_soil_struct_litter = self.fluxes.co2_to_air[1]
+        self.fluxes.co2_rel_from_surf_metab_litter = self.fluxes.co2_to_air[2] 
+        self.fluxes.co2_rel_from_soil_metab_litter = self.fluxes.co2_to_air[3]
+        self.fluxes.co2_rel_from_active_pool = self.fluxes.co2_to_air[4]
+        self.fluxes.co2_rel_from_slow_pool = self.fluxes.co2_to_air[5]
+        self.fluxes.co2_rel_from_passive_pool = self.fluxes.co2_to_air[6]
         
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
