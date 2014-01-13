@@ -53,19 +53,32 @@ cue               = 0.5            # carbon use efficiency, or the ratio of NPP 
 g1                = 4.8            # fitted param, slope of reln btw gs and assimilation.
 qs                = 1.0            # exponent in water stress modifier, =1.0 JULES type representation, the smaller the values the more curved the depletion. 
 
-# set carbon allocation & grazing parameters
-callocf          = 0.25  #allocation to leaves at leaf n_crit
-callocfz         = 0.25  #allocation to leaves at zero leaf n/c
-callocr          = 0.05  #allocation to roots at root n_crit
-callocrz         = 0.05  #allocation to roots at zero root n/c
-callocb          = 0.2   #allocation to branches at branch n_crit
-callocbz         = 0.2   #allocation to branches at zero branch n/c
+# set carbon allocation parameters & allometric parameters
+c_alloc_fmax = 0.25    # allocation to leaves at leaf n_crit. If using allometric model this is the max alloc to leaves
+c_alloc_fmin = 0.25    # allocation to leaves at zero leaf n/c. If using allometric model this is the min alloc to leaves
+c_alloc_rmax = 0.05    # allocation to roots at root n_crit. If using allometric model this is the max alloc to fine roots
+c_alloc_rmin = 0.05    # allocation to roots at zero root n/c. If using allometric model this is the min alloc to fine roots
+c_alloc_bmax = 0.2     # allocation to branches at branch n_crit. If using allometric model this is the max alloc to branches
+c_alloc_bmin = 0.2     # allocation to branches at zero branch n/c. If using allometric model this is the min alloc to branches
+heighto      = 4.826   # constant in avg tree height (m) - stem (t C/ha) reln
+htpower      = 0.35    # Exponent in avg tree height (m) - stem (t C/ha) reln
+height0      = 5.0     # Height when leaf:sap area ratio = leafsap0 (trees)
+height1      = 30.0    # Height when leaf:sap area ratio = leafsap1 (trees)
+leafsap0     = 7500.0  # leaf area  to sapwood cross sectional area ratio when Height = Height0 (mm^2/mm^2)
+leafsap1     = 2700.0  # leaf to sap area ratio when Height = Height1 (mm^2/mm^2)
+branch0      = 5.61    # constant in branch-stem allometry (trees)
+branch1      = 0.346   # exponent in branch-stem allometry
+targ_sens    = 0.5     # sensitivity of allocation (leaf/branch) to target
+density      = 420.0   # sapwood density kg DM m-3 (trees)
+nf_min       = 0.009   # leaf N:C when N limits productivity
+nf_max       = 0.06    # leaf N:C when N is not limiting productivity 
+
+# grazing parameters
 fracteaten       = 0.5   #Fractn of leaf prodn eaten by grazers
 fracfaeces       = 0.3   #Fractn of grazd C that ends up in faeces (0..1)
 ligfaeces        = 0.25  #Faeces lignin as fractn of biomass
 faecescn         = 25.0  #Faeces C:N ratio
 fractosoil       = 0.85  #Fractn of grazed N recycled to soil:faeces+urine
-rhizresp         = 0.5   #0.33-0.67 C translocated from shoot to root is respired, so assume a value of 0.5 based on Lambers and Poot 2003.
 
 #nitrogen cycling paramsa
 rateuptake       = 5.7            # rate of N uptake from mineral N pool (/yr) from here? http://face.ornl.gov/Finzi-PNAS.pdf
@@ -92,39 +105,21 @@ ncmaxr           = 0.03           #max N:C ratio of roots
 retransmob       = 0.0            #Fraction stem mobile N retranscd (/yr)
 fhw              = 0.8            # n:c ratio of stemwood - immobile pool and new ring
 
-#set litter parameters
-fdecay           = 0.5            #foliage decay rate (1/yr)
-fdecaydry        = 0.5            #Foliage decay rate - dry soil (1/yr)
-rdecay           = 0.5            #root decay rate (1/yr)
-rdecaydry        = 0.5            #root decay rate - dry soil (1/yr)
-bdecay           = 0.03           #branch and large root decay rate (1/yr)
-wdecay           = 0.02           #wood decay rate (1/yr)
+# set litter parameters
+fdecay           = 0.5            #foliage turnover rate (1/yr)
+fdecaydry        = 0.5            #Foliage turnover rate - dry soil (1/yr)
+rdecay           = 0.5            #root turnover rate (1/yr)
+rdecaydry        = 0.5            #root turnover rate - dry soil (1/yr)
+bdecay           = 0.03           #branch and large root turnover rate (1/yr)
+wdecay           = 0.02           #wood turnover rate (1/yr)
 watdecaydry      = 0.0            #water fractn for dry litterfall rates
 watdecaywet      = 0.1            #water fractn for wet litterfall rates
+sapturnover      = 0.1            #Sapwood turnover rate: conversion of sapwood to heartwood (1/yr)
 ligshoot         = 0.25           #lignin-to-biomass ratio in leaf litter
 ligroot          = 0.25           #lignin-to-biomass ratio in root litter
 brabove          = 0.5            #above-ground fraction of branch pool litter
 structcn         = 150.0          #C:N ratio of structural bit of litter input
 structrat        = 0.0            #structural input n:c as fraction of metab
-
-# allometric parameters
-sapturnover = 0.1   #rate of conversion of sapwood to heartwood (1/yr)
-heighto = 4.826     # constant in avg tree height (m) - stem (t C/ha) reln
-htpower = 0.35      # Exponent in avg tree height (m) - stem (t C/ha) reln
-height0 = 5.0       # Height when leaf:sap area ratio = leafsap0 (trees)
-height1 = 30.0      # Height when leaf:sap area ratio = leafsap1 (trees)
-leafsap0 = 7500.0   # leaf area  to sapwood cross sectional area ratio when Height = Height0 (mm^2/mm^2)
-leafsap1 = 2700.0   # leaf to sap area ratio when Height = Height1 (mm^2/mm^2)
-branch0 = 5.61      # constant in branch-stem allometry (trees)
-branch1 = 0.346     # exponent in branch-stem allometry
-targ_sens = 0.5     # sensitivity of allocation (leaf/branch) to target
-density = 420.0     # sapwood density kg DM m-3 (trees)
-af_max = 0.5        # maximum allocation to leaves
-ab_max = 0.2        # maximum allocation to branch
-ar_max = 0.25       # maximum allocation to fine roots
-ar_min = 0.05       # minimum allocation to fine roots
-nf_min = 0.009      # leaf N:C when N limits productivity
-nf_max = 0.06       # leaf N:C when N is not limiting productivity 
 
 
 
