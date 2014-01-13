@@ -242,39 +242,19 @@ class PlantGrowth(object):
         McMurtrie, R. E. et al (2000) Plant and Soil, 224, 135-152.
         
         """
-        """
-        if type(self.params.callocr) == type(list()):
-            ar = self.params.callocr[yr_index]
-            arz = self.params.callocrz[yr_index]
-        else:
-            ar = self.params.callocr
-            arz = self.params.callocrz
-        
-        self.state.alleaf = (self.params.callocf + nitfac *
-                            (self.params.callocf - self.params.callocfz))
-          
-        self.state.alroot = ar + nitfac * (ar - arz)
-
-        self.state.albranch = (self.params.callocb + nitfac *
-                              (self.params.callocb - self.params.callocbz))
-        
-        # allocate remainder to stem
-        self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
-                             self.state.albranch)
-        
-        #print self.state.alleaf, self.state.alroot, self.state.albranch, self.state.alstem
-        
-        """
         if self.control.alloc_model == "FIXED":
         
-            self.state.alleaf = (self.params.callocf + nitfac *
-                                (self.params.callocf - self.params.callocfz))
+            self.state.alleaf = (self.params.c_alloc_fmax + nitfac *
+                                (self.params.c_alloc_fmax - 
+                                 self.params.c_alloc_fmin))
           
-            self.state.alroot = (self.params.callocr + nitfac *
-                                (self.params.callocr - self.params.callocrz))
+            self.state.alroot = (self.params.c_alloc_rmax + nitfac *
+                                (self.params.c_alloc_rmax - 
+                                 self.params.c_alloc_rmin))
 
-            self.state.albranch = (self.params.callocb + nitfac *
-                                  (self.params.callocb - self.params.callocbz))
+            self.state.albranch = (self.params.c_alloc_bmax + nitfac *
+                                  (self.params.c_alloc_bmax - 
+                                   self.params.c_alloc_bmin))
         
             # allocate remainder to stem
             self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
@@ -302,10 +282,11 @@ class PlantGrowth(object):
                 limitation = self.sma(1.0)
             
             # figure out root allocation given available water & nutrients
-            self.state.alroot = (self.params.ar_max * self.params.ar_min / 
-                                (self.params.ar_min + 
-                                (self.params.ar_max - self.params.ar_min) * 
-                                limitation))
+            self.state.alroot = (self.params.c_alloc_rmax * 
+                                 self.params.c_alloc_rmin / 
+                                (self.params.c_alloc_rmin + 
+                                (self.params.c_alloc_rmax - 
+                                 self.params.c_alloc_rmin) * limitation))
             
             #print self.state.alroot, limitation, nlim, self.state.wtfac_root
             # Calculate tree height: allometric reln using the power function 
@@ -346,7 +327,7 @@ class PlantGrowth(object):
             leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
         
             self.state.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
-                                                     self.params.af_max, 
+                                                     self.params.c_alloc_fmax, 
                                                      self.params.targ_sens) 
             
             # Allocation to branch dependent on relationship between the stem
@@ -355,7 +336,7 @@ class PlantGrowth(object):
                              self.state.stem**self.params.branch1)
             self.state.albranch = self.alloc_goal_seek(self.state.branch, 
                                                        target_branch, 
-                                                       self.params.ab_max, 
+                                                       self.params.c_alloc_bmax, 
                                                        self.params.targ_sens) 
                     
             # allocation to stem is the residual
