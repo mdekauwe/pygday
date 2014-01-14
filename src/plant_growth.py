@@ -101,9 +101,12 @@ class PlantGrowth(object):
         self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                                  days_in_yr, project_day)
         
+        
         self.update_plant_state(fdecay, rdecay, project_day, doy)
         if self.control.deciduous_model:
             self.precision_control()
+        
+        
         
     def calculate_ncwood_ratios(self, nitfac):
         """ Estimate the N:C ratio in the branch and stem. Option to vary
@@ -281,12 +284,15 @@ class PlantGrowth(object):
             else:
                 limitation = self.sma(1.0)
             
+            
+            
             # figure out root allocation given available water & nutrients
             self.state.alroot = (self.params.c_alloc_rmax * 
                                  self.params.c_alloc_rmin / 
                                 (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin) * limitation))
+            #print limitation, self.state.alroot, self.params.c_alloc_rmax, self.params.c_alloc_rmin
             
             #print self.state.alroot, limitation, nlim, self.state.wtfac_root
             # Calculate tree height: allometric reln using the power function 
@@ -354,7 +360,7 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-        #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
+       # print total_alloc, self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
@@ -520,6 +526,13 @@ class PlantGrowth(object):
                 self.fluxes.npp *= (ntot / (self.fluxes.npstemimm +
                                     self.fluxes.npstemmob + 
                                     self.fluxes.npbranch ))
+                
+                # need to adjust growth values accordingly as well
+                self.fluxes.cpleaf = self.fluxes.npp * self.state.alleaf
+                self.fluxes.cproot = self.fluxes.npp * self.state.alroot
+                self.fluxes.cpbranch = self.fluxes.npp * self.state.albranch
+                self.fluxes.cpstem = self.fluxes.npp * self.state.alstem
+                
                 self.fluxes.npbranch = (self.fluxes.npp * self.state.albranch * 
                                         ncbnew)
                 self.fluxes.npstemimm = (self.fluxes.npp * self.state.alstem * 
@@ -648,7 +661,10 @@ class PlantGrowth(object):
             self.fluxes.cproot = self.fluxes.npp * self.state.alroot
             self.fluxes.cpbranch = self.fluxes.npp * self.state.albranch
             self.fluxes.cpstem = self.fluxes.npp * self.state.alstem
-        
+            
+            #print self.fluxes.cpleaf, self.fluxes.npp, self.state.alleaf
+            
+            
         # evaluate SLA of new foliage accounting for variation in SLA 
         # with tree and leaf age (Sands and Landsberg, 2002). Assume 
         # SLA of new foliage is linearly related to leaf N:C ratio 
