@@ -70,8 +70,8 @@ branch0      = 5.61    # constant in branch-stem allometry (trees)
 branch1      = 0.346   # exponent in branch-stem allometry
 targ_sens    = 0.5     # sensitivity of allocation (leaf/branch) to target
 density      = 420.0   # sapwood density kg DM m-3 (trees)
-nf_min       = 0.009   # leaf N:C when N limits productivity
-nf_max       = 0.06    # leaf N:C when N is not limiting productivity 
+nf_min       = 0.005   # leaf N:C minimum N concentration which allows productivity
+nf_crit      = 0.015   # leaf N:C below which N availability limits productivity 
 
 # grazing parameters
 fracteaten       = 0.5   #Fractn of leaf prodn eaten by grazers
@@ -203,5 +203,7 @@ fmfaeces = 0.0
 fmleaf = 0.0
 fmroot = 0.0
 faecesn = 0.0
+
+
 
 #==============================================================================#

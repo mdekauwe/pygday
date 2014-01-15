@@ -111,4 +111,6 @@ actncslope = None
 slowncslope = None
 passncslope = None
 
+
+prev_sma = None # previous simple moving average (n - 1) of the series
 #==============================================================================#
