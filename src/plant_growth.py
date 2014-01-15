@@ -4,7 +4,7 @@ import sys
 from math import exp, log
 import sys
 import constants as const
-from utilities import float_eq, float_lt, float_gt, SimpleMovingAverage, clip
+from utilities import float_eq, float_lt, float_gt, MovingAverageFilter, clip
 from bewdy import Bewdy
 from water_balance import WaterBalance, SoilMoisture
 from mate import Mate
@@ -65,8 +65,13 @@ class PlantGrowth(object):
         # Window size = root lifespan in days...
         self.window_size = (int((self.params.rdecay * const.NDAYS_IN_YR) * 
                             const.NDAYS_IN_YR))
-        self.sma = SimpleMovingAverage(self.window_size)
         
+        # If we don't have any information about the N&water limitation, i.e.
+        # as would be the case with spin-up, assume that there is no limitation
+        # to begin with.
+        if self.state.prev_sma is None:
+            self.state.prev_sma = 1.0 
+        self.sma = MovingAverageFilter(self.window_size, self.state.prev_sma)
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
                         days_in_yr, yr_index):
@@ -265,26 +270,20 @@ class PlantGrowth(object):
         
         elif self.control.alloc_model == "ALLOMETRIC":
             
-            # leaf N availability
+            # calculate the N limitation based on available canopy N
             nf = self.state.shootnc
             if nf <= self.params.nf_min:
                 nlim = 0.0
-            elif self.params.nf_min < nf and nf < self.params.nf_max:
-                nlim = ((self.params.nf_max - nf) / 
-                        (self.params.nf_max - self.params.nf_min))
-            elif nf >= self.params.nf_max:
+            elif self.params.nf_min < nf and nf < self.params.nf_crit:
+                nlim = ((nf - self.params.nf_min) / 
+                        (self.params.nf_crit - self.params.nf_min))
+            elif nf >= self.params.nf_crit:
                 nlim = 1.0
-        
-            # need to have stored the first 300 ish days (depends on root 
-            # lifespan) in order to calculate running mean
-            if project_day > self.window_size:
-                # limitation is the miniumum of the soil water availability and
-                # leaf N availability.
-                limitation = self.sma(min(nlim, self.state.wtfac_root))
-            else:
-                limitation = self.sma(1.0)
-            
-            
+           
+            #dependent on the lifespan of the 
+            # root
+            limitation = self.sma(min(nlim, self.state.wtfac_root))
+            self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
             self.state.alroot = (self.params.c_alloc_rmax * 
@@ -298,7 +297,7 @@ class PlantGrowth(object):
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
             height = self.params.heighto * self.state.stem**self.params.htpower
-        
+            
             # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
@@ -344,7 +343,7 @@ class PlantGrowth(object):
                                                        target_branch, 
                                                        self.params.c_alloc_bmax, 
                                                        self.params.targ_sens) 
-                    
+            
             # allocation to stem is the residual
             self.state.alstem = (1.0 - self.state.alroot - 
                                        self.state.albranch - 
@@ -805,7 +804,7 @@ class PlantGrowth(object):
 
             if float_gt(ncmaxf, self.params.ncmaxfyoung):
                 ncmaxf = self.params.ncmaxfyoung
-    
+            
             extras = 0.0
             if self.state.lai > 0.0:
 
