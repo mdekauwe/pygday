@@ -99,28 +99,51 @@ def str2boolean(value):
     else:  
         raise ValueError("%s is no recognized as a boolean value" % value)
     
-class SimpleMovingAverage():
-    def __init__(self, period):
-        assert period == int(period) and period > 0, "Period must be an integer >0"
-        self.period = period
-        self.stream = deque()
+class MovingAverageFilter:
+	"""Simple moving average filter"""
  
-    def __call__(self, n):
-        stream = self.stream
-        stream.append(n)    # appends on the right
-        streamlength = len(stream)
-        if streamlength > self.period:
-            stream.popleft()
-            streamlength -= 1
-        if streamlength == 0:
-            average = 0
-        else:
-            average = sum( stream ) / streamlength
+	@property
+	def avg(self):
+		"""Returns current moving average value"""
+		return self.avg
  
-        return average
-   
+	def __init__(self, n = 8, initial_value = 0):
+		"""Inits filter with window size n and initial value"""
+		self.n = n
+		self.buffer = [initial_value/n]*n
+		self.avg = initial_value
+		self.p = 0
+ 
+	def __call__(self, value):
+		"""Consumes next input value"""
+		self.avg -= self.buffer[self.p]
+		self.buffer[self.p] = value/self.n
+		self.avg += self.buffer[self.p]
+		self.p = (self.p  + 1) % self.n
+		return self.avg
+
+
+
+
+ 
 if __name__ == '__main__':
 
     print float_eq(0.0, 0.0)
     
     print float_ge(2.1000001, 2.1000001)
+    
+    
+    data = [10, 19, 10, 15, 25, 18, 13, 16, 10, 19, 10, 15, 25, 18, 13, 16,\
+            10, 19, 10, 15, 25, 18, 13, 16, 10, 19, 10, 15, 25, 18, 13, 16]
+    M = MovingAverageFilter(n=3, initial_value=data[0])
+
+
+    store = []
+    for index, val in enumerate(data):
+        avg =  M(val)
+        store.append(avg)
+
+    import matplotlib.pyplot as plt
+    plt.plot(store, "b-")
+    plt.plot(data, "ro")
+    plt.show()
