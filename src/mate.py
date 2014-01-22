@@ -526,21 +526,6 @@ class Mate(object):
         return arg1 * arg2 / arg3
 
 
-    def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
-        
-        
-        # time unit conversions
-        # could be half day depending on func call
-        DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen)
-        
-        gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
-                           DAY_2_SEC)
-        
-        arg1 = 1.6 * (1.0 + self.params.g1 * self.state.wtfac_root / sqrt(vpd))
-        arg2 = gpp_umol_m2_sec / ca 
-        
-        return arg1 * arg2 # mol m-2 s-1
-
 
 if __name__ == "__main__":
     
