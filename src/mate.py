@@ -11,7 +11,7 @@ __version__ = "1.0 (04.08.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 
-class Mate(object):
+class MateC3(object):
     """ Model Any Terrestrial Ecosystem (MATE) model
 
     Simulates photosynthesis (GPP) based on Sands (1995), accounting for diurnal
@@ -527,6 +527,161 @@ class Mate(object):
 
 
 
+class MateC4(MateC3):
+    
+    def __init__(self, control, params, state, fluxes, met_data):
+        MateC3.__init__(self, control, params, state, fluxes, met_data)
+        self.Vpr = 80.   # PEP regeneration (mu mol m-2 s-1)
+        self.alpha = 0.0 # Fraction of PSII activity in the bundle sheath
+        self.gbs = 3E-3  # Bundle shead conductance (mol m-2 s-1)
+        self.x = 0.4 	 # Partitioning factor for electron transport
+	
+    def calculate_photosynthesis(self, day, daylen):
+        """ Photosynthesis is calculated assuming GPP is proportional to APAR,
+        a commonly assumed reln (e.g. Potter 1993, Myneni 2002). The slope of
+        relationship btw GPP and APAR, i.e. LUE is modelled using the
+        photosynthesis eqns from Sands.
+
+        Assumptions:
+        ------------
+        (1) photosynthetic light response is a non-rectangular hyperbolic func
+            of photon-flux density with a light-saturatred photosynthetic rate
+            (Amax), quantum yield (alpha) and curvature (theta).
+        (2) the canopy is horizontally uniform.
+        (3) PAR distribution within the canopy obeys Beer's law.
+        (4) light-saturated photosynthetic rate declines with canopy depth in
+            proportion to decline in PAR
+        (5) alpha + theta do not vary within the canopy
+        (6) dirunal variation of PAR is sinusoidal.
+        (7) The model makes no assumption about N within the canopy, however
+            this version assumes N declines exponentially through the cnaopy.
+        (8) Leaf temperature is the same as the air temperature.
+
+        Parameters:
+        ----------
+        day : int
+            project day.
+        daylen : float
+            length of day in hours.
+
+        Returns:
+        -------
+        Nothing
+            Method calculates GPP, NPP and Ra.
+        """
+        # local var for tidyness
+        (am, pm) = self.am, self.pm # morning/afternoon
+        (temp, par, vpd, ca) = self.get_met_data(day)
+        Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
+        
+        # Half the reciprocal for Rubisco specificity 
+        # (NOT the CO2 compensation point)
+	    #low_gammastar = 1.93e-4
+	
+        # Michaelis-Menten coefficients for CO2 (Kc, mu mol mol-1) and O (Ko, mmol mol-1) and combined (K)
+        #Kc = 650*Q10^((tleaf-25)/10)
+        #Kp = 80*Q10^((tleaf-25)/10)
+        #Ko = 450*Q10^((tleaf-25)/10)
+        #K = Kc*(1+O2/Ko)
+            
+        # T effects according to Massad et al. (2007)
+        #Vcmax = VCMAX25*Arrhenius(Tk, 67294, 144568, 472)
+        #Vpmax = VPMAX25*Arrhenius(Tk, 70373, 117910, 376)
+        #Jmax = JMAX25*Arrhenius(Tk, 77900, 191929, 627)
+        
+        # PEP carboxylation rate
+	    #Vp <- pmin(ci*Vpmax/(ci+Kp),Vpr)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        # calculate mate parameters, e.g. accounting for temp dependancy
+        gamma_star = self.calculate_co2_compensation_point(Tk)
+        km = self.calculate_michaelis_menten_parameter(Tk)
+        N0 = self.calculate_top_of_canopy_n()
+        
+        
+        if self.control.modeljm == True: 
+            jmax = self.calculate_jmax_parameter(Tk, N0)
+            vcmax = self.calculate_vcmax_parameter(Tk, N0)
+        else:
+            jmax = [self.params.jmax, self.params.jmax]
+            vcmax = [self.params.vcmax, self.params.vcmax]
+        
+        # reduce photosynthetic capacity with moisture stress
+        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
+        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]       
+        
+        # calculate ratio of intercellular to atmospheric CO2 concentration.
+        # Also allows productivity to be water limited through stomatal opening.
+        cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
+        ci = [i * ca for i in cica]
+        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
+        
+        # store value as needed in water balance calculation - actually no
+        # longer used...
+        self.fluxes.cica_avg = sum(cica) / len(cica)
+        
+        # Rubisco carboxylation limited rate of photosynthesis
+        ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=km[k]) \
+              for k in am, pm]
+        
+        # Light-limited rate of photosynthesis allowed by RuBP regeneration
+        aj = [self.assim(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
+              a2=2.0*gamma_star[k]) for k in am, pm]
+        
+        # light-saturated photosynthesis rate at the top of the canopy (gross)
+        asat = [min(aj[k], ac[k]) for k in am, pm]
+        
+        # Assumption that the integral is symmetric about noon, so we average
+        # the LUE accounting for variability in temperature, but importantly
+        # not PAR
+        lue = [self.epsilon(asat[k], par, daylen, alpha[k]) for k in am, pm]
+        
+        # mol C mol-1 PAR - use average to simulate canopy photosynthesis
+        lue_avg = sum(lue) / 2.0
+
+        if float_eq(self.state.lai, 0.0):
+            self.fluxes.apar = 0.0
+        else:
+            par_mol = par * const.UMOL_TO_MOL
+            # absorbed photosynthetically active radiation
+            self.fluxes.apar = par_mol * self.state.fipar
+
+        # gC m-2 d-1
+        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
+                                const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[am] = ((self.fluxes.apar / 2.0) * lue[am] * 
+                                      const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
+                                      const.MOL_C_TO_GRAMS_C)
+        
+        
+        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        
+        if self.control.nuptake_model == 3:
+            self.fluxes.gpp_gCm2 *= self.params.ac
+            self.fluxes.gpp_am_pm[am] *= self.params.ac
+            self.fluxes.gpp_am_pm[pm] *= self.params.ac
+            self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+            
+        # g C m-2 to tonnes hectare-1 day-1
+        conv = const.G_AS_TONNES / const.M2_AS_HA
+        self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
+        self.fluxes.npp = self.fluxes.npp_gCm2 * conv
+        
+        # Plant respiration assuming carbon-use efficiency.
+        self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
+    
+    
+    
+    
+            
 if __name__ == "__main__":
     
     import numpy as np
@@ -542,15 +697,16 @@ if __name__ == "__main__":
     met_header=4
     
     #fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/params/NCEAS_or_youngforest.cfg"
-    fname = "/Users/mdekauwe/research/EucFACE/GDAY_simulation/params/EUCFACE_model_indust_adj_var.cfg"
+    fname = "/Users/mdekauwe/research/FACE/GDAY_simulations/KSCO/experiment/params/NCEAS_KSCO_model_indust.cfg"
     (control, params, state, files,
         fluxes, met_data,
             print_opts) = initialise_model_data(fname, met_header, DUMP=False)
     
     
     
-    M = Mate(control, params, state, fluxes, met_data)
-        
+    M = MateC3(control, params, state, fluxes, met_data)
+    #M = MateC4(control, params, state, fluxes, met_data)
+    
     #flai = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/experiments/silvias_LAI.txt"
     #lai_data = np.loadtxt(flai)
    
