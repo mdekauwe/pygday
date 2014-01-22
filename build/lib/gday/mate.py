@@ -11,7 +11,7 @@ __version__ = "1.0 (04.08.2011)"
 __email__   = "mdekauwe@gmail.com"
 
 
-class Mate(object):
+class MateC3(object):
     """ Model Any Terrestrial Ecosystem (MATE) model
 
     Simulates photosynthesis (GPP) based on Sands (1995), accounting for diurnal
@@ -526,21 +526,23 @@ class Mate(object):
         return arg1 * arg2 / arg3
 
 
-    def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
-        
-        
-        # time unit conversions
-        # could be half day depending on func call
-        DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen)
-        
-        gpp_umol_m2_sec = (gpp * const.GRAMS_C_TO_MOL_C * const.MOL_TO_UMOL * 
-                           DAY_2_SEC)
-        
-        arg1 = 1.6 * (1.0 + self.params.g1 * self.state.wtfac_root / sqrt(vpd))
-        arg2 = gpp_umol_m2_sec / ca 
-        
-        return arg1 * arg2 # mol m-2 s-1
 
+class MateC4(MateC3):
+    
+    def __init__(self, control, params, state, fluxes, met_data):
+        MateC3.__init__(self, control, params, state, fluxes, met_data)
+        self.params = params
+        self.fluxes = fluxes
+        self.control = control
+        self.state = state
+        self.met_data = met_data
+        self.am = 0 # morning index
+        self.pm = 1 # afternoon index 
+        
+        
+    def Hello2(self):
+        print "Hello from Class2!"
+        print self.params.measurement_temp
 
 if __name__ == "__main__":
     
@@ -557,15 +559,17 @@ if __name__ == "__main__":
     met_header=4
     
     #fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/params/NCEAS_or_youngforest.cfg"
-    fname = "/Users/mdekauwe/research/EucFACE/GDAY_simulation/params/EUCFACE_model_indust_adj_var.cfg"
+    fname = "/Users/mdekauwe/Dropbox/FACE/GDAY_simulations/KSCO/experiment/NCEAS_KSCO_model_indust.cfg"
     (control, params, state, files,
         fluxes, met_data,
             print_opts) = initialise_model_data(fname, met_header, DUMP=False)
     
     
     
-    M = Mate(control, params, state, fluxes, met_data)
-        
+    M = MateC3(control, params, state, fluxes, met_data)
+    #M = MateC4(control, params, state, fluxes, met_data)
+    #M.Hello2()
+    sys.exit()  
     #flai = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/experiments/silvias_LAI.txt"
     #lai_data = np.loadtxt(flai)
    
