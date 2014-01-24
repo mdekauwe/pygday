@@ -7,7 +7,7 @@ import constants as const
 from utilities import float_eq, float_lt, float_gt, MovingAverageFilter, clip
 from bewdy import Bewdy
 from water_balance import WaterBalance, SoilMoisture
-from mate import MateC3
+from mate import MateC3, MateC4
 from optimal_root_model import RootingDepthModel
 
 __author__  = "Martin De Kauwe"
@@ -52,9 +52,14 @@ class PlantGrowth(object):
         self.wb = WaterBalance(self.control, self.params, self.state,
                                self.fluxes, self.met_data)
         
-        self.mt = MateC3(self.control, self.params, self.state, self.fluxes,
-                       self.met_data)
         
+        if self.control.ps_pathway == "C3":
+            self.mt = MateC3(self.control, self.params, self.state, self.fluxes,
+                             self.met_data)
+        else:
+            self.mt = MateC4(self.control, self.params, self.state, self.fluxes,
+                             self.met_data)
+                             
         self.sm = SoilMoisture(self.control, self.params, self.state, 
                                self.fluxes)
         self.sm.initialise_parameters()
