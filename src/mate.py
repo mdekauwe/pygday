@@ -97,7 +97,7 @@ class MateC3(object):
 
         # calculate mate parameters, e.g. accounting for temp dependancy
         gamma_star = self.calculate_co2_compensation_point(Tk)
-        km = self.calculate_michaelis_menten_parameter(Tk)
+        Km = self.calculate_michaelis_menten_parameter(Tk)
         N0 = self.calculate_top_of_canopy_n()
         
         
@@ -123,7 +123,7 @@ class MateC3(object):
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
         # Rubisco carboxylation limited rate of photosynthesis
-        ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=km[k]) \
+        ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=Km[k]) \
               for k in am, pm]
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
@@ -262,7 +262,7 @@ class MateC3(object):
         Returns:
         -------
         value : float, list [am, pm]
-            km, effective Michaelis-Menten constant for Rubisco catalytic 
+            Km, effective Michaelis-Menten constant for Rubisco catalytic 
             activity
         
         References:
@@ -574,36 +574,35 @@ class MateC4(MateC3):
         (temp, par, vpd, ca) = self.get_met_data(day)
         Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
         
+        # calculate mate parameters, e.g. accounting for temp dependancy
+        (Km, Kp) = self.calculate_michaelis_menten_parameter(Tk)
+        N0 = self.calculate_top_of_canopy_n()
+        
+        if self.control.modeljm == True: 
+            jmax = self.calculate_jmax_parameter(Tk, N0)
+            vcmax = self.calculate_vcmax_parameter(Tk, N0)
+            vpmax = self.calculate_vpmax_parameter(Tk, N0)
+        else:
+            jmax = [self.params.jmax, self.params.jmax]
+            vcmax = [self.params.vcmax, self.params.vcmax]
+            vpmax = [self.params.vpmax, self.params.vpmax]
+        
+        # reduce photosynthetic capacity with moisture stress
+        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
+        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
+        vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
+        
+        
+        
+        
+        
         # Half the reciprocal for Rubisco specificity 
         # (NOT the CO2 compensation point)
 	    #low_gammastar = 1.93e-4
 	
-        # Michaelis-Menten coefficients for CO2 (Kc, mu mol mol-1) and O (Ko, mmol mol-1) and combined (K)
-        #Kc = 650*Q10^((tleaf-25)/10)
-        #Kp = 80*Q10^((tleaf-25)/10)
-        #Ko = 450*Q10^((tleaf-25)/10)
-        #K = Kc*(1+O2/Ko)
-            
-        # T effects according to Massad et al. (2007)
-        #Vcmax = VCMAX25*Arrhenius(Tk, 67294, 144568, 472)
-        #Vpmax = VPMAX25*Arrhenius(Tk, 70373, 117910, 376)
-        #Jmax = JMAX25*Arrhenius(Tk, 77900, 191929, 627)
-        
-        # PEP carboxylation rate
-	    #Vp <- pmin(ci*Vpmax/(ci+Kp),Vpr)
         
         
         
-        
-        
-        
-        
-        
-        
-        # calculate mate parameters, e.g. accounting for temp dependancy
-        gamma_star = self.calculate_co2_compensation_point(Tk)
-        km = self.calculate_michaelis_menten_parameter(Tk)
-        N0 = self.calculate_top_of_canopy_n()
         
         
         if self.control.modeljm == True: 
@@ -628,12 +627,15 @@ class MateC4(MateC3):
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
         # Rubisco carboxylation limited rate of photosynthesis
-        ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=km[k]) \
-              for k in am, pm]
+        ac = [self.assim(ci[k], 0.0, a1=vcmax[k], a2=Km[k]) for k in am, pm]
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
-        aj = [self.assim(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
+        aj = [self.assim(ci[k], 0.0, a1=jmax[k]/4.0, \
               a2=2.0*gamma_star[k]) for k in am, pm]
+        
+        # PEP carboxylation rate
+        ap = [self.assim(ci[k], 0.0, a1=vpmax[k], a2=Kp[k]) for k in am, pm]
+        
         
         # light-saturated photosynthesis rate at the top of the canopy (gross)
         asat = [min(aj[k], ac[k]) for k in am, pm]
@@ -679,7 +681,55 @@ class MateC4(MateC3):
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
     
     
-    
+    def calculate_michaelis_menten_parameter(self, Tk):
+        """ Effective Michaelis-Menten coefficent of Rubisco activity
+
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        
+        Returns:
+        -------
+        value : float, list [am, pm]
+            Km, effective Michaelis-Menten constant for Rubisco catalytic 
+            activity
+        
+        References:
+        -----------
+        * Massad et al. (2007) PCE, 30, 1191-1204.
+        
+        
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        Tc = [Tk[k] - const.DEG_TO_KELVIN for k in am, pm]
+        
+        Kc25 = self.params.Kc25 
+        Ko25 = self.params.Ko25 
+        #Kp25 = self.params.Kp25 
+        Oi = self.params.Oi 
+        
+        # Massad et al 2007, Table 1.
+        Kc25 = 650.0
+        Ko25 = 450.0
+        Kp25 = 80.0
+        
+        Q10 = 2.0
+        
+        # Michaelis-Menten coefficents for carboxylation by Rubisco
+        Kc = [Kc25 * Q10**((Tc[k] - 25.0) / 10.0) for k in am, pm]
+        
+        # Michaelis-Menten coefficents for oxygenation by Rubisco
+        Ko = [Ko25 * Q10**((Tc[k] - 25.0) / 10.0) for k in am, pm]
+        
+        # Michaelis-Menten coefficents for PEPcase for CO2
+        Kp = [Kp25 * Q10**((Tc[k] - 25.0) / 10.0) for k in am, pm]
+        
+        # return effectinve Michaelis-Menten coeffeicent for CO2
+        return [Kc[k] * (1.0 + Oi / Ko[k]) for k in am, pm], Kp
+        
+        
     
             
 if __name__ == "__main__":
@@ -703,10 +753,11 @@ if __name__ == "__main__":
             print_opts) = initialise_model_data(fname, met_header, DUMP=False)
     
     
-    
-    M = MateC3(control, params, state, fluxes, met_data)
-    #M = MateC4(control, params, state, fluxes, met_data)
-    
+    if control.ps_pathway == "C3":
+        M = MateC3(control, params, state, fluxes, met_data)
+    else:
+        M = MateC4(control, params, state, fluxes, met_data)
+   
     #flai = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/experiments/silvias_LAI.txt"
     #lai_data = np.loadtxt(flai)
    
@@ -750,6 +801,6 @@ if __name__ == "__main__":
             
             M.calculate_photosynthesis(project_day, daylen[doy])
 
-            #print fluxes.gpp_gCm2#, state.lai
+            print fluxes.gpp_gCm2#, state.lai
         
             project_day += 1
