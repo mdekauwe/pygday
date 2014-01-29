@@ -222,7 +222,8 @@ def read_met_forcing(fname, met_header, comment='#'):
                     data.setdefault(name, []).append(value) 
         f.close()
     except IOError:
-        raise IOError('Could not read met file: "%d"' % fname)
+        print fname
+        raise IOError('Could not read met file: "%s"' % fname)
 
     return data
     
