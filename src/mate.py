@@ -790,8 +790,7 @@ class MateC4(MateC3):
         
         return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
 
-    def calc_respiration(self, temp, Tbelow=0.0, RD0=1.0, Q10F=2.0, RTEMP=25.0,
-                         DAYRESP=1.0, FRM=0.5)    
+    def calc_respiration(self, temp)    
         """
         Mitochondrial respiration may occur in the mesophyll as well as in the 
         bundle sheath. As rubisco may more readily refix CO2 released in the 
@@ -802,18 +801,6 @@ class MateC4(MateC3):
         ----------
         temp : float
             air temperature
-        Tbelow : float
-        
-        RD0 : float
-        
-        Q10F : float
-        
-        RTEMP : float
-        
-        DAYRESP : float
-        
-        FRM : float
-            Fraction of dark respiration that is mesophyll respiration (Rm)
         
         Returns:
         -------
@@ -822,14 +809,11 @@ class MateC4(MateC3):
         Rm : float, list [am, pm]
             Maintanence respiration [umol m-2 s-1]
         """
-        # Day leaf respiration, umol m-2 s-1
-        Rd = [0.0, 0.0]
-        for k in am, pm:
-            if temp[k] > Tbelow:
-                Rd[k] = (RD0 * exp(Q10F * (temp[k] - RTEMP))) * DAYRESP
+        # Day leaf respiration, umol m-2 s-1    
+        Rd = [0.01 * Vcmax[k] for k in am, pm]
         
-        # the mitochondrial respiration occurring in the mesophyll
-        Rm = FRM * Rd
+        # Mesophyll mitochondrial respiration 
+        Rm = 0.5 * Rd
         
         return (Rd, Rm) 
 
@@ -845,29 +829,44 @@ class MateC4(MateC3):
         return [min(ci[k] * vpmax[k] / (ci[k] + Kp[k]), Vpr) for k in am, pm] 
     
     def calc_enzyme_limited_assim(self, Kc, Ko, Kp, ci, vpmax, vcmax, Rd):
+        """
+        Parameters:
+        ----------
         
-        alpha = 0.0		# Fraction of PSII activity in the bundle sheath
+        alpha : float
+            Fraction of PSII activity in the bundle sheath [0-1]
+        rub_sf : float 
+            Half the reciprocal for Rubisco specificity 
+        gbs : float
+            bundle sheath conductance
+        
+        
+        Returns:
+        -------
+        Ac : float, list [am, pm]
+            enzyme-limited assimilation rate [umol m-2 s-1]
+        """
+    
+        # local parameters
+        alpha = self.param.alpha_psii		
         Oi = self.params.Oi
-        
-        # bundle sheath conductance
         gbs = self.params.gbs
-        # EQUATION SHOULD HAVE Gs, as we need to link to medlyn model!!!
+        rub_sf = self.params.rub_sf 
         
-        
-        # Half the reciprocal for Rubisco specificity (NOT CO2 comp point)
-        lgs = self.params.low_gamma_star
-         
         # rate of PEP carboxylation
         Vp = self.calc_pep_carboxylation_rate(ci, vpmax, Kp)
+        
+        # Cm assumed to equal Ci
+        Cm = ci
         
         # Quadratic solution for enzyme limited C4 assimilation
         for k in am, pm:
             a = 1 - (alpha * Kc[k]) / (0.047 * Ko[k])
-            b = -( (Vp - Rm[k] + gbs * ci[k]) + 
-                   (Vcmax[k] - Rd[k]) + gbs * Km[k] +
-                   (alpha / 0.047 * (lgs * Vcmax[k] + Rd[k] * Kc[k] / Ko[k])) )
-            c = ( (Vcmax[k] - Rd[k]) * (Vp - Rm[k] + gbs * ci[k]) - 
-                  (Vcmax[k] * gbs * lgs * Oi + Rd[k] * gbs * Km[k]) )
+            b = -((Vp - Rm[k] + gbs * Cm[k]) + 
+                  (Vcmax[k] - Rd[k]) + gbs * Km[k] +
+                  (alpha / 0.047 * (rub_sf * Vcmax[k] + Rd[k] * Kc[k] / Ko[k])))
+            c = ( (Vcmax[k] - Rd[k]) * (Vp - Rm[k] + gbs * Cm[k]) - 
+                  (Vcmax[k] * gbs * rub_sf * Oi + Rd[k] * gbs * Km[k]) )
         
             Ac[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
 		
@@ -875,34 +874,61 @@ class MateC4(MateC3):
     
     
     def calc_light_limited_assim(self, jmax, ci, Rd):
+        """
+        Parameters:
+        ----------
+        x : float
+            Partitioning factor of electron transport
+        rub_sf : float 
+            Half the reciprocal for Rubisco specificity 
+        gbs : float
+            bundle sheath conductance
+        theta : float
+             curvature factor
+        alpha : float
+            Fraction of PSII activity in the bundle sheath [0-1]
+        f : float
+            correction factor for spectral quality of light
         
-        alpha = 0.0		# Fraction of PSII activity in the bundle sheath
-        theta = 0.7 #self.params.theta 
-        x = 0.4  		# Partitioning factor for electron transport
+        Returns:
+        -------
+        Aj : float, list [am, pm]
+            Light-limited assimilation rate [umol m-2 s-1]
+        """
+        
+        # local parameters
+        alpha = self.param.alpha_psii		
+        theta = self.params.theta
+        x = self.params.part_j
         Oi = self.params.Oi
-        # Half the reciprocal for Rubisco specificity (NOT CO2 comp point)
-        lgs = self.params.low_gamma_star
-        gbs = self.params.gbs
+        rub_sf = self.params.rub_sf 
+        gbs = self.params.gbs 
+        f = self.params.fspec
+        labs = self.params.labs
         
-        # Non-rectangular hyperbola describing light effect on electron 
-        # transport rate (J)
-        Qp2 = PPFD * (1.0 - 0.15) / 2.0
-        J = ((1.0 / (2.0 * theta)) * (Qp2 + jmax - sqrt((Qp2 + jmax)**2.0 - 
-             4.0 * theta * Qp2 * jmax)))
-    
+        # useful light absorbed by photosystem II (PSII)
+        light_abs = par * labs * (1.0 - f) / 2.0
+        
+        # Total electron transport rat (umol electrons m-2 s-1)
+        Jt = ((1.0 / (2.0 * theta)) * (light_abs + jmax - 
+               sqrt((light_abs + jmax)**2.0 - 
+               4.0 * theta * light_abs * jmax)))
+        
+        # Cm assumed to equal Ci
+        Cm = ci
+        
         # Quadratic solution for light-limited C4 assimilation
         for k in am, pm:
-            a = 1.0 - ((7.0 * lgs * alpha) / (3.0 * 0.047))
-            b = -( ((x * J) / 2.0 - Rm[k] + gbs * ci[k]) + 
-                   ((1.0 - x) * J / 3.0 - Rd[k]) + 
-                   (gbs * (7.0 * lgs * Oi / 3.0)) + 
-                   (alpha * lgs / 0.047) * 
-                   (((1.0 - x) * J / 3.0) + (7.0 * Rd[k] / 3.0)) )
-            
-            c = ( ((x * J / 2.0 - Rm[k] + gbs * ci[k]) *
-                   ((1.0 - x) * J / 3.0 - Rd[k])) -
-                   (gbs * lgs * Oi) * 
-                   ((1.0 - x) * J / 3.0 + (7.0 * Rd[k] / 3.0)) )
+            a = 1.0 - ((7.0 * rub_sf * alpha) / (3.0 * 0.047))
+            b = -( ((x * Jt) / 2.0 - Rm[k] + gbs * Cm[k]) + 
+                   ((1.0 - x) * Jt / 3.0 - Rd[k]) + 
+                   (gbs * (7.0 * rub_sf * Oi / 3.0)) + 
+                   (alpha * rub_sf / 0.047) * 
+                   (((1.0 - x) * Jt / 3.0) + (7.0 * Rd[k] / 3.0)) )
+            c = ( ((x * Jt / 2.0 - Rm[k] + gbs * Cm[k]) *
+                   ((1.0 - x) * Jt / 3.0 - Rd[k])) -
+                   (gbs * rub_sf * Oi) * 
+                   ((1.0 - x) * Jt / 3.0 + (7.0 * Rd[k] / 3.0)) )
                    
             Aj[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
         
