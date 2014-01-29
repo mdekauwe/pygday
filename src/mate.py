@@ -574,11 +574,25 @@ class MateC4(MateC3):
         (temp, par, vpd, ca) = self.get_met_data(day)
         Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
         
-        # calculate mate parameters, e.g. accounting for temp dependancy
-        (Km, Kp) = self.calculate_michaelis_menten_parameter(Tk)
-        N0 = self.calculate_top_of_canopy_n()
+        # UNITS ARE NOT CONSISTENT FROM MASAD etc AND THE CODE
+        # EG Oi in code is 205000.0 and assumed 210.0 below
         
-        if self.control.modeljm == True: 
+        # calculate mate parameters, e.g. accounting for temp dependancy
+        (Km, Kc, Ko, Kp) = self.calculate_michaelis_menten_parameter(Tk)
+        N0 = self.calculate_top_of_canopy_n()
+        gamma_star = self.calculate_co2_compensation_point(Tk)
+        
+	    # calculate ratio of intercellular to atmospheric CO2 concentration.
+        # Also allows productivity to be water limited through stomatal opening.
+        cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
+        ci = [i * ca for i in cica]
+        # store value as needed in water balance calculation - actually no
+        # longer used...
+        self.fluxes.cica_avg = sum(cica) / len(cica)
+        
+        
+	    # T effects according to Massad et al. (2007)
+	    if self.control.modeljm == True: 
             jmax = self.calculate_jmax_parameter(Tk, N0)
             vcmax = self.calculate_vcmax_parameter(Tk, N0)
             vpmax = self.calculate_vpmax_parameter(Tk, N0)
@@ -586,64 +600,27 @@ class MateC4(MateC3):
             jmax = [self.params.jmax, self.params.jmax]
             vcmax = [self.params.vcmax, self.params.vcmax]
             vpmax = [self.params.vpmax, self.params.vpmax]
-        
-        # reduce photosynthetic capacity with moisture stress
+	    
+	    # reduce photosynthetic capacity with moisture stress
         jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
         vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
         vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
         
-        
-        
-        
-        
-        # Half the reciprocal for Rubisco specificity 
-        # (NOT the CO2 compensation point)
-	    #low_gammastar = 1.93e-4
-	
-        
-        
-        
-        
-        
-        if self.control.modeljm == True: 
-            jmax = self.calculate_jmax_parameter(Tk, N0)
-            vcmax = self.calculate_vcmax_parameter(Tk, N0)
-        else:
-            jmax = [self.params.jmax, self.params.jmax]
-            vcmax = [self.params.vcmax, self.params.vcmax]
-        
-        # reduce photosynthetic capacity with moisture stress
-        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
-        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]       
-        
-        # calculate ratio of intercellular to atmospheric CO2 concentration.
-        # Also allows productivity to be water limited through stomatal opening.
-        cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
-        ci = [i * ca for i in cica]
-        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
-        
-        # store value as needed in water balance calculation - actually no
-        # longer used...
-        self.fluxes.cica_avg = sum(cica) / len(cica)
-        
-        # Rubisco carboxylation limited rate of photosynthesis
-        ac = [self.assim(ci[k], 0.0, a1=vcmax[k], a2=Km[k]) for k in am, pm]
-        
-        # Light-limited rate of photosynthesis allowed by RuBP regeneration
-        aj = [self.assim(ci[k], 0.0, a1=jmax[k]/4.0, \
-              a2=2.0*gamma_star[k]) for k in am, pm]
-        
-        # PEP carboxylation rate
-        ap = [self.assim(ci[k], 0.0, a1=vpmax[k], a2=Kp[k]) for k in am, pm]
-        
+	    (Rd, Rm) = self.calc_respiration(temp)    
+    
+        Ac = self.calc_enzyme_limited_assim(Kc, Ko, Kp, ci, vpmax, vcmax, Rd)
+        Aj = self.calc_light_limited_assim(jmax, ci, Rd)
         
         # light-saturated photosynthesis rate at the top of the canopy (gross)
-        asat = [min(aj[k], ac[k]) for k in am, pm]
-        
+        # But this has respiration taken off?
+	    Asat = [min(Aj[k], Ac[k]) for k in am, pm]
+	    
+	    alpha = self.calculate_quantum_efficiency(ci, gamma_star)
+	    
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
-        lue = [self.epsilon(asat[k], par, daylen, alpha[k]) for k in am, pm]
+        lue = [self.epsilon(Asat[k], par, daylen, alpha[k]) for k in am, pm]
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / 2.0
@@ -664,7 +641,7 @@ class MateC4(MateC3):
                                       const.MOL_C_TO_GRAMS_C)
         
         
-        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 - Rm - Rd
         
         if self.control.nuptake_model == 3:
             self.fluxes.gpp_gCm2 *= self.params.ac
@@ -678,7 +655,7 @@ class MateC4(MateC3):
         self.fluxes.npp = self.fluxes.npp_gCm2 * conv
         
         # Plant respiration assuming carbon-use efficiency.
-        self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
+        self.fluxes.auto_resp = Rm + Rd
     
     
     def calculate_michaelis_menten_parameter(self, Tk):
@@ -727,11 +704,196 @@ class MateC4(MateC3):
         Kp = [Kp25 * Q10**((Tc[k] - 25.0) / 10.0) for k in am, pm]
         
         # return effectinve Michaelis-Menten coeffeicent for CO2
-        return [Kc[k] * (1.0 + Oi / Ko[k]) for k in am, pm], Kp
+        return [Kc[k] * (1.0 + Oi / Ko[k]) for k in am, pm], Kc, Ko, Kp
+ 
+    def calculate_jmax_parameter(self, Tk, N0):
+        """ Calculate the maximum RuBP regeneration rate for light-saturated 
+        leaves at the top of the canopy. 
+
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        N0 : float
+            leaf N
+
+        Returns:
+        -------
+        jmax : float, list [am, pm]
+            maximum rate of electron transport
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        deltaS = self.params.delsj
+        Ea = self.params.eaj
+        Hd = self.params.edj
         
+        # the maximum rate of electron transport at 25 degC 
+        #jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
+        jmax25 = 400.0
         
-    
+        return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
+        
+    def calculate_vcmax_parameter(self, Tk, N0):
+        """ Calculate the maximum rate of rubisco-mediated carboxylation at the
+        top of the canopy
+
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        N0 : float
+            leaf N
             
+        Returns:
+        -------
+        vcmax : float, list [am, pm]
+            maximum rate of Rubisco activity
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        deltaS = self.params.delsv
+        Ea = self.params.eav
+        Hd = self.params.edv
+        
+        # the maximum rate of electron transport at 25 degC 
+        #vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
+        vcmax25 = 60.0
+        
+        return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
+        
+    def calculate_vpmax_parameter(self, Tk, N0):
+        """ Calculate the carboxylation by PEPC, initial slope of the C4 A/ci
+        curve
+
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        N0 : float
+            leaf N
+            
+        Returns:
+        -------
+        vcmax : float, list [am, pm]
+            maximum rate of Rubisco activity
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        deltaS = self.params.delsvp
+        Ea = self.params.eavp
+        Hd = self.params.edvp
+        
+        # the maximum rate of electron transport at 25 degC 
+        #vpmax25 = self.params.vpmaxna * N0 + self.params.vpmaxnb
+        vpmax25 = 120.0
+        
+        return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
+
+    def calc_respiration(self, temp, Tbelow=0.0, RD0=1.0, Q10F=2.0, RTEMP=25.0,
+                         DAYRESP=1.0, FRM=0.5)    
+        """
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        Tbelow : float
+        
+        RD0 : float
+        
+        Q10F : float
+        
+        RTEMP : float
+        
+        DAYRESP : float
+        
+        FRM : float
+            Fraction of dark respiration that is mesophyll respiration (Rm)
+        
+        Returns:
+        -------
+        Rd : float, list [am, pm]
+            Day leaf respiration [umol m-2 s-1]
+        Rm : float, list [am, pm]
+            Maintanence respiration [umol m-2 s-1]
+        """
+        # Day leaf respiration, umol m-2 s-1
+        Rd = [0.0, 0.0]
+        for k in am, pm:
+            if temp[k] > Tbelow:
+                Rd[k] = (RD0 * exp(Q10F * (temp[k] - RTEMP))) * DAYRESP
+        Rm = FRM * Rd
+        
+        return (Rd, Rm) 
+
+    def calc_pep_carboxylation_rate(self, ci, vpmax, Kp, Vpr=80.0)
+        """
+        Parameters:
+        ----------
+        Vpr : float
+            PEP regeneration (mu mol m-2 s-1)
+        """
+        am, pm = self.am, self.pm # morning/afternoon
+        
+        return [min(ci[k] * vpmax[k] / (ci[k] + Kp[k]), Vpr) for k in am, pm] 
+    
+    def calc_enzyme_limited_assim(self, Kc, Ko, Kp, ci, vpmax, vcmax, Rd):
+        
+        alpha = 0.0		# Fraction of PSII activity in the bundle sheath
+        Oi = self.params.Oi
+        gbs = self.params.gbs
+        # Half the reciprocal for Rubisco specificity (NOT CO2 comp point)
+        low_gamma_star = self.params.low_gamma_star
+         
+        # PEP carboxylation rate
+        Vp = self.calc_pep_carboxylation_rate(ci, vpmax, Kp)
+        
+        # Quadratic solution for enzyme limited C4 assimilation
+        for k in am, pm:
+            a = 1 - (alpha * Kc[k]) / (0.047 * Ko[k])
+            b = (-((Vp - Rm[k] + gbs * ci[k]) + (Vcmax[k] - Rd[k]) + gbs * 
+                   Km[k] + alpha * low_gamma_star / 0.047 * (low_gamma_star * 
+                   Vcmax[k] + Rd[k] * Kc[k] / Ko[k])))
+            c = ((Vcmax[k] - Rd[k]) * (Vp - Rm[k] + gbs * ci[k]) - (Vcmax[k] * 
+                 gbs * low_gamma_star * Oi + Rd[k] * gbs * Km[k]))
+        
+            Ac[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
+        
+        return Ac
+    
+    
+    def calc_light_limited_assim(self, jmax, ci, Rd):
+        
+        alpha = 0.0		# Fraction of PSII activity in the bundle sheath
+        theta = 0.7 #self.params.theta 
+        x = 0.4  		# Partitioning factor for electron transport
+        Oi = self.params.Oi
+        # Half the reciprocal for Rubisco specificity (NOT CO2 comp point)
+        low_gamma_star = self.params.low_gamma_star
+        gbs = self.params.gbs
+        
+        # Non-rectangular hyperbola describing light effect on electron 
+        # transport rate (J)
+        Qp2 = PPFD * (1.0 - 0.15) / 2.0
+        J = ((1.0 / (2.0 * theta)) * (Qp2 + jmax - sqrt((Qp2 + jmax)**2.0 - 
+             4.0 * theta * Qp2 * jmax)))
+    
+        # Quadratic solution for light-limited C4 assimilation
+        for k in am, pm:
+            a = 1.0 - 7.0 * low_gamma_star * alpha / (3.0 * 0.047)
+            b = (-((x * J / 2.0 - Rm[k] + gbs * ci[k]) + 
+                  ((1.0 - x) * J / 3.0 - Rd[k]) + gbs * 
+                  (7.0 * low_gamma_star * Oi / 3.0) + 
+                  alpha * low_gamma_star / 0.047 * 
+                  ((1.0 - x) * J / 3.0 + Rd[k])))
+            c = (((x * J / 2.0 - Rm[k] + gbs * ci[k]) * 
+                ((1.0 - x) * J / 3.0 -Rd[k]) - gbs * low_gamma_star * Oi * 
+                ((1.0 - x) * J / 3.0 - 7.0 * Rd[k] / 3.0)))
+        
+            Aj[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
+        
+        return Aj
+     
 if __name__ == "__main__":
     
     import numpy as np
