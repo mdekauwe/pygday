@@ -793,6 +793,11 @@ class MateC4(MateC3):
     def calc_respiration(self, temp, Tbelow=0.0, RD0=1.0, Q10F=2.0, RTEMP=25.0,
                          DAYRESP=1.0, FRM=0.5)    
         """
+        Mitochondrial respiration may occur in the mesophyll as well as in the 
+        bundle sheath. As rubisco may more readily refix CO2 released in the 
+        bundle sheath, Rd is described by its mesophyll and bundle-sheath 
+        components: Rd = Rm + Rs
+        
         Parameters:
         ----------
         temp : float
@@ -822,6 +827,8 @@ class MateC4(MateC3):
         for k in am, pm:
             if temp[k] > Tbelow:
                 Rd[k] = (RD0 * exp(Q10F * (temp[k] - RTEMP))) * DAYRESP
+        
+        # the mitochondrial respiration occurring in the mesophyll
         Rm = FRM * Rd
         
         return (Rd, Rm) 
@@ -831,7 +838,7 @@ class MateC4(MateC3):
         Parameters:
         ----------
         Vpr : float
-            PEP regeneration (mu mol m-2 s-1)
+            rate of PEP regeneration (mu mol m-2 s-1)
         """
         am, pm = self.am, self.pm # morning/afternoon
         
@@ -841,24 +848,29 @@ class MateC4(MateC3):
         
         alpha = 0.0		# Fraction of PSII activity in the bundle sheath
         Oi = self.params.Oi
+        
+        # bundle sheath conductance
         gbs = self.params.gbs
+        # EQUATION SHOULD HAVE Gs, as we need to link to medlyn model!!!
+        
+        
         # Half the reciprocal for Rubisco specificity (NOT CO2 comp point)
-        low_gamma_star = self.params.low_gamma_star
+        lgs = self.params.low_gamma_star
          
-        # PEP carboxylation rate
+        # rate of PEP carboxylation
         Vp = self.calc_pep_carboxylation_rate(ci, vpmax, Kp)
         
         # Quadratic solution for enzyme limited C4 assimilation
         for k in am, pm:
             a = 1 - (alpha * Kc[k]) / (0.047 * Ko[k])
-            b = (-((Vp - Rm[k] + gbs * ci[k]) + (Vcmax[k] - Rd[k]) + gbs * 
-                   Km[k] + alpha * low_gamma_star / 0.047 * (low_gamma_star * 
-                   Vcmax[k] + Rd[k] * Kc[k] / Ko[k])))
-            c = ((Vcmax[k] - Rd[k]) * (Vp - Rm[k] + gbs * ci[k]) - (Vcmax[k] * 
-                 gbs * low_gamma_star * Oi + Rd[k] * gbs * Km[k]))
+            b = -( (Vp - Rm[k] + gbs * ci[k]) + 
+                   (Vcmax[k] - Rd[k]) + gbs * Km[k] +
+                   (alpha / 0.047 * (lgs * Vcmax[k] + Rd[k] * Kc[k] / Ko[k])) )
+            c = ( (Vcmax[k] - Rd[k]) * (Vp - Rm[k] + gbs * ci[k]) - 
+                  (Vcmax[k] * gbs * lgs * Oi + Rd[k] * gbs * Km[k]) )
         
             Ac[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
-        
+		
         return Ac
     
     
@@ -869,7 +881,7 @@ class MateC4(MateC3):
         x = 0.4  		# Partitioning factor for electron transport
         Oi = self.params.Oi
         # Half the reciprocal for Rubisco specificity (NOT CO2 comp point)
-        low_gamma_star = self.params.low_gamma_star
+        lgs = self.params.low_gamma_star
         gbs = self.params.gbs
         
         # Non-rectangular hyperbola describing light effect on electron 
@@ -880,16 +892,18 @@ class MateC4(MateC3):
     
         # Quadratic solution for light-limited C4 assimilation
         for k in am, pm:
-            a = 1.0 - 7.0 * low_gamma_star * alpha / (3.0 * 0.047)
-            b = (-((x * J / 2.0 - Rm[k] + gbs * ci[k]) + 
-                  ((1.0 - x) * J / 3.0 - Rd[k]) + gbs * 
-                  (7.0 * low_gamma_star * Oi / 3.0) + 
-                  alpha * low_gamma_star / 0.047 * 
-                  ((1.0 - x) * J / 3.0 + Rd[k])))
-            c = (((x * J / 2.0 - Rm[k] + gbs * ci[k]) * 
-                ((1.0 - x) * J / 3.0 -Rd[k]) - gbs * low_gamma_star * Oi * 
-                ((1.0 - x) * J / 3.0 - 7.0 * Rd[k] / 3.0)))
-        
+            a = 1.0 - ((7.0 * lgs * alpha) / (3.0 * 0.047))
+            b = -( ((x * J) / 2.0 - Rm[k] + gbs * ci[k]) + 
+                   ((1.0 - x) * J / 3.0 - Rd[k]) + 
+                   (gbs * (7.0 * lgs * Oi / 3.0)) + 
+                   (alpha * lgs / 0.047) * 
+                   (((1.0 - x) * J / 3.0) + (7.0 * Rd[k] / 3.0)) )
+            
+            c = ( ((x * J / 2.0 - Rm[k] + gbs * ci[k]) *
+                   ((1.0 - x) * J / 3.0 - Rd[k])) -
+                   (gbs * lgs * Oi) * 
+                   ((1.0 - x) * J / 3.0 + (7.0 * Rd[k] / 3.0)) )
+                   
             Aj[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
         
         return Aj
