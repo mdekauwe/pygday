@@ -59,6 +59,7 @@ rub_sf = 0.000193                  # Half the reciprocal for Rubisco specificity
 xpart_j = 0.4  		               # Partitioning factor of electron transport (C4 pathway)        
 fspec = 0.15                       # correction factor for spectral quality of light (Evans, 1987) (C4 pathway)
 labs = 0.85                        # leaf absorptance
+vpr = 80.0                         # rate of PEP regeneration (mu mol m-2 s-1) (Peisker 1986; Peisker and Henderson 1992)
 
 # set carbon allocation parameters & allometric parameters
 c_alloc_fmax = 0.25    # allocation to leaves at leaf n_crit. If using allometric model this is the max alloc to leaves
