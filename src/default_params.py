@@ -53,6 +53,13 @@ cue               = 0.5            # carbon use efficiency, or the ratio of NPP 
 g1                = 4.8            # fitted param, slope of reln btw gs and assimilation.
 qs                = 1.0            # exponent in water stress modifier, =1.0 JULES type representation, the smaller the values the more curved the depletion. 
 
+alpha_psii = 0.0                   # Fraction of PSII activity in the bundle sheath [0-1]   (C4 pathway)         
+gbs = 0.003                        # bundle sheath conductance, hard to measure directly, estimated;  range 0.001-0.01 mol m-2 s-1 (C4 pathway)     
+rub_sf = 0.000193                  # Half the reciprocal for Rubisco specificity (C4 pathway)     
+xpart_j = 0.4  		               # Partitioning factor of electron transport (C4 pathway)        
+fspec = 0.15                       # correction factor for spectral quality of light (Evans, 1987) (C4 pathway)
+labs = 0.85                        # leaf absorptance
+
 # set carbon allocation parameters & allometric parameters
 c_alloc_fmax = 0.25    # allocation to leaves at leaf n_crit. If using allometric model this is the max alloc to leaves
 c_alloc_fmin = 0.25    # allocation to leaves at zero leaf n/c. If using allometric model this is the min alloc to leaves
