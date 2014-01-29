@@ -537,17 +537,13 @@ class MateC4(MateC3):
       Modelling C4 photosynthesis. CSIRO PUBLISHING, Australia. pg 91-122.
     * Massad, R-S., Tuzet, A. and Bethenod, O. (2007) The effect of temperature 
       on C4-type leaf photosynthesis parameters. Plant, Cell and Environment, 
-      30, 1191–1204.
+      30, 1191-1204.
     
     """
     
     def __init__(self, control, params, state, fluxes, met_data):
         MateC3.__init__(self, control, params, state, fluxes, met_data)
-        self.Vpr = 80.   # PEP regeneration (mu mol m-2 s-1)
-        self.alpha = 0.0 # Fraction of PSII activity in the bundle sheath
-        self.gbs = 3E-3  # Bundle shead conductance (mol m-2 s-1)
-        self.x = 0.4 	 # Partitioning factor for electron transport
-	
+        
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
         a commonly assumed reln (e.g. Potter 1993, Myneni 2002). The slope of
@@ -594,6 +590,15 @@ class MateC4(MateC3):
         N0 = self.calculate_top_of_canopy_n()
         gamma_star = self.calculate_co2_compensation_point(Tk)
         
+        print Km
+        print Kc
+        print Ko
+        print Kp
+        print
+        print N0
+        print gamma_star
+        sys.exit()
+        
 	    # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
@@ -602,9 +607,7 @@ class MateC4(MateC3):
         # longer used...
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
-        
-	    # T effects according to Massad et al. (2007)
-	    if self.control.modeljm == True: 
+        if self.control.modeljm == True: 
             jmax = self.calculate_jmax_parameter(Tk, N0)
             vcmax = self.calculate_vcmax_parameter(Tk, N0)
             vpmax = self.calculate_vpmax_parameter(Tk, N0)
@@ -618,22 +621,22 @@ class MateC4(MateC3):
         vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
         vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
         
-	    (Rd, Rm) = self.calc_respiration(temp)    
+        (Rd, Rm) = self.calc_respiration(temp)    
     
         Ac = self.calc_enzyme_limited_assim(Kc, Ko, Kp, ci, vpmax, vcmax, Rd)
         Aj = self.calc_light_limited_assim(jmax, ci, Rd)
-        
+
         # light-saturated photosynthesis rate at the top of the canopy (gross)
         # But this has respiration taken off?
-	    Asat = [min(Aj[k], Ac[k]) for k in am, pm]
+        Asat = [min(Aj[k], Ac[k]) for k in am, pm]
 	    
-	    alpha = self.calculate_quantum_efficiency(ci, gamma_star)
-	    
+        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
+
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
         lue = [self.epsilon(Asat[k], par, daylen, alpha[k]) for k in am, pm]
-        
+
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / 2.0
 
@@ -668,7 +671,7 @@ class MateC4(MateC3):
         
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = Rm + Rd
-    
+        # the above is wrong!
     
     def calculate_michaelis_menten_parameter(self, Tk):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
@@ -802,7 +805,7 @@ class MateC4(MateC3):
         
         return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
 
-    def calc_respiration(self, temp)    
+    def calc_respiration(self, temp):  
         """
         Mitochondrial respiration may occur in the mesophyll as well as in the 
         bundle sheath. As rubisco may more readily refix CO2 released in the 
@@ -829,7 +832,7 @@ class MateC4(MateC3):
         
         return (Rd, Rm) 
 
-    def calc_pep_carboxylation_rate(self, ci, vpmax, Kp)
+    def calc_pep_carboxylation_rate(self, ci, vpmax, Kp):
         """
         Parameters:
         ----------
