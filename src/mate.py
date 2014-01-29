@@ -534,7 +534,7 @@ class MateC4(MateC3):
     References:
     ===========
     * von Caemmerer, S. (2000) Biochemical Models of Leaf Photosynthesis. Chp 4. 
-      Modelling C4 photosynthesis. CSIRO PUBLISHING, Australia.
+      Modelling C4 photosynthesis. CSIRO PUBLISHING, Australia. pg 91-122.
     * Massad, R-S., Tuzet, A. and Bethenod, O. (2007) The effect of temperature 
       on C4-type leaf photosynthesis parameters. Plant, Cell and Environment, 
       30, 1191–1204.
@@ -817,14 +817,14 @@ class MateC4(MateC3):
         Returns:
         -------
         Rd : float, list [am, pm]
-            Day leaf respiration [umol m-2 s-1]
+            Day leaf respiration (umol m-2 s-1)
         Rm : float, list [am, pm]
-            Maintanence respiration [umol m-2 s-1]
+            Maintanence respiration (umol m-2 s-1)
         """
-        # Day leaf respiration, umol m-2 s-1    
+        # Day leaf respiration (umol m-2 s-1)
         Rd = [0.01 * Vcmax[k] for k in am, pm]
         
-        # Mesophyll mitochondrial respiration 
+        # Mesophyll mitochondrial respiration  (umol m-2 s-1)
         Rm = 0.5 * Rd
         
         return (Rd, Rm) 
