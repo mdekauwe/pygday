@@ -528,6 +528,18 @@ class MateC3(object):
 
 
 class MateC4(MateC3):
+    """ C4 photosynthesis pathway. Sands LUE implementation adjusted to make use
+    of C4 equations from von Caemmerer.
+    
+    References:
+    ===========
+    * von Caemmerer, S. (2000) Biochemical Models of Leaf Photosynthesis. Chp 4. 
+      Modelling C4 photosynthesis. CSIRO PUBLISHING, Australia.
+    * Massad, R-S., Tuzet, A. and Bethenod, O. (2007) The effect of temperature 
+      on C4-type leaf photosynthesis parameters. Plant, Cell and Environment, 
+      30, 1191–1204.
+    
+    """
     
     def __init__(self, control, params, state, fluxes, met_data):
         MateC3.__init__(self, control, params, state, fluxes, met_data)
@@ -817,7 +829,7 @@ class MateC4(MateC3):
         
         return (Rd, Rm) 
 
-    def calc_pep_carboxylation_rate(self, ci, vpmax, Kp, Vpr=80.0)
+    def calc_pep_carboxylation_rate(self, ci, vpmax, Kp)
         """
         Parameters:
         ----------
@@ -825,11 +837,14 @@ class MateC4(MateC3):
             rate of PEP regeneration (mu mol m-2 s-1)
         """
         am, pm = self.am, self.pm # morning/afternoon
+        vpr = self.params.vpr 
         
-        return [min(ci[k] * vpmax[k] / (ci[k] + Kp[k]), Vpr) for k in am, pm] 
+        return [min(ci[k] * vpmax[k] / (ci[k] + Kp[k]), vpr) for k in am, pm] 
     
     def calc_enzyme_limited_assim(self, Kc, Ko, Kp, ci, vpmax, vcmax, Rd):
         """
+        Calculate the AM/PM enzyme-limited CO2 assimilation rate.
+        
         Parameters:
         ----------
         
@@ -875,6 +890,8 @@ class MateC4(MateC3):
     
     def calc_light_limited_assim(self, jmax, ci, Rd):
         """
+        Calculate the AM/PM electron-transport-limited CO2 assimilation rate.
+        
         Parameters:
         ----------
         x : float
