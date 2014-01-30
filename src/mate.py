@@ -294,7 +294,7 @@ class MateC3(object):
         See notes and Chen et al 93, Oecologia, 93,63-69. 
         """
         
-        if self.state.lai > 0.0:
+        if float_gt(self.state.lai, 0.0):
             # calculation for canopy N content at the top of the canopy                   
             N0 = (self.state.ncontent * self.params.kext /
                  (1.0 - exp(-self.params.kext * self.state.lai)))

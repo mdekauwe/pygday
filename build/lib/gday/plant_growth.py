@@ -260,7 +260,7 @@ class PlantGrowth(object):
             self.state.alleaf = (self.params.c_alloc_fmax + nitfac *
                                 (self.params.c_alloc_fmax - 
                                  self.params.c_alloc_fmin))
-          
+            
             self.state.alroot = (self.params.c_alloc_rmax + nitfac *
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin))
@@ -272,7 +272,7 @@ class PlantGrowth(object):
             # allocate remainder to stem
             self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                                  self.state.albranch)
-        
+            #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
         elif self.control.alloc_model == "ALLOMETRIC":
             
             # calculate the N limitation based on available canopy N
