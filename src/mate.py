@@ -520,8 +520,8 @@ class MateC3(object):
         """
         mt = self.params.measurement_temp + const.DEG_TO_KELVIN
         arg1 = self.arrh(k25, Ea, Tk)
-        arg2 = 1.0 + exp((mt * deltaS - Hd) / mt * const.RGAS)
-        arg3 = 1.0 + exp((Tk * deltaS - Hd) / Tk * const.RGAS)
+        arg2 = 1.0 + exp((mt * deltaS - Hd) / (mt * const.RGAS))
+        arg3 = 1.0 + exp((Tk * deltaS - Hd) / (Tk * const.RGAS))
         
         return arg1 * arg2 / arg3
 
