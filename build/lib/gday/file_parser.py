@@ -89,7 +89,7 @@ def turn_strings_into_bools(control):
         
 def check_case_of_flags(control):
     """ keep all flags uppercase """
-    flags = ["assim_model", "print_options", "alloc_model"]
+    flags = ["assim_model", "print_options", "alloc_model", 'ps_pathway']
     for i in flags:
         setattr(control, i, getattr(control, i).upper())
 
@@ -120,7 +120,7 @@ class ReadConfigFile(object):
         """
         try:
             config = ConfigObj(self.config_file, unrepr=True)
-        except (ConfigObjError, IOError), e:
+        except (ConfigObjError, IOError), e: 
             raise IOError('%s' % e)
         
         return config
