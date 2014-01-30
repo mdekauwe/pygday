@@ -590,15 +590,6 @@ class MateC4(MateC3):
         N0 = self.calculate_top_of_canopy_n()
         gamma_star = self.calculate_co2_compensation_point(Tk)
         
-        print Km
-        print Kc
-        print Ko
-        print Kp
-        print
-        print N0
-        print gamma_star
-        sys.exit()
-        
 	    # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
@@ -606,6 +597,7 @@ class MateC4(MateC3):
         # store value as needed in water balance calculation - actually no
         # longer used...
         self.fluxes.cica_avg = sum(cica) / len(cica)
+        
         
         if self.control.modeljm == True: 
             jmax = self.calculate_jmax_parameter(Tk, N0)
@@ -621,11 +613,14 @@ class MateC4(MateC3):
         vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
         vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
         
-        (Rd, Rm) = self.calc_respiration(temp)    
-    
-        Ac = self.calc_enzyme_limited_assim(Kc, Ko, Kp, ci, vpmax, vcmax, Rd)
-        Aj = self.calc_light_limited_assim(jmax, ci, Rd)
-
+        (Rd, Rm) = self.calc_respiration(temp, vcmax)    
+        
+        
+        Ac = self.calc_enzyme_limited_assim(Km, Kc, Ko, Kp, ci, vpmax, vcmax, 
+                                            Rd, Rm)
+        
+        Aj = self.calc_light_limited_assim(par, jmax, ci, Rd, Rm)
+        
         # light-saturated photosynthesis rate at the top of the canopy (gross)
         # But this has respiration taken off?
         Asat = [min(Aj[k], Ac[k]) for k in am, pm]
@@ -655,8 +650,7 @@ class MateC4(MateC3):
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
         
-        
-        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 - Rm - Rd
+        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
             self.fluxes.gpp_gCm2 *= self.params.ac
@@ -670,8 +664,7 @@ class MateC4(MateC3):
         self.fluxes.npp = self.fluxes.npp_gCm2 * conv
         
         # Plant respiration assuming carbon-use efficiency.
-        self.fluxes.auto_resp = Rm + Rd
-        # the above is wrong!
+        self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
     
     def calculate_michaelis_menten_parameter(self, Tk):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
@@ -775,7 +768,7 @@ class MateC4(MateC3):
         #vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
         vcmax25 = 60.0
         
-        return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
+        return [self.peaked_arrh(vcmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
     def calculate_vpmax_parameter(self, Tk, N0):
         """ Calculate the carboxylation by PEPC, initial slope of the C4 A/ci
@@ -805,7 +798,7 @@ class MateC4(MateC3):
         
         return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
 
-    def calc_respiration(self, temp):  
+    def calc_respiration(self, temp, vcmax):  
         """
         Mitochondrial respiration may occur in the mesophyll as well as in the 
         bundle sheath. As rubisco may more readily refix CO2 released in the 
@@ -816,7 +809,8 @@ class MateC4(MateC3):
         ----------
         temp : float
             air temperature
-        
+        vcmax : float, list
+            
         Returns:
         -------
         Rd : float, list [am, pm]
@@ -824,11 +818,12 @@ class MateC4(MateC3):
         Rm : float, list [am, pm]
             Maintanence respiration (umol m-2 s-1)
         """
+        am, pm = self.am, self.pm # morning/afternoon
         # Day leaf respiration (umol m-2 s-1)
-        Rd = [0.01 * Vcmax[k] for k in am, pm]
+        Rd = [0.01 * vcmax[k] for k in am, pm]
         
         # Mesophyll mitochondrial respiration  (umol m-2 s-1)
-        Rm = 0.5 * Rd
+        Rm = [0.5 * Rd[k] for k in am, pm]
         
         return (Rd, Rm) 
 
@@ -844,7 +839,7 @@ class MateC4(MateC3):
         
         return [min(ci[k] * vpmax[k] / (ci[k] + Kp[k]), vpr) for k in am, pm] 
     
-    def calc_enzyme_limited_assim(self, Kc, Ko, Kp, ci, vpmax, vcmax, Rd):
+    def calc_enzyme_limited_assim(self, Km, Kc, Ko, Kp, ci, Vpmax, Vcmax, Rd, Rm):
         """
         Calculate the AM/PM enzyme-limited CO2 assimilation rate.
         
@@ -866,24 +861,26 @@ class MateC4(MateC3):
         """
     
         # local parameters
-        alpha = self.param.alpha_psii		
+        am, pm = self.am, self.pm # morning/afternoon
+        alpha = self.params.alpha_psii		
         Oi = self.params.Oi
         gbs = self.params.gbs
         rub_sf = self.params.rub_sf 
         
         # rate of PEP carboxylation
-        Vp = self.calc_pep_carboxylation_rate(ci, vpmax, Kp)
+        Vp = self.calc_pep_carboxylation_rate(ci, Vpmax, Kp)
         
         # Cm assumed to equal Ci
         Cm = ci
-        
+       
         # Quadratic solution for enzyme limited C4 assimilation
+        Ac = [None] * 2
         for k in am, pm:
             a = 1 - (alpha * Kc[k]) / (0.047 * Ko[k])
-            b = -((Vp - Rm[k] + gbs * Cm[k]) + 
+            b = -((Vp[k] - Rm[k] + gbs * Cm[k]) + 
                   (Vcmax[k] - Rd[k]) + gbs * Km[k] +
                   (alpha / 0.047 * (rub_sf * Vcmax[k] + Rd[k] * Kc[k] / Ko[k])))
-            c = ( (Vcmax[k] - Rd[k]) * (Vp - Rm[k] + gbs * Cm[k]) - 
+            c = ( (Vcmax[k] - Rd[k]) * (Vp[k] - Rm[k] + gbs * Cm[k]) - 
                   (Vcmax[k] * gbs * rub_sf * Oi + Rd[k] * gbs * Km[k]) )
         
             Ac[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
@@ -891,7 +888,7 @@ class MateC4(MateC3):
         return Ac
     
     
-    def calc_light_limited_assim(self, jmax, ci, Rd):
+    def calc_light_limited_assim(self, par, jmax, ci, Rd, Rm):
         """
         Calculate the AM/PM electron-transport-limited CO2 assimilation rate.
         
@@ -917,9 +914,10 @@ class MateC4(MateC3):
         """
         
         # local parameters
-        alpha = self.param.alpha_psii		
+        am, pm = self.am, self.pm # morning/afternoon
+        alpha = self.params.alpha_psii		
         theta = self.params.theta
-        x = self.params.part_j
+        x = self.params.xpart_j
         Oi = self.params.Oi
         rub_sf = self.params.rub_sf 
         gbs = self.params.gbs 
@@ -929,16 +927,18 @@ class MateC4(MateC3):
         # useful light absorbed by photosystem II (PSII)
         light_abs = par * labs * (1.0 - f) / 2.0
         
-        # Total electron transport rat (umol electrons m-2 s-1)
-        Jt = ((1.0 / (2.0 * theta)) * (light_abs + jmax - 
-               sqrt((light_abs + jmax)**2.0 - 
-               4.0 * theta * light_abs * jmax)))
-        
         # Cm assumed to equal Ci
         Cm = ci
         
         # Quadratic solution for light-limited C4 assimilation
+        Aj = [None] * 2
         for k in am, pm:
+            # Total electron transport rat (umol electrons m-2 s-1)
+            Jt = ((1.0 / (2.0 * theta)) * (light_abs + jmax[k] - 
+                   sqrt((light_abs + jmax[k])**2.0 - 
+                   4.0 * theta * light_abs * jmax[k])))
+        
+        
             a = 1.0 - ((7.0 * rub_sf * alpha) / (3.0 * 0.047))
             b = -( ((x * Jt) / 2.0 - Rm[k] + gbs * Cm[k]) + 
                    ((1.0 - x) * Jt / 3.0 - Rd[k]) + 
