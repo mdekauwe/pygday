@@ -40,16 +40,19 @@ class Gday(object):
       666-681.
     * Medlyn, B. E. et al (2000) Canadian Journal of Forest Research, 30,
       873-888.
-
+    * And any of the other McMurtrie papers!
     """
     def __init__(self, fname=None, DUMP=False, spin_up=False, met_header=4):
 
         """ Set up model
 
-        Read meterological forcing file and user config file and adjust the
-        model parameters, control or initial state attributes that are used
-        within the code.
-
+        * Read meterological forcing file
+        * Read user config file and adjust the model parameters, control or 
+          initial state attributes that are used within the code.
+        * Setup all class instances...perhaps this isn't the tidyest place for 
+          this?
+        * Initialise things, zero stores etc.
+        
         Parameters:
         ----------
         fname : string
@@ -67,17 +70,36 @@ class Gday(object):
 
         """
         self.day_output = [] # store daily outputs
+        
+        # initialise model structures and read met data
         (self.control, self.params,
             self.state, self.files,
             self.fluxes, self.met_data,
             self.print_opts) = initialise_model_data(fname, met_header, 
                                                      DUMP=DUMP)
         
-        if self.control.water_stress == False:
-            sys.stderr.write("**** You have turned off the drought stress")
-            sys.stderr.write(", I assume you're debugging??!\n")
-
-        # printing stuff
+        # class instances
+        self.cs = CarbonSoilFlows(self.control, self.params, self.state,
+                                  self.fluxes, self.met_data)
+        
+        self.ns = NitrogenSoilFlows(self.control, self.params, self.state,
+                                    self.fluxes, self.met_data)
+        
+        self.lf = Litter(self.control, self.params, self.state, self.fluxes)
+        
+        self.pg = PlantGrowth(self.control, self.params, self.state,
+                              self.fluxes, self.met_data)
+        
+        self.cb = CheckBalance(self.control, self.params, self.state,
+                               self.fluxes, self.met_data)
+        
+        if self.control.deciduous_model:
+            self.pg.calc_carbon_allocation_fracs(0.0, 0, 0) #comment this!!
+            self.pg.allocate_stored_c_and_n(init=True)
+            self.P = Phenology(self.fluxes, self.state, self.control,
+                               self.params.previous_ncd,
+                               store_transfer_len=self.params.store_transfer_len)
+        
         self.pr = PrintOutput(self.params, self.state, self.fluxes,
                               self.control, self.files, self.print_opts)
         
@@ -89,26 +111,10 @@ class Gday(object):
             self.pr.save_default_parameters()
             sys.exit(0)
         
+        # params are defined in per year, needs to be per day
         self.correct_rate_constants(output=False)
 
-        # class instances
-        self.cs = CarbonSoilFlows(self.control, self.params, self.state,
-                                  self.fluxes, self.met_data)
-        self.ns = NitrogenSoilFlows(self.control, self.params, self.state,
-                                    self.fluxes, self.met_data)
-        self.lf = Litter(self.control, self.params, self.state, self.fluxes)
-        self.pg = PlantGrowth(self.control, self.params, self.state,
-                              self.fluxes, self.met_data)
-        self.cb = CheckBalance(self.control, self.params, self.state,
-                               self.fluxes, self.met_data)
-        if self.control.deciduous_model:
-            self.pg.calc_carbon_allocation_fracs(0.0, 0, 0) #comment this!!
-            self.pg.allocate_stored_c_and_n(init=True)
-            self.P = Phenology(self.fluxes, self.state, self.control,
-                               self.params.previous_ncd,
-                               store_transfer_len=self.params.store_transfer_len)
-
-        # calculate initial C:N ratios and zero annual flux sums
+        # calculate initial stuff, e.g. C:N ratios and zero annual flux sums
         self.day_end_calculations(0, INIT=True)
         self.state.pawater_root = self.params.wcapac_root
         self.state.pawater_topsoil = self.params.wcapac_topsoil
@@ -123,6 +129,11 @@ class Gday(object):
         self.years = uniq(self.met_data["year"])
         self.days_in_year = [self.met_data["year"].count(yr) \
                              for yr in self.years]
+      
+        if self.control.water_stress == False:
+            sys.stderr.write("**** You have turned off the drought stress")
+            sys.stderr.write(", I assume you're debugging??!\n")
+
       
     def run_sim(self):
         """ Run model simulation! """    
