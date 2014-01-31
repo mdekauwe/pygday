@@ -102,9 +102,7 @@ class Gday(object):
         self.cb = CheckBalance(self.control, self.params, self.state,
                                self.fluxes, self.met_data)
         if self.control.deciduous_model:
-            #self.control.alloc_model = "FIXED"
-            self.pg.calc_carbon_allocation_fracs(0.0, 0, 0)
-            #self.control.alloc_model = "ALLOMETRIC"
+            self.pg.calc_carbon_allocation_fracs(0.0, 0, 0) #comment this!!
             self.pg.allocate_stored_c_and_n(init=True)
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
@@ -125,42 +123,7 @@ class Gday(object):
         self.years = uniq(self.met_data["year"])
         self.days_in_year = [self.met_data["year"].count(yr) \
                              for yr in self.years]
-        
-                       
-    def spin_up_pools(self, tolerance=1E-03):
-        """ Spin Up model plant, soil and litter pools.
-        -> Examine sequences of 1000 years and check if C pools are changing
-           by more than 0.005 units per 1000 yrs.
-
-        References:
-        ----------
-        Adapted from...
-        * Murty, D and McMurtrie, R. E. (2000) Ecological Modelling, 134,
-          185-205, specifically page 196.
-        """
-        prev_plantc = 9999.9
-        prev_soilc = 9999.9
-        prev_litterc = 9999.9
-        while True:
-            if (fabs(prev_plantc - self.state.plantc) < tolerance and
-                fabs(prev_soilc - self.state.soilc) < tolerance and 
-                fabs(prev_litterc - self.state.litterc) < tolerance):
-                break
-            else:            
-                prev_plantc = self.state.plantc
-                prev_soilc = self.state.soilc
-                prev_litterc = self.state.litterc
-                (yr, doy) = self.run_sim() # run the model...
-                
-                # Have we reached a steady state?
-                msg = "Spinup: Plant C - %f, Soil C - %f, Litter C - %f\n" % \
-                       (self.state.plantc, self.state.soilc, self.state.litterc)
-                sys.stderr.write(msg)
-        
-        self.save_daily_outputs(yr, doy)
-        self.pr.clean_up()
-        self.print_output_file()
-    
+      
     def run_sim(self):
         """ Run model simulation! """    
         # local variables
@@ -199,16 +162,6 @@ class Gday(object):
     
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
-                     
-                #print self.fluxes.gpp *100, self.fluxes.transpiration, self.state.pawater_root
-                #print self.fluxes.gpp * 100, self.state.lai, self.fluxes.nuptake*100., self.params.ac, self.state.shootnc
-                #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
-                #DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen[doy])
-        
-                #print yr, self.met_data["co2"][project_day], self.fluxes.gpp_gCm2*const.GRAMS_C_TO_MOL_C*const.MOL_TO_UMOL*DAY_2_SEC, self.fluxes.gs_mol_m2_sec
-                
-                #print yr, doy, self.met_data["co2"][project_day], self.met_data['ndep'][project_day]*100, self.fluxes.gpp_gCm2*100, self.state.lai
-                
                 
                 # =============== #
                 #   END OF DAY    #
@@ -239,7 +192,41 @@ class Gday(object):
             return (yr, doy+1)
         else:
             self.pr.clean_up() 
-            
+    
+    def spin_up_pools(self, tolerance=1E-03):
+        """ Spin Up model plant, soil and litter pools.
+        -> Examine sequences of 1000 years and check if C pools are changing
+           by more than 0.005 units per 1000 yrs.
+
+        References:
+        ----------
+        Adapted from...
+        * Murty, D and McMurtrie, R. E. (2000) Ecological Modelling, 134,
+          185-205, specifically page 196.
+        """
+        prev_plantc = 9999.9
+        prev_soilc = 9999.9
+        prev_litterc = 9999.9
+        while True:
+            if (fabs(prev_plantc - self.state.plantc) < tolerance and
+                fabs(prev_soilc - self.state.soilc) < tolerance and 
+                fabs(prev_litterc - self.state.litterc) < tolerance):
+                break
+            else:            
+                prev_plantc = self.state.plantc
+                prev_soilc = self.state.soilc
+                prev_litterc = self.state.litterc
+                (yr, doy) = self.run_sim() # run the model...
+                
+                # Have we reached a steady state?
+                msg = "Spinup: Plant C - %f, Soil C - %f, Litter C - %f\n" % \
+                       (self.state.plantc, self.state.soilc, self.state.litterc)
+                sys.stderr.write(msg)
+        
+        self.save_daily_outputs(yr, doy)
+        self.pr.clean_up()
+        self.print_output_file()
+           
     def print_output_file(self):
         """ Either print the daily output file (at the end of the year) or
         print the final state + param file. """
