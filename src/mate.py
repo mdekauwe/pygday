@@ -587,8 +587,10 @@ class MateC4(MateC3):
         
         # calculate mate parameters, e.g. accounting for temp dependancy
         (Km, Kc, Ko, Kp) = self.calculate_michaelis_menten_parameter(Tk)
-        N0 = self.calculate_top_of_canopy_n()
         gamma_star = self.calculate_co2_compensation_point(Tk)
+        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
+        # We dont currently have any reln based on N!
+        #N0 = self.calculate_top_of_canopy_n()
         
 	    # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
@@ -598,11 +600,18 @@ class MateC4(MateC3):
         # longer used...
         self.fluxes.cica_avg = sum(cica) / len(cica)
         
+        # Currently i dont have any information on how these depednancies 
+        # vary with N, nor do I have site parameters so going to use
+        # values at 25 degrees from the literature, hardwired till this is
+        # resolved.
+        vcmax25 = 60.0
+        vpmax25 = 120.0
+        jmax25 = 400.0
         
         if self.control.modeljm == True: 
-            jmax = self.calculate_jmax_parameter(Tk, N0)
-            vcmax = self.calculate_vcmax_parameter(Tk, N0)
-            vpmax = self.calculate_vpmax_parameter(Tk, N0)
+            jmax = self.calculate_jmax_parameter(Tk)
+            vcmax = self.calculate_vcmax_parameter(Tk)
+            vpmax = self.calculate_vpmax_parameter(Tk)
         else:
             jmax = [self.params.jmax, self.params.jmax]
             vcmax = [self.params.vcmax, self.params.vcmax]
@@ -613,20 +622,16 @@ class MateC4(MateC3):
         vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
         vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
         
+        # These respiration terms are just for assimilation calculations,
+        # autotrophic respiration is stil assumed to be half of GPP
         (Rd, Rm) = self.calc_respiration(temp, vcmax)    
         
-        
+        # Calculate assimilation rates.
         Ac = self.calc_enzyme_limited_assim(Km, Kc, Ko, Kp, ci, vpmax, vcmax, 
                                             Rd, Rm)
-        
         Aj = self.calc_light_limited_assim(par, jmax, ci, Rd, Rm)
-        
-        # light-saturated photosynthesis rate at the top of the canopy (gross)
-        # But this has respiration taken off?
         Asat = [min(Aj[k], Ac[k]) for k in am, pm]
 	    
-        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
-
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
@@ -714,7 +719,7 @@ class MateC4(MateC3):
         # return effectinve Michaelis-Menten coeffeicent for CO2
         return [Kc[k] * (1.0 + Oi / Ko[k]) for k in am, pm], Kc, Ko, Kp
  
-    def calculate_jmax_parameter(self, Tk, N0):
+    def calculate_jmax_parameter(self, Tk, jmax25):
         """ Calculate the maximum RuBP regeneration rate for light-saturated 
         leaves at the top of the canopy. 
 
@@ -738,11 +743,11 @@ class MateC4(MateC3):
         
         # the maximum rate of electron transport at 25 degC 
         #jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
-        jmax25 = 400.0
+        
         
         return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
-    def calculate_vcmax_parameter(self, Tk, N0):
+    def calculate_vcmax_parameter(self, Tk, vcmax25):
         """ Calculate the maximum rate of rubisco-mediated carboxylation at the
         top of the canopy
 
@@ -766,11 +771,11 @@ class MateC4(MateC3):
         
         # the maximum rate of electron transport at 25 degC 
         #vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
-        vcmax25 = 60.0
+        
         
         return [self.peaked_arrh(vcmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
-    def calculate_vpmax_parameter(self, Tk, N0):
+    def calculate_vpmax_parameter(self, Tk, vpmax25):
         """ Calculate the carboxylation by PEPC, initial slope of the C4 A/ci
         curve
 
@@ -794,7 +799,7 @@ class MateC4(MateC3):
         
         # the maximum rate of electron transport at 25 degC 
         #vpmax25 = self.params.vpmaxna * N0 + self.params.vpmaxnb
-        vpmax25 = 120.0
+        
         
         return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
 
