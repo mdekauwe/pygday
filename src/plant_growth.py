@@ -76,6 +76,7 @@ class PlantGrowth(object):
         # to begin with.
         if self.state.prev_sma is None:
             self.state.prev_sma = 1.0 
+
         self.sma = MovingAverageFilter(self.window_size, self.state.prev_sma)
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
@@ -277,12 +278,12 @@ class PlantGrowth(object):
             
             # calculate the N limitation based on available canopy N
             nf = self.state.shootnc
-            if nf <= self.params.nf_min:
+            if nf < self.params.nf_min:
                 nlim = 0.0
-            elif self.params.nf_min < nf and nf < self.params.nf_crit:
+            elif nf < self.params.nf_crit:
                 nlim = ((nf - self.params.nf_min) / 
                         (self.params.nf_crit - self.params.nf_min))
-            elif nf >= self.params.nf_crit:
+            else:
                 nlim = 1.0
            
             #dependent on the lifespan of the 
@@ -296,7 +297,7 @@ class PlantGrowth(object):
                                 (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin) * limitation))
-            #print limitation, self.state.alroot, self.params.c_alloc_rmax, self.params.c_alloc_rmin
+            print limitation, self.state.alroot
             
             #print self.state.alroot, limitation, nlim, self.state.wtfac_root
             # Calculate tree height: allometric reln using the power function 

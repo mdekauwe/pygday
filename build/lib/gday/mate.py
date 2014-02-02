@@ -582,51 +582,56 @@ class MateC4(MateC3):
         (temp, par, vpd, ca) = self.get_met_data(day)
         Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
         
-        # UNITS ARE NOT CONSISTENT FROM MASAD etc AND THE CODE
-        # EG Oi in code is 205000.0 and assumed 210.0 below
-        
+            
         # calculate mate parameters, e.g. accounting for temp dependancy
         (Km, Kc, Ko, Kp) = self.calculate_michaelis_menten_parameter(Tk)
-        N0 = self.calculate_top_of_canopy_n()
         gamma_star = self.calculate_co2_compensation_point(Tk)
         
-	    # calculate ratio of intercellular to atmospheric CO2 concentration.
+        # We dont currently have any reln based on N!
+        #N0 = self.calculate_top_of_canopy_n()
+    
+        # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         ci = [i * ca for i in cica]
         # store value as needed in water balance calculation - actually no
         # longer used...
         self.fluxes.cica_avg = sum(cica) / len(cica)
+        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
         
-        
+        # Currently i dont have any information on how these depednancies 
+        # vary with N, nor do I have site parameters so going to use
+        # values at 25 degrees from the literature, hardwired till this is
+        # resolved.
+        # Values from table 4.1, in von Caemmerer 2000, pg 100.
+        vcmax25 = 60.0
+        vpmax25 = 120.0 
+        jmax25 = 400.0
+    
         if self.control.modeljm == True: 
-            jmax = self.calculate_jmax_parameter(Tk, N0)
-            vcmax = self.calculate_vcmax_parameter(Tk, N0)
-            vpmax = self.calculate_vpmax_parameter(Tk, N0)
+            jmax = self.calculate_jmax_parameter(Tk, jmax25)
+            vcmax = self.calculate_vcmax_parameter(Tk, vcmax25)
+            vpmax = self.calculate_vpmax_parameter(Tk, vpmax25)
         else:
             jmax = [self.params.jmax, self.params.jmax]
             vcmax = [self.params.vcmax, self.params.vcmax]
             vpmax = [self.params.vpmax, self.params.vpmax]
-	    
-	    # reduce photosynthetic capacity with moisture stress
+        
+        # reduce photosynthetic capacity with moisture stress
         jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
         vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
         vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
-        
+    
+        # These respiration terms are just for assimilation calculations,
+        # autotrophic respiration is stil assumed to be half of GPP
         (Rd, Rm) = self.calc_respiration(temp, vcmax)    
-        
-        
+    
+        # Calculate assimilation rates.
         Ac = self.calc_enzyme_limited_assim(Km, Kc, Ko, Kp, ci, vpmax, vcmax, 
                                             Rd, Rm)
-        
         Aj = self.calc_light_limited_assim(par, jmax, ci, Rd, Rm)
-        
-        # light-saturated photosynthesis rate at the top of the canopy (gross)
-        # But this has respiration taken off?
         Asat = [min(Aj[k], Ac[k]) for k in am, pm]
-	    
-        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
-
+    
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
@@ -693,13 +698,12 @@ class MateC4(MateC3):
         Kc25 = self.params.Kc25 
         Ko25 = self.params.Ko25 
         #Kp25 = self.params.Kp25 
-        Oi = self.params.Oi 
+        Oi = self.params.Oi / 1000.0  # mbar
         
         # Massad et al 2007, Table 1.
         Kc25 = 650.0
         Ko25 = 450.0
         Kp25 = 80.0
-        
         Q10 = 2.0
         
         # Michaelis-Menten coefficents for carboxylation by Rubisco
@@ -714,7 +718,7 @@ class MateC4(MateC3):
         # return effectinve Michaelis-Menten coeffeicent for CO2
         return [Kc[k] * (1.0 + Oi / Ko[k]) for k in am, pm], Kc, Ko, Kp
  
-    def calculate_jmax_parameter(self, Tk, N0):
+    def calculate_jmax_parameter(self, Tk, jmax25):
         """ Calculate the maximum RuBP regeneration rate for light-saturated 
         leaves at the top of the canopy. 
 
@@ -736,13 +740,18 @@ class MateC4(MateC3):
         Ea = self.params.eaj
         Hd = self.params.edj
         
+        Ea = 77900.0
+        deltaS = 627.0
+        Hd = 191929.0
+        
+        
         # the maximum rate of electron transport at 25 degC 
         #jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
-        jmax25 = 400.0
         
+        #print jmax25, Ea, deltaS, Hd
         return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
-    def calculate_vcmax_parameter(self, Tk, N0):
+    def calculate_vcmax_parameter(self, Tk, vcmax25):
         """ Calculate the maximum rate of rubisco-mediated carboxylation at the
         top of the canopy
 
@@ -760,17 +769,22 @@ class MateC4(MateC3):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        deltaS = self.params.delsv
-        Ea = self.params.eav
-        Hd = self.params.edv
+        #deltaS = self.params.delsv
+        #Ea = self.params.eav
+        #Hd = self.params.edv
+        
+        Ea = 67294.0
+        deltaS = 472.0
+        Hd = 144568.0
+        
         
         # the maximum rate of electron transport at 25 degC 
         #vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
-        vcmax25 = 60.0
+        
         
         return [self.peaked_arrh(vcmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
         
-    def calculate_vpmax_parameter(self, Tk, N0):
+    def calculate_vpmax_parameter(self, Tk, vpmax25):
         """ Calculate the carboxylation by PEPC, initial slope of the C4 A/ci
         curve
 
@@ -788,13 +802,17 @@ class MateC4(MateC3):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        deltaS = self.params.delsvp
-        Ea = self.params.eavp
-        Hd = self.params.edvp
+        #deltaS = self.params.delsvp
+        #Ea = self.params.eavp
+        #Hd = self.params.edvp
+        
+        Ea = 70373.0
+        deltaS = 376.0
+        Hd = 117910.0
         
         # the maximum rate of electron transport at 25 degC 
         #vpmax25 = self.params.vpmaxna * N0 + self.params.vpmaxnb
-        vpmax25 = 120.0
+        
         
         return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
 
@@ -863,7 +881,7 @@ class MateC4(MateC3):
         # local parameters
         am, pm = self.am, self.pm # morning/afternoon
         alpha = self.params.alpha_psii		
-        Oi = self.params.Oi
+        Oi = self.params.Oi / 1000.0 # mbar
         gbs = self.params.gbs
         rub_sf = self.params.rub_sf 
         
@@ -918,7 +936,7 @@ class MateC4(MateC3):
         alpha = self.params.alpha_psii		
         theta = self.params.theta
         x = self.params.xpart_j
-        Oi = self.params.Oi
+        Oi = self.params.Oi / 1000.0 # mbar
         rub_sf = self.params.rub_sf 
         gbs = self.params.gbs 
         f = self.params.fspec
