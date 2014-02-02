@@ -15,7 +15,6 @@ __email__   = "mdekauwe@gmail.com"
 finesoil          = 0.5            # clay+silt fraction
 
 # set photosynthetic parameters
-n_crit            = 0.04           # critical leaf n/c ratio for no prod n loss, Kirschbaum etal 1994, pg 1086, =0.016/0.45
 kext              = 0.5            # extinction coefficient
 slainit           = 3.9            # specific leaf area (m2 one-sided/kg DW)
 slazero           = 3.9            # specific leaf area new fol at zero leaf N/C (m2 one-sided/kg DW)
