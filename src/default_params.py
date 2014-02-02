@@ -99,7 +99,7 @@ fretrans         = 0.5            # foliage n retranslocation fraction - 46-57% 
 rretrans         = 0.0            # root n retranslocation fraction
 bretrans         = 0.0            # branch n retranslocation fraction
 wretrans         = 0.0            # mobile wood N retranslocation fraction
-kr               = 0.5            # N uptake coefficent (0.05 kg C m-2 to 0.5 tonnes/ha) see Silvia's PhD
+kr               = 0.5            # N uptake coefficent (0.05 kg C m-2 to 0.5 tonnes/ha) see Silvia's PhD, Dewar and McM, 96.
 
 #set nitrogen allocation parameters
 ncwnewz          = 0.003          #New stem ring N:C at zero leaf N:C (mobile)
