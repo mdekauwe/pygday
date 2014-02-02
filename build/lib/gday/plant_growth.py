@@ -297,7 +297,7 @@ class PlantGrowth(object):
                                 (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin) * limitation))
-            print limitation, self.state.alroot
+
             
             #print self.state.alroot, limitation, nlim, self.state.wtfac_root
             # Calculate tree height: allometric reln using the power function 
