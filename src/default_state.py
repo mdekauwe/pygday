@@ -46,8 +46,8 @@ nstore       = 0.0                    # N store for deciduous model
 # Misc state variables
 pawater_root  = 200.0              # plant available water - root zone (mm)
 pawater_topsoil = 50.0               # plant available water - top soil(mm)
-wtfac_root = None
-wtfac_topsoil = None
+wtfac_root = 1.0
+wtfac_topsoil = 1.0
 lai = 0.0            # m2 (leaf) m-2 (ground)
 sla = None
 fpar = None

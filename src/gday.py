@@ -78,6 +78,11 @@ class Gday(object):
             self.print_opts) = initialise_model_data(fname, met_header, 
                                                      DUMP=DUMP)
         
+        # params are defined in per year, needs to be per day
+        # Important this is done here as rate constants elsewhere in the code
+        # are assumed to be in units of days not years!
+        self.correct_rate_constants(output=False)
+        
         # class instances
         self.cs = CarbonSoilFlows(self.control, self.params, self.state,
                                   self.fluxes, self.met_data)
@@ -111,8 +116,7 @@ class Gday(object):
             self.pr.save_default_parameters()
             sys.exit(0)
         
-        # params are defined in per year, needs to be per day
-        self.correct_rate_constants(output=False)
+        
 
         # calculate initial stuff, e.g. C:N ratios and zero annual flux sums
         self.day_end_calculations(0, INIT=True)
