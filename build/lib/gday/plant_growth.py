@@ -68,8 +68,8 @@ class PlantGrowth(object):
                                     top_soil_depth=self.params.topsoil_depth*const.MM_TO_M)
         
         # Window size = root lifespan in days...
-        self.window_size = (int((self.params.rdecay * const.NDAYS_IN_YR) * 
-                            const.NDAYS_IN_YR))
+        #self.window_size = (int((self.params.rdecay * const.NDAYS_IN_YR) * 
+        #                    const.NDAYS_IN_YR))
         self.window_size = 365
         # If we don't have any information about the N&water limitation, i.e.
         # as would be the case with spin-up, assume that there is no limitation
@@ -303,7 +303,7 @@ class PlantGrowth(object):
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
             height = self.params.heighto * self.state.stem**self.params.htpower
-            
+            print height
             # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
