@@ -305,6 +305,7 @@ class Gday(object):
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
         
+        #print self.state.rootn , self.state.root
         self.state.rootnc = max(0.0, self.state.rootn / self.state.root)
                 
         # total plant, soil & litter nitrogen
