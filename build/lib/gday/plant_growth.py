@@ -303,7 +303,11 @@ class PlantGrowth(object):
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
             height = self.params.heighto * self.state.stem**self.params.htpower
-            print height
+            
+            # if using allometric model, save heigh so that boundary layer
+            # calculations reflect this height.
+            self.canht = height
+           
             # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
