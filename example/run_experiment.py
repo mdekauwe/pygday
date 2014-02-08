@@ -5,17 +5,28 @@
 import os
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
-import plot_settings as ps
+import matplotlib
 import pandas as pd
 import datetime as dt
+
+# This is if the server does not have a display
+if os.environ.has_key('DISPLAY'):
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    havedisplay = True
+else:
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    havedisplay = False
+
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (05.10.2013)"
 __email__   = "mdekauwe@gmail.com"
 
 def main():
-    
+
     # run new simulations
     os.system("example.py")
 
@@ -34,7 +45,7 @@ def main():
     plt.rcParams['font.serif'] = "Helvetica"
     fig = plt.figure()
 
-    years = np.unique(amb.YEAR).values
+    years = np.unique(amb.YEAR)
     
     ax1 = fig.add_subplot(311)
    
@@ -63,8 +74,10 @@ def main():
     ax3.set_ylabel("Transpiration (mm d$^{-1}$)")
     ax3.set_xlabel("Year")
     ax3.set_ylim(0., 600)
-    plt.show()
-    #fig.savefig("example_plot.png", dpi=100)
+    if havedisplay:
+        plt.show()
+    else:
+        fig.savefig("example_plot.png", dpi=100)
     
     
 def date_converter(*args): 
