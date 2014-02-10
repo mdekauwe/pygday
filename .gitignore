@@ -5,3 +5,6 @@
 *.dat
 *.txt
 *.png
+.idea/
+.vagrant/
+build/
