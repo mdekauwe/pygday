@@ -6,12 +6,11 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import plot_settings as ps
 import pandas as pd
 import datetime as dt
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (05.10.2013)"
+__version__ = "1.0 (11.02.2014)"
 __email__   = "mdekauwe@gmail.com"
 
 def main():

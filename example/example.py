@@ -17,7 +17,7 @@ from gday import gday as model
 from gday import adjust_gday_param_file as ad
 
 __author__  = "Martin De Kauwe"
-__version__ = "1.0 (05.10.2013)"
+__version__ = "1.0 (11.02.2014)"
 __email__   = "mdekauwe@gmail.com"
 
 def main(experiment_id):
@@ -61,6 +61,7 @@ def main(experiment_id):
                          "nuptake_model": "1",
                          "passiveconst": '"false"',
                          "print_options": '"daily"',
+                         "ps_pathway": '"c3"',
                          "strfloat": "0",
                          "trans_model": "1",
                          "use_eff_nc": "0",
