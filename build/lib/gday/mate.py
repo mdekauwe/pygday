@@ -640,11 +640,7 @@ class MateC4(MateC3):
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
-        print Asat[0]
-        print par
-        print daylen
-        print alpha[k]
-        lue = [self.epsilon(Asat[k], par, daylen, alpha[k]) for k in am, pm]
+        lue = [self.epsilon(Asat[k], par, daylen, alpha) for k in am, pm]
 
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / 2.0
@@ -655,7 +651,7 @@ class MateC4(MateC3):
             par_mol = par * const.UMOL_TO_MOL
             # absorbed photosynthetically active radiation
             self.fluxes.apar = par_mol * self.state.fipar
-
+        
         # gC m-2 d-1
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                 const.MOL_C_TO_GRAMS_C)
@@ -664,6 +660,8 @@ class MateC4(MateC3):
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
         
+        cver = 3600 * daylen * const.UMOL_TO_MOL * const.MOL_C_TO_GRAMS_C
+        print self.fluxes.gpp_gCm2, sum(Ac) / 2.0 * cver, sum(Aj) / 2.0 * cver
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:

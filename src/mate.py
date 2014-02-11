@@ -475,7 +475,7 @@ class MateC3(object):
         k25 : float
             rate parameter value at 25 degC
         Ea : float
-            activation energy for the parameter [kJ mol-1]
+            activation energy for the parameter [J mol-1]
         Tk : float
             leaf temperature [deg K]
 
@@ -500,13 +500,13 @@ class MateC3(object):
         k25 : float
             rate parameter value at 25 degC
         Ea : float
-            activation energy for the parameter [kJ mol-1]
+            activation energy for the parameter [J mol-1]
         Tk : float
             leaf temperature [deg K]
         deltaS : float
             entropy factor [J mol-1 K-1)
         Hd : float
-            describes rate of decrease about the optimum temp [KJ mol-1]
+            describes rate of decrease about the optimum temp [J mol-1]
         
         Returns:
         -------
@@ -651,7 +651,7 @@ class MateC4(MateC3):
             par_mol = par * const.UMOL_TO_MOL
             # absorbed photosynthetically active radiation
             self.fluxes.apar = par_mol * self.state.fipar
-
+        
         # gC m-2 d-1
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                 const.MOL_C_TO_GRAMS_C)
@@ -660,6 +660,8 @@ class MateC4(MateC3):
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
         
+        cver = 3600 * daylen * const.UMOL_TO_MOL * const.MOL_C_TO_GRAMS_C
+        print self.fluxes.gpp_gCm2, sum(Ac) / 2.0 * cver, sum(Aj) / 2.0 * cver
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
