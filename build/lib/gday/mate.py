@@ -156,7 +156,7 @@ class MateC3(object):
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
         
-        
+        print self.fluxes.gpp_gCm2
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
@@ -597,7 +597,12 @@ class MateC4(MateC3):
         # store value as needed in water balance calculation - actually no
         # longer used...
         self.fluxes.cica_avg = sum(cica) / len(cica)
-        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
+        
+        # quantum yield has no Ci, temp dependancy in C4 plants
+        #
+        # Ehleringer, J. R., 1978: Implications of quantum yield differences 
+        # on the distributions of C3 and C4 grasses.  Oecologia, 31, 255-267. 
+        alpha = 0.053 
         
         # Currently i dont have any information on how these depednancies 
         # vary with N, nor do I have site parameters so going to use
@@ -635,6 +640,10 @@ class MateC4(MateC3):
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
+        print Asat[0]
+        print par
+        print daylen
+        print alpha[k]
         lue = [self.epsilon(Asat[k], par, daylen, alpha[k]) for k in am, pm]
 
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
