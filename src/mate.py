@@ -519,6 +519,7 @@ class MateC3(object):
         
         """
         mt = self.params.measurement_temp + const.DEG_TO_KELVIN
+    
         arg1 = self.arrh(k25, Ea, Tk)
         arg2 = 1.0 + exp((mt * deltaS - Hd) / (mt * const.RGAS))
         arg3 = 1.0 + exp((Tk * deltaS - Hd) / (Tk * const.RGAS))
@@ -582,7 +583,6 @@ class MateC4(MateC3):
         (temp, par, vpd, ca) = self.get_met_data(day)
         Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
         
-            
         # calculate mate parameters, e.g. accounting for temp dependancy
         (Km, Kc, Ko, Kp) = self.calculate_michaelis_menten_parameter(Tk)
         gamma_star = self.calculate_co2_compensation_point(Tk)
@@ -594,6 +594,7 @@ class MateC4(MateC3):
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         ci = [i * ca for i in cica]
+        
         # store value as needed in water balance calculation - actually no
         # longer used...
         self.fluxes.cica_avg = sum(cica) / len(cica)
@@ -622,19 +623,22 @@ class MateC4(MateC3):
             vcmax = [self.params.vcmax, self.params.vcmax]
             vpmax = [self.params.vpmax, self.params.vpmax]
         
+        
+        
         # reduce photosynthetic capacity with moisture stress
-        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
-        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
-        vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
+        #jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
+        #vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
+        #vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
     
         # These respiration terms are just for assimilation calculations,
         # autotrophic respiration is stil assumed to be half of GPP
         (Rd, Rm) = self.calc_respiration(temp, vcmax)    
-    
+        
         # Calculate assimilation rates.
         Ac = self.calc_enzyme_limited_assim(Km, Kc, Ko, Kp, ci, vpmax, vcmax, 
                                             Rd, Rm)
-        Aj = self.calc_light_limited_assim(par, jmax, ci, Rd, Rm)
+        par_per_sec = par / (60.0 * 60.0 * daylen)
+        Aj = self.calc_light_limited_assim(par_per_sec, jmax, ci, Rd, Rm)
         Asat = [min(Aj[k], Ac[k]) for k in am, pm]
     
         # Assumption that the integral is symmetric about noon, so we average
@@ -660,8 +664,7 @@ class MateC4(MateC3):
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
         
-        cver = 3600 * daylen * const.UMOL_TO_MOL * const.MOL_C_TO_GRAMS_C
-        print self.fluxes.gpp_gCm2, sum(Ac) / 2.0 * cver, sum(Aj) / 2.0 * cver
+        print self.fluxes.gpp_gCm2
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
@@ -705,12 +708,12 @@ class MateC4(MateC3):
         Kc25 = self.params.Kc25 
         Ko25 = self.params.Ko25 
         #Kp25 = self.params.Kp25 
-        Oi = self.params.Oi / 1000.0  # mbar
-        
+        #Oi = self.params.Oi / 1000.0  # mbar
+        Oi = 210.0
         # Massad et al 2007, Table 1.
-        Kc25 = 650.0
-        Ko25 = 450.0
-        Kp25 = 80.0
+        Kc25 = 650.0 # ubar
+        Ko25 = 450.0 # mbar
+        Kp25 = 80.0  # ubar
         Q10 = 2.0
         
         # Michaelis-Menten coefficents for carboxylation by Rubisco
@@ -757,6 +760,7 @@ class MateC4(MateC3):
         
         #print jmax25, Ea, deltaS, Hd
         return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
+    
         
     def calculate_vcmax_parameter(self, Tk, vcmax25):
         """ Calculate the maximum rate of rubisco-mediated carboxylation at the
@@ -888,12 +892,15 @@ class MateC4(MateC3):
         # local parameters
         am, pm = self.am, self.pm # morning/afternoon
         alpha = self.params.alpha_psii		
-        Oi = self.params.Oi / 1000.0 # mbar
+        #Oi = self.params.Oi / 1000.0 # mbar
+        Oi = 210.0
         gbs = self.params.gbs
         rub_sf = self.params.rub_sf 
         
         # rate of PEP carboxylation
         Vp = self.calc_pep_carboxylation_rate(ci, Vpmax, Kp)
+        
+        
         
         # Cm assumed to equal Ci
         Cm = ci
@@ -905,6 +912,7 @@ class MateC4(MateC3):
             b = -((Vp[k] - Rm[k] + gbs * Cm[k]) + 
                   (Vcmax[k] - Rd[k]) + gbs * Km[k] +
                   (alpha / 0.047 * (rub_sf * Vcmax[k] + Rd[k] * Kc[k] / Ko[k])))
+            
             c = ( (Vcmax[k] - Rd[k]) * (Vp[k] - Rm[k] + gbs * Cm[k]) - 
                   (Vcmax[k] * gbs * rub_sf * Oi + Rd[k] * gbs * Km[k]) )
         
@@ -943,7 +951,8 @@ class MateC4(MateC3):
         alpha = self.params.alpha_psii		
         theta = self.params.theta
         x = self.params.xpart_j
-        Oi = self.params.Oi / 1000.0 # mbar
+        #Oi = self.params.Oi / 1000.0 # mbar
+        Oi = 210.0
         rub_sf = self.params.rub_sf 
         gbs = self.params.gbs 
         f = self.params.fspec
@@ -999,7 +1008,7 @@ if __name__ == "__main__":
         fluxes, met_data,
             print_opts) = initialise_model_data(fname, met_header, DUMP=False)
     
-    
+    control.ps_pathway = "C4"
     if control.ps_pathway == "C3":
         M = MateC3(control, params, state, fluxes, met_data)
     else:
