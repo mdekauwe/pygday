@@ -33,7 +33,7 @@ def main():
     plt.rcParams['font.serif'] = "Helvetica"
     fig = plt.figure()
 
-    @years = np.unique(amb.YEAR).values
+    #years = np.unique(amb.YEAR).values
     years = np.unique(amb.YEAR)
     
     ax1 = fig.add_subplot(311)
