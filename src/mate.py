@@ -559,24 +559,26 @@ class MateC4(MateC3):
         (Tair_K, par, vpd, ca) = self.get_met_data(day)
 
         ci = [self.calculate_ci(vpd[k], ca) for k in am, pm]
+        N0 = self.calculate_top_of_canopy_n()
         
-        # We dont currently have any reln based on N!
-        #N0 = self.calculate_top_of_canopy_n()
-        
-        # quantum yield has no Ci, temp dependancy in C4 plants
-        #
+        # Quantum efficiency (umol mol-1), no Ci or temp dependancey in c4
+        # plants
         # Ehleringer, J. R., 1978: Implications of quantum yield differences 
         # on the distributions of C3 and C4 grasses.  Oecologia, 31, 255-267. 
-        alpha = 0.053 
+        alpha = 0.04
         
         self.control.collatz = True
         if self.control.collatz:
             # C4 assimilation following from Collatz et al. 1992
-            alpharf = 0.067			# mol/mol
-            K = 0.7					# mol/m2/s
-            theta = 0.83			# Curvature of quantum response curve, Collatz table2
-            beta  = 0.93			# Collatz table 2
-            vcmax25 = 30.0
+            #alpharf = 0.067			# mol/mol
+            kslope = 0.7		    # initial slope of photosynthetic CO2 response (mol m-2 s-1), Collatz table 2
+            theta = 0.83			# curvature parameter, Collatz table 2
+            beta  = 0.93			# curvature parameter, Collatz table 2
+            
+            
+            # http://www.cesm.ucar.edu/models/cesm1.0/clm/CLM4_Tech_Note.pdf
+            # Table 8.2 has PFT values...
+            vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb          
             
             
             # Massad et al. 2007
@@ -584,13 +586,19 @@ class MateC4(MateC3):
             Hdv = 144568.0
             deltaSv = 472.0
             vcmax = [self.peaked_arrh(vcmax25, Eav, Tair_K[k], deltaSv, Hdv) for k in am, pm]
-
+            
+            
+            Je = vcmax
+            Jc = k / vmax * vcmax * ci
+            Ji = alpha * I
+            
+            
             # Rubisco and light limited capacity
             par_per_sec = par / (60.0 * 60.0 * daylen)
-            M = [self.quadratic(theta, -(alpharf*par_per_sec+vcmax[k]), alpharf*par_per_sec*vcmax[k]) for k in am, pm]
+            M = [self.quadratic(theta, -(alpha*par_per_sec+vcmax[k]), alpha*par_per_sec*vcmax[k]) for k in am, pm]
 
             # M and CO2 limitation
-            A = [self.quadratic(beta, -(M[k]+K*ci[k]), M[k]*K*ci[k]) for k in am, pm]
+            A = [self.quadratic(beta, -(M[k]+kslope*ci[k]), M[k]*kslope*ci[k]) for k in am, pm]
 
             # These respiration terms are just for assimilation calculations,
             # autotrophic respiration is stil assumed to be half of GPP
