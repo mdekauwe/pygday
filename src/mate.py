@@ -99,8 +99,7 @@ class MateC3(object):
         Km = self.calculate_michaelis_menten_parameter(Tair_K)
         N0 = self.calculate_top_of_canopy_n()
         (jmax, vcmax) = self.calculate_jmax_and_vcmax(Tair_K, N0)
-        cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
-        ci = [i * ca for i in cica]
+        ci = [self.calculate_ci(vpd[k], ca) for k in am, pm]
         alpha = self.calculate_quantum_efficiency(ci, gamma_star)
         
         # Rubisco carboxylation limited rate of photosynthesis
@@ -354,8 +353,8 @@ class MateC3(object):
         else:
             return a1 * (ci - gamma_star) / (a2 + ci) 
    
-    def calculate_ci_ca_ratio(self, vpd):
-        """ Calculate the ratio of intercellular to atmos CO2 conc
+    def calculate_ci(self, vpd, ca):
+        """ Calculate the intercellular (Ci) concentration 
 
         Formed by substituting gs = g0 + 1.6 * (1 + (g1/sqrt(D))) * A/Ca into
         A = gs / 1.6 * (Ca - Ci) and assuming intercept (g0) = 0.
@@ -364,7 +363,9 @@ class MateC3(object):
         ----------
         vpd : float
             vapour pressure deficit
-
+        ca : float
+            ambient co2 concentration 
+            
         Returns:
         -------
         ci:ca : float
@@ -375,8 +376,10 @@ class MateC3(object):
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
         g1w = self.params.g1 * self.state.wtfac_root
+        cica = g1w / (g1w + sqrt(vpd))
+        ci = cica * ca
         
-        return g1w / (g1w + sqrt(vpd))
+        return ci
        
     def epsilon(self, asat, par, daylen, alpha):
         """ Canopy scale LUE using method from Sands 1995, 1996. 
@@ -553,24 +556,12 @@ class MateC4(MateC3):
         """
         # local var for tidyness
         (am, pm) = self.am, self.pm # morning/afternoon
-        (temp, par, vpd, ca) = self.get_met_data(day)
-        Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
-        
-        # calculate mate parameters, e.g. accounting for temp dependancy
-        (Km, Kc, Ko, Kp) = self.calculate_michaelis_menten_parameter(Tk)
-        gamma_star = self.calculate_co2_compensation_point(Tk)
+        (Tair_K, par, vpd, ca) = self.get_met_data(day)
+
+        ci = [self.calculate_ci(vpd[k], ca) for k in am, pm]
         
         # We dont currently have any reln based on N!
         #N0 = self.calculate_top_of_canopy_n()
-    
-        # calculate ratio of intercellular to atmospheric CO2 concentration.
-        # Also allows productivity to be water limited through stomatal opening.
-        cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
-        ci = [i * ca for i in cica]
-        
-        # store value as needed in water balance calculation - actually no
-        # longer used...
-        self.fluxes.cica_avg = sum(cica) / len(cica)
         
         # quantum yield has no Ci, temp dependancy in C4 plants
         #
@@ -578,41 +569,81 @@ class MateC4(MateC3):
         # on the distributions of C3 and C4 grasses.  Oecologia, 31, 255-267. 
         alpha = 0.053 
         
-        # Currently i dont have any information on how these depednancies 
-        # vary with N, nor do I have site parameters so going to use
-        # values at 25 degrees from the literature, hardwired till this is
-        # resolved.
-        # Values from table 4.1, in von Caemmerer 2000, pg 100.
-        vcmax25 = 60.0
-        vpmax25 = 120.0 
-        jmax25 = 400.0
+        self.control.collatz = True
+        if self.control.collatz:
+            # C4 assimilation following from Collatz et al. 1992
+            alpharf = 0.067			# mol/mol
+            K = 0.7					# mol/m2/s
+            theta = 0.83			# Curvature of quantum response curve, Collatz table2
+            beta  = 0.93			# Collatz table 2
+            vcmax25 = 30.0
+            
+            
+            # Massad et al. 2007
+            Eav = 67294.0
+            Hdv = 144568.0
+            deltaSv = 472.0
+            vcmax = [self.peaked_arrh(vcmax25, Eav, Tair_K[k], deltaSv, Hdv) for k in am, pm]
+
+            # Rubisco and light limited capacity
+            par_per_sec = par / (60.0 * 60.0 * daylen)
+            M = [self.quadratic(theta, -(alpharf*par_per_sec+vcmax[k]), alpharf*par_per_sec*vcmax[k]) for k in am, pm]
+
+            # M and CO2 limitation
+            A = [self.quadratic(beta, -(M[k]+K*ci[k]), M[k]*K*ci[k]) for k in am, pm]
+
+            # These respiration terms are just for assimilation calculations,
+            # autotrophic respiration is stil assumed to be half of GPP
+            (Rd, Rm) = self.calc_respiration(Tair_K, vcmax)    
+
+
+            # Net (saturated) photosynthetic rate, not sure if this
+            # makes sense.
+            Asat = [A[k] - Rd[k] for k in am, pm]
+        else:    
+        
+            # calculate mate parameters, e.g. accounting for temp dependancy
+            (Km, Kc, Ko, Kp) = self.calculate_michaelis_menten_parameter(Tair_K)
+            gamma_star = self.calculate_co2_compensation_point(Tair_K)
+        
+            
     
-        if self.control.modeljm == True: 
-            jmax = self.calculate_jmax_parameter(Tk, jmax25)
-            vcmax = self.calculate_vcmax_parameter(Tk, vcmax25)
-            vpmax = self.calculate_vpmax_parameter(Tk, vpmax25)
-        else:
-            jmax = [self.params.jmax, self.params.jmax]
-            vcmax = [self.params.vcmax, self.params.vcmax]
-            vpmax = [self.params.vpmax, self.params.vpmax]
         
-        
-        
-        # reduce photosynthetic capacity with moisture stress
-        #jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
-        #vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
-        #vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
+            # Currently i dont have any information on how these depednancies 
+            # vary with N, nor do I have site parameters so going to use
+            # values at 25 degrees from the literature, hardwired till this is
+            # resolved.
+            # Values from table 4.1, in von Caemmerer 2000, pg 100.
+            vcmax25 = 60.0
+            vpmax25 = 120.0 
+            jmax25 = 400.0
     
-        # These respiration terms are just for assimilation calculations,
-        # autotrophic respiration is stil assumed to be half of GPP
-        (Rd, Rm) = self.calc_respiration(temp, vcmax)    
+            if self.control.modeljm == True: 
+                jmax = self.calculate_jmax_parameter(Tair_K, jmax25)
+                vcmax = self.calculate_vcmax_parameter(Tair_K, vcmax25)
+                vpmax = self.calculate_vpmax_parameter(Tair_K, vpmax25)
+            else:
+                jmax = [self.params.jmax, self.params.jmax]
+                vcmax = [self.params.vcmax, self.params.vcmax]
+                vpmax = [self.params.vpmax, self.params.vpmax]
         
-        # Calculate assimilation rates.
-        Ac = self.calc_enzyme_limited_assim(Km, Kc, Ko, Kp, ci, vpmax, vcmax, 
-                                            Rd, Rm)
-        par_per_sec = par / (60.0 * 60.0 * daylen)
-        Aj = self.calc_light_limited_assim(par_per_sec, jmax, ci, Rd, Rm)
-        Asat = [min(Aj[k], Ac[k]) for k in am, pm]
+        
+        
+            # reduce photosynthetic capacity with moisture stress
+            #jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
+            #vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
+            #vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
+    
+            # These respiration terms are just for assimilation calculations,
+            # autotrophic respiration is stil assumed to be half of GPP
+            (Rd, Rm) = self.calc_respiration(Tair_K, vcmax)    
+        
+            # Calculate assimilation rates.
+            Ac = self.calc_enzyme_limited_assim(Km, Kc, Ko, Kp, ci, vpmax, vcmax, 
+                                                Rd, Rm)
+            par_per_sec = par / (60.0 * 60.0 * daylen)
+            Aj = self.calc_light_limited_assim(par_per_sec, jmax, ci, Rd, Rm)
+            Asat = [min(Aj[k], Ac[k]) for k in am, pm]
     
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
@@ -637,7 +668,7 @@ class MateC4(MateC3):
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
         
-        #print self.fluxes.gpp_gCm2
+        print self.fluxes.gpp_gCm2
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
@@ -960,7 +991,30 @@ class MateC4(MateC3):
             Aj[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
         
         return Aj
-     
+    
+    def quadratic(self, a=None, b=None, c=None):
+        """ minimilist quadratic solution
+
+        Parameters:
+        ----------
+        a : float
+            co-efficient 
+        b : float
+            co-efficient
+        c : float
+            co-efficient
+
+        Returns:
+        -------
+        root : float
+    
+        """
+        d = b**2.0 - 4.0 * a * c # discriminant
+        root = (-b - sqrt(d)) / (2.0 * a)	# Negative quadratic equation
+
+        return root
+       
+         
 if __name__ == "__main__":
     
     import numpy as np
