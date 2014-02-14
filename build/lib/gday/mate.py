@@ -324,8 +324,8 @@ class MateC3(object):
             vcmax = [self.params.vcmax, self.params.vcmax]
         
         # reduce photosynthetic capacity with moisture stress
-        #jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
-        #vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]  
+        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
+        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]  
     
         return jmax, vcmax
         
