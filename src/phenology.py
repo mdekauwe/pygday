@@ -13,7 +13,7 @@ class Phenology(object):
     """
     
     def __init__(self, fluxes, state, control, previous_ncd=None, pa=-68., 
-                 pb=638., pc=0.01, store_transfer_len=None):
+                 pb=638., pc=-0.01, store_transfer_len=None):
         """
         Parameters:
         ----------
@@ -52,6 +52,9 @@ class Phenology(object):
         self.calculate_growing_season_fluxes()
         
     def calc_gdd(self, Tavg):
+        """ calculate the number of growing degree days, hypothesis is that
+        leaves appear after a threshold has been passed.
+        """
         return max(0.0, Tavg - self.Tbase)
   
     def gdd_chill_thresh(self, ncd):
@@ -104,12 +107,16 @@ class Phenology(object):
             Tsoil = met_data['tsoil'][self.project_day]
             
             if self.project_day < 362:
-                Tsoil_next_3days = met_data['tsoil'][self.project_day] + \
-                                    met_data['tsoil'][self.project_day+1] + \
-                                    met_data['tsoil'][self.project_day+2] / 3.0
+                Tsoil_next_3days = ((met_data['tsoil'][self.project_day] +
+                                     met_data['tsoil'][self.project_day+1] + 
+                                     met_data['tsoil'][self.project_day+2])/3.0)
             else:
                 # i.e. end of year, didn't find this so have no effect
                 Tsoil_next_3days = 999.9 
+            
+            # Sum the daily mean air temperature above 5degC starting on Jan 1
+            # (july 1 for south hemisphere) - note code needs to be changed for
+            # SH!
             self.accum_gdd += self.calc_gdd(Tmean)
             
             if self.leaf_on_found == False and self.accum_gdd >= gdd_thresh:
