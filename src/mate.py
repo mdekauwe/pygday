@@ -21,7 +21,7 @@ class MateC3(object):
     MATE is connected to G'DAY via LAI and leaf N content. Key feedback through 
     soil N mineralisation and plant N uptake. Plant respiration is calculated 
     via carbon-use efficiency (CUE=NPP/GPP). There is a further water limitation
-    constraint on productivity through the ci:ca ratio.
+    constraint on productivity through the Ci:Ca ratio.
 
     References:
     -----------
@@ -92,35 +92,19 @@ class MateC3(object):
         """
         # local var for tidyness
         (am, pm) = self.am, self.pm # morning/afternoon
-        (temp, par, vpd, ca) = self.get_met_data(day)
-        Tk = [temp[k] + const.DEG_TO_KELVIN for k in am, pm]
-
+        (Tair_K, par, vpd, ca) = self.get_met_data(day)
+        
         # calculate mate parameters, e.g. accounting for temp dependancy
-        gamma_star = self.calculate_co2_compensation_point(Tk)
-        Km = self.calculate_michaelis_menten_parameter(Tk)
+        gamma_star = self.calculate_co2_compensation_point(Tair_K)
+        Km = self.calculate_michaelis_menten_parameter(Tair_K)
         N0 = self.calculate_top_of_canopy_n()
-        
-        
-        if self.control.modeljm == True: 
-            jmax = self.calculate_jmax_parameter(Tk, N0)
-            vcmax = self.calculate_vcmax_parameter(Tk, N0)
-        else:
-            jmax = [self.params.jmax, self.params.jmax]
-            vcmax = [self.params.vcmax, self.params.vcmax]
-        
-        # reduce photosynthetic capacity with moisture stress
-        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
-        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]       
+        (jmax, vcmax) = self.calculate_jmax_and_vcmax(Tair_K, N0)
         
         # calculate ratio of intercellular to atmospheric CO2 concentration.
         # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         ci = [i * ca for i in cica]
         alpha = self.calculate_quantum_efficiency(ci, gamma_star)
-        
-        # store value as needed in water balance calculation - actually no
-        # longer used...
-        self.fluxes.cica_avg = sum(cica) / len(cica)
         
         # Rubisco carboxylation limited rate of photosynthesis
         ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=Km[k]) \
@@ -156,7 +140,6 @@ class MateC3(object):
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
         
-        #print self.fluxes.gpp_gCm2
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
@@ -183,8 +166,8 @@ class MateC3(object):
 
         Returns:
         -------
-        temp : float
-            am/pm temp in a list [degC]
+        Tair_K : float
+            am/pm air temperature in a list [Kelvin]
         vpd : float
             am/pm vpd in a list [kPa]
         par : float
@@ -193,7 +176,8 @@ class MateC3(object):
             atmospheric co2 [umol mol-1]
 
         """
-        temp = [self.met_data['tam'][day], self.met_data['tpm'][day]]
+        Tair_K = [self.met_data['tam'][day] + const.DEG_TO_KELVIN, \
+                self.met_data['tpm'][day] + const.DEG_TO_KELVIN]
         vpd = [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
         ca = self.met_data["co2"][day]
         
@@ -207,11 +191,13 @@ class MateC3(object):
             conv = const.RAD_TO_PAR * const.MJ_TO_MOL * const.MOL_TO_UMOL
             par = self.met_data['sw_rad'][day] * conv
         
-        return (temp, par, vpd, ca)
+        return (Tair_K, par, vpd, ca)
 
     def calculate_co2_compensation_point(self, Tk):
         """ CO2 compensation point in the absence of mitochondrial respiration
-
+        Rate of photosynthesis matches the rate of respiration and the net CO2
+        assimilation is zero.
+        
         Parameters:
         ----------
         temp : float
@@ -301,58 +287,48 @@ class MateC3(object):
         else:
             N0 = 0.0
         return N0
-        
-    def calculate_jmax_parameter(self, Tk, N0):
-        """ Calculate the maximum RuBP regeneration rate for light-saturated 
-        leaves at the top of the canopy. 
-
-        Parameters:
-        ----------
-        temp : float
-            air temperature
-        N0 : float
-            leaf N
-
-        Returns:
-        -------
-        jmax : float, list [am, pm]
-            maximum rate of electron transport
-        """
-        # local var for tidyness
-        am, pm = self.am, self.pm # morning/afternoon
-        deltaS = self.params.delsj
-        Ea = self.params.eaj
-        Hd = self.params.edj
-        
-        # the maximum rate of electron transport at 25 degC 
-        jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
-        
-        return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
-        
-    def calculate_vcmax_parameter(self, Tk, N0):
-        """ Calculate the maximum rate of rubisco-mediated carboxylation at the
-        top of the canopy
-
-        Parameters:
-        ----------
-        temp : float
-            air temperature
-        N0 : float
-            leaf N
-            
-        Returns:
-        -------
-        vcmax : float, list [am, pm]
-            maximum rate of Rubisco activity
-        """
-        # local var for tidyness
-        am, pm = self.am, self.pm # morning/afternoon
-        
-        # the maximum rate of electron transport at 25 degC 
-        vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
-        
-        return [self.arrh(vcmax25, self.params.eav, Tk[k]) for k in am, pm]
     
+    
+    def calculate_jmax_and_vcmax(self, Tk, N0):
+        """ Calculate the maximum RuBP regeneration rate for light-saturated 
+        leaves at the top of the canopy (Jmax) and the maximum rate of 
+        rubisco-mediated carboxylation at the top of the canopy (Vcmax). 
+        
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        N0 : float
+            leaf N
+        """
+    
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        deltaSj = self.params.delsj
+        Eaj = self.params.eaj
+        Eav = self.params.eav
+        Hdj = self.params.edj
+        
+        if self.control.modeljm == True: 
+            # the maximum rate of electron transport at 25 degC 
+            jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
+        
+            jmax = [self.peaked_arrh(jmax25, Eaj, Tk[k], deltaSj, Hdj) \
+                                    for k in am, pm]
+            
+            # the maximum rate of electron transport at 25 degC 
+            vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
+            vcmax = [self.arrh(vcmax25, Eav, Tk[k]) for k in am, pm]
+        else:
+            jmax = [self.params.jmax, self.params.jmax]
+            vcmax = [self.params.vcmax, self.params.vcmax]
+        
+        # reduce photosynthetic capacity with moisture stress
+        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
+        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]  
+    
+        return jmax, vcmax
+        
     def assim(self, ci, gamma_star, a1, a2):
         """Morning and afternoon calcultion of photosynthesis with the 
         limitation defined by the variables passed as a1 and a2, i.e. if we 

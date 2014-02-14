@@ -369,7 +369,7 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-       # print total_alloc, self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
+        #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
@@ -530,7 +530,7 @@ class PlantGrowth(object):
             #  - cut back N prodn
             arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +
                    self.fluxes.npbranch )
-    
+            
             if float_gt(arg, ntot) and self.control.fixleafnc == False:
                 self.fluxes.npp *= (ntot / (self.fluxes.npstemimm +
                                     self.fluxes.npstemmob + 
@@ -845,7 +845,10 @@ class PlantGrowth(object):
                 self.fluxes.nuptake -= extrar 
                 
     def calculate_cn_store(self):        
-        
+        """ Deciduous trees store carbohydrate during the winter which they then
+        use in the following year to build new leaves (buds & budburst are 
+        implied) 
+        """
         # Total C & N storage to allocate annually.
         self.state.cstore += self.fluxes.npp
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
