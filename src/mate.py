@@ -570,6 +570,8 @@ class MateC4(MateC3):
         self.control.collatz = True
         if self.control.collatz:
             # C4 assimilation following from Collatz et al. 1992
+            
+            #?? Exponential factor in the equation defining kt
             #alpharf = 0.067			# mol/mol
             kslope = 0.7		    # initial slope of photosynthetic CO2 response (mol m-2 s-1), Collatz table 2
             theta = 0.83			# curvature parameter, Collatz table 2
