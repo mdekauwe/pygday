@@ -559,10 +559,7 @@ class MateC4(MateC3):
         (Tair_K, par, vpd, ca) = self.get_met_data(day)
 
         ci = [self.calculate_ci(vpd[k], ca) for k in am, pm]
-        
-        # We dont currently have any reln based on N!
         N0 = self.calculate_top_of_canopy_n()
-        
         
         # Quantum efficiency (umol mol-1), no Ci or temp dependancey in c4
         # plants
@@ -573,16 +570,17 @@ class MateC4(MateC3):
         self.control.collatz = True
         if self.control.collatz:
             # C4 assimilation following from Collatz et al. 1992
-            alpharf = 0.067			# mol/mol
+            
+            #?? Exponential factor in the equation defining kt
+            #alpharf = 0.067			# mol/mol
             kslope = 0.7		    # initial slope of photosynthetic CO2 response (mol m-2 s-1), Collatz table 2
             theta = 0.83			# curvature parameter, Collatz table 2
             beta  = 0.93			# curvature parameter, Collatz table 2
             
             
             # http://www.cesm.ucar.edu/models/cesm1.0/clm/CLM4_Tech_Note.pdf
-            self.params.vcmaxna = 33
-            self.params.vcmaxnb = 0.0
-            vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb #39.0          
+            # Table 8.2 has PFT values...
+            vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb          
             
             
             # Massad et al. 2007
@@ -592,10 +590,14 @@ class MateC4(MateC3):
             vcmax = [self.peaked_arrh(vcmax25, Eav, Tair_K[k], deltaSv, Hdv) for k in am, pm]
             
             
+            Je = vcmax
+            Jc = k / vmax * vcmax * ci
+            Ji = alpha * I
+            
             
             # Rubisco and light limited capacity
             par_per_sec = par / (60.0 * 60.0 * daylen)
-            M = [self.quadratic(theta, -(alpharf*par_per_sec+vcmax[k]), alpharf*par_per_sec*vcmax[k]) for k in am, pm]
+            M = [self.quadratic(theta, -(alpha*par_per_sec+vcmax[k]), alpha*par_per_sec*vcmax[k]) for k in am, pm]
 
             # M and CO2 limitation
             A = [self.quadratic(beta, -(M[k]+kslope*ci[k]), M[k]*kslope*ci[k]) for k in am, pm]
@@ -676,7 +678,7 @@ class MateC4(MateC3):
         self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
                                       const.MOL_C_TO_GRAMS_C)
         
-        print self.fluxes.gpp_gCm2
+        #print self.fluxes.gpp_gCm2
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
