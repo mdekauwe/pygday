@@ -88,17 +88,17 @@ class WaterBalance(object):
             # scale to reduce the influence of AM/PM VPD. I think the only
             # correct fix would be to replace MATE with a daily time step GPP
             # calculation.
-            self.calc_transpiration_penmon(vpd_day, net_rad_day, tair_day, 
-                                            wind_day, ca, daylen, press)
+            #self.calc_transpiration_penmon(vpd_day, net_rad_day, tair_day, 
+            #                                wind_day, ca, daylen, press)
                                                
-            #if self.control.assim_model == "BEWDY":
-            #    self.calc_transpiration_penmon(vpd_day, net_rad_day, tair_day, 
-            #                                   wind_day, ca, daylen, press)
-            #
-            #elif self.control.assim_model == "MATE":
-            #    self.calc_transpiration_penmon_am_pm(net_rad_ampm, wind_ampm, 
-            #                                         ca, daylen, press, 
-            #                                         vpd_ampm, tair_ampm)
+            if self.control.assim_model == "BEWDY":
+                self.calc_transpiration_penmon(vpd_day, net_rad_day, tair_day, 
+                                               wind_day, ca, daylen, press)
+            
+            elif self.control.assim_model == "MATE":
+                self.calc_transpiration_penmon_am_pm(net_rad_ampm, wind_ampm, 
+                                                     ca, daylen, press, 
+                                                     vpd_ampm, tair_ampm)
         
         elif self.control.trans_model == 2:
             self.calc_transpiration_priestay(net_rad_avg, tair_day, press)

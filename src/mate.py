@@ -94,14 +94,11 @@ class MateC3(object):
         (am, pm) = self.am, self.pm # morning/afternoon
         (Tair_K, par, vpd, ca) = self.get_met_data(day)
         
-        # calculate mate parameters, e.g. accounting for temp dependancy
+        # calculate mate params & account for temperature dependencies
         gamma_star = self.calculate_co2_compensation_point(Tair_K)
         Km = self.calculate_michaelis_menten_parameter(Tair_K)
         N0 = self.calculate_top_of_canopy_n()
         (jmax, vcmax) = self.calculate_jmax_and_vcmax(Tair_K, N0)
-        
-        # calculate ratio of intercellular to atmospheric CO2 concentration.
-        # Also allows productivity to be water limited through stomatal opening.
         cica = [self.calculate_ci_ca_ratio(vpd[k]) for k in am, pm]
         ci = [i * ca for i in cica]
         alpha = self.calculate_quantum_efficiency(ci, gamma_star)
