@@ -567,7 +567,7 @@ class MateC4(MateC3):
         # on the distributions of C3 and C4 grasses.  Oecologia, 31, 255-267. 
         alpha = 0.04
         
-        vmax = self.calculate_vcmax_parameter(Tair_K)
+        vmax = self.calculate_vcmax_parameter(Tair_K, N0)
         # C4 assimilation following from Collatz et al. 1992
         
         #?? Exponential factor in the equation defining kt
@@ -634,7 +634,7 @@ class MateC4(MateC3):
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
         
-    def calculate_vcmax_parameter(self, Tk):
+    def calculate_vcmax_parameter(self, Tk, N0):
         """ Calculate the maximum rate of rubisco-mediated carboxylation at the
         top of the canopy
         
