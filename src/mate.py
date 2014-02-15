@@ -573,17 +573,17 @@ class MateC4(MateC3):
         #?? Exponential factor in the equation defining kt
         #alpharf = 0.067			# mol/mol
         kslope = 0.7		    # initial slope of photosynthetic CO2 response (mol m-2 s-1), Collatz table 2
-        theta = 0.83			# curvature parameter, Collatz table 2
-        beta  = 0.93			# curvature parameter, Collatz table 2
+        beta1 = 0.83			# curvature parameter, Collatz table 2
+        beta2  = 0.93			# curvature parameter, Collatz table 2
         
         
         # Rubisco and light limited capacity
         par_per_sec = par / (60.0 * 60.0 * daylen)
-        M = [self.quadratic(theta, -(alpha*par_per_sec+vcmax[k]), 
+        M = [self.quadratic(beta1, -(alpha*par_per_sec+vcmax[k]), 
              alpha*par_per_sec*vcmax[k]) for k in am, pm]
 
         # M and CO2 limitation
-        A = [self.quadratic(beta, -(M[k]+kslope*ci[k]), M[k]*kslope*ci[k])\
+        A = [self.quadratic(beta2, -(M[k]+kslope*ci[k]), M[k]*kslope*ci[k])\
              for k in am, pm]
 
         # These respiration terms are just for assimilation calculations,
