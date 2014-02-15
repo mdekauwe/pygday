@@ -567,7 +567,7 @@ class MateC4(MateC3):
         # on the distributions of C3 and C4 grasses.  Oecologia, 31, 255-267. 
         alpha = 0.04
         
-        vmax = self.calculate_vcmax_parameter(Tair_K)
+        
         # C4 assimilation following from Collatz et al. 1992
         
         #?? Exponential factor in the equation defining kt
@@ -577,22 +577,86 @@ class MateC4(MateC3):
         beta  = 0.93			# curvature parameter, Collatz table 2
         
         
+        # http://www.cesm.ucar.edu/models/cesm1.0/clm/CLM4_Tech_Note.pdf
+        # Table 8.2 has PFT values...
+        vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb          
+        
+        # Massad et al. 2007
+        Eav = 67294.0
+        Hdv = 144568.0
+        deltaSv = 472.0
+        vcmax = [self.peaked_arrh(vcmax25, Eav, Tair_K[k], deltaSv, Hdv) \
+                 for k in am, pm]
+        
+        # reduce photosynthetic capacity with moisture stress
+        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
+        
+        #Je = vcmax
+        #Jc = k / vmax * vcmax * ci
+        #Ji = alpha * I
+        
+        
         # Rubisco and light limited capacity
         par_per_sec = par / (60.0 * 60.0 * daylen)
-        M = [self.quadratic(theta, -(alpha*par_per_sec+vcmax[k]), 
-             alpha*par_per_sec*vcmax[k]) for k in am, pm]
+        M = [self.quadratic(theta, -(alpha*par_per_sec+vcmax[k]), alpha*par_per_sec*vcmax[k]) for k in am, pm]
 
         # M and CO2 limitation
-        A = [self.quadratic(beta, -(M[k]+kslope*ci[k]), M[k]*kslope*ci[k])\
-             for k in am, pm]
+        A = [self.quadratic(beta, -(M[k]+kslope*ci[k]), M[k]*kslope*ci[k]) for k in am, pm]
 
         # These respiration terms are just for assimilation calculations,
         # autotrophic respiration is stil assumed to be half of GPP
         (Rd, Rm) = self.calc_respiration(Tair_K, vcmax)    
 
+
         # Net (saturated) photosynthetic rate, not sure if this
         # makes sense.
         Asat = [A[k] - Rd[k] for k in am, pm]
+        
+        """    
+        
+            # calculate mate parameters, e.g. accounting for temp dependancy
+            (Km, Kc, Ko, Kp) = self.calculate_michaelis_menten_parameter(Tair_K)
+            gamma_star = self.calculate_co2_compensation_point(Tair_K)
+        
+            
+    
+        
+            # Currently i dont have any information on how these depednancies 
+            # vary with N, nor do I have site parameters so going to use
+            # values at 25 degrees from the literature, hardwired till this is
+            # resolved.
+            # Values from table 4.1, in von Caemmerer 2000, pg 100.
+            vcmax25 = 60.0
+            vpmax25 = 120.0 
+            jmax25 = 400.0
+    
+            if self.control.modeljm == True: 
+                jmax = self.calculate_jmax_parameter(Tair_K, jmax25)
+                vcmax = self.calculate_vcmax_parameter(Tair_K, vcmax25)
+                vpmax = self.calculate_vpmax_parameter(Tair_K, vpmax25)
+            else:
+                jmax = [self.params.jmax, self.params.jmax]
+                vcmax = [self.params.vcmax, self.params.vcmax]
+                vpmax = [self.params.vpmax, self.params.vpmax]
+        
+        
+        
+            # reduce photosynthetic capacity with moisture stress
+            #jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
+            #vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
+            #vpmax = [self.state.wtfac_root * vpmax[k] for k in am, pm] 
+    
+            # These respiration terms are just for assimilation calculations,
+            # autotrophic respiration is stil assumed to be half of GPP
+            (Rd, Rm) = self.calc_respiration(Tair_K, vcmax)    
+        
+            # Calculate assimilation rates.
+            Ac = self.calc_enzyme_limited_assim(Km, Kc, Ko, Kp, ci, vpmax, vcmax, 
+                                                Rd, Rm)
+            par_per_sec = par / (60.0 * 60.0 * daylen)
+            Aj = self.calc_light_limited_assim(par_per_sec, jmax, ci, Rd, Rm)
+            Asat = [min(Aj[k], Ac[k]) for k in am, pm]
+        """
         
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
@@ -633,14 +697,92 @@ class MateC4(MateC3):
         
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
+    
+    def calculate_michaelis_menten_parameter(self, Tk):
+        """ Effective Michaelis-Menten coefficent of Rubisco activity
+
+        Parameters:
+        ----------
+        temp : float
+            air temperature
         
-    def calculate_vcmax_parameter(self, Tk):
+        Returns:
+        -------
+        value : float, list [am, pm]
+            Km, effective Michaelis-Menten constant for Rubisco catalytic 
+            activity
+        
+        References:
+        -----------
+        * Massad et al. (2007) PCE, 30, 1191-1204.
+        
+        
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        Tc = [Tk[k] - const.DEG_TO_KELVIN for k in am, pm]
+        
+        Kc25 = self.params.Kc25 
+        Ko25 = self.params.Ko25 
+        #Kp25 = self.params.Kp25 
+        #Oi = self.params.Oi / 1000.0  # mbar
+        Oi = 210.0
+        # Massad et al 2007, Table 1.
+        Kc25 = 650.0 # ubar
+        Ko25 = 450.0 # mbar
+        Kp25 = 80.0  # ubar
+        Q10 = 2.0
+        
+        # Michaelis-Menten coefficents for carboxylation by Rubisco
+        Kc = [Kc25 * Q10**((Tc[k] - 25.0) / 10.0) for k in am, pm]
+        
+        # Michaelis-Menten coefficents for oxygenation by Rubisco
+        Ko = [Ko25 * Q10**((Tc[k] - 25.0) / 10.0) for k in am, pm]
+        
+        # Michaelis-Menten coefficents for PEPcase for CO2
+        Kp = [Kp25 * Q10**((Tc[k] - 25.0) / 10.0) for k in am, pm]
+        
+        # return effectinve Michaelis-Menten coeffeicent for CO2
+        return [Kc[k] * (1.0 + Oi / Ko[k]) for k in am, pm], Kc, Ko, Kp
+ 
+    def calculate_jmax_parameter(self, Tk, jmax25):
+        """ Calculate the maximum RuBP regeneration rate for light-saturated 
+        leaves at the top of the canopy. 
+
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        N0 : float
+            leaf N
+
+        Returns:
+        -------
+        jmax : float, list [am, pm]
+            maximum rate of electron transport
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        deltaS = self.params.delsj
+        Ea = self.params.eaj
+        Hd = self.params.edj
+        
+        Ea = 77900.0
+        deltaS = 627.0
+        Hd = 191929.0
+        
+        
+        # the maximum rate of electron transport at 25 degC 
+        #jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
+        
+        #print jmax25, Ea, deltaS, Hd
+        return [self.peaked_arrh(jmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
+    
+        
+    def calculate_vcmax_parameter(self, Tk, vcmax25):
         """ Calculate the maximum rate of rubisco-mediated carboxylation at the
         top of the canopy
-        
-        # http://www.cesm.ucar.edu/models/cesm1.0/clm/CLM4_Tech_Note.pdf
-        # Table 8.2 has PFT values...
-        
+
         Parameters:
         ----------
         temp : float
@@ -659,17 +801,48 @@ class MateC4(MateC3):
         #Ea = self.params.eav
         #Hd = self.params.edv
         
-        # Massad et al. 2007
         Ea = 67294.0
+        deltaS = 472.0
         Hd = 144568.0
-        delS = 472.0
+        
         
         # the maximum rate of electron transport at 25 degC 
-        vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
-        vcmax = [self.peaked_arrh(vcmax25, Ea, Tk[k], delS, Hd) for k in am, pm]
-        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
+        #vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
         
-        return vcmax
+        
+        return [self.peaked_arrh(vcmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
+        
+    def calculate_vpmax_parameter(self, Tk, vpmax25):
+        """ Calculate the carboxylation by PEPC, initial slope of the C4 A/ci
+        curve
+
+        Parameters:
+        ----------
+        temp : float
+            air temperature
+        N0 : float
+            leaf N
+            
+        Returns:
+        -------
+        vcmax : float, list [am, pm]
+            maximum rate of Rubisco activity
+        """
+        # local var for tidyness
+        am, pm = self.am, self.pm # morning/afternoon
+        #deltaS = self.params.delsvp
+        #Ea = self.params.eavp
+        #Hd = self.params.edvp
+        
+        Ea = 70373.0
+        deltaS = 376.0
+        Hd = 117910.0
+        
+        # the maximum rate of electron transport at 25 degC 
+        #vpmax25 = self.params.vpmaxna * N0 + self.params.vpmaxnb
+        
+        
+        return [self.peaked_arrh(vpmax25, Ea, Tk[k], deltaS, Hd) for k in am, pm]
 
     def calc_respiration(self, temp, vcmax):  
         """
@@ -699,6 +872,138 @@ class MateC4(MateC3):
         Rm = [0.5 * Rd[k] for k in am, pm]
         
         return (Rd, Rm) 
+
+    def calc_pep_carboxylation_rate(self, ci, vpmax, Kp):
+        """
+        Parameters:
+        ----------
+        Vpr : float
+            rate of PEP regeneration (mu mol m-2 s-1)
+        """
+        am, pm = self.am, self.pm # morning/afternoon
+        vpr = self.params.vpr 
+        
+        return [min(ci[k] * vpmax[k] / (ci[k] + Kp[k]), vpr) for k in am, pm] 
+    
+    def calc_enzyme_limited_assim(self, Km, Kc, Ko, Kp, ci, Vpmax, Vcmax, Rd, Rm):
+        """
+        Calculate the AM/PM enzyme-limited CO2 assimilation rate.
+        
+        Parameters:
+        ----------
+        
+        alpha : float
+            Fraction of PSII activity in the bundle sheath [0-1]
+        rub_sf : float 
+            Half the reciprocal for Rubisco specificity 
+        gbs : float
+            bundle sheath conductance
+        
+        
+        Returns:
+        -------
+        Ac : float, list [am, pm]
+            enzyme-limited assimilation rate [umol m-2 s-1]
+        """
+    
+        # local parameters
+        am, pm = self.am, self.pm # morning/afternoon
+        alpha = self.params.alpha_psii		
+        #Oi = self.params.Oi / 1000.0 # mbar
+        Oi = 210.0
+        gbs = self.params.gbs
+        rub_sf = self.params.rub_sf 
+        
+        # rate of PEP carboxylation
+        Vp = self.calc_pep_carboxylation_rate(ci, Vpmax, Kp)
+        
+        
+        
+        # Cm assumed to equal Ci
+        Cm = ci
+       
+        # Quadratic solution for enzyme limited C4 assimilation
+        Ac = [None] * 2
+        for k in am, pm:
+            a = 1 - (alpha * Kc[k]) / (0.047 * Ko[k])
+            b = -((Vp[k] - Rm[k] + gbs * Cm[k]) + 
+                  (Vcmax[k] - Rd[k]) + gbs * Km[k] +
+                  (alpha / 0.047 * (rub_sf * Vcmax[k] + Rd[k] * Kc[k] / Ko[k])))
+            
+            c = ( (Vcmax[k] - Rd[k]) * (Vp[k] - Rm[k] + gbs * Cm[k]) - 
+                  (Vcmax[k] * gbs * rub_sf * Oi + Rd[k] * gbs * Km[k]) )
+        
+            Ac[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
+		
+        return Ac
+    
+    
+    def calc_light_limited_assim(self, par, jmax, ci, Rd, Rm):
+        """
+        Calculate the AM/PM electron-transport-limited CO2 assimilation rate.
+        
+        Parameters:
+        ----------
+        x : float
+            Partitioning factor of electron transport
+        rub_sf : float 
+            Half the reciprocal for Rubisco specificity 
+        gbs : float
+            bundle sheath conductance
+        theta : float
+             curvature factor
+        alpha : float
+            Fraction of PSII activity in the bundle sheath [0-1]
+        f : float
+            correction factor for spectral quality of light
+        
+        Returns:
+        -------
+        Aj : float, list [am, pm]
+            Light-limited assimilation rate [umol m-2 s-1]
+        """
+        
+        # local parameters
+        am, pm = self.am, self.pm # morning/afternoon
+        alpha = self.params.alpha_psii		
+        theta = self.params.theta
+        x = self.params.xpart_j
+        #Oi = self.params.Oi / 1000.0 # mbar
+        Oi = 210.0
+        rub_sf = self.params.rub_sf 
+        gbs = self.params.gbs 
+        f = self.params.fspec
+        labs = self.params.labs
+        
+        # useful light absorbed by photosystem II (PSII)
+        light_abs = par * labs * (1.0 - f) / 2.0
+        
+        # Cm assumed to equal Ci
+        Cm = ci
+        
+        # Quadratic solution for light-limited C4 assimilation
+        Aj = [None] * 2
+        for k in am, pm:
+            # Total electron transport rat (umol electrons m-2 s-1)
+            Jt = ((1.0 / (2.0 * theta)) * (light_abs + jmax[k] - 
+                   sqrt((light_abs + jmax[k])**2.0 - 
+                   4.0 * theta * light_abs * jmax[k])))
+        
+        
+            a = 1.0 - ((7.0 * rub_sf * alpha) / (3.0 * 0.047))
+            b = -( ((x * Jt) / 2.0 - Rm[k] + gbs * Cm[k]) + 
+                   ((1.0 - x) * Jt / 3.0 - Rd[k]) + 
+                   (gbs * (7.0 * rub_sf * Oi / 3.0)) + 
+                   (alpha * rub_sf / 0.047) * 
+                   (((1.0 - x) * Jt / 3.0) + (7.0 * Rd[k] / 3.0)) )
+            c = ( ((x * Jt / 2.0 - Rm[k] + gbs * Cm[k]) *
+                   ((1.0 - x) * Jt / 3.0 - Rd[k])) -
+                   (gbs * rub_sf * Oi) * 
+                   ((1.0 - x) * Jt / 3.0 + (7.0 * Rd[k] / 3.0)) )
+                   
+            Aj[k] = (-b - sqrt(b**2 - 4.0 * a * c)) / (2.0 * a)
+        
+        return Aj
     
     def quadratic(self, a=None, b=None, c=None):
         """ minimilist quadratic solution
