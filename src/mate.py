@@ -506,10 +506,13 @@ class MateC3(object):
 
 class MateC4(MateC3):
     """ C4 photosynthesis pathway. Sands LUE implementation adjusted to make use
-    of C4 equations from von Caemmerer.
+    of C4 equations from Collatz.
     
     References:
     ===========
+    * Collatz, G, J., Ribas-Carbo, M. and Berry, J. A. (1992) Coupled 
+      Photosynthesis-Stomatal Conductance Model for Leaves of C4 plants. 
+      Aust. J. Plant Physiol., 19, 519-38.
     * von Caemmerer, S. (2000) Biochemical Models of Leaf Photosynthesis. Chp 4. 
       Modelling C4 photosynthesis. CSIRO PUBLISHING, Australia. pg 91-122.
     * Massad, R-S., Tuzet, A. and Bethenod, O. (2007) The effect of temperature 
@@ -562,33 +565,37 @@ class MateC4(MateC3):
         N0 = self.calculate_top_of_canopy_n()
         
         # Quantum efficiency (umol mol-1), no Ci or temp dependancey in c4
-        # plants
+        # plants see: 
         # Ehleringer, J. R., 1978: Implications of quantum yield differences 
         # on the distributions of C3 and C4 grasses.  Oecologia, 31, 255-267. 
         alpha = 0.04
         
-        vcmax = self.calculate_vcmax_parameter(Tair_K, N0)
+        (vcmax, vcmax25) = self.calculate_vcmax_parameter(Tair_K, N0)
         # C4 assimilation following from Collatz et al. 1992
         
-        #?? Exponential factor in the equation defining kt
-        #alpharf = 0.067			# mol/mol
-        kslope = 0.7		    # initial slope of photosynthetic CO2 response (mol m-2 s-1), Collatz table 2
-        beta1 = 0.83			# curvature parameter, Collatz table 2
-        beta2  = 0.93			# curvature parameter, Collatz table 2
+        # initial slope of photosynthetic CO2 response (mol m-2 s-1), 
+        # Collatz table 2
+        kslope = 0.7		    
         
+        # curvature parameter, Collatz table 2
+        beta1 = 0.83			
+        
+        # curvature parameter, Collatz table 2
+        beta2 = 0.93			
         
         # Rubisco and light limited capacity
+        # Appendix, 2B
         par_per_sec = par / (60.0 * 60.0 * daylen)
-        M = [self.quadratic(beta1, -(alpha*par_per_sec+vcmax[k]), 
-             alpha*par_per_sec*vcmax[k]) for k in am, pm]
+        M = [self.quadratic(beta1, -(vcmax[k] + alpha * par_per_sec), 
+                            (vcmax[k] * alpha * par_per_sec)) for k in am, pm]
 
-        # M and CO2 limitation
-        A = [self.quadratic(beta2, -(M[k]+kslope*ci[k]), M[k]*kslope*ci[k])\
-             for k in am, pm]
+        # The limitation of the overall rate by M and CO2 limited flux:
+        A = [self.quadratic(beta2, -(M[k] + kslope * ci[k]), 
+                            (M[k] * kslope * ci[k])) for k in am, pm]
 
         # These respiration terms are just for assimilation calculations,
         # autotrophic respiration is stil assumed to be half of GPP
-        (Rd, Rm) = self.calc_respiration(Tair_K, vcmax)    
+        (Rd) = self.calc_respiration(Tair_K, vcmax25)    
 
         # Net (saturated) photosynthetic rate, not sure if this
         # makes sense.
@@ -643,8 +650,8 @@ class MateC4(MateC3):
         
         Parameters:
         ----------
-        temp : float
-            air temperature
+        Tk : float
+            air temperature (kelvin)
         N0 : float
             leaf N
             
@@ -669,9 +676,9 @@ class MateC4(MateC3):
         vcmax = [self.peaked_arrh(vcmax25, Ea, Tk[k], delS, Hd) for k in am, pm]
         vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
         
-        return vcmax
+        return vcmax, vcmax25
 
-    def calc_respiration(self, temp, vcmax):  
+    def calc_respiration(self, Tk, vcmax25, Tref=25.0):  
         """
         Mitochondrial respiration may occur in the mesophyll as well as in the 
         bundle sheath. As rubisco may more readily refix CO2 released in the 
@@ -680,26 +687,36 @@ class MateC4(MateC3):
         
         Parameters:
         ----------
-        temp : float
-            air temperature
-        vcmax : float, list
+        Tk : float
+            air temperature (kelvin)
+        vcmax25 : float, list
             
         Returns:
         -------
         Rd : float, list [am, pm]
-            Day leaf respiration (umol m-2 s-1)
-        Rm : float, list [am, pm]
-            Maintanence respiration (umol m-2 s-1)
+            (respiration in the light) 'day' respiration (umol m-2 s-1)
+        
+        
+        References:
+        -----------
+        Tjoelker et al (2001) GCB, 7, 223-230.
         """
         am, pm = self.am, self.pm # morning/afternoon
-        # Day leaf respiration (umol m-2 s-1)
-        Rd = [0.01 * vcmax[k] for k in am, pm]
         
-        # Mesophyll mitochondrial respiration  (umol m-2 s-1)
-        Rm = [0.5 * Rd[k] for k in am, pm]
+        # specific respiration at a reference temperature (25 deg C)
+        # scaled to Vcmax25 after Collatz et al 1991. Agricultural and Forest 
+        # Meteorology, 54, 107-136 
+        Rd25 = 0.015 * vcmax25
         
-        return (Rd, Rm) 
-    
+        # ratio between respiration rate at one temperature and the respiration 
+        # rate at a temperature 10 deg C lower
+        Q10 = 2.0 
+        
+        Rd = [Rd25 * Q10**(((Tk[k] - const.DEG_TO_KELVIN) - Tref) / 10.0) \
+              for k in am, pm] 
+       
+        return Rd
+        
     def quadratic(self, a=None, b=None, c=None):
         """ minimilist quadratic solution
 
