@@ -114,8 +114,9 @@ class PlantGrowth(object):
         
         
         self.update_plant_state(fdecay, rdecay, project_day, doy)
-        if self.control.deciduous_model:
-            self.precision_control()
+        #if self.control.deciduous_model:
+        
+        self.precision_control()
         
         
         
@@ -728,17 +729,23 @@ class PlantGrowth(object):
             self.state.rootn = 0.0
     
         if self.state.stem < tolerance:     
-            self.fluxes.deadstemn += self.state.stem
+            self.fluxes.deadstems += self.state.stem
+            self.fluxes.deadstemn += self.state.stemn
             self.state.stem = 0.0
+            self.state.stemn = 0.0
             self.state.stemnimm = 0.0
             self.state.stemnmob = 0.0
         
         # need separate one as this will become very small if there is no
         # mobile stem N
-        if self.state.stem < tolerance: 
+        if self.state.stemnmob < tolerance: 
             self.fluxes.deadstemn += self.state.stemnmob
             self.state.stemnmob = 0.0  
             
+        if self.state.stemnimm < tolerance: 
+            self.fluxes.deadstemn += self.state.stemnimm
+            self.state.stemnimm = 0.0  
+        
         # should add check for soil pools - excess goes where?
         
     def update_plant_state(self, fdecay, rdecay, project_day, doy):
@@ -784,6 +791,9 @@ class PlantGrowth(object):
         self.state.stemnmob += (self.fluxes.npstemmob - self.params.wdecay *
                                 self.state.stemnmob -
                                 self.params.retransmob * self.state.stemnmob)
+        
+        #print self.state.stemnmob, self.fluxes.npstemmob - self.params.wdecay * self.state.stemnmob, self.fluxes.npstemmob, self.params.wdecay * self.state.stemnmob
+        
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
 
         if self.control.deciduous_model:
