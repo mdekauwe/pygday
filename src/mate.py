@@ -586,12 +586,12 @@ class MateC4(MateC3):
         # Rubisco and light limited capacity
         # Appendix, 2B
         par_per_sec = par / (60.0 * 60.0 * daylen)
-        M = [self.quadratic(beta1, -(vcmax[k] + alpha * par_per_sec), 
-                            (vcmax[k] * alpha * par_per_sec)) for k in am, pm]
+        M = [self.quadratic(a=beta1, b=-(vcmax[k] + alpha * par_per_sec), 
+                            c=(vcmax[k] * alpha * par_per_sec)) for k in am, pm]
 
         # The limitation of the overall rate by M and CO2 limited flux:
-        A = [self.quadratic(beta2, -(M[k] + kslope * ci[k]), 
-                            (M[k] * kslope * ci[k])) for k in am, pm]
+        A = [self.quadratic(a=beta2, b=-(M[k] + kslope * ci[k]), 
+                            c=(M[k] * kslope * ci[k])) for k in am, pm]
 
         # These respiration terms are just for assimilation calculations,
         # autotrophic respiration is stil assumed to be half of GPP
