@@ -651,6 +651,12 @@ class MateC4(MateC3):
         """ Calculate the maximum rate of rubisco-mediated carboxylation at the
         top of the canopy
         
+        References:
+        -----------
+        * Massad, R-S., Tuzet, A. and Bethenod, O. (2007) The effect of 
+          temperature on C4-type leaf photosynthesis parameters. Plant, Cell and 
+          Environment, 30, 1191-1204.
+        
         # http://www.cesm.ucar.edu/models/cesm1.0/clm/CLM4_Tech_Note.pdf
         # Table 8.2 has PFT values...
         
@@ -660,7 +666,8 @@ class MateC4(MateC3):
             air temperature (kelvin)
         N0 : float
             leaf N
-            
+        
+        
         Returns:
         -------
         vcmax : float, list [am, pm]
@@ -668,11 +675,11 @@ class MateC4(MateC3):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        #deltaS = self.params.delsv
-        #Ea = self.params.eav
-        #Hd = self.params.edv
         
         # Massad et al. 2007
+        #Ea = self.params.eav    
+        #Hd = self.params.edv    
+        #delS = self.params.delsv   
         Ea = 67294.0
         Hd = 144568.0
         delS = 472.0
