@@ -12,16 +12,15 @@ __email__   = "mdekauwe@gmail.com"
 
 
 class MateC3(object):
-    """ Model Any Terrestrial Ecosystem (MATE) model
+    """ Model Any Terrestrial Ecosystem (MATE) model (C3)
 
-    Simulates photosynthesis (GPP) based on Sands (1995), accounting for diurnal
-    variations in irradiance and temp (am [sunrise-noon], pm[noon to sunset]) 
-    and the decline of irradiance with depth through the canopy.  
+    Simulates C3 photosynthesis (GPP) based on Sands (1995), accounting for 
+    diurnal variations in irradiance and temp (am [sunrise-noon], 
+    pm[noon to sunset]) and the decline of irradiance with depth through the 
+    canopy.  
     
-    MATE is connected to G'DAY via LAI and leaf N content. Key feedback through 
-    soil N mineralisation and plant N uptake. Plant respiration is calculated 
-    via carbon-use efficiency (CUE=NPP/GPP). There is a further water limitation
-    constraint on productivity through the Ci:Ca ratio.
+    MATE is connected to G'DAY via LAI and leaf N content. Plant autotrophic  
+    respiration is calculated via carbon-use efficiency (CUE=NPP/GPP). 
 
     References:
     -----------
@@ -100,6 +99,8 @@ class MateC3(object):
         N0 = self.calculate_top_of_canopy_n()
         (jmax, vcmax) = self.calculate_jmax_and_vcmax(Tair_K, N0)
         ci = [self.calculate_ci(vpd[k], ca) for k in am, pm]
+        
+        # quantum efficiency calculated for C3 plants
         alpha = self.calculate_quantum_efficiency(ci, gamma_star)
         
         # Rubisco carboxylation limited rate of photosynthesis
@@ -224,12 +225,8 @@ class MateC3(object):
         """
         # local var for tidyness
         am, pm = self.am, self.pm # morning/afternoon
-        alpha_j = 0.26 # initial slope
         
-        # McM '08
-        #return [0.07 * (ca - gamma_star[k]) / (cia  + (2.0*gamma_star[k])) \
-        #        for k in am, pm]
-        return [self.assim(ci[k], gamma_star[k], a1=alpha_j/4.0, \
+        return [self.assim(ci[k], gamma_star[k], a1=self.params.alpha_j/4.0, \
                 a2=2.0*gamma_star[k]) for k in am, pm]
         
     
@@ -505,24 +502,49 @@ class MateC3(object):
 
 
 class MateC4(MateC3):
-    """ C4 photosynthesis pathway. Sands LUE implementation adjusted to make use
-    of C4 equations from Collatz.
+    """ Model Any Terrestrial Ecosystem (MATE) model (C4)
+
+    Simulates C4 photosynthesis (GPP) based on Collatz (92) & Sands (1995), 
+    accounting for diurnal variations in irradiance and temp (am [sunrise-noon], 
+    pm[noon to sunset]) and the decline of irradiance with depth through the 
+    canopy. The Collatz C4 model is a simplification, but functionally 
+    equivalent model to the von Caemmerer model.
     
+    MATE is connected to G'DAY via LAI and leaf N content. Plant autotrophic  
+    respiration is calculated via carbon-use efficiency (CUE=NPP/GPP). 
+
     References:
-    ===========
+    -----------
     * Collatz, G, J., Ribas-Carbo, M. and Berry, J. A. (1992) Coupled 
       Photosynthesis-Stomatal Conductance Model for Leaves of C4 plants. 
       Aust. J. Plant Physiol., 19, 519-38.
     * von Caemmerer, S. (2000) Biochemical Models of Leaf Photosynthesis. Chp 4. 
       Modelling C4 photosynthesis. CSIRO PUBLISHING, Australia. pg 91-122.
+
+    Temperature dependancies:
     * Massad, R-S., Tuzet, A. and Bethenod, O. (2007) The effect of temperature 
       on C4-type leaf photosynthesis parameters. Plant, Cell and Environment, 
       30, 1191-1204.
-    
+      
+    Intrinsic Quantum efficiency (mol mol-1), no Ci or temp dependancey 
+    in c4 plants see: 
+    * Ehleringer, J. R., 1978, Oecologia, 31, 255-267 or Collatz 1998.
+    * Value taken from Table 1, Collatz et al.1998 Oecologia, 114, 441-454.
     """
-    
     def __init__(self, control, params, state, fluxes, met_data):
         MateC3.__init__(self, control, params, state, fluxes, met_data)
+        
+        # curvature parameter, transition between light-limited and
+        # carboxylation limited flux. Collatz table 2
+        self.beta1 = 0.83	
+        
+        # curvature parameter, co-limitaiton between flux determined by
+        # Rubisco and light and CO2 limited flux. Collatz table 2
+        self.beta2 = 0.93
+        
+        # initial slope of photosynthetic CO2 response (mol m-2 s-1), 
+        # Collatz table 2
+        self.kslope = 0.7		    
         
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
@@ -563,35 +585,19 @@ class MateC4(MateC3):
 
         ci = [self.calculate_ci(vpd[k], ca) for k in am, pm]
         N0 = self.calculate_top_of_canopy_n()
+        alpha = self.params.alpha_c4
         
-        # Quantum efficiency (umol mol-1), no Ci or temp dependancey in c4
-        # plants see: 
-        # Ehleringer, J. R., 1978: Implications of quantum yield differences 
-        # on the distributions of C3 and C4 grasses.  Oecologia, 31, 255-267. 
-        alpha = 0.04
-        
+        # Temp dependancies from Massad et al. 2007
         (vcmax, vcmax25) = self.calculate_vcmax_parameter(Tair_K, N0)
-        # C4 assimilation following from Collatz et al. 1992
         
-        # initial slope of photosynthetic CO2 response (mol m-2 s-1), 
-        # Collatz table 2
-        kslope = 0.7		    
-        
-        # curvature parameter, Collatz table 2
-        beta1 = 0.83			
-        
-        # curvature parameter, Collatz table 2
-        beta2 = 0.93			
-        
-        # Rubisco and light limited capacity
-        # Appendix, 2B
+        # Rubisco and light-limited capacity (Appendix, 2B)
         par_per_sec = par / (60.0 * 60.0 * daylen)
-        M = [self.quadratic(a=beta1, b=-(vcmax[k] + alpha * par_per_sec), 
+        M = [self.quadratic(a=self.beta1, b=-(vcmax[k] + alpha * par_per_sec), 
                             c=(vcmax[k] * alpha * par_per_sec)) for k in am, pm]
 
         # The limitation of the overall rate by M and CO2 limited flux:
-        A = [self.quadratic(a=beta2, b=-(M[k] + kslope * ci[k]), 
-                            c=(M[k] * kslope * ci[k])) for k in am, pm]
+        A = [self.quadratic(a=self.beta2, b=-(M[k] + self.kslope * ci[k]), 
+                            c=(M[k] * self.kslope * ci[k])) for k in am, pm]
 
         # These respiration terms are just for assimilation calculations,
         # autotrophic respiration is stil assumed to be half of GPP
@@ -604,7 +610,7 @@ class MateC4(MateC3):
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
-        lue = [self.epsilon(Asat[k], par, daylen, alpha) for k in am, pm]
+        lue = [self.epsilon(Asat[k], par, daylen, self.alphaf) for k in am, pm]
 
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / 2.0
@@ -703,10 +709,14 @@ class MateC4(MateC3):
         """
         am, pm = self.am, self.pm # morning/afternoon
         
+        # scaling constant to Vcmax25, value = 0.015 after Collatz et al 1991. 
+        # Agricultural and Forest Meteorology, 54, 107-136. But this if for C3
+        # Value used in JULES for C4 is 0.025, using that one, see Clark et al.
+        # 2011, Geosci. Model Dev, 4, 701-722.
+        fdr = 0.025
+        
         # specific respiration at a reference temperature (25 deg C)
-        # scaled to Vcmax25 after Collatz et al 1991. Agricultural and Forest 
-        # Meteorology, 54, 107-136 
-        Rd25 = 0.015 * vcmax25
+        Rd25 = fdr * vcmax25
         
         # ratio between respiration rate at one temperature and the respiration 
         # rate at a temperature 10 deg C lower
