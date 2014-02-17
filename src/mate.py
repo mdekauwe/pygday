@@ -610,7 +610,7 @@ class MateC4(MateC3):
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
-        lue = [self.epsilon(Asat[k], par, daylen, self.alphaf) for k in am, pm]
+        lue = [self.epsilon(Asat[k], par, daylen, alpha) for k in am, pm]
 
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / 2.0
