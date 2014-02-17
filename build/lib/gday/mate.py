@@ -694,13 +694,18 @@ class MateC4(MateC3):
         Returns:
         -------
         Rd : float, list [am, pm]
-            Day leaf respiration (umol m-2 s-1)
-        Rm : float, list [am, pm]
-            Maintanence respiration (umol m-2 s-1)
+            (respiration in the light) 'day' respiration (umol m-2 s-1)
+        
+        
+        References:
+        -----------
+        Tjoelker et al (2001) GCB, 7, 223-230.
         """
         am, pm = self.am, self.pm # morning/afternoon
         
-        # specific respiration at a reference temperature (deg C)
+        # specific respiration at a reference temperature (25 deg C)
+        # scaled to Vcmax25 after Collatz et al 1991. Agricultural and Forest 
+        # Meteorology, 54, 107-136 
         Rd25 = 0.015 * vcmax25
         
         # ratio between respiration rate at one temperature and the respiration 
@@ -709,10 +714,8 @@ class MateC4(MateC3):
         
         Rd = [Rd25 * Q10**(((Tk[k] - const.DEG_TO_KELVIN) - Tref) / 10.0) \
               for k in am, pm] 
-        print Rd
+       
         return Rd
-        
-        Rd = rd25 * Q10^((Tleaf - 25.0) / 10.0)
         
     def quadratic(self, a=None, b=None, c=None):
         """ minimilist quadratic solution

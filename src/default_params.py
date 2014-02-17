@@ -22,6 +22,9 @@ slamax            = 3.9            # specofic leaf area new fol at max leaf N/C 
 lai_cover         = 0.5            # LAI when max cover fraction is reached (m2 (leaf) m-2 (ground) ~ 2.5
 cfracts           = 0.5            # carbon fraction of dry biomass
 nmin              = 0.95           # minimum leaf n for +ve p/s (g/m2)
+
+# If we dont know values we could assume a J=2.02*V (Wullschleger 1993)
+# And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
 jmaxna            = 40.462         # slope of the reln btween jmax and leaf N content (g N m-2) - (umol/g n/s)
 jmaxnb            = 13.691         # intercept of jmax vs n (umol/g n/s)
 jmax              = -999.9         # maximum rate of electron transport (umol m-2 s-1)
