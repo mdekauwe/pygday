@@ -68,9 +68,10 @@ class PlantGrowth(object):
                                     top_soil_depth=self.params.topsoil_depth*const.MM_TO_M)
         
         # Window size = root lifespan in days...
-        #self.window_size = (int((self.params.rdecay * const.NDAYS_IN_YR) * 
-        #                    const.NDAYS_IN_YR))
-        self.window_size = 365
+        self.window_size = (int(1.0 / (self.params.rdecay * const.NDAYS_IN_YR)* 
+                            const.NDAYS_IN_YR))
+        #self.window_size = 365
+        
         # If we don't have any information about the N&water limitation, i.e.
         # as would be the case with spin-up, assume that there is no limitation
         # to begin with.
