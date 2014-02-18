@@ -303,12 +303,9 @@ class PlantGrowth(object):
             #print self.state.alroot, limitation, nlim, self.state.wtfac_root
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
-            height = self.params.heighto * self.state.stem**self.params.htpower
+            self.state.canht = (self.params.heighto * 
+                                self.state.stem**self.params.htpower)
             
-            # if using allometric model, save heigh so that boundary layer
-            # calculations reflect this height.
-            self.canht = height
-           
             # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
@@ -317,7 +314,7 @@ class PlantGrowth(object):
                                     const.TONNES_AS_KG * 
                                     const.M2_AS_HA) / 
                                     self.params.cfracts) / 
-                                    height / 
+                                    self.state.canht / 
                                     self.params.density)
             
             leaf2sap = self.state.lai / sap_cross_sec_area
@@ -338,7 +335,7 @@ class PlantGrowth(object):
           
             leaf2sa_target = (self.params.leafsap0 + 
                              (self.params.leafsap1 - self.params.leafsap0) * 
-                             (height - self.params.height0) / 
+                             (self.state.canht - self.params.height0) / 
                              (self.params.height1 - self.params.height0))
             leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
         

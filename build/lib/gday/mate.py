@@ -327,7 +327,7 @@ class MateC3(object):
        
         return jmax, vcmax
     
-    def adj_params_for_low_temp(self, param, temp, lower_bound=0.0, 
+    def adj_params_for_low_temp(self, param, Tk, lower_bound=0.0, 
                                 upper_bound=10.0):
         """ 
         Function allowing Jmax/Vcmax to be forced linearly to zero at low T

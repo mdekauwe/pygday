@@ -44,8 +44,7 @@ class WaterBalance(object):
         self.control = control
         self.state = state
         self.met_data = met_data
-        self.P = PenmanMonteith(canht=self.params.canht, 
-                                dz0v_dh=self.params.dz0v_dh,
+        self.P = PenmanMonteith(dz0v_dh=self.params.dz0v_dh,
                                 displace_ratio=self.params.displace_ratio,
                                 z0h_z0m=self.params.z0h_z0m)
         self.am = 0
@@ -257,7 +256,8 @@ class WaterBalance(object):
         ga_m_per_sec = self.P.canopy_boundary_layer_conductance(wind)
         
         transp, omegax = self.P.calc_evaporation(vpd, wind, gs_m_per_sec, 
-                                                 net_rad, tavg, press, 
+                                                 net_rad, tavg, press,
+                                                 canht=self.state.canht, 
                                                  ga=ga_m_per_sec)
         
         self.fluxes.gs_mol_m2_sec = gs_mol_m2_sec
@@ -307,7 +307,8 @@ class WaterBalance(object):
             MOL_SEC_2_M_PER_SEC = const.MM_TO_M / (press / (const.RGAS * tk))
             M_PER_SEC_2_MOL_SEC = 1.0 / MOL_SEC_2_M_PER_SEC
             
-            ga_m_per_sec = self.P.canopy_boundary_layer_conductance(wind[i])
+            ga_m_per_sec = self.P.canopy_boundary_layer_conductance(wind[i], 
+                                                               self.state.canht)
             gs_mol_m2_sec = self.calc_stomatal_conductance(vpd[i], ca, 
                                                            half_day, gpp[i], 
                                                            press, tair[i])
@@ -320,6 +321,7 @@ class WaterBalance(object):
             (trans[i], 
              omegax[i]) = self.P.calc_evaporation(vpd[i], wind[i], gs_m_per_sec, 
                                                   net_rad[i], tair[i], press, 
+                                                  canht=self.state.canht,
                                                   ga=ga_m_per_sec)
             
             # convert to mm/half day
@@ -820,7 +822,7 @@ class PenmanMonteith(object):
     """
 
     def __init__(self, cp=1.013E-3, vk=0.41, epsilon=0.6222, zele_sea=125.0,
-                    canht=20.0, dz0v_dh=0.1, displace_ratio=0.67, z0h_z0m=1.0):
+                 dz0v_dh=0.1, displace_ratio=0.67, z0h_z0m=1.0):
 
         """
         Parameters:
@@ -833,8 +835,6 @@ class PenmanMonteith(object):
             ratio molecular weight of water vap/dry air
         zele_sea : float
             elevation above sea level [m]
-        canht : float
-            canopy height [m]
         dz0v_dh : float
             rate change of roughness for momentum with height
         displace_ratio : float
@@ -850,12 +850,12 @@ class PenmanMonteith(object):
         self.zele_sea = zele_sea
         self.J_TO_MJ = 1.0E-6
         self.C_TO_K = 273.15
-        self.canht = canht
         self.dz0v_dh = dz0v_dh
         self.displace_ratio = displace_ratio # zero plan displacement height
         self.z0h_z0m = z0h_z0m
         
-    def calc_evaporation(self, vpd, wind, gs, net_rad, tavg, press, ga=None):
+    def calc_evaporation(self, vpd, wind, gs, net_rad, tavg, press, canht=None, 
+                         ga=None):
 
         """
         Parameters:
@@ -888,7 +888,7 @@ class PenmanMonteith(object):
         slope = self.calc_slope_of_saturation_vapour_pressure_curve(tavg)
         rho = self.calc_density_of_air(tavg)
         if ga is None:
-            ga = self.canopy_boundary_layer_conductance(wind)
+            ga = self.canopy_boundary_layer_conductance(wind, canht)
        
         if float_gt(gs, 0.0):
             # decoupling coefficent, Jarvis and McNaughton, 1986
@@ -906,7 +906,7 @@ class PenmanMonteith(object):
         
         return et, omega
 
-    def canopy_boundary_layer_conductance(self, wind):
+    def canopy_boundary_layer_conductance(self, wind, canht):
         """  Canopy boundary layer conductance, ga or 1/ra
 
         Characterises the heat/water vapour from evaporating surface, but does 
@@ -939,7 +939,7 @@ class PenmanMonteith(object):
             canopy boundary layer conductance [m s-1]
         """
         # z0m roughness length governing momentum transfer [m]
-        z0m = self.dz0v_dh * self.canht
+        z0m = self.dz0v_dh * canht
     
         # z0h roughness length governing transfer of heat and vapour [m]
         # *Heat tranfer typically less efficent than momentum transfer. There is
@@ -952,12 +952,12 @@ class PenmanMonteith(object):
         z0h = self.z0h_z0m * z0m
         
         # zero plan displacement height [m]
-        d = self.displace_ratio * self.canht
+        d = self.displace_ratio * canht
         
         arg1 = self.vk**2 * wind
-        arg2 = log((self.canht - d) / z0m)
-        arg3 = log((self.canht - d) / z0h) 
-        
+        arg2 = log((canht - d) / z0m)
+        arg3 = log((canht - d) / z0h) 
+
         return arg1 / (arg2 * arg3)
         
         
