@@ -305,7 +305,8 @@ class MateC3(object):
         if self.control.modeljm == True: 
             # the maximum rate of electron transport at 25 degC 
             jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
-        
+            
+            # this response is well-behaved for TLEAF < 0.0
             jmax = [self.peaked_arrh(jmax25, Eaj, Tk[k], deltaSj, Hdj) \
                                     for k in am, pm]
             
@@ -319,9 +320,27 @@ class MateC3(object):
         # reduce photosynthetic capacity with moisture stress
         jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
         vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]  
-    
-        return jmax, vcmax
         
+        # Function allowing Jmax/Vcmax to be forced linearly to zero at low T
+        jmax = [self.adj_params_for_low_temp(jmax[k], Tk[k]) for k in am, pm]
+        vcmax = [self.adj_params_for_low_temp(vcmax[k], Tk[k]) for k in am, pm]
+       
+        return jmax, vcmax
+    
+    def adj_params_for_low_temp(self, param, temp, lower_bound=0.0, 
+                                upper_bound=10.0):
+        """ 
+        Function allowing Jmax/Vcmax to be forced linearly to zero at low T
+        """
+        Tc = Tk - const.DEG_TO_KELVIN
+        
+        if float_lt(Tc, lower_bound):
+            param = 0.0
+        elif float_lt(Tc, upper_bound):
+            param *= (Tc - lower_bound) / (upper_bound - lower_bound)
+        
+        return param
+     
     def assim(self, ci, gamma_star, a1, a2):
         """Morning and afternoon calcultion of photosynthesis with the 
         limitation defined by the variables passed as a1 and a2, i.e. if we 
@@ -688,6 +707,9 @@ class MateC4(MateC3):
         vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
         vcmax = [self.peaked_arrh(vcmax25, Ea, Tk[k], delS, Hd) for k in am, pm]
         vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
+        
+        # Function allowing Jmax/Vcmax to be forced linearly to zero at low T
+        vcmax = [self.adj_params_for_low_temp(vcmax[k], Tk[k]) for k in am, pm]
         
         return vcmax, vcmax25
 
