@@ -300,7 +300,9 @@ class PlantGrowth(object):
                                 (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin) * limitation))
-        
+            
+            self.state.alstem = 0.0
+            self.state.albranch = 0.0
             self.state.alleaf = (1.0 - self.state.alroot)
         
         elif self.control.alloc_model == "ALLOMETRIC":
