@@ -291,7 +291,11 @@ class PlantGrowth(object):
             
             #dependent on the lifespan of the 
             # root
-            limitation = self.sma(min(nlim, self.state.wtfac_root))
+            #limitation = self.sma(min(nlim, self.state.wtfac_root))
+            
+            # no constraint on water uptake via root mass, so makes no sense
+            # to increase allocation if water stressed.
+            limitation = self.sma(nlim)
             self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
@@ -319,7 +323,11 @@ class PlantGrowth(object):
            
             #dependent on the lifespan of the 
             # root
-            limitation = self.sma(min(nlim, self.state.wtfac_root))
+            #limitation = self.sma(min(nlim, self.state.wtfac_root))
+            
+            # no constraint on water uptake via root mass, so makes no sense
+            # to increase allocation if water stressed.
+            limitation = self.sma(nlim)
             self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
