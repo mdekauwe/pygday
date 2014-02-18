@@ -291,7 +291,11 @@ class PlantGrowth(object):
             
             #dependent on the lifespan of the 
             # root
-            limitation = self.sma(min(nlim, self.state.wtfac_root))
+            #limitation = self.sma(min(nlim, self.state.wtfac_root))
+            
+            # no constraint on water uptake via root mass, so makes no sense
+            # to increase allocation if water stressed.
+            limitation = self.sma(nlim)
             self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
@@ -300,7 +304,9 @@ class PlantGrowth(object):
                                 (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin) * limitation))
-        
+            
+            self.state.alstem = 0.0
+            self.state.albranch = 0.0
             self.state.alleaf = (1.0 - self.state.alroot)
         
         elif self.control.alloc_model == "ALLOMETRIC":
@@ -317,7 +323,11 @@ class PlantGrowth(object):
            
             #dependent on the lifespan of the 
             # root
-            limitation = self.sma(min(nlim, self.state.wtfac_root))
+            #limitation = self.sma(min(nlim, self.state.wtfac_root))
+            
+            # no constraint on water uptake via root mass, so makes no sense
+            # to increase allocation if water stressed.
+            limitation = self.sma(nlim)
             self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
