@@ -276,6 +276,33 @@ class PlantGrowth(object):
             self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
                                  self.state.albranch)
             #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
+        
+        elif self.control.alloc_model == "GRASSES":
+            
+            # calculate the N limitation based on available canopy N
+            nf = self.state.shootnc
+            if nf < self.params.nf_min:
+                nlim = 0.0
+            elif nf < self.params.nf_crit:
+                nlim = ((nf - self.params.nf_min) / 
+                        (self.params.nf_crit - self.params.nf_min))
+            else:
+                nlim = 1.0
+            
+            #dependent on the lifespan of the 
+            # root
+            limitation = self.sma(min(nlim, self.state.wtfac_root))
+            self.state.prev_sma = limitation
+            
+            # figure out root allocation given available water & nutrients
+            self.state.alroot = (self.params.c_alloc_rmax * 
+                                 self.params.c_alloc_rmin / 
+                                (self.params.c_alloc_rmin + 
+                                (self.params.c_alloc_rmax - 
+                                 self.params.c_alloc_rmin) * limitation))
+        
+            self.state.alleaf = (1.0 - self.state.alroot)
+        
         elif self.control.alloc_model == "ALLOMETRIC":
             
             # calculate the N limitation based on available canopy N
@@ -352,6 +379,12 @@ class PlantGrowth(object):
                                                        target_branch, 
                                                        self.params.c_alloc_bmax, 
                                                        self.params.targ_sens) 
+
+            #target_coarse_roots = 0.34 * self.state.stem**0.84
+            #self.state.alcroot = self.alloc_goal_seek(self.state.croot, 
+            #                                           target_coarse_roots, 
+            #                                           self.params.c_alloc_crmax, 
+            #                                           self.params.targ_sens)
             
             # allocation to stem is the residual
             self.state.alstem = (1.0 - self.state.alroot - 
