@@ -17,9 +17,9 @@ from check_balance import CheckBalance
 from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
 
-__author__  = "Martin De Kauwe"
+__author__ = "Martin De Kauwe"
 __version__ = "1.0 (15.02.2011)"
-__email__   = "mdekauwe@gmail.com"
+__email__  = "mdekauwe@gmail.com"
 
 
 class Gday(object):
@@ -47,7 +47,7 @@ class Gday(object):
         """ Set up model
 
         * Read meterological forcing file
-        * Read user config file and adjust the model parameters, control or 
+        * Read user config file and adjust the model parameters, control or
           initial state attributes that are used within the code.
         * Setup all class instances...perhaps this isn't the tidyest place for 
           this?
@@ -276,7 +276,7 @@ class Gday(object):
         """ adjust rate constants for the number of days in years """
         time_constants = ['rateuptake', 'rateloss', 'retransmob',
                           'fdecay', 'fdecaydry', 'rdecay', 'rdecaydry',
-                          'bdecay', 'wdecay', 'sapturnover','kdec1', 'kdec2', 
+                          'bdecay', 'wdecay', 'sapturnover', 'kdec1', 'kdec2', 
                           'kdec3', 'kdec4', 'kdec5', 'kdec6', 'kdec7', 
                           'nuptakez','nmax', 'adapt']
         conv = const.NDAYS_IN_YR
@@ -308,7 +308,7 @@ class Gday(object):
         
         #print self.state.rootn , self.state.root
         if float_eq(self.state.root, 0.0):
-                self.state.rootnc = 0.0
+            self.state.rootnc = 0.0
         else:
             self.state.rootnc = max(0.0, self.state.rootn / self.state.root)
                 
