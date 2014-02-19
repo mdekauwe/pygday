@@ -372,10 +372,7 @@ def main():
     import time
     start_time = time.time()
 
-
-
-    #fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_duke_simulation/params/NCEAS_dk_youngforest.cfg"
-    fname = "/Users/mdekauwe/research/DUKE_ORNL_simulations/Duke/params/NCEAS_dk_youngforest.cfg"
+    fname = "/Users/mdekauwe/research/FACE/GDAY_simulations/DUKE/experiment/params/NCEAS_dk_youngforest.cfg"
 
     G = Gday(fname)
     G.run_sim()
