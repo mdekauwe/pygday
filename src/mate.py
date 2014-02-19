@@ -6,9 +6,9 @@ import constants as const
 from utilities import float_eq, float_gt, float_lt
 import sys
 
-__author__  = "Martin De Kauwe"
+__author__ = "Martin De Kauwe"
 __version__ = "1.0 (04.08.2011)"
-__email__   = "mdekauwe@gmail.com"
+__email__  = "mdekauwe@gmail.com"
 
 
 class MateC3(object):
@@ -789,7 +789,7 @@ if __name__ == "__main__":
     import datetime
     from utilities import float_eq, float_lt, float_gt, calculate_daylength, uniq
     
-    met_header=4
+    met_header = 4
     
     #fname = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/params/NCEAS_or_youngforest.cfg"
     fname = "/Users/mdekauwe/research/FACE/GDAY_simulations/KSCO/experiment/params/NCEAS_KSCO_model_indust.cfg"
