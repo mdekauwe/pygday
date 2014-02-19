@@ -739,7 +739,10 @@ class PlantGrowth(object):
                 self.state.lai = 0.0
         else:
             # update leaf area [m2 m-2]
-            self.state.lai += (self.fluxes.cpleaf * 
+            if float_eq(self.state.shoot, 0.0):
+                self.state.lai = 0.0
+            else:
+                self.state.lai += (self.fluxes.cpleaf * 
                               (self.state.sla * const.M2_AS_HA / 
                               (const.KG_AS_TONNES * self.params.cfracts)) -
                               (self.fluxes.deadleaves + 
