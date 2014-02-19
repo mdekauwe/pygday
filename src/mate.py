@@ -54,7 +54,8 @@ class MateC3(object):
         self.state = state
         self.met_data = met_data
         self.am = 0 # morning index
-        self.pm = 1 # afternoon index        
+        self.pm = 1 # afternoon index  
+        self.mt = self.params.measurement_temp + const.DEG_TO_KELVIN      
         
     def calculate_photosynthesis(self, day, daylen):
         """ Photosynthesis is calculated assuming GPP is proportional to APAR,
@@ -480,8 +481,7 @@ class MateC3(object):
         -----------
         * Medlyn et al. 2002, PCE, 25, 1167-1179.   
         """
-        mt = self.params.measurement_temp + const.DEG_TO_KELVIN
-        return k25 * exp((Ea * (Tk - mt)) / (mt * const.RGAS * Tk))
+        return k25 * exp((Ea * (Tk - self.mt)) / (self.mt * const.RGAS * Tk))
     
     def peaked_arrh(self, k25, Ea, Tk, deltaS, Hd):
         """ Temperature dependancy approximated by peaked Arrhenius eqn, 
@@ -509,11 +509,9 @@ class MateC3(object):
         -----------
         * Medlyn et al. 2002, PCE, 25, 1167-1179. 
         
-        """
-        mt = self.params.measurement_temp + const.DEG_TO_KELVIN
-    
+        """    
         arg1 = self.arrh(k25, Ea, Tk)
-        arg2 = 1.0 + exp((mt * deltaS - Hd) / (mt * const.RGAS))
+        arg2 = 1.0 + exp((self.mt * deltaS - Hd) / (self.mt * const.RGAS))
         arg3 = 1.0 + exp((Tk * deltaS - Hd) / (Tk * const.RGAS))
         
         return arg1 * arg2 / arg3
