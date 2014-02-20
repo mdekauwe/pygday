@@ -286,15 +286,14 @@ class PlantGrowth(object):
             
             # case - completely limited by N availability
             if nf < self.params.nf_min:
-                nlim = 1.0
+                nlim = 0.0
             elif nf < self.params.nf_crit:
-                # the 1.0 bit is to reverse the logic, so that it matches
-                # with alloc logic
-                nlim = 1.0  - ((nf - self.params.nf_min) / 
-                              (self.params.nf_crit - self.params.nf_min))
+               
+                nlim = ((nf - self.params.nf_min) / 
+                        (self.params.nf_crit - self.params.nf_min))
             # case - no N limitation
             else:
-                nlim = 0.0
+                nlim = 1.0
             
             #dependent on the lifespan of the 
             # root
@@ -306,9 +305,11 @@ class PlantGrowth(object):
             self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
-            self.state.alroot = (self.params.c_alloc_rmin + 
+            self.state.alroot = (self.params.c_alloc_rmax * 
+                                 self.params.c_alloc_rmin / 
+                                (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
-                                 self.params.c_alloc_rmin) * limitation)
+                                 self.params.c_alloc_rmin) * limitation))
             
             
             self.state.alstem = 0.0
@@ -324,15 +325,14 @@ class PlantGrowth(object):
             
             # case - completely limited by N availability
             if nf < self.params.nf_min:
-                nlim = 1.0
+                nlim = 0.0
             elif nf < self.params.nf_crit:
-                # the 1.0 bit is to reverse the logic, so that it matches
-                # with alloc logic
-                nlim = 1.0  - ((nf - self.params.nf_min) / 
-                              (self.params.nf_crit - self.params.nf_min))
+               
+                nlim = ((nf - self.params.nf_min) / 
+                        (self.params.nf_crit - self.params.nf_min))
             # case - no N limitation
             else:
-                nlim = 0.0
+                nlim = 1.0
            
             #dependent on the lifespan of the 
             # root
@@ -345,15 +345,15 @@ class PlantGrowth(object):
             
             
             # figure out root allocation given available water & nutrients
-            #self.state.alroot = (self.params.c_alloc_rmax * 
-            #                     self.params.c_alloc_rmin / 
-            #                    (self.params.c_alloc_rmin + 
-            #                    (self.params.c_alloc_rmax - 
-            #                     self.params.c_alloc_rmin) * limitation))
-            
-            self.state.alroot = (self.params.c_alloc_rmin + 
+            self.state.alroot = (self.params.c_alloc_rmax * 
+                                 self.params.c_alloc_rmin / 
+                                (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
-                                 self.params.c_alloc_rmin) * limitation)
+                                 self.params.c_alloc_rmin) * limitation))
+            
+            #self.state.alroot = (self.params.c_alloc_rmin + 
+            #                    (self.params.c_alloc_rmax - 
+            #                     self.params.c_alloc_rmin) * limitation)
             
             # more hyperbola shape, nlim needs to be switched for this to 
             # work i.e. nlim=0.0 becomes 1.0 and vice versa
