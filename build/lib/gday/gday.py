@@ -178,7 +178,7 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                #print self.state.lai, self.fluxes.gpp*100, self.fluxes.transpiration
+                #print self.state.lai, self.fluxes.gpp*100, self.state.pawater_root
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -189,6 +189,7 @@ class Gday(object):
                 #self.cb.check_water_balance(project_day)
                 
                 project_day += 1
+            
             # =============== #
             #   END OF YEAR   #
             # =============== #
@@ -256,7 +257,7 @@ class Gday(object):
             if not self.control.deciduous_model:
                 
                 if float_eq(self.state.shoot, 0.0):
-                    self.state.slainit = 0.01
+                    self.params.slainit = 0.01
                 else:
                     # need to save initial SLA to current one!
                     conv = const.M2_AS_HA * const.KG_AS_TONNES

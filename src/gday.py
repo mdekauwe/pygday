@@ -178,7 +178,7 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                #print self.state.lai, self.fluxes.gpp*100, self.fluxes.transpiration
+                #print self.state.lai, self.fluxes.gpp*100, self.state.pawater_root
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -189,6 +189,7 @@ class Gday(object):
                 #self.cb.check_water_balance(project_day)
                 
                 project_day += 1
+            
             # =============== #
             #   END OF YEAR   #
             # =============== #
