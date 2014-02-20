@@ -280,12 +280,17 @@ class PlantGrowth(object):
         elif self.control.alloc_model == "GRASSES":
             
             # calculate the N limitation based on available canopy N
+            # this logic appears counter intuitive, but it works out when
+            # applied with the perhaps backwards logic below
             nf = self.state.shootnc
+            
+            # case - completely limited by N availability
             if nf < self.params.nf_min:
                 nlim = 1.0
             elif nf < self.params.nf_crit:
                 nlim = ((nf - self.params.nf_min) / 
                         (self.params.nf_crit - self.params.nf_min))
+            # case - no N limitation
             else:
                 nlim = 0.0
             
@@ -311,14 +316,19 @@ class PlantGrowth(object):
         elif self.control.alloc_model == "ALLOMETRIC":
             
             # calculate the N limitation based on available canopy N
+            # this logic appears counter intuitive, but it works out when
+            # applied with the perhaps backwards logic below
             nf = self.state.shootnc
+            
+            # case - completely limited by N availability
             if nf < self.params.nf_min:
-                nlim = 1.0
+                nlim = 0.0
             elif nf < self.params.nf_crit:
                 nlim = ((nf - self.params.nf_min) / 
                         (self.params.nf_crit - self.params.nf_min))
+            # case - no N limitation
             else:
-                nlim = 0.0
+                nlim = 1.0
            
             #dependent on the lifespan of the 
             # root
@@ -341,6 +351,7 @@ class PlantGrowth(object):
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin) * limitation)
             
+            self.state.alroot = 0.4 / (1.0 + 5.5 * limitation)
             
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
