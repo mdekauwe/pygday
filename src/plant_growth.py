@@ -351,6 +351,9 @@ class PlantGrowth(object):
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin) * limitation)
             
+            # more hyperbola shape, nlim needs to be switched for this to 
+            # work i.e. nlim=0.0 becomes 1.0 and vice versa
+            #self.state.alroot = 0.4 / (1.0 + 5.5 * limitation)
             
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
