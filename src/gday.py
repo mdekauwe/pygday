@@ -254,11 +254,15 @@ class Gday(object):
         # print the final state
         elif self.control.print_options == "END":
             if not self.control.deciduous_model:
-                # need to save initial SLA to current one!
-                conv = const.M2_AS_HA * const.KG_AS_TONNES
-                self.params.slainit = (self.state.lai / const.M2_AS_HA *
-                                       const.KG_AS_TONNES *
-                                       self.params.cfracts /self.state.shoot)
+                
+                if float_eq(self.state.shoot, 0.0):
+                    self.state.slainit = 0.01
+                else:
+                    # need to save initial SLA to current one!
+                    conv = const.M2_AS_HA * const.KG_AS_TONNES
+                    self.params.slainit = (self.state.lai / const.M2_AS_HA *
+                                           const.KG_AS_TONNES *
+                                           self.params.cfracts /self.state.shoot)
 
             self.correct_rate_constants(output=True)
             self.pr.save_state()
