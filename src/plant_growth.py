@@ -299,16 +299,15 @@ class PlantGrowth(object):
             self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
-            self.state.alroot = (self.params.c_alloc_rmax * 
-                                 self.params.c_alloc_rmin / 
-                                (self.params.c_alloc_rmin + 
+            self.state.alroot = (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
-                                 self.params.c_alloc_rmin) * limitation))
+                                 self.params.c_alloc_rmin) * limitation)
+            
             
             self.state.alstem = 0.0
             self.state.albranch = 0.0
             self.state.alleaf = (1.0 - self.state.alroot)
-        
+            #print nlim, limitation, self.state.alleaf, self.state.alroot
         elif self.control.alloc_model == "ALLOMETRIC":
             
             # calculate the N limitation based on available canopy N
@@ -330,13 +329,17 @@ class PlantGrowth(object):
             limitation = self.sma(nlim)
             self.state.prev_sma = limitation
             
+            
             # figure out root allocation given available water & nutrients
-            self.state.alroot = (self.params.c_alloc_rmax * 
-                                 self.params.c_alloc_rmin / 
-                                (self.params.c_alloc_rmin + 
+            #self.state.alroot = (self.params.c_alloc_rmax * 
+            #                     self.params.c_alloc_rmin / 
+            #                    (self.params.c_alloc_rmin + 
+            #                    (self.params.c_alloc_rmax - 
+            #                     self.params.c_alloc_rmin) * limitation))
+            
+            self.state.alroot = (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
-                                 self.params.c_alloc_rmin) * limitation))
-
+                                 self.params.c_alloc_rmin) * limitation)
             
             #print self.state.alroot, limitation, nlim, self.state.wtfac_root
             # Calculate tree height: allometric reln using the power function 
@@ -815,7 +818,7 @@ class PlantGrowth(object):
         # the sapwood will end up being reduced to a silly number as 
         # deadsapwood will keep being removed from the pool, even though there
         # is no wood. 
-        if self.state.stem >= 0.01:
+        if self.state.stem <= 0.01:
             self.state.sapwood = 0.01
         else:
             self.state.sapwood += self.fluxes.cpstem - self.fluxes.deadsapwood
