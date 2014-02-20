@@ -282,12 +282,12 @@ class PlantGrowth(object):
             # calculate the N limitation based on available canopy N
             nf = self.state.shootnc
             if nf < self.params.nf_min:
-                nlim = 0.0
+                nlim = 1.0
             elif nf < self.params.nf_crit:
                 nlim = ((nf - self.params.nf_min) / 
                         (self.params.nf_crit - self.params.nf_min))
             else:
-                nlim = 1.0
+                nlim = 0.0
             
             #dependent on the lifespan of the 
             # root
@@ -313,12 +313,12 @@ class PlantGrowth(object):
             # calculate the N limitation based on available canopy N
             nf = self.state.shootnc
             if nf < self.params.nf_min:
-                nlim = 0.0
+                nlim = 1.0
             elif nf < self.params.nf_crit:
                 nlim = ((nf - self.params.nf_min) / 
                         (self.params.nf_crit - self.params.nf_min))
             else:
-                nlim = 1.0
+                nlim = 0.0
            
             #dependent on the lifespan of the 
             # root
@@ -341,7 +341,7 @@ class PlantGrowth(object):
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin) * limitation)
             
-            #print self.state.alroot, limitation, nlim, self.state.wtfac_root
+            
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
             self.state.canht = (self.params.heighto * 
