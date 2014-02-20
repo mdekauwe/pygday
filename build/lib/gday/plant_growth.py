@@ -790,8 +790,6 @@ class PlantGrowth(object):
             self.fluxes.deadstemn += self.state.stemnimm
             self.state.stemnimm = 0.0  
         
-        # should add check for soil pools - excess goes where?
-        
     def update_plant_state(self, fdecay, rdecay, project_day, doy):
         """ Daily change in C content
 
@@ -811,6 +809,7 @@ class PlantGrowth(object):
         self.state.root += self.fluxes.cproot - self.fluxes.deadroots
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
+        print self.state.stem
         self.state.sapwood += self.fluxes.cpstem - self.fluxes.deadsapwood
         
         # 

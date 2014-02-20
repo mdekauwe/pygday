@@ -809,7 +809,16 @@ class PlantGrowth(object):
         self.state.root += self.fluxes.cproot - self.fluxes.deadroots
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
-        self.state.sapwood += self.fluxes.cpstem - self.fluxes.deadsapwood
+        
+        # annoying but can't see an easier way with the code as it is.
+        # If we are modelling grases, i.e. no stem them without this
+        # the sapwood will end up being reduced to a silly number as 
+        # deadsapwood will keep being removed from the pool, even though there
+        # is no wood. 
+        if self.state.stem >= 0.01:
+            self.state.sapwood = 0.01
+        else:
+            self.state.sapwood += self.fluxes.cpstem - self.fluxes.deadsapwood
         
         # 
         # Nitrogen pools
