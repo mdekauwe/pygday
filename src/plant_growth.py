@@ -288,8 +288,10 @@ class PlantGrowth(object):
             if nf < self.params.nf_min:
                 nlim = 1.0
             elif nf < self.params.nf_crit:
-                nlim = ((nf - self.params.nf_min) / 
-                        (self.params.nf_crit - self.params.nf_min))
+                # the 1.0 bit is to reverse the logic, so that it matches
+                # with alloc logic
+                nlim = 1.0  - ((nf - self.params.nf_min) / 
+                              (self.params.nf_crit - self.params.nf_min))
             # case - no N limitation
             else:
                 nlim = 0.0
@@ -324,8 +326,10 @@ class PlantGrowth(object):
             if nf < self.params.nf_min:
                 nlim = 1.0
             elif nf < self.params.nf_crit:
-                nlim = ((nf - self.params.nf_min) / 
-                        (self.params.nf_crit - self.params.nf_min))
+                # the 1.0 bit is to reverse the logic, so that it matches
+                # with alloc logic
+                nlim = 1.0  - ((nf - self.params.nf_min) / 
+                              (self.params.nf_crit - self.params.nf_min))
             # case - no N limitation
             else:
                 nlim = 0.0
