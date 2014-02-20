@@ -256,7 +256,7 @@ class Gday(object):
             if not self.control.deciduous_model:
                 
                 if float_eq(self.state.shoot, 0.0):
-                    self.state.slainit = 0.01
+                    self.params.slainit = 0.01
                 else:
                     # need to save initial SLA to current one!
                     conv = const.M2_AS_HA * const.KG_AS_TONNES
