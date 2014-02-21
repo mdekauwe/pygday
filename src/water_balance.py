@@ -558,7 +558,8 @@ class SoilMoisture(object):
         # local variable
         topsoil_type = self.params.topsoil_type
         rootsoil_type = self.params.rootsoil_type
-
+        
+        
         if self.control.calc_sw_params:
             fsoil_top = self.get_soil_fracs(topsoil_type)
             fsoil_root = self.get_soil_fracs(rootsoil_type)  
@@ -580,7 +581,7 @@ class SoilMoisture(object):
             self.params.wcapac_root = (self.params.rooting_depth * 
                                       (theta_fc_root - 
                                        theta_wp_root))
-        
+            
         # calculate Landsberg and Waring SW modifier parameters if not
         # specified by the user based on a site calibration
         if (self.params.ctheta_topsoil is None and 
@@ -602,6 +603,8 @@ class SoilMoisture(object):
         #print self.params.ntheta_topsoil
         #print self.params.ctheta_root
         #print self.params.ntheta_root
+        #print self.params.rooting_depth
+        
         #sys.exit()
         
         
