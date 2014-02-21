@@ -178,7 +178,8 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                #print self.state.lai, self.fluxes.gpp*100, self.state.pawater_root
+                
+                #print self.state.lai, self.fluxes.gpp*100, self.state.pawater_root, self.state.shootnc
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -194,6 +195,7 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
+                print "**", self.state.cstore
                 self.pg.allocate_stored_c_and_n(init=False)
                 
             if self.control.print_options == "DAILY" and not self.spin_up:
