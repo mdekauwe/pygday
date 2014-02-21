@@ -295,16 +295,16 @@ class PlantGrowth(object):
             else:
                 nlim = 1.0
             
-            #dependent on the lifespan of the 
-            # root
+            # no constraint on water uptake via root mass, so makes no sense
             #limitation = self.sma(min(nlim, self.state.wtfac_root))
             
-            # no constraint on water uptake via root mass, so makes no sense
             # to increase allocation if water stressed.
+            # dependent on lifespan of the roots...
             limitation = self.sma(nlim)
             self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
+            # hyperbola shape to allocation
             self.state.alroot = (self.params.c_alloc_rmax * 
                                  self.params.c_alloc_rmin / 
                                 (self.params.c_alloc_rmin + 
@@ -334,17 +334,18 @@ class PlantGrowth(object):
             else:
                 nlim = 1.0
            
-            #dependent on the lifespan of the 
-            # root
+           
+            # no constraint on water uptake via root mass, so makes no sense
             #limitation = self.sma(min(nlim, self.state.wtfac_root))
             
-            # no constraint on water uptake via root mass, so makes no sense
             # to increase allocation if water stressed.
+            # dependent on lifespan of the roots...
             limitation = self.sma(nlim)
             self.state.prev_sma = limitation
             
             
             # figure out root allocation given available water & nutrients
+            # hyperbola shape to allocation
             self.state.alroot = (self.params.c_alloc_rmax * 
                                  self.params.c_alloc_rmin / 
                                 (self.params.c_alloc_rmin + 
@@ -355,9 +356,6 @@ class PlantGrowth(object):
             #                    (self.params.c_alloc_rmax - 
             #                     self.params.c_alloc_rmin) * limitation)
             
-            # more hyperbola shape, nlim needs to be switched for this to 
-            # work i.e. nlim=0.0 becomes 1.0 and vice versa
-            #self.state.alroot = 0.4 / (1.0 + 5.5 * limitation)
             
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
