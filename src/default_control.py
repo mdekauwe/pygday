@@ -23,8 +23,8 @@ nuptake_model = 1          # 0=constant uptake, 1=func of N inorgn, 2=depends on
 passiveconst = False       # hold passive pool at passivesoil
 print_options = "daily"    # "daily"=every timestep, "end"=end of run
 ps_pathway = "c3"          # Photosynthetic pathway, c3/c4
-use_eff_nc = 0             # use constant leaf n:c for  metfrac s
 strfloat = 0               # Structural pool input N:C varies=1, fixed=0
 sw_stress_model = 1        # JULES type linear stress func, or Landsberg and Waring non-linear func
 trans_model = 1            # 0=trans from WUE, 1=Penman-Monteith, 2=Priestley-Taylor
+use_eff_nc = 0             # use constant leaf n:c for  metfrac s
 water_stress = True        # water stress modifier turned on=1 (default)...ability to turn off to test things without drought stress = 0
