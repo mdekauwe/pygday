@@ -392,10 +392,12 @@ class MateC3(object):
         -----------
         * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
         """
-        g1w = self.params.g1 * self.state.wtfac_root
-        cica = g1w / (g1w + sqrt(vpd))
-        ci = cica * ca
-        
+        if self.control.gs_model == "MEDLYN":
+            g1w = self.params.g1 * self.state.wtfac_root
+            cica = g1w / (g1w + sqrt(vpd))
+            ci = cica * ca
+        else:
+            raise AttributeError('Only Belindas gs model is implemented')
         return ci
        
     def epsilon(self, asat, par, daylen, alpha):

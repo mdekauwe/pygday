@@ -89,7 +89,8 @@ def turn_strings_into_bools(control):
         
 def check_case_of_flags(control):
     """ keep all flags uppercase """
-    flags = ["assim_model", "print_options", "alloc_model", 'ps_pathway']
+    flags = ["assim_model", "print_options", "alloc_model", "ps_pathway",\
+             "gs_model"]
     for i in flags:
         setattr(control, i, getattr(control, i).upper())
 
