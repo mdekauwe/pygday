@@ -68,9 +68,9 @@ vcmaxnb           = 8.403          # intercept of vcmax vs n (umol/g n/s) # And 
 vcmax             = -999.9         # maximum rate of carboxylation (umol m-2 s-1) 
 
 # water model parameters
-dz0v_dh          = 0.123    # Rate of change of vegetation roughness length for momentum with height. Value from Jarvis? for conifer 0.075
-displace_ratio   = 0.67     # Value for coniferous forest (0.78) from Jarvis et al 1976, taken from Jones 1992 pg 67. More standard assumption is 2/3
-z0h_z0m          = 0.1      # Assume z0m = z0h, probably a big assumption [as z0h often < z0m.], see comment in code!! But 0.1 might be a better assumption
+dz0v_dh           = 0.123    # Rate of change of vegetation roughness length for momentum with height. Value from Jarvis? for conifer 0.075
+displace_ratio    = 0.67     # Value for coniferous forest (0.78) from Jarvis et al 1976, taken from Jones 1992 pg 67. More standard assumption is 2/3
+z0h_z0m           = 0.1      # Assume z0m = z0h, probably a big assumption [as z0h often < z0m.], see comment in code!! But 0.1 might be a better assumption
 wcapac_root       = 240.0    # Max plant avail soil water -root zone, i.e. total (mm) (smc_sat-smc_wilt) * root_depth (750mm) = [mm (water) / m (soil depth)]
 wcapac_topsoil    = 100.0    # Max plant avail soil water -top soil (mm)
 rooting_depth     = 20000.0  # Rooting depth (mm)
