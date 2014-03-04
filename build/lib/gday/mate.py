@@ -115,29 +115,26 @@ class MateC3(object):
         # light-saturated photosynthesis rate at the top of the canopy (gross)
         asat = [min(aj[k], ac[k]) for k in self.am, self.pm]
         
-        # Assumption that the integral is symmetric about noon, so we average
-        # the LUE accounting for variability in temperature, but importantly
-        # not PAR
+        # LUE (umol C umol-1 PAR)
         lue = [self.epsilon(asat[k], par, daylen, alpha[k]) \
                for k in self.am, self.pm]
+        lue_avg = sum(lue) / 2.0 # use average to simulate canopy photosynthesis
         
-        # mol C mol-1 PAR - use average to simulate canopy photosynthesis
-        lue_avg = sum(lue) / 2.0
-
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
         else:
-            par_mol = par * const.UMOL_TO_MOL
-            # absorbed photosynthetically active radiation
-            self.fluxes.apar = par_mol * self.state.fipar
+            # absorbed photosynthetically active radiation (umol m-2 s-1)
+            self.fluxes.apar = par * self.state.fipar
 
         # gC m-2 d-1
-        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
+        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * const.UMOL_TO_MOL *
                                 const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_am_pm[self.am] = ((self.fluxes.apar / 2.0) * 
-                                          lue[self.am] * const.MOL_C_TO_GRAMS_C)
+                                          lue[self.am] * const.UMOL_TO_MOL * 
+                                          const.MOL_C_TO_GRAMS_C)
         self.fluxes.gpp_am_pm[self.pm] = ((self.fluxes.apar / 2.0) * 
-                                           lue[self.pm] *const.MOL_C_TO_GRAMS_C)
+                                          lue[self.pm] * const.UMOL_TO_MOL * 
+                                          const.MOL_C_TO_GRAMS_C)
         
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
@@ -402,9 +399,9 @@ class MateC3(object):
         Parameters:
         ----------
         asat : float
-            photosynthetic rate at the top of the canopy
+            Light-saturated photosynthetic rate at the top of the canopy
         par : float
-            incident photosyntetically active radiation
+            photosyntetically active radiation (umol m-2 d-1)
         daylen : float
             length of day (hrs).
         theta : float
@@ -415,7 +412,7 @@ class MateC3(object):
         Returns:
         -------
         lue : float
-            integrated light use efficiency over the canopy (mol C mol-1 PAR)
+            integrated light use efficiency over the canopy (umol C umol-1 PAR)
 
         References:
         -----------
@@ -425,17 +422,18 @@ class MateC3(object):
 
         """
         delta = 0.16666666667 # subintervals scaler, i.e. 6 intervals
-        h = daylen * const.HRS_TO_SECS 
-        theta = self.params.theta # local var
+        h = daylen * const.HRS_TO_SECS # number of seconds of daylight 
         
         if float_gt(asat, 0.0):
+            # normalised daily irradiance
             q = pi * self.params.kext * alpha * par / (2.0 * h * asat)
             integral_g = 0.0 
             for i in xrange(1, 13, 2):
                 sinx = sin(pi * i / 24.)
                 arg1 = sinx
                 arg2 = 1.0 + q * sinx 
-                arg3 = sqrt((1.0 + q * sinx)**2.0 - 4.0 * theta * q * sinx)
+                arg3 = (sqrt((1.0 + q * sinx)**2.0 - 
+                        4.0 * self.params.theta * q * sinx))
                 integral_g += arg1 / (arg2 + arg3) * delta
             lue = alpha * integral_g * pi
         else:
@@ -505,14 +503,16 @@ class MateC3(object):
 class MateC4(MateC3):
     """ Model Any Terrestrial Ecosystem (MATE) model (C4)
 
-    Simulates C4 photosynthesis (GPP) based on Collatz (92) & Sands (1995), 
-    accounting for diurnal variations in irradiance and temp (am [sunrise-noon], 
-    pm[noon to sunset]) and the decline of irradiance with depth through the 
-    canopy. The Collatz C4 model is a simplification, but functionally 
-    equivalent model to the von Caemmerer model.
+    Simulates big-leaf C photosynthesis (GPP) based on Collatz (92) & 
+    Sands (1995), accounting for diurnal variations in irradiance and temp 
+    (am [sunrise-noon], pm[noon to sunset]). The Collatz C4 model is a 
+    simplification, but functionally equivalent model to the 
+    von Caemmerer model. 
     
-    MATE is connected to G'DAY via LAI and leaf N content. Plant autotrophic  
-    respiration is calculated via carbon-use efficiency (CUE=NPP/GPP). 
+    MATE is connected to G'DAY via LAI and leaf N content. 
+    
+    Plant autotrophic respiration is calculated via carbon-use efficiency 
+    (CUE=NPP/GPP). 
 
     References:
     -----------
@@ -521,6 +521,7 @@ class MateC4(MateC3):
       Aust. J. Plant Physiol., 19, 519-38.
     * von Caemmerer, S. (2000) Biochemical Models of Leaf Photosynthesis. Chp 4. 
       Modelling C4 photosynthesis. CSIRO PUBLISHING, Australia. pg 91-122.
+    * Sands, P. J. (1995) Australian Journal of Plant Physiology, 22, 601-14.
 
     Temperature dependancies:
     * Massad, R-S., Tuzet, A. and Bethenod, O. (2007) The effect of temperature 
@@ -607,31 +608,28 @@ class MateC4(MateC3):
 
         # Net (saturated) photosynthetic rate, not sure if this
         # makes sense.
-        Asat = [A[k] - Rd[k] for k in self.am, self.pm]
+        asat = [A[k] - Rd[k] for k in self.am, self.pm]
         
-        # Assumption that the integral is symmetric about noon, so we average
-        # the LUE accounting for variability in temperature, but importantly
-        # not PAR
-        lue = [self.epsilon(Asat[k], par, daylen, alpha) \
+        # LUE (umol C umol-1 PAR)
+        lue = [self.epsilon(asat[k], par, daylen, alpha) \
                for k in self.am, self.pm]
-
-        # mol C mol-1 PAR - use average to simulate canopy photosynthesis
-        lue_avg = sum(lue) / 2.0
-
+        lue_avg = sum(lue) / 2.0 # use average to simulate canopy photosynthesis
+        
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
         else:
-            par_mol = par * const.UMOL_TO_MOL
-            # absorbed photosynthetically active radiation
-            self.fluxes.apar = par_mol * self.state.fipar
-        
+            # absorbed photosynthetically active radiation (umol m-2 s-1)
+            self.fluxes.apar = par * self.state.fipar
+
         # gC m-2 d-1
-        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
+        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * const.UMOL_TO_MOL *
                                 const.MOL_C_TO_GRAMS_C)
-        self.fluxes.gpp_am_pm[am] = ((self.fluxes.apar / 2.0) * lue[am] * 
-                                      const.MOL_C_TO_GRAMS_C)
-        self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
-                                      const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[self.am] = ((self.fluxes.apar / 2.0) * 
+                                          lue[self.am] * const.UMOL_TO_MOL * 
+                                          const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[self.pm] = ((self.fluxes.apar / 2.0) * 
+                                          lue[self.pm] * const.UMOL_TO_MOL * 
+                                          const.MOL_C_TO_GRAMS_C)
         
         #print self.fluxes.gpp_gCm2
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
