@@ -320,31 +320,33 @@ class Bewdy(object):
 
 
     def intercellular_co2_conc(self, gamma_star, ca, vpd):
-        """ Calculate Ci, intercellular CO2 concentration
+        """ Calculate the intercellular (Ci) concentration 
+
+        Formed by substituting gs = g0 + 1.6 * (1 + (g1/sqrt(D))) * A/Ca into
+        A = gs / 1.6 * (Ca - Ci) and assuming intercept (g0) = 0.
 
         Parameters:
-        -----------
-        gamma_star : float
-            CO2 compensation point in the abscence of mitochondrial respiration
-        ca : float
-            atmospheric co2, depending on flag set in param file this will be
-            ambient or elevated.
+        ----------
         vpd : float
-            vpd [kPa]
+            vapour pressure deficit
+        ca : float
+            ambient co2 concentration 
+            
         Returns:
-        --------
-        ci : float
-            intercellular CO2 concentration.
-        """
-        if self.control.use_leuning == 1:
-            ci = (ca - (ca - gamma_star) * 
-                    (1.0 + vpd / self.params.d0) * 1.6 /
-                    self.params.a1)
-        else:
-            # assume CO2 conc in the intercellular air spaces, ci is a constant
-            # fraction of the atmospheric CO2, Ca.
-            ci = self.params.ci_ca_ratio * ca
+        -------
+        ci:ca : float
+            ratio of intercellular to atmospheric CO2 concentration
 
+        References:
+        -----------
+        * Medlyn, B. E. et al (2011) Global Change Biology, 17, 2134-2144.
+        """
+        if self.control.gs_model == "MEDLYN":
+            g1w = self.params.g1 * self.state.wtfac_root
+            cica = g1w / (g1w + sqrt(vpd))
+            ci = cica * ca
+        else:
+            raise AttributeError('Only Belindas gs model is implemented')
         return ci
 
     def calculate_quantum_yield(self, ci, gamma_star):
