@@ -43,7 +43,7 @@ class CarbonSoilFlows(object):
         self.met_data = met_data
         
         # Fraction of C lost due to microbial respiration
-        self.params.ft = 0.85 - (0.68 * self.params.finesoil)
+        self.frac_microb_resp = 0.85 - (0.68 * self.params.finesoil)
         
     def calculate_csoil_flows(self, project_day):
         """ C from decomposing litter -> active, slow and passive SOM pools.
@@ -362,16 +362,17 @@ class CarbonSoilFlows(object):
         activeout = self.state.activesoil * self.params.decayrate[4]
         
         # C flux active pool -> slow pool
-        self.fluxes.active_to_slow = activeout * (1.0 - self.params.ft - 0.004)
+        self.fluxes.active_to_slow = (activeout * 
+                                     (1.0 - self.frac_microb_resp - 0.004))
         #self.fluxes.active_to_slow = (activeout * 
-        #                             (1.0 - self.params.ft - 0.003 - 
+        #                             (1.0 - self.frac_microb_resp - 0.003 - 
         #                              0.032 * Claysoil)) # (Parton 1993)
         
         # C flux active pool -> passive pool
         self.fluxes.active_to_passive = activeout * 0.004
         
         # Respiration fluxes
-        self.fluxes.co2_to_air[4] = activeout * self.params.ft    
+        self.fluxes.co2_to_air[4] = activeout * self.frac_microb_resp   
     
     def cfluxes_from_slow_pool(self):
         """C fluxes from slow pools """
@@ -518,7 +519,10 @@ class NitrogenSoilFlows(object):
         self.control = control
         self.state = state
         self.met_data = met_data
-
+        
+        # Fraction of C lost due to microbial respiration
+        self.frac_microb_resp = 0.85 - (0.68 * self.params.finesoil)
+        
     def calculate_nsoil_flows(self, project_day):
         
         self.fluxes.ninflow = self.met_data['ndep'][project_day]
@@ -698,10 +702,11 @@ class NitrogenSoilFlows(object):
     def nfluxes_from_active_pool(self):
         """ N fluxes from active pool """
         activeout = self.state.activesoiln * self.params.decayrate[4]
-        sigwt = activeout / (1. - self.params.ft)
+        sigwt = activeout / (1.0 - self.frac_microb_resp)
 
         # N flux active pool -> slow pool
-        self.fluxes.n_active_to_slow = sigwt * (1. - self.params.ft - 0.004)
+        self.fluxes.n_active_to_slow = (sigwt * 
+                                       (1.0 - self.frac_microb_resp - 0.004))
 
         # N flux active pool -> passive pool
         self.fluxes.n_active_to_passive = sigwt * 0.004

@@ -179,7 +179,7 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                 
                 
-                print self.state.lai, self.fluxes.gpp*100, self.state.pawater_root, self.state.shootnc
+                #print self.state.lai, self.fluxes.gpp*100, self.state.pawater_root, self.state.shootnc
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -214,7 +214,7 @@ class Gday(object):
     
     def spin_up_pools(self, tolerance=1E-03):
         """ Spin Up model plant, soil and litter pools.
-        -> Examine sequences of 1000 years and check if C pools are changing
+        -> Examine sequences of 50 years and check if C pools are changing
            by more than 0.005 units per 1000 yrs.
 
         References:
