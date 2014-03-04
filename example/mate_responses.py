@@ -65,7 +65,7 @@ class Mate(MateC3):
         self.fluxes.gpp_am_pm[self.pm] = ((self.fluxes.apar / 2.0) * 
                                           lue[self.pm] * const.UMOL_TO_MOL * 
                                           const.MOL_C_TO_GRAMS_C)
-        # umol m-2 s-1
+        # photosynthesis -> umol m-2 s-1
         A = self.fluxes.apar * lue_avg / (daylen * 3600.)
         return A
             
