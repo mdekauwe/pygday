@@ -295,12 +295,16 @@ class PlantGrowth(object):
             else:
                 nlim = 1.0
             
-            # no constraint on water uptake via root mass, so makes no sense
-            #limitation = self.sma(min(nlim, self.state.wtfac_root))
-            
-            # to increase allocation if water stressed.
-            # dependent on lifespan of the roots...
-            limitation = self.sma(nlim)
+            # Limitation by nitrogen and water. Water constraint is implicit, 
+            # in that, water stress results in an increase of root mass,
+            # which are assumed to spread horizontally within the rooting zone.
+            # So in effect, building additional root mass doesnt alleviate the
+            # water limitation within the model. However, it does more 
+            # accurately reflect an increase in root C production at a water
+            # limited site. This implementation is also consistent with other
+            # approaches, e.g. LPJ. In fact I dont see much evidence for models
+            # that have a flexible bucket depth.
+            limitation = self.sma(min(nlim, self.state.wtfac_root))
             self.state.prev_sma = limitation
             
             # figure out root allocation given available water & nutrients
@@ -335,12 +339,16 @@ class PlantGrowth(object):
                 nlim = 1.0
            
            
-            # no constraint on water uptake via root mass, so makes no sense
-            #limitation = self.sma(min(nlim, self.state.wtfac_root))
-            
-            # to increase allocation if water stressed.
-            # dependent on lifespan of the roots...
-            limitation = self.sma(nlim)
+            # Limitation by nitrogen and water. Water constraint is implicit, 
+            # in that, water stress results in an increase of root mass,
+            # which are assumed to spread horizontally within the rooting zone.
+            # So in effect, building additional root mass doesnt alleviate the
+            # water limitation within the model. However, it does more 
+            # accurately reflect an increase in root C production at a water
+            # limited site. This implementation is also consistent with other
+            # approaches, e.g. LPJ. In fact I dont see much evidence for models
+            # that have a flexible bucket depth.
+            limitation = self.sma(min(nlim, self.state.wtfac_root))
             self.state.prev_sma = limitation
             
             
@@ -747,6 +755,7 @@ class PlantGrowth(object):
             if float_eq(self.state.shoot, 0.0):
                 self.state.lai = 0.0
             elif self.state.leaf_out_days[doy] > 0.0:               
+                
                 self.state.lai += (self.fluxes.cpleaf * 
                                   (self.state.sla * const.M2_AS_HA / 
                                   (const.KG_AS_TONNES * self.params.cfracts)) -

@@ -7,20 +7,21 @@ from utilities import float_eq, float_gt, float_lt
 import sys
 
 __author__ = "Martin De Kauwe"
-__version__ = "1.0 (04.08.2011)"
+__version__ = "1.0 (04.03.2014)"
 __email__  = "mdekauwe@gmail.com"
 
 
 class MateC3(object):
     """ Model Any Terrestrial Ecosystem (MATE) model (C3)
 
-    Simulates C3 photosynthesis (GPP) based on Sands (1995), accounting for 
-    diurnal variations in irradiance and temp (am [sunrise-noon], 
-    pm[noon to sunset]) and the decline of irradiance with depth through the 
-    canopy.  
+    Simulates big-leaf C3 photosynthesis (GPP) based on Sands (1995), accounting 
+    for diurnal variations in irradiance and temp (am [sunrise-noon], 
+    pm[noon to sunset]).  
     
-    MATE is connected to G'DAY via LAI and leaf N content. Plant autotrophic  
-    respiration is calculated via carbon-use efficiency (CUE=NPP/GPP). 
+    MATE is connected to G'DAY via LAI and leaf N content. 
+    
+    Plant autotrophic respiration is calculated via carbon-use efficiency 
+    (CUE=NPP/GPP). 
 
     References:
     -----------
@@ -91,7 +92,6 @@ class MateC3(object):
             Method calculates GPP, NPP and Ra.
         """
         # local var for tidyness
-        (am, pm) = self.am, self.pm # morning/afternoon
         (Tair_K, par, vpd, ca) = self.get_met_data(day)
         
         # calculate mate params & account for temperature dependencies
@@ -99,26 +99,27 @@ class MateC3(object):
         Km = self.calculate_michaelis_menten_parameter(Tair_K)
         N0 = self.calculate_top_of_canopy_n()
         (jmax, vcmax) = self.calculate_jmax_and_vcmax(Tair_K, N0)
-        ci = [self.calculate_ci(vpd[k], ca) for k in am, pm]
+        ci = [self.calculate_ci(vpd[k], ca) for k in self.am, self.pm]
         
         # quantum efficiency calculated for C3 plants
         alpha = self.calculate_quantum_efficiency(ci, gamma_star)
         
         # Rubisco carboxylation limited rate of photosynthesis
         ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=Km[k]) \
-              for k in am, pm]
+              for k in self.am, self.pm]
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
         aj = [self.assim(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
-              a2=2.0*gamma_star[k]) for k in am, pm]
+              a2=2.0*gamma_star[k]) for k in self.am, self.pm]
         
         # light-saturated photosynthesis rate at the top of the canopy (gross)
-        asat = [min(aj[k], ac[k]) for k in am, pm]
+        asat = [min(aj[k], ac[k]) for k in self.am, self.pm]
         
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
-        lue = [self.epsilon(asat[k], par, daylen, alpha[k]) for k in am, pm]
+        lue = [self.epsilon(asat[k], par, daylen, alpha[k]) \
+               for k in self.am, self.pm]
         
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / 2.0
@@ -133,17 +134,17 @@ class MateC3(object):
         # gC m-2 d-1
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * 
                                 const.MOL_C_TO_GRAMS_C)
-        self.fluxes.gpp_am_pm[am] = ((self.fluxes.apar / 2.0) * lue[am] * 
-                                      const.MOL_C_TO_GRAMS_C)
-        self.fluxes.gpp_am_pm[pm] = ((self.fluxes.apar / 2.0) * lue[pm] * 
-                                      const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[self.am] = ((self.fluxes.apar / 2.0) * 
+                                          lue[self.am] * const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[self.pm] = ((self.fluxes.apar / 2.0) * 
+                                           lue[self.pm] *const.MOL_C_TO_GRAMS_C)
         
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
             self.fluxes.gpp_gCm2 *= self.params.ac
-            self.fluxes.gpp_am_pm[am] *= self.params.ac
-            self.fluxes.gpp_am_pm[pm] *= self.params.ac
+            self.fluxes.gpp_am_pm[self.am] *= self.params.ac
+            self.fluxes.gpp_am_pm[self.pm] *= self.params.ac
             self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
             
         # g C m-2 to tonnes hectare-1 day-1
@@ -175,7 +176,7 @@ class MateC3(object):
 
         """
         Tair_K = [self.met_data['tam'][day] + const.DEG_TO_KELVIN, \
-                self.met_data['tpm'][day] + const.DEG_TO_KELVIN]
+                  self.met_data['tpm'][day] + const.DEG_TO_KELVIN]
         vpd = [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
         ca = self.met_data["co2"][day]
         
@@ -206,12 +207,8 @@ class MateC3(object):
         gamma_star : float, list [am, pm]
             CO2 compensation point in the abscence of mitochondrial respiration
         """
-        # local var for tidyness
-        am, pm = self.am, self.pm # morning/afternoon
-        gamstar25 = self.params.gamstar25
-        Egamma = self.params.Egamma
-        
-        return [self.arrh(gamstar25, Egamma, Tk[k]) for k in am, pm]
+        return [self.arrh(self.params.gamstar25, self.params.eag, Tk[k]) \
+                for k in self.am, self.pm]
     
     def calculate_quantum_efficiency(self, ci, gamma_star):
         """ Quantum efficiency for AM/PM periods replacing Sands 1996 
@@ -224,11 +221,8 @@ class MateC3(object):
         * McMurtrie and Wang (1993) PCE, 16, 1-13.
         
         """
-        # local var for tidyness
-        am, pm = self.am, self.pm # morning/afternoon
-        
         return [self.assim(ci[k], gamma_star[k], a1=self.params.alpha_j/4.0, \
-                a2=2.0*gamma_star[k]) for k in am, pm]
+                a2=2.0*gamma_star[k]) for k in self.am, self.pm]
         
     
     def calculate_michaelis_menten_parameter(self, Tk):
@@ -252,22 +246,16 @@ class MateC3(object):
         * Medlyn et al. (2002) PCE, 25, 1167-1179, see pg. 1170.
         
         """
-        # local var for tidyness
-        am, pm = self.am, self.pm # morning/afternoon
-        Ec = self.params.Ec
-        Eo = self.params.Eo
-        Kc25 = self.params.Kc25 
-        Ko25 = self.params.Ko25 
-        Oi = self.params.Oi 
-        
         # Michaelis-Menten coefficents for carboxylation by Rubisco
-        Kc = [self.arrh(Kc25, Ec, Tk[k]) for k in am, pm]
+        Kc = [self.arrh(self.params.kc25, self.params.eac, Tk[k]) \
+              for k in self.am, self.pm]
         
         # Michaelis-Menten coefficents for oxygenation by Rubisco
-        Ko = [self.arrh(Ko25, Eo, Tk[k]) for k in am, pm]
+        Ko = [self.arrh(self.params.ko25, self.params.eao, Tk[k]) \
+              for k in self.am, self.pm]
         
         # return effectinve Michaelis-Menten coeffeicent for CO2
-        return [Kc[k] * (1.0 + Oi / Ko[k]) for k in am, pm]
+        return [Kc[k] *(1.0 + self.params.oi / Ko[k]) for k in self.am, self.pm]
                 
     def calculate_top_of_canopy_n(self):  
         """ Calculate the canopy N at the top of the canopy (g N m-2), N0.
@@ -295,41 +283,35 @@ class MateC3(object):
         N0 : float
             leaf N
         """
-    
-        # local var for tidyness
-        am, pm = self.am, self.pm # morning/afternoon
-        deltaSj = self.params.delsj
-        Eaj = self.params.eaj
-        Eav = self.params.eav
-        Hdj = self.params.edj
-        
         if self.control.modeljm == True: 
             # the maximum rate of electron transport at 25 degC 
             jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
             
             # this response is well-behaved for TLEAF < 0.0
-            jmax = [self.peaked_arrh(jmax25, Eaj, Tk[k], deltaSj, Hdj) \
-                                    for k in am, pm]
+            jmax = [self.peaked_arrh(jmax25, self.params.eaj, Tk[k], 
+                                     self.params.delsj, self.params.edj) \
+                                     for k in self.am, self.pm]
             
             # the maximum rate of electron transport at 25 degC 
             vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
-            vcmax = [self.arrh(vcmax25, Eav, Tk[k]) for k in am, pm]
+            vcmax = [self.arrh(vcmax25, self.params.eav, Tk[k]) \
+                     for k in self.am, self.pm]
         else:
             jmax = [self.params.jmax, self.params.jmax]
             vcmax = [self.params.vcmax, self.params.vcmax]
         
         # reduce photosynthetic capacity with moisture stress
-        jmax = [self.state.wtfac_root * jmax[k] for k in am, pm]
-        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm]  
+        jmax = [self.state.wtfac_root * jmax[k] for k in self.am, self.pm]
+        vcmax = [self.state.wtfac_root * vcmax[k] for k in self.am, self.pm]  
         
         # Function allowing Jmax/Vcmax to be forced linearly to zero at low T
-        jmax = [self.adj_params_for_low_temp(jmax[k], Tk[k]) for k in am, pm]
-        vcmax = [self.adj_params_for_low_temp(vcmax[k], Tk[k]) for k in am, pm]
+        jmax = [self.adj_for_low_temp(jmax[k], Tk[k]) for k in self.am, self.pm]
+        vcmax = [self.adj_for_low_temp(vcmax[k], Tk[k]) \
+                 for k in self.am, self.pm]
        
         return jmax, vcmax
     
-    def adj_params_for_low_temp(self, param, Tk, lower_bound=0.0, 
-                                upper_bound=10.0):
+    def adj_for_low_temp(self, param, Tk, lower_bound=0.0, upper_bound=10.0):
         """ 
         Function allowing Jmax/Vcmax to be forced linearly to zero at low T
         """
@@ -523,14 +505,16 @@ class MateC3(object):
 class MateC4(MateC3):
     """ Model Any Terrestrial Ecosystem (MATE) model (C4)
 
-    Simulates C4 photosynthesis (GPP) based on Collatz (92) & Sands (1995), 
-    accounting for diurnal variations in irradiance and temp (am [sunrise-noon], 
-    pm[noon to sunset]) and the decline of irradiance with depth through the 
-    canopy. The Collatz C4 model is a simplification, but functionally 
-    equivalent model to the von Caemmerer model.
+    Simulates big-leaf C photosynthesis (GPP) based on Collatz (92) & 
+    Sands (1995), accounting for diurnal variations in irradiance and temp 
+    (am [sunrise-noon], pm[noon to sunset]). The Collatz C4 model is a 
+    simplification, but functionally equivalent model to the 
+    von Caemmerer model. 
     
-    MATE is connected to G'DAY via LAI and leaf N content. Plant autotrophic  
-    respiration is calculated via carbon-use efficiency (CUE=NPP/GPP). 
+    MATE is connected to G'DAY via LAI and leaf N content. 
+    
+    Plant autotrophic respiration is calculated via carbon-use efficiency 
+    (CUE=NPP/GPP). 
 
     References:
     -----------
@@ -539,6 +523,7 @@ class MateC4(MateC3):
       Aust. J. Plant Physiol., 19, 519-38.
     * von Caemmerer, S. (2000) Biochemical Models of Leaf Photosynthesis. Chp 4. 
       Modelling C4 photosynthesis. CSIRO PUBLISHING, Australia. pg 91-122.
+    * Sands, P. J. (1995) Australian Journal of Plant Physiology, 22, 601-14.
 
     Temperature dependancies:
     * Massad, R-S., Tuzet, A. and Bethenod, O. (2007) The effect of temperature 
@@ -599,10 +584,9 @@ class MateC4(MateC3):
             Method calculates GPP, NPP and Ra.
         """
         # local var for tidyness
-        (am, pm) = self.am, self.pm # morning/afternoon
         (Tair_K, par, vpd, ca) = self.get_met_data(day)
 
-        ci = [self.calculate_ci(vpd[k], ca) for k in am, pm]
+        ci = [self.calculate_ci(vpd[k], ca) for k in self.am, self.pm]
         N0 = self.calculate_top_of_canopy_n()
         alpha = self.params.alpha_c4
         
@@ -612,11 +596,13 @@ class MateC4(MateC3):
         # Rubisco and light-limited capacity (Appendix, 2B)
         par_per_sec = par / (60.0 * 60.0 * daylen)
         M = [self.quadratic(a=self.beta1, b=-(vcmax[k] + alpha * par_per_sec), 
-                            c=(vcmax[k] * alpha * par_per_sec)) for k in am, pm]
+                            c=(vcmax[k] * alpha * par_per_sec)) \
+                            for k in self.am, self.pm]
 
         # The limitation of the overall rate by M and CO2 limited flux:
         A = [self.quadratic(a=self.beta2, b=-(M[k] + self.kslope * ci[k]), 
-                            c=(M[k] * self.kslope * ci[k])) for k in am, pm]
+                            c=(M[k] * self.kslope * ci[k])) \
+                            for k in self.am, self.pm]
 
         # These respiration terms are just for assimilation calculations,
         # autotrophic respiration is stil assumed to be half of GPP
@@ -624,12 +610,13 @@ class MateC4(MateC3):
 
         # Net (saturated) photosynthetic rate, not sure if this
         # makes sense.
-        Asat = [A[k] - Rd[k] for k in am, pm]
+        Asat = [A[k] - Rd[k] for k in self.am, self.pm]
         
         # Assumption that the integral is symmetric about noon, so we average
         # the LUE accounting for variability in temperature, but importantly
         # not PAR
-        lue = [self.epsilon(Asat[k], par, daylen, alpha) for k in am, pm]
+        lue = [self.epsilon(Asat[k], par, daylen, alpha) \
+               for k in self.am, self.pm]
 
         # mol C mol-1 PAR - use average to simulate canopy photosynthesis
         lue_avg = sum(lue) / 2.0
@@ -692,8 +679,6 @@ class MateC4(MateC3):
         vcmax : float, list [am, pm]
             maximum rate of Rubisco activity
         """
-        # local var for tidyness
-        am, pm = self.am, self.pm # morning/afternoon
         
         # Massad et al. 2007
         #Ea = self.params.eav    
@@ -705,11 +690,14 @@ class MateC4(MateC3):
         
         # the maximum rate of electron transport at 25 degC 
         vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
-        vcmax = [self.peaked_arrh(vcmax25, Ea, Tk[k], delS, Hd) for k in am, pm]
-        vcmax = [self.state.wtfac_root * vcmax[k] for k in am, pm] 
+        vcmax = [self.peaked_arrh(vcmax25, Ea, Tk[k], delS, Hd) \
+                 for k in self.am, self.pm]
+        vcmax = [self.state.wtfac_root * vcmax[k]\
+                 for k in self.am, self.pm] 
         
         # Function allowing Jmax/Vcmax to be forced linearly to zero at low T
-        vcmax = [self.adj_params_for_low_temp(vcmax[k], Tk[k]) for k in am, pm]
+        vcmax = [self.adj_params_for_low_temp(vcmax[k], Tk[k])\
+                 for k in self.am, self.pm]
         
         return vcmax, vcmax25
 
@@ -735,9 +723,7 @@ class MateC4(MateC3):
         References:
         -----------
         Tjoelker et al (2001) GCB, 7, 223-230.
-        """
-        am, pm = self.am, self.pm # morning/afternoon
-        
+        """        
         # scaling constant to Vcmax25, value = 0.015 after Collatz et al 1991. 
         # Agricultural and Forest Meteorology, 54, 107-136. But this if for C3
         # Value used in JULES for C4 is 0.025, using that one, see Clark et al.
@@ -752,7 +738,7 @@ class MateC4(MateC3):
         Q10 = 2.0 
         
         Rd = [Rd25 * Q10**(((Tk[k] - const.DEG_TO_KELVIN) - Tref) / 10.0) \
-              for k in am, pm] 
+              for k in self.am, self.pm] 
        
         return Rd
         
