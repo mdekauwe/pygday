@@ -50,7 +50,6 @@ wtfac_root = 1.0
 wtfac_topsoil = 1.0
 lai = 0.0            # m2 (leaf) m-2 (ground)
 sla = None
-fpar = None
 ncontent = None
 age = 0.0                               #Current stand age (years)
 canht = 17.0     # Canopy height (m)
@@ -60,7 +59,7 @@ alleaf = 0.0
 alroot = 0.0
 albranch = 0.0
 alstem = 0.0
-delta_sw_store = 0.0
+
 
 # decid model
 c_to_alloc_shoot = 0.0
@@ -78,8 +77,7 @@ n_to_alloc_stemmob = 0.0
 n_to_alloc_branch =0.0
 
 
-# annual NPP
-anpp = 0.0
+
 
 remaining_days = None
 growing_days = None
@@ -88,6 +86,10 @@ leaf_out_days = None
 root_depth = -9999.9  # rooting depth, Dmax (m)
 
 #============== Not publicly accessible to the user ==========================#
+# annual NPP
+anpp = 0.0
+delta_sw_store = 0.0
+
 # total plant, soil, litter and system carbon
 soilc = 0.0
 littercag = 0.0
@@ -107,8 +109,6 @@ totaln = 0.0
 # N:C ratios
 rootnc = None
 shootnc = None
-stemnc = None
-branchnc = None
 actncslope = None
 slowncslope = None
 passncslope = None

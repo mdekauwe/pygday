@@ -36,9 +36,9 @@ finesoil          = 0.5            # clay+silt fraction
 direct_frac       = 0.5            # direct beam fraction of incident radiation
 kext              = 0.5            # extinction coefficient
 lai_cover         = 0.5            # LAI when max cover fraction is reached (m2 (leaf) m-2 (ground) ~ 2.5
-slainit           = 3.9            # specific leaf area (m2 one-sided/kg DW)
-slazero           = 3.9            # specific leaf area new fol at zero leaf N/C (m2 one-sided/kg DW)
-slamax            = 3.9            # specofic leaf area new fol at max leaf N/C (m2 one-sided/kg DW)
+sla               = 3.9            # specific leaf area (m2 one-sided/kg DW)
+slazero           = 3.9            # (if equal slamax=no effect) specific leaf area new fol at zero leaf N/C (m2 one-sided/kg DW)
+slamax            = 3.9            # (if equal slazero=no effect) specific leaf area new fol at max leaf N/C (m2 one-sided/kg DW)
 
 # set photosynthetic parameters
 alpha_j           = 0.26           # initial slope of rate of electron transport, used in calculation of quantum yield. Value calculated by Belinda
