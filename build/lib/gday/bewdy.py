@@ -66,7 +66,7 @@ class Bewdy(object):
             Method calculates GPP, NPP and Ra.
         """
         (temp, sw_rad, ca, vpd) = self.get_met_data(day)
-        daylength = daylen * const.HRS_TO_SECS 
+        daylength = daylen * const.SECS_IN_HOUR 
         
         # calculated from the canopy-averaged leaf N
         leaf_absorptance = ((self.state.ncontent / 2.8) /

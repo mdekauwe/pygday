@@ -123,8 +123,7 @@ class Gday(object):
         self.state.pawater_root = self.params.wcapac_root
         self.state.pawater_topsoil = self.params.wcapac_topsoil
         self.spin_up = spin_up
-        self.state.sla = self.params.slainit # Specific leaf area (m2/kg DW)
-        self.state.lai = (self.params.slainit * const.M2_AS_HA /
+        self.state.lai = (self.params.sla * const.M2_AS_HA /
                           const.KG_AS_TONNES / self.params.cfracts *
                           self.state.shoot)
         
@@ -258,14 +257,21 @@ class Gday(object):
         elif self.control.print_options == "END":
             if not self.control.deciduous_model:
                 
+                # This shouldn't do anything, but I will leave it here for 
+                # potential applications. SLA has a N dependancy, though I 
+                # always turn this off...because of this we require this step.
+                # However this won't work for tress if all the leaves have 
+                # gone! Need to stop that happening! So I guess the sensible
+                # thing would be to do nothing.
                 if float_eq(self.state.shoot, 0.0):
-                    self.params.slainit = 0.01
+                    pass # 
+                    #self.params.slainit = 0.01
                 else:
                     # need to save initial SLA to current one!
                     conv = const.M2_AS_HA * const.KG_AS_TONNES
-                    self.params.slainit = (self.state.lai / const.M2_AS_HA *
-                                           const.KG_AS_TONNES *
-                                           self.params.cfracts /self.state.shoot)
+                    self.params.sla = (self.state.lai / const.M2_AS_HA *
+                                       const.KG_AS_TONNES *
+                                       self.params.cfracts /self.state.shoot)
 
             self.correct_rate_constants(output=True)
             self.pr.save_state()

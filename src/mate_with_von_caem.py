@@ -424,7 +424,7 @@ class MateC3(object):
 
         """
         delta = 0.16666666667 # subintervals scaler, i.e. 6 intervals
-        h = daylen * const.HRS_TO_SECS 
+        h = daylen * const.SECS_IN_HOUR
         theta = self.params.theta # local var
         
         if float_gt(asat, 0.0):

@@ -125,15 +125,19 @@ class PrintOutput(object):
             output parameter file pointer
 
         """
-        ignore = ['actncslope', 'slowncslope', 'passncslope', 'decayrate', \
-                  'fmfaeces', 'fipar', 'wtfac_tsoil', \
-                  'wtfac_root', 'remaining_days', 'growing_days', \
+        ignore = ['anpp','actncslope', 'slowncslope', 'passncslope', 'decayrate', \
+                  'fmfaeces', 'fipar', 'wtfac_tsoil', 'delta_sw_store',\
+                  'remaining_days', 'growing_days', \
                   'leaf_out_days', 'albranch', 'alleaf', 'alroot', \
                   'alstem', 'c_to_alloc_branch', \
                   'c_to_alloc_root', 'c_to_alloc_shoot', 'c_to_alloc_stem', \
                   'n_to_alloc_branch', 'n_to_alloc_root', 'n_to_alloc_shoot',\
                   'n_to_alloc_stem', 'n_to_alloc_stemimm', \
-                  'n_to_alloc_stemmob', 'ncontent', 'fmleaf', 'fmroot']
+                  'n_to_alloc_stemmob', 'ncontent', 'fmleaf', 'fmroot',\
+                  'branchnc', 'lai', 'litterc', 'littercag' ,'littercbg',\
+                  'littern', 'litternag', 'litternbg','plantc','plantn',\
+                  'rootnc','shootnc','soilc', 'soiln','totalc',\
+                  'totaln','wtfac_topsoil','wtfac_root']
 
         special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
                    'deciduous_model', 'fixleafnc', 'grazing', 'model_optroot',\

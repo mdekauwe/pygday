@@ -192,7 +192,7 @@ class PlantGrowth(object):
         if self.state.lai > 0.0:
             # average leaf nitrogen content (g N m-2 leaf)
             leafn = (self.state.shootnc * self.params.cfracts /
-                     self.state.sla * const.KG_AS_G)
+                     self.params.sla * const.KG_AS_G)
             
             # total nitrogen content of the canopy
             self.state.ncontent = leafn * self.state.lai
@@ -484,8 +484,9 @@ class PlantGrowth(object):
                                         self.params.ncbnew)
         
         # Calculate remaining N left to allocate to leaves and roots 
-        ntot = (self.state.nstore - self.state.n_to_alloc_stemimm -
-                self.state.n_to_alloc_stemmob - self.state.n_to_alloc_branch)
+        ntot = max(0.0,(self.state.nstore - self.state.n_to_alloc_stemimm -
+                        self.state.n_to_alloc_stemmob - 
+                        self.state.n_to_alloc_branch))
         
         # allocate remaining N to flexible-ratio pools
         self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
@@ -560,7 +561,7 @@ class PlantGrowth(object):
         self.fluxes.nloss = self.params.rateloss * self.state.inorgn
     
         # total nitrogen to allocate 
-        ntot = self.fluxes.nuptake + self.fluxes.retrans
+        ntot = max(0.0, self.fluxes.nuptake + self.fluxes.retrans)
         
         if self.control.deciduous_model:
             # allocate N to pools with fixed N:C ratios
@@ -620,6 +621,7 @@ class PlantGrowth(object):
                 
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
                         self.fluxes.npstemmob)
+            ntot = max(0.0, ntot)
             
             # allocate remaining N to flexible-ratio pools
             self.fluxes.npleaf = (ntot * self.state.alleaf / 
@@ -748,8 +750,8 @@ class PlantGrowth(object):
         # via nitfac. Based on date from two E.globulus stands in SW Aus, see
         # Corbeels et al (2005) Ecological Modelling, 187, 449-474.
         # (m2 onesided/kg DW)
-        self.state.sla = (self.params.slazero + nitfac *
-                         (self.params.slamax - self.params.slazero))
+        self.params.sla = (self.params.slazero + nitfac *
+                          (self.params.slamax - self.params.slazero))
         
         if self.control.deciduous_model:
             if float_eq(self.state.shoot, 0.0):
@@ -757,7 +759,7 @@ class PlantGrowth(object):
             elif self.state.leaf_out_days[doy] > 0.0:               
                 
                 self.state.lai += (self.fluxes.cpleaf * 
-                                  (self.state.sla * const.M2_AS_HA / 
+                                  (self.params.sla * const.M2_AS_HA / 
                                   (const.KG_AS_TONNES * self.params.cfracts)) -
                                   (self.fluxes.deadleaves + 
                                    self.fluxes.ceaten) *
@@ -770,7 +772,7 @@ class PlantGrowth(object):
                 self.state.lai = 0.0
             else:
                 self.state.lai += (self.fluxes.cpleaf * 
-                              (self.state.sla * const.M2_AS_HA / 
+                              (self.params.sla * const.M2_AS_HA / 
                               (const.KG_AS_TONNES * self.params.cfracts)) -
                               (self.fluxes.deadleaves + 
                                self.fluxes.ceaten) *
@@ -962,14 +964,11 @@ if __name__ == "__main__":
     # figure out photosynthesis
     PG = PlantGrowth(control, params, state, fluxes, met_data)
 
-    state.lai = (params.slainit * const.M2_AS_HA /
+    state.lai = (params.sla * const.M2_AS_HA /
                             const.KG_AS_TONNES / params.cfracts *
                             state.shoot)
 
-    # Specific LAI (m2 onesided/kg DW)
-    state.sla = params.slainit
-
-
+    
     year = str(control.startyear)
     month = str(control.startmonth)
     day = str(control.startday)
@@ -991,7 +990,7 @@ if __name__ == "__main__":
 
         state.shootnc = state.shootn / state.shoot
         state.ncontent = (state.shootnc * params.cfracts /
-                                state.sla * const.KG_AS_G)
+                                params.sla * const.KG_AS_G)
         daylen = day_length(datex, params.latitude)
         state.wtfac_root = 1.0
         #state.lai = laidata[project_day]
