@@ -92,7 +92,7 @@ class MateC3(object):
             Method calculates GPP, NPP and Ra.
         """
         # local var for tidyness
-        (Tair_K, par, vpd, ca) = self.get_met_data(day)
+        (Tair_K, par, vpd, ca) = self.get_met_data(day, daylen)
         
         # calculate mate params & account for temperature dependencies
         gamma_star = self.calculate_co2_compensation_point(Tair_K)
@@ -152,7 +152,7 @@ class MateC3(object):
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
 
-    def get_met_data(self, day):
+    def get_met_data(self, day, daylen):
         """ Grab the days met data out of the structure and return day values.
 
         Parameters:
@@ -181,9 +181,11 @@ class MateC3(object):
         # standard conversion factor. This was added as the NCEAS run had a
         # different scaling factor btw PAR and SW_RAD, i.e. not 2.3!
         if 'par' in self.met_data:
-            par = self.met_data['par'][day] # umol m-2 d-1
+            # umol m-2 s-1 -> umol m-2 d-1
+            par = self.met_data['par'][day] * const.SECS_IN_HOUR * daylen
         else:
             # convert MJ m-2 d-1 to -> umol m-2 day-1
+            # 0.5 ratio of PAR to SW x MJ_TO_MOL (4.6) = 2.3
             conv = const.RAD_TO_PAR * const.MJ_TO_MOL * const.MOL_TO_UMOL
             par = self.met_data['sw_rad'][day] * conv
         
@@ -422,7 +424,7 @@ class MateC3(object):
 
         """
         delta = 0.16666666667 # subintervals scaler, i.e. 6 intervals
-        h = daylen * const.HRS_TO_SECS # number of seconds of daylight 
+        h = daylen * const.SECS_IN_HOUR # number of seconds of daylight 
         
         if float_gt(asat, 0.0):
             # normalised daily irradiance
@@ -789,11 +791,6 @@ if __name__ == "__main__":
     #flai = "/Users/mdekauwe/research/NCEAS_face/GDAY_ornl_simulation/experiments/silvias_LAI.txt"
     #lai_data = np.loadtxt(flai)
    
-
-    # Specific LAI (m2 onesided/kg DW)
-    state.sla = params.slainit
-
-    
     project_day = 0
         
     # figure out the number of years for simulation and the number of
@@ -812,7 +809,7 @@ if __name__ == "__main__":
             if state.lai > 0.0:
                 state.shootnc = 0.03 #state.shootn / state.shoot
                 state.ncontent = (state.shootnc * params.cfracts /
-                                        state.sla * const.KG_AS_G)
+                                        params.sla * const.KG_AS_G)
             else:
                 state.ncontent = 0.0        
         
