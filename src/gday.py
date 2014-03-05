@@ -194,7 +194,6 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
-                print "**", self.state.cstore
                 self.pg.allocate_stored_c_and_n(init=False)
                 
             if self.control.print_options == "DAILY" and not self.spin_up:

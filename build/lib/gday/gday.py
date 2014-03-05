@@ -179,20 +179,6 @@ class Gday(object):
                 
                 
                 #print self.state.lai, self.fluxes.gpp*100, self.state.pawater_root, self.state.shootnc
-                print self.state.plantc, self.state.soilc, self.state.litterc
-                
-                
-                self.af_in += self.state.alleaf
-                self.af_out += fdecay
-                self.aw_in += self.state.alstem
-                self.aw_out += self.params.wdecay
-                self.ab_in += self.state.albranch
-                self.ab_out += self.params.bdecay
-                self.ar_in += self.state.alroot
-                self.ar_out += rdecay
-                self.npp_sum += self.fluxes.npp
-                self.nsize += 1
-                
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -208,7 +194,6 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
-                print "**", self.state.cstore
                 self.pg.allocate_stored_c_and_n(init=False)
                 
             if self.control.print_options == "DAILY" and not self.spin_up:
@@ -221,11 +206,11 @@ class Gday(object):
         # only close printing file if not in spin up mode as we have yet
         # written the daily output...
         if self.spin_up:
-            return (yr, doy+1, fdecay, rdecay)
+            return (yr, doy+1)
         else:
             self.pr.clean_up() 
     
-    def spin_up_poolsx(self, tolerance=1E-03):
+    def spin_up_pools(self, tolerance=1E-03):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 50 years and check if C pools are changing
            by more than 0.005 units per 1000 yrs.
@@ -258,97 +243,6 @@ class Gday(object):
         self.save_daily_outputs(yr, doy)
         self.pr.clean_up()
         self.print_output_file()
-    
-    def spin_up_pools(self, tolerance=1E-03):
-        """ Spin Up model plant, soil and litter pools.
-        -> Examine sequences of 1000 years and check if C pools are changing
-           by more than 0.005 units per 1000 yrs.
-
-        References:
-        ----------
-        Adapted from...
-        * Murty, D and McMurtrie, R. E. (2000) Ecological Modelling, 134,
-          185-205, specifically page 196.
-        """
-        self.af_in = 0.0
-        self.af_out = 0.0
-        self.aw_in = 0.0
-        self.aw_out = 0.0
-        self.ab_in = 0.0
-        self.ab_out = 0.0
-        self.ar_in = 0.0
-        self.ar_out = 0.0
-        self.nsize = 0
-        self.npp_sum = 0.0
-        prev_plantc = 9999.9
-        prev_soilc = 9999.9
-        prev_litterc = 9999.9
-        
-        while True:
-            
-            # original stopping constraint
-            if (fabs(prev_plantc - self.state.plantc) < tolerance and
-                fabs(prev_soilc - self.state.soilc) < tolerance and 
-                fabs(prev_litterc - self.state.litterc) < tolerance):
-                break
-            
-            else:            
-                
-                prev_plantc = self.state.plantc
-                prev_soilc = self.state.soilc
-                prev_litterc = self.state.litterc
-               
-                (yr, doy, fdecay, rdecay) = self.run_sim() # run the model...
-                
-                
-                self.af_in /= float(self.nsize)
-                self.af_out /= float(self.nsize)
-                self.aw_in /= float(self.nsize)
-                self.aw_out /= float(self.nsize)
-                self.ab_in /= float(self.nsize)
-                self.ab_out /= float(self.nsize)
-                self.ar_in /= float(self.nsize)
-                self.ar_out /= float(self.nsize)
-                mean_npp = self.npp_sum / float(self.nsize)
-                
-                
-                # Figure out average pool sizes
-                foliage_pool = self.af_in * mean_npp / self.af_out
-                branches_pool = self.ab_in * mean_npp / self.ab_out
-                stem_pool = self.aw_in * mean_npp / self.aw_out
-                root_pool = self.ar_in * mean_npp / self.ar_out
-                
-                msgx = "%f : %f\n" % (self.state.stem, stem_pool)
-                sys.stderr.write(msgx)
-                
-                # Change pool sizes...
-                self.state.shoot = foliage_pool
-                self.state.branch = branches_pool
-                self.state.stem = stem_pool
-                self.state.root = root_pool
-                
-                self.af_in = 0.0
-                self.af_out = 0.0
-                self.aw_in = 0.0
-                self.aw_out = 0.0
-                self.ab_in = 0.0
-                self.ab_out = 0.0
-                self.ar_in = 0.0
-                self.ar_out = 0.0
-                self.nsize = 0
-                self.npp_sum = 0.0
-                
-                
-                # Have we reached a steady state?
-                msg = "Spinup: Plant C - %f, Soil C - %f, Litter C - %f\n" % \
-                       (self.state.plantc, self.state.soilc, self.state.litterc)
-                sys.stderr.write(msg)
-        
-        self.save_daily_outputs(yr, doy)
-        self.pr.clean_up()
-        self.print_output_file()
-    
-    
            
     def print_output_file(self):
         """ Either print the daily output file (at the end of the year) or
