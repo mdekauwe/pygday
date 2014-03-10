@@ -116,16 +116,16 @@ class Gday(object):
             self.pr.save_default_parameters()
             sys.exit(0)
         
-        
+        self.dead = False # johnny 5 is alive
 
         # calculate initial stuff, e.g. C:N ratios and zero annual flux sums
         self.day_end_calculations(0, INIT=True)
         self.state.pawater_root = self.params.wcapac_root
         self.state.pawater_topsoil = self.params.wcapac_topsoil
         self.spin_up = spin_up
-        self.state.lai = (self.params.sla * const.M2_AS_HA /
-                          const.KG_AS_TONNES / self.params.cfracts *
-                          self.state.shoot)
+        self.state.lai = max(0.01, (self.params.sla * const.M2_AS_HA /
+                                    const.KG_AS_TONNES / self.params.cfracts *
+                                    self.state.shoot))
         
         # figure out the number of years for simulation and the number of
         # days in each year
@@ -160,11 +160,9 @@ class Gday(object):
             # =============== #  
             for doy in xrange(days_in_year[i]):
                 
-                #for pft in xrange(4):
-                
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
-                
+            
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
@@ -173,12 +171,18 @@ class Gday(object):
                 # soil C & N model fluxes
                 self.cs.calculate_csoil_flows(project_day)
                 self.ns.calculate_nsoil_flows(project_day)
-    
+
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
+                self.are_we_dead()
                 
-                #print self.state.lai, self.fluxes.gpp*100, self.state.pawater_root, self.state.shootnc
+                #print self.state.lai, self.fluxes.gpp*100, \
+                #      self.state.pawater_root, self.state.shootnc
+                
+                
+                
+                
                 # =============== #
                 #   END OF DAY    #
                 # =============== #
@@ -199,6 +203,10 @@ class Gday(object):
             if self.control.print_options == "DAILY" and not self.spin_up:
                 self.print_output_file()
             
+            # GDAY died in the previous year, re-establish gday for the next yr
+            if self.dead:
+                self.re_establish_gday()
+            
         # close output files
         if self.control.print_options == "END" and not self.spin_up:
             self.print_output_file()
@@ -209,6 +217,70 @@ class Gday(object):
             return (yr, doy+1)
         else:
             self.pr.clean_up() 
+    
+    def are_we_dead(self):
+        """ Simplistic scheme to allow GDAY to die and re-establish the 
+        following year """
+        if float_eq(self.state.lai, 0.0):
+            
+            # i.e. we have just died put stem C into struct litter
+            # works for grasses as this would be zero anyway
+            if not self.dead:
+                self.state.structsurf = self.state.stem
+                self.state.structsurfn = self.state.stemn
+            
+            # Need to zero stuff for output state and fluxes.
+            self.state.age = 0.0
+            self.state.branch = 0.0
+            self.state.branchn = 0.0
+            self.state.cstore = 0.0
+            self.state.nstore = 0.0
+            self.state.root = 0.0
+            self.state.rootn = 0.0
+            self.state.sapwood = 0.0
+            self.state.shoot = 0.0
+            self.state.shootn = 0.0
+            self.state.stem = 0.0
+            self.state.stemn = 0.0
+            self.state.stemnimm = 0.0
+            self.state.stemnmob = 0.0
+            
+            self.dead = True # johnny 5 is dead
+    
+    def re_establish_gday(self):
+        """ grow from seed the following year following death. Concept is that
+        somewhere along the line GDAY saved enough C to be able to 
+        re-establish in a new year. C isnt explicitly accounted for, so this
+        C just appears. Perhaps this makes sense, i.e. wind/animals dropping
+        seeds, alternatively we could force GDAY to save a tiny amount of C 
+        for reproduction. For the moment -> it just appears."""
+        self.state.lai = 0.01
+        
+        # C/N = 25 of default pools.
+        if self.control.alloc_model == "GRASSES":
+            age = 0.0
+            branch = 0.0
+            branchn = 0.0
+            cstore = 0.001
+            nstore = 0.00004
+            root = 0.001
+            rootn = 0.00004
+            sapwood = 0.0
+            shoot = 0.001
+            shootn = 0.00004
+            stem = 0.0
+            stemn = 0.0
+            stemnimm = 0.0
+            stemnmob = 0.0
+        else:
+            branch = 0.001
+            branchn = 0.00004
+            sapwood = 0.001
+            stem = 0.001
+            stemn = 0.00004
+            stemnimm = 0.00004
+            stemnmob = 0.0
+        
     
     def spin_up_pools(self, tolerance=1E-03):
         """ Spin Up model plant, soil and litter pools.
@@ -345,7 +417,9 @@ class Gday(object):
                              self.state.stem + self.state.branch)
         self.state.totalc = (self.state.soilc + self.state.litterc +
                              self.state.plantc)
-
+        
+        self.state.plantnc = self.state.plantn / self.state.plantc
+        print self.state.plantnc
         # optional constant passive pool
         if self.control.passiveconst == True:
             self.state.passivesoil = self.params.passivesoilz
