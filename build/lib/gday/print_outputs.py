@@ -137,7 +137,7 @@ class PrintOutput(object):
                   'branchnc', 'lai', 'litterc', 'littercag' ,'littercbg',\
                   'littern', 'litternag', 'litternbg','plantc','plantn',\
                   'rootnc','shootnc','soilc', 'soiln','totalc',\
-                  'totaln','wtfac_topsoil','wtfac_root']
+                  'totaln','wtfac_topsoil','wtfac_root','plantnc']
 
         special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
                    'deciduous_model', 'fixleafnc', 'grazing', 'model_optroot',\
