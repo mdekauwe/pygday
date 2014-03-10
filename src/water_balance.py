@@ -467,7 +467,8 @@ class WaterBalance(object):
         # are only 12 measurements and only three from LAI > 3. So this might
         # not hold as well for a forest canopy?
         # Ritchie 1972, Water Resources Research, 8, 1204-1213.
-        soil_evap *= exp(-0.398 * self.state.lai)
+        if float_gt(self.state.lai, 0.0):
+            soil_evap *= exp(-0.398 * self.state.lai)
         
         # reduce soil evaporation if top soil is dry
         soil_evap *= self.state.wtfac_topsoil

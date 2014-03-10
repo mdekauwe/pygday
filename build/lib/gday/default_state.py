@@ -97,6 +97,7 @@ littercbg = 0.0
 litterc = 0.0
 plantc =  0.0
 totalc = 0.0
+plantnc = 0.0
 
 # total plant, soil & litter nitrogen
 soiln = 0.0

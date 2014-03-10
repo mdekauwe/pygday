@@ -719,6 +719,10 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown N uptake option')
         
+        # Stop N uptake if C:N falls below 10
+        if self.state.plantnc > 0.1:
+            nuptake = 0.0
+        
         return nuptake
     
     def carbon_allocation(self, nitfac, doy, days_in_yr):
