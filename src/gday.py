@@ -116,7 +116,7 @@ class Gday(object):
             self.pr.save_default_parameters()
             sys.exit(0)
         
-        self.dead = False # johnny 5 is alive
+        #self.dead = False # johnny 5 is alive
 
         # calculate initial stuff, e.g. C:N ratios and zero annual flux sums
         self.day_end_calculations(0, INIT=True)
@@ -175,7 +175,7 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                self.are_we_dead()
+                #self.are_we_dead()
                 
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
@@ -204,8 +204,8 @@ class Gday(object):
                 self.print_output_file()
             
             # GDAY died in the previous year, re-establish gday for the next yr
-            if self.dead:
-                self.re_establish_gday()
+            #if self.dead:
+            #    self.re_establish_gday()
             
         # close output files
         if self.control.print_options == "END" and not self.spin_up:
@@ -418,8 +418,8 @@ class Gday(object):
         self.state.totalc = (self.state.soilc + self.state.litterc +
                              self.state.plantc)
         
-        self.state.plantnc = self.state.plantn / self.state.plantc
-        print self.state.plantnc
+        #self.state.plantnc = self.state.plantn / self.state.plantc
+        #print self.state.plantnc
         # optional constant passive pool
         if self.control.passiveconst == True:
             self.state.passivesoil = self.params.passivesoilz
