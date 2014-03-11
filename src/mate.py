@@ -181,8 +181,8 @@ class MateC3(object):
         # standard conversion factor. This was added as the NCEAS run had a
         # different scaling factor btw PAR and SW_RAD, i.e. not 2.3!
         if 'par' in self.met_data:
-            # umol m-2 s-1 -> umol m-2 d-1
-            par = self.met_data['par'][day] * const.SECS_IN_HOUR * daylen
+            # umol m-2 d-1
+            par = self.met_data['par'][day]
         else:
             # convert MJ m-2 d-1 to -> umol m-2 day-1
             # 0.5 ratio of PAR to SW x MJ_TO_MOL (4.6) = 2.3
