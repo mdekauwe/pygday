@@ -104,8 +104,18 @@ class PlantGrowth(object):
         nitfac = min(1.0, self.state.shootnc / self.params.ncmaxfyoung)
         
         # figure out the C allocation fractions 
-        self.calc_carbon_allocation_fracs(nitfac, yr_index, project_day)
-        
+        if not self.control.deciduous_model:
+            self.calc_carbon_allocation_fracs(nitfac)
+        else:
+            # figure out limitations during leaf growth period
+            if self.state.leaf_out_days[doy] > 0.0:
+                limitation = self.calculate_growth_stress_limitation()
+                
+                # Need to save max lai for pipe model because at the end of the
+                # year LAI=0.0
+                if self.state.lai > self.state.max_lai:
+                    self.state.max_lai = self.state.lai
+                    
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
         
@@ -233,7 +243,7 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
     
-    def calc_carbon_allocation_fracs(self, nitfac, yr_index, project_day):
+    def calc_carbon_allocation_fracs(self, nitfac):
         """Carbon allocation fractions to move photosynthate through the plant.
 
         Parameters:
@@ -279,33 +289,7 @@ class PlantGrowth(object):
         
         elif self.control.alloc_model == "GRASSES":
             
-            # calculate the N limitation based on available canopy N
-            # this logic appears counter intuitive, but it works out when
-            # applied with the perhaps backwards logic below
-            nf = self.state.shootnc
-            
-            # case - completely limited by N availability
-            if nf < self.params.nf_min:
-                nlim = 0.0
-            elif nf < self.params.nf_crit:
-               
-                nlim = ((nf - self.params.nf_min) / 
-                        (self.params.nf_crit - self.params.nf_min))
-            # case - no N limitation
-            else:
-                nlim = 1.0
-            
-            # Limitation by nitrogen and water. Water constraint is implicit, 
-            # in that, water stress results in an increase of root mass,
-            # which are assumed to spread horizontally within the rooting zone.
-            # So in effect, building additional root mass doesnt alleviate the
-            # water limitation within the model. However, it does more 
-            # accurately reflect an increase in root C production at a water
-            # limited site. This implementation is also consistent with other
-            # approaches, e.g. LPJ. In fact I dont see much evidence for models
-            # that have a flexible bucket depth.
-            limitation = self.sma(min(nlim, self.state.wtfac_root))
-            self.state.prev_sma = limitation
+            self.calculate_growth_stress_limitation()
             
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
@@ -313,7 +297,7 @@ class PlantGrowth(object):
                                  self.params.c_alloc_rmin / 
                                 (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
-                                 self.params.c_alloc_rmin) * limitation))
+                                 self.params.c_alloc_rmin) * self.state.prev_sma))
             
             
             self.state.alstem = 0.0
@@ -322,34 +306,8 @@ class PlantGrowth(object):
             #print nlim, limitation, self.state.alleaf, self.state.alroot
         elif self.control.alloc_model == "ALLOMETRIC":
             
-            # calculate the N limitation based on available canopy N
-            # this logic appears counter intuitive, but it works out when
-            # applied with the perhaps backwards logic below
-            nf = self.state.shootnc
-            
-            # case - completely limited by N availability
-            if nf < self.params.nf_min:
-                nlim = 0.0
-            elif nf < self.params.nf_crit:
-               
-                nlim = ((nf - self.params.nf_min) / 
-                        (self.params.nf_crit - self.params.nf_min))
-            # case - no N limitation
-            else:
-                nlim = 1.0
-           
-           
-            # Limitation by nitrogen and water. Water constraint is implicit, 
-            # in that, water stress results in an increase of root mass,
-            # which are assumed to spread horizontally within the rooting zone.
-            # So in effect, building additional root mass doesnt alleviate the
-            # water limitation within the model. However, it does more 
-            # accurately reflect an increase in root C production at a water
-            # limited site. This implementation is also consistent with other
-            # approaches, e.g. LPJ. In fact I dont see much evidence for models
-            # that have a flexible bucket depth.
-            limitation = self.sma(min(nlim, self.state.wtfac_root))
-            self.state.prev_sma = limitation
+            if not self.control.deciduous_model:
+                self.calculate_growth_stress_limitation()
             
             
             # figure out root allocation given available water & nutrients
@@ -358,11 +316,11 @@ class PlantGrowth(object):
                                  self.params.c_alloc_rmin / 
                                 (self.params.c_alloc_rmin + 
                                 (self.params.c_alloc_rmax - 
-                                 self.params.c_alloc_rmin) * limitation))
+                                 self.params.c_alloc_rmin) * self.state.prev_sma))
             
             #self.state.alroot = (self.params.c_alloc_rmin + 
             #                    (self.params.c_alloc_rmax - 
-            #                     self.params.c_alloc_rmin) * limitation)
+            #                     self.params.c_alloc_rmin) * self.state.prev_sma)
             
             
             # Calculate tree height: allometric reln using the power function 
@@ -380,9 +338,11 @@ class PlantGrowth(object):
                                     self.params.cfracts) / 
                                     self.state.canht / 
                                     self.params.density)
-            
-            leaf2sap = self.state.lai / sap_cross_sec_area
-        
+            if not self.control.deciduous_model:
+                leaf2sap = self.state.lai / sap_cross_sec_area
+            else:
+                leaf2sap = self.state.max_lai / sap_cross_sec_area
+                
             # Allocation to leaves dependant on height. Modification of pipe 
             # theory, leaf-to-sapwood ratio is not constant above a certain 
             # height, due to hydraulic constraints (Magnani et al 2000; Deckmyn
@@ -426,8 +386,17 @@ class PlantGrowth(object):
             self.state.alstem = (1.0 - self.state.alroot - 
                                        self.state.albranch - 
                                        self.state.alleaf)
-                                       
-            #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot 
+            # Bit of a hack...when things start off if the model thinks it is
+            # N stressed, foliage alloc is likely to be at the max, so wood
+            # alloc can become negative. All I am doing here is reducing
+            # foliage allocation and just not growing any wood.
+            if self.state.alstem < 0.0:
+                missing = self.state.alstem 
+                # counter intutive as number is negative
+                self.state.alleaf += missing 
+                self.state.alstem = 0.0              
+            #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot
+            
         else:
             raise AttributeError('Unknown C allocation model')
         
@@ -442,7 +411,40 @@ class PlantGrowth(object):
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
         return max(0.0, alloc_max * min(1.0, arg))    
+    
+    
+    def calculate_growth_stress_limitation(self):
+        """ Calculate level of stress due to nitrogen or water availability """
+        # calculate the N limitation based on available canopy N
+        # this logic appears counter intuitive, but it works out when
+        # applied with the perhaps backwards logic below
+        nf = self.state.shootnc
+    
+        # case - completely limited by N availability
+        if nf < self.params.nf_min:
+            nlim = 0.0
+        elif nf < self.params.nf_crit:
        
+            nlim = ((nf - self.params.nf_min) / 
+                    (self.params.nf_crit - self.params.nf_min))
+        # case - no N limitation
+        else:
+            nlim = 1.0
+    
+   
+        # Limitation by nitrogen and water. Water constraint is implicit, 
+        # in that, water stress results in an increase of root mass,
+        # which are assumed to spread horizontally within the rooting zone.
+        # So in effect, building additional root mass doesnt alleviate the
+        # water limitation within the model. However, it does more 
+        # accurately reflect an increase in root C production at a water
+        # limited site. This implementation is also consistent with other
+        # approaches, e.g. LPJ. In fact I dont see much evidence for models
+        # that have a flexible bucket depth.
+        limitation = self.sma(min(nlim, self.state.wtfac_root))
+        self.state.prev_sma = limitation
+        
+        
     def allocate_stored_c_and_n(self, init):
         """
         Allocate stored C&N. This is either down as the model is initialised 
