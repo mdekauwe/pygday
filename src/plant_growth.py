@@ -105,8 +105,11 @@ class PlantGrowth(object):
         
         # figure out the C allocation fractions 
         if not self.control.deciduous_model:
+            # daily allocation...
             self.calc_carbon_allocation_fracs(nitfac)
         else:
+            # Allocation is annually for deciduous model, but we need to keep
+            # a check on stresses during the growing season and the LAI
             # figure out limitations during leaf growth period
             if self.state.leaf_out_days[doy] > 0.0:
                 limitation = self.calculate_growth_stress_limitation()
@@ -270,40 +273,39 @@ class PlantGrowth(object):
         """
         if self.control.alloc_model == "FIXED":
         
-            self.state.alleaf = (self.params.c_alloc_fmax + nitfac *
+            self.fluxes.alleaf = (self.params.c_alloc_fmax + nitfac *
                                 (self.params.c_alloc_fmax - 
                                  self.params.c_alloc_fmin))
             
-            self.state.alroot = (self.params.c_alloc_rmax + nitfac *
+            self.fluxes.alroot = (self.params.c_alloc_rmax + nitfac *
                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin))
 
-            self.state.albranch = (self.params.c_alloc_bmax + nitfac *
+            self.fluxes.albranch = (self.params.c_alloc_bmax + nitfac *
                                   (self.params.c_alloc_bmax - 
                                    self.params.c_alloc_bmin))
         
             # allocate remainder to stem
-            self.state.alstem = (1.0 - self.state.alleaf - self.state.alroot - 
-                                 self.state.albranch)
-            #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
-        
+            self.fluxes.alstem = (1.0 - self.fluxes.alleaf - self.fluxes.alroot - 
+                                 self.fluxes.albranch)
+            
         elif self.control.alloc_model == "GRASSES":
             
             self.calculate_growth_stress_limitation()
             
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
-            self.state.alroot = (self.params.c_alloc_rmax * 
-                                 self.params.c_alloc_rmin / 
-                                (self.params.c_alloc_rmin + 
-                                (self.params.c_alloc_rmax - 
-                                 self.params.c_alloc_rmin) * self.state.prev_sma))
+            self.fluxes.alroot = (self.params.c_alloc_rmax * 
+                                  self.params.c_alloc_rmin / 
+                                 (self.params.c_alloc_rmin + 
+                                 (self.params.c_alloc_rmax - 
+                                  self.params.c_alloc_rmin) * 
+                                  self.state.prev_sma))
             
+            self.fluxes.alstem = 0.0
+            self.fluxes.albranch = 0.0
+            self.fluxes.alleaf = (1.0 - self.fluxes.alroot)
             
-            self.state.alstem = 0.0
-            self.state.albranch = 0.0
-            self.state.alleaf = (1.0 - self.state.alroot)
-            #print nlim, limitation, self.state.alleaf, self.state.alroot
         elif self.control.alloc_model == "ALLOMETRIC":
             
             if not self.control.deciduous_model:
@@ -312,22 +314,24 @@ class PlantGrowth(object):
             
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
-            self.state.alroot = (self.params.c_alloc_rmax * 
-                                 self.params.c_alloc_rmin / 
-                                (self.params.c_alloc_rmin + 
-                                (self.params.c_alloc_rmax - 
-                                 self.params.c_alloc_rmin) * self.state.prev_sma))
+            self.fluxes.alroot = (self.params.c_alloc_rmax * 
+                                  self.params.c_alloc_rmin / 
+                                 (self.params.c_alloc_rmin + 
+                                 (self.params.c_alloc_rmax - 
+                                  self.params.c_alloc_rmin) * 
+                                  self.state.prev_sma))
             
-            #self.state.alroot = (self.params.c_alloc_rmin + 
+            #self.fluxes.alroot = (self.params.c_alloc_rmin + 
             #                    (self.params.c_alloc_rmax - 
-            #                     self.params.c_alloc_rmin) * self.state.prev_sma)
+            #                     self.params.c_alloc_rmin) * 
+            #                     self.state.prev_sma)
             
             
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
             self.state.canht = (self.params.heighto * 
                                 self.state.stem**self.params.htpower)
-            
+            print self.state.canht, self.state.stem
             # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
@@ -338,6 +342,7 @@ class PlantGrowth(object):
                                     self.params.cfracts) / 
                                     self.state.canht / 
                                     self.params.density)
+            
             if not self.control.deciduous_model:
                 leaf2sap = self.state.lai / sap_cross_sec_area
             else:
@@ -361,9 +366,11 @@ class PlantGrowth(object):
                              (self.params.leafsap1 - self.params.leafsap0) * 
                              (self.state.canht - self.params.height0) / 
                              (self.params.height1 - self.params.height0))
+            #leaf2sa_target = (self.params.leafsap0 + self.params.leafsap1 * exp(-0.1 * self.state.canht))
             leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
-        
-            self.state.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
+            
+            
+            self.fluxes.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
                                                      self.params.c_alloc_fmax, 
                                                      self.params.targ_sens) 
             
@@ -371,7 +378,7 @@ class PlantGrowth(object):
             # and branch
             target_branch = (self.params.branch0 * 
                              self.state.stem**self.params.branch1)
-            self.state.albranch = self.alloc_goal_seek(self.state.branch, 
+            self.fluxes.albranch = self.alloc_goal_seek(self.state.branch, 
                                                        target_branch, 
                                                        self.params.c_alloc_bmax, 
                                                        self.params.targ_sens) 
@@ -383,30 +390,31 @@ class PlantGrowth(object):
             #                                           self.params.targ_sens)
             
             # allocation to stem is the residual
-            self.state.alstem = (1.0 - self.state.alroot - 
-                                       self.state.albranch - 
-                                       self.state.alleaf)
+            self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
+                                        self.fluxes.albranch - 
+                                        self.fluxes.alleaf)
+            
             # Bit of a hack...when things start off if the model thinks it is
             # N stressed, foliage alloc is likely to be at the max, so wood
             # alloc can become negative. All I am doing here is reducing
             # foliage allocation and just not growing any wood.
-            if self.state.alstem < 0.0:
-                missing = self.state.alstem 
+            if self.fluxes.alstem < 0.0:
+                missing = self.fluxes.alstem 
                 # counter intutive as number is negative
-                self.state.alleaf += missing 
-                self.state.alstem = 0.0              
-            #print self.state.alleaf, self.state.albranch, self.state.alstem, self.state.alroot
+                self.fluxes.alleaf += missing 
+                self.fluxes.alstem = 0.0              
+            #print self.fluxes.alleaf, self.fluxes.albranch, self.fluxes.alstem, self.fluxes.alroot
             
         else:
             raise AttributeError('Unknown C allocation model')
         
         # Total allocation should be one, if not print warning:
-        total_alloc = (self.state.alroot + self.state.alleaf + 
-                       self.state.albranch + self.state.alstem)
+        total_alloc = (self.fluxes.alroot + self.fluxes.alleaf + 
+                       self.fluxes.albranch + self.fluxes.alstem)
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-        #print self.state.alleaf, self.state.alstem, self.state.albranch, self.state.alroot
+        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, self.fluxes.alroot
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
@@ -431,7 +439,6 @@ class PlantGrowth(object):
         else:
             nlim = 1.0
     
-   
         # Limitation by nitrogen and water. Water constraint is implicit, 
         # in that, water stress results in an increase of root mass,
         # which are assumed to spread horizontally within the rooting zone.
@@ -452,18 +459,18 @@ class PlantGrowth(object):
         """
         # JUST here for FACE stuff as first year of ele should have last years alloc fracs
         #if init == True:
-        #    self.state.alleaf = 0.26
-        #    self.state.alroot = 0.11
-        #    self.state.albranch = 0.06
-        #    self.state.alstem = 0.57
+        #    self.fluxes.alleaf = 0.26
+        #    self.fluxes.alroot = 0.11
+        #    self.fluxes.albranch = 0.06
+        #    self.fluxes.alstem = 0.57
         
         # ========================
         # Carbon - fixed fractions
         # ========================
-        self.state.c_to_alloc_shoot = self.state.alleaf * self.state.cstore
-        self.state.c_to_alloc_root = self.state.alroot * self.state.cstore
-        self.state.c_to_alloc_branch = self.state.albranch * self.state.cstore
-        self.state.c_to_alloc_stem = self.state.alstem * self.state.cstore
+        self.state.c_to_alloc_shoot = self.fluxes.alleaf * self.state.cstore
+        self.state.c_to_alloc_root = self.fluxes.alroot * self.state.cstore
+        self.state.c_to_alloc_branch = self.fluxes.albranch * self.state.cstore
+        self.state.c_to_alloc_stem = self.fluxes.alstem * self.state.cstore
         
         # =========
         # Nitrogen
@@ -472,17 +479,17 @@ class PlantGrowth(object):
         # Fixed ratios N allocation to woody components.
         
         # N flux into new ring (immobile component -> structrual components)
-        self.state.n_to_alloc_stemimm = (self.state.cstore * self.state.alstem * 
+        self.state.n_to_alloc_stemimm = (self.state.cstore * self.fluxes.alstem * 
                                          self.params.ncwimm)
     
         # N flux into new ring (mobile component -> can be retrans for new
         # woody tissue)
-        self.state.n_to_alloc_stemmob = (self.state.cstore * self.state.alstem * 
+        self.state.n_to_alloc_stemmob = (self.state.cstore * self.fluxes.alstem * 
                                         (self.params.ncwnew - 
                                          self.params.ncwimm))
         
         self.state.n_to_alloc_branch = (self.state.cstore * 
-                                        self.state.albranch * 
+                                        self.fluxes.albranch * 
                                         self.params.ncbnew)
         
         # Calculate remaining N left to allocate to leaves and roots 
@@ -491,9 +498,9 @@ class PlantGrowth(object):
                         self.state.n_to_alloc_branch))
         
         # allocate remaining N to flexible-ratio pools
-        self.state.n_to_alloc_shoot = (ntot * self.state.alleaf / 
-                                      (self.state.alleaf + 
-                                       self.state.alroot *
+        self.state.n_to_alloc_shoot = (ntot * self.fluxes.alleaf / 
+                                      (self.fluxes.alleaf + 
+                                       self.fluxes.alroot *
                                        self.params.ncrfac))
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
@@ -588,13 +595,13 @@ class PlantGrowth(object):
             # allocate N to pools with fixed N:C ratios
             
             # N flux into new ring (immobile component -> structural components)
-            self.fluxes.npstemimm = self.fluxes.npp * self.state.alstem * ncwimm
+            self.fluxes.npstemimm = self.fluxes.npp * self.fluxes.alstem * ncwimm
     
             # N flux into new ring (mobile component -> can be retrans for new
             # woody tissue)
-            self.fluxes.npstemmob = (self.fluxes.npp * self.state.alstem * 
+            self.fluxes.npstemmob = (self.fluxes.npp * self.fluxes.alstem * 
                                      (ncwnew - ncwimm))
-            self.fluxes.npbranch = (self.fluxes.npp * self.state.albranch * 
+            self.fluxes.npbranch = (self.fluxes.npp * self.fluxes.albranch * 
                                      ncbnew)
             
             # If we have allocated more N than we have available 
@@ -608,16 +615,16 @@ class PlantGrowth(object):
                                     self.fluxes.npbranch ))
                 
                 # need to adjust growth values accordingly as well
-                self.fluxes.cpleaf = self.fluxes.npp * self.state.alleaf
-                self.fluxes.cproot = self.fluxes.npp * self.state.alroot
-                self.fluxes.cpbranch = self.fluxes.npp * self.state.albranch
-                self.fluxes.cpstem = self.fluxes.npp * self.state.alstem
+                self.fluxes.cpleaf = self.fluxes.npp * self.fluxes.alleaf
+                self.fluxes.cproot = self.fluxes.npp * self.fluxes.alroot
+                self.fluxes.cpbranch = self.fluxes.npp * self.fluxes.albranch
+                self.fluxes.cpstem = self.fluxes.npp * self.fluxes.alstem
                 
-                self.fluxes.npbranch = (self.fluxes.npp * self.state.albranch * 
+                self.fluxes.npbranch = (self.fluxes.npp * self.fluxes.albranch * 
                                         ncbnew)
-                self.fluxes.npstemimm = (self.fluxes.npp * self.state.alstem * 
+                self.fluxes.npstemimm = (self.fluxes.npp * self.fluxes.alstem * 
                                          ncwimm)
-                self.fluxes.npstemmob = (self.fluxes.npp * self.state.alstem * 
+                self.fluxes.npstemmob = (self.fluxes.npp * self.fluxes.alstem * 
                                         (ncwnew - ncwimm))
                 
                 
@@ -626,8 +633,8 @@ class PlantGrowth(object):
             ntot = max(0.0, ntot)
             
             # allocate remaining N to flexible-ratio pools
-            self.fluxes.npleaf = (ntot * self.state.alleaf / 
-                                 (self.state.alleaf + self.state.alroot *
+            self.fluxes.npleaf = (ntot * self.fluxes.alleaf / 
+                                 (self.fluxes.alleaf + self.fluxes.alroot *
                                  self.params.ncrfac))
             self.fluxes.nproot = ntot - self.fluxes.npleaf
         
@@ -742,12 +749,12 @@ class PlantGrowth(object):
             self.fluxes.cpstem = self.fluxes.wrate * days_left
             self.fluxes.cproot = self.state.c_to_alloc_root * 1.0 / days_in_yr
         else:
-            self.fluxes.cpleaf = self.fluxes.npp * self.state.alleaf
-            self.fluxes.cproot = self.fluxes.npp * self.state.alroot
-            self.fluxes.cpbranch = self.fluxes.npp * self.state.albranch
-            self.fluxes.cpstem = self.fluxes.npp * self.state.alstem
+            self.fluxes.cpleaf = self.fluxes.npp * self.fluxes.alleaf
+            self.fluxes.cproot = self.fluxes.npp * self.fluxes.alroot
+            self.fluxes.cpbranch = self.fluxes.npp * self.fluxes.albranch
+            self.fluxes.cpstem = self.fluxes.npp * self.fluxes.alstem
             
-            #print self.fluxes.cpleaf, self.fluxes.npp, self.state.alleaf
+            #print self.fluxes.cpleaf, self.fluxes.npp, self.fluxes.alleaf
             
             
         # evaluate SLA of new foliage accounting for variation in SLA 
