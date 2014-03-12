@@ -122,20 +122,24 @@ class Phenology(object):
             if self.leaf_on_found == False and self.accum_gdd >= gdd_thresh:
                 self.leaf_on = d
                 self.leaf_on_found = True
+                
             if self.leaf_off_found == False and (self.accum_gdd >= gdd_thresh):
-                
-                self.drop_leaves = self.leaf_drop(daylen[d], Tsoil, 
-                                                  Tsoil_next_3days)   
-                if self.drop_leaves:
-                    self.leaf_off_found = True
-                    self.leaf_off = d
-                
+                # I am prescribing that no leaves can fall off before doy=180
+                # Had issue with KSCO simulations where the photoperiod was
+                # less than the threshold very soon after leaf out.
+                if d > 180:
+                    self.drop_leaves = self.leaf_drop(daylen[d], Tsoil, 
+                                                      Tsoil_next_3days)   
+                    if self.drop_leaves:
+                        self.leaf_off_found = True
+                        self.leaf_off = d
+                    
             # Calculated NCD from fixed date following Murray et al 1989.
             if d+1 >= nov_doy:
                 self.accumulated_ncd += self.calc_ncd(Tmean) 
                 
             self.project_day += 1
-       
+        
         self.last_yrs_accumulated_ncd = self.accumulated_ncd
         
         # Length of time taken for new growth from storage to be allocated.
