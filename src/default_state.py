@@ -54,11 +54,7 @@ ncontent = None
 age = 0.0                               #Current stand age (years)
 canht = 17.0     # Canopy height (m)
 
-# C allocated fracs - NB these are at the annual timestep for the deciduous model
-alleaf = 0.0
-alroot = 0.0
-albranch = 0.0
-alstem = 0.0
+
 
 
 # decid model
