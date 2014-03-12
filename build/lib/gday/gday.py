@@ -201,7 +201,6 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
-                print "*", self.state.cstore, self.state.nstore
                 self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.allocate_stored_c_and_n(init=False)
                 
