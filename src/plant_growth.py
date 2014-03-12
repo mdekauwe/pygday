@@ -331,7 +331,7 @@ class PlantGrowth(object):
             # (Causton, 1985)
             self.state.canht = (self.params.heighto * 
                                 self.state.stem**self.params.htpower)
-            print self.state.canht, self.state.stem
+            #print self.state.canht, self.state.stem
             # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
@@ -368,7 +368,7 @@ class PlantGrowth(object):
                              (self.params.height1 - self.params.height0))
             leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
             
-            
+            print leaf2sap, leaf2sa_target, self.params.leafsap0, self.params.leafsap1
             self.fluxes.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
                                                      self.params.c_alloc_fmax, 
                                                      self.params.targ_sens) 

@@ -49,6 +49,7 @@ pawater_topsoil = 50.0               # plant available water - top soil(mm)
 wtfac_root = 1.0
 wtfac_topsoil = 1.0
 lai = 0.0            # m2 (leaf) m-2 (ground)
+mean_lai = None
 sla = None
 ncontent = None
 age = 0.0                               #Current stand age (years)
