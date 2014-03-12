@@ -122,7 +122,16 @@ class MovingAverageFilter:
 		self.p = (self.p  + 1) % self.n
 		return self.avg
 
+def time_till_next_disturbance(return_interval):
+    """ calculate the number of years until a disturbance event occurs
+    assuming a return interval of X years 
+    
+        - section 3.4.1 D. Knuth, The Art of Computer Programming.
+    """
+    import random
 
+    rate = 1.0 / return_interval
+    return int(-math.log(1.0 - random.random()) / rate)
 
 
  
