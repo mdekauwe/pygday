@@ -366,7 +366,6 @@ class PlantGrowth(object):
                              (self.params.leafsap1 - self.params.leafsap0) * 
                              (self.state.canht - self.params.height0) / 
                              (self.params.height1 - self.params.height0))
-            #leaf2sa_target = (self.params.leafsap0 + self.params.leafsap1 * exp(-0.1 * self.state.canht))
             leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
             
             
