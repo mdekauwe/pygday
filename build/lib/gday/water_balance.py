@@ -606,7 +606,7 @@ class SoilMoisture(object):
         #print self.params.ntheta_root
         #print self.params.rooting_depth
         
-        sys.exit()
+        #sys.exit()
         
         
     def get_soil_params(self, soil_type):

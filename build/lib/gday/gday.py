@@ -99,7 +99,8 @@ class Gday(object):
                                self.fluxes, self.met_data)
         
         if self.control.deciduous_model:
-            self.pg.calc_carbon_allocation_fracs(0.0, 0, 0) #comment this!!
+            self.state.max_lai = self.state.lai
+            self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
             self.pg.allocate_stored_c_and_n(init=True)
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
@@ -152,8 +153,10 @@ class Gday(object):
             self.day_output = [] # empty daily storage list for outputs
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
+                
                 self.P.calculate_phenology_flows(daylen, self.met_data,
                                             days_in_year[i], project_day)
+                
                 self.zero_stuff()
             # =============== #
             #   DAY LOOP      #
@@ -180,7 +183,7 @@ class Gday(object):
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
                 
-                
+                #print yr, doy, self.state.cstore
                 
                 
                 # =============== #
@@ -198,6 +201,7 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
+                self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.allocate_stored_c_and_n(init=False)
                 
             if self.control.print_options == "DAILY" and not self.spin_up:
@@ -355,6 +359,7 @@ class Gday(object):
         self.state.cstore = 0.0
         self.state.nstore = 0.0
         self.state.anpp = 0.0
+        self.state.max_lai = 0.0
         
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
