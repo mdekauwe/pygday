@@ -16,6 +16,7 @@ from soil_cn_model import CarbonSoilFlows, NitrogenSoilFlows
 from check_balance import CheckBalance
 from utilities import float_eq, calculate_daylength, uniq
 from phenology import Phenology
+from disturbance import Disturbance
 
 __author__ = "Martin De Kauwe"
 __version__ = "1.0 (15.02.2011)"
@@ -98,6 +99,9 @@ class Gday(object):
         self.cb = CheckBalance(self.control, self.params, self.state,
                                self.fluxes, self.met_data)
         
+        self.db = Disturbance(self.control, self.params, self.state,
+                              self.fluxes, self.met_data)
+        
         if self.control.deciduous_model:
             self.state.max_lai = self.state.lai
             self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
@@ -145,6 +149,12 @@ class Gday(object):
         years = self.years
         days_in_year = self.days_in_year
         
+        if self.control.disturbance:
+            # Figure out if any years have a disturbance
+            self.db.initialise(years)
+            
+        
+        
         # =============== #
         #   YEAR LOOP     #
         # =============== #
@@ -160,6 +170,12 @@ class Gday(object):
                 # Change window size to length of growing season
                 self.pg.sma.window_size = self.P.growing_seas_len
                 self.zero_stuff()
+                
+                if self.control.disturbance:
+                    if self.db.check_year(yr):
+                        print "Fire", yr
+                        self.db.disturbance()
+                    
             # =============== #
             #   DAY LOOP      #
             # =============== #  
@@ -184,8 +200,6 @@ class Gday(object):
                 
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
-                
-                #print yr, doy, self.state.cstore
                 
                 
                 # =============== #
