@@ -314,21 +314,35 @@ class Gday(object):
         prev_plantc = 9999.9
         prev_soilc = 9999.9
         prev_litterc = 9999.9
-        while True:
-            if (fabs(prev_plantc - self.state.plantc) < tolerance and
-                fabs(prev_soilc - self.state.soilc) < tolerance and 
-                fabs(prev_litterc - self.state.litterc) < tolerance):
-                break
-            else:            
-                prev_plantc = self.state.plantc
-                prev_soilc = self.state.soilc
-                prev_litterc = self.state.litterc
-                (yr, doy) = self.run_sim() # run the model...
+        
+        if self.control.disturbance:
+            while True:
+                if fabs(prev_soilc - self.state.soilc) < tolerance:
+                    break
+                else:            
+                    prev_soilc = self.state.soilc
+                    (yr, doy) = self.run_sim() # run the model...
                 
-                # Have we reached a steady state?
-                msg = "Spinup: Plant C - %f, Soil C - %f, Litter C - %f\n" % \
-                       (self.state.plantc, self.state.soilc, self.state.litterc)
-                sys.stderr.write(msg)
+                    # Have we reached a steady state?
+                    msg = "Spinup: Soil C - %f\n" % (self.state.soilc)
+                    sys.stderr.write(msg)
+        else:
+            while True:
+                if (fabs(prev_plantc - self.state.plantc) < tolerance and
+                    fabs(prev_soilc - self.state.soilc) < tolerance and 
+                    fabs(prev_litterc - self.state.litterc) < tolerance):
+                    break
+                else:            
+                    prev_plantc = self.state.plantc
+                    prev_soilc = self.state.soilc
+                    prev_litterc = self.state.litterc
+                    (yr, doy) = self.run_sim() # run the model...
+                
+                    # Have we reached a steady state?
+                    msg = "Spinup: Plant C - %f, Soil C - %f, Litter C - %f\n" % \
+                           (self.state.plantc, self.state.soilc, 
+                            self.state.litterc)
+                    sys.stderr.write(msg)
         
         self.save_daily_outputs(yr, doy)
         self.pr.clean_up()
