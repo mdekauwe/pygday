@@ -34,7 +34,6 @@ class Disturbance(object):
         while year_of_disturbance < years[-1]:
             
             index = self.index_id(years, year_of_disturbance)
-            print index, years[index], year_of_disturbance
             
             yrs_till_event = self.time_till_next_disturbance()
             self.yrs.append(year_of_disturbance)
@@ -116,6 +115,4 @@ class Disturbance(object):
         self.state.structsurf = 0.001
         self.state.structsurfn = 0.00004  
         
-        print "fire"
-        sys.exit()
         
