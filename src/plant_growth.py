@@ -77,7 +77,9 @@ class PlantGrowth(object):
         # to begin with.
         if self.state.prev_sma is None:
             self.state.prev_sma = 1.0 
-
+        if self.state.grw_seas_stress is None:
+            self.state.grw_seas_stress = 1.0
+        
         self.sma = MovingAverageFilter(self.window_size, self.state.prev_sma)
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
@@ -112,7 +114,8 @@ class PlantGrowth(object):
             # a check on stresses during the growing season and the LAI
             # figure out limitations during leaf growth period
             if self.state.leaf_out_days[doy] > 0.0:
-                limitation = self.calculate_growth_stress_limitation()
+                self.calculate_growth_stress_limitation()
+                self.state.grw_seas_stress += self.state.prev_sma
                 
                 # Need to save max lai for pipe model because at the end of the
                 # year LAI=0.0
@@ -310,7 +313,10 @@ class PlantGrowth(object):
             
             if not self.control.deciduous_model:
                 self.calculate_growth_stress_limitation()
-            
+            else:
+                # update based on mean of growing season, rather than current
+                # state
+                self.state.prev_sma = self.state.grw_seas_stress
             
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
@@ -368,7 +374,7 @@ class PlantGrowth(object):
                              (self.params.height1 - self.params.height0))
             leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
             
-            print leaf2sap, leaf2sa_target, self.params.leafsap0, self.params.leafsap1
+            #print leaf2sap, leaf2sa_target, self.params.leafsap0, self.params.leafsap1
             self.fluxes.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
                                                      self.params.c_alloc_fmax, 
                                                      self.params.targ_sens) 
@@ -471,22 +477,22 @@ class PlantGrowth(object):
         self.state.c_to_alloc_branch = self.fluxes.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.fluxes.alstem * self.state.cstore
         
-        # =========
-        # Nitrogen
-        # =========
-        
-        # Fixed ratios N allocation to woody components.
+        # =========================================================
+        # Nitrogen - Fixed ratios N allocation to woody components.
+        # =========================================================
         
         # N flux into new ring (immobile component -> structrual components)
-        self.state.n_to_alloc_stemimm = (self.state.cstore * self.fluxes.alstem * 
+        self.state.n_to_alloc_stemimm = (self.state.cstore * 
+                                         self.fluxes.alstem * 
                                          self.params.ncwimm)
     
         # N flux into new ring (mobile component -> can be retrans for new
         # woody tissue)
-        self.state.n_to_alloc_stemmob = (self.state.cstore * self.fluxes.alstem * 
+        self.state.n_to_alloc_stemmob = (self.state.cstore * 
+                                         self.fluxes.alstem * 
                                         (self.params.ncwnew - 
                                          self.params.ncwimm))
-        
+
         self.state.n_to_alloc_branch = (self.state.cstore * 
                                         self.fluxes.albranch * 
                                         self.params.ncbnew)
