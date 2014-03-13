@@ -163,19 +163,17 @@ class Gday(object):
             self.day_output = [] # empty daily storage list for outputs
             daylen = calculate_daylength(days_in_year[i], self.params.latitude)
             if self.control.deciduous_model:
-                
                 self.P.calculate_phenology_flows(daylen, self.met_data,
                                             days_in_year[i], project_day)
                 
                 # Change window size to length of growing season
                 self.pg.sma.window_size = self.P.growing_seas_len
                 self.zero_stuff()
-                
-                if self.control.disturbance:
-                    if self.db.check_year(yr):
-                        print "Fire", yr
-                        self.db.disturbance()
-                    
+            
+            # Fire?            
+            if self.control.disturbance:
+                if self.db.check_year(yr):
+                    self.db.disturbance() 
             # =============== #
             #   DAY LOOP      #
             # =============== #  
