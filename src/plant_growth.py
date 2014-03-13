@@ -4,7 +4,7 @@ import sys
 from math import exp, log
 import sys
 import constants as const
-from utilities import float_eq, float_lt, float_gt, MovingAverageFilter, clip
+from utilities import float_eq, float_lt, float_gt, SimpleMovingAverage, clip
 from bewdy import Bewdy
 from water_balance import WaterBalance, SoilMoisture
 from mate import MateC3, MateC4
@@ -80,7 +80,8 @@ class PlantGrowth(object):
         if self.state.grw_seas_stress is None:
             self.state.grw_seas_stress = 1.0
         
-        self.sma = MovingAverageFilter(self.window_size, self.state.prev_sma)
+        self.sma = SimpleMovingAverage(self.window_size, self.state.prev_sma)
+        
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
                         days_in_yr, yr_index):
@@ -115,7 +116,7 @@ class PlantGrowth(object):
             # figure out limitations during leaf growth period
             if self.state.leaf_out_days[doy] > 0.0:
                 self.calculate_growth_stress_limitation()
-                self.state.grw_seas_stress += self.state.prev_sma
+                
                 
                 # Need to save max lai for pipe model because at the end of the
                 # year LAI=0.0
@@ -314,10 +315,9 @@ class PlantGrowth(object):
             if not self.control.deciduous_model:
                 self.calculate_growth_stress_limitation()
             else:
-                # update based on mean of growing season, rather than current
-                # state
-                self.state.prev_sma = self.state.grw_seas_stress
-            
+                # reset the buffer at the end of the growing season
+                self.sma.reset_stream()
+                
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
             self.fluxes.alroot = (self.params.c_alloc_rmax * 
@@ -399,6 +399,14 @@ class PlantGrowth(object):
                                         self.fluxes.albranch - 
                                         self.fluxes.alleaf)
             
+            # Because I have allowed the max fracs sum > 1, possibility
+            # stem frac would be negative. Perhaps the above shouldn't be 
+            # allowed...? But this will stop wood allocation in such a 
+            # situation.
+            if self.fluxes.alstem < 0.0:
+                extra = self.fluxes.alstem
+                self.fluxes.alstem = 0.0
+                self.fluxes.alleaf -= extra
             
         else:
             raise AttributeError('Unknown C allocation model')
@@ -433,7 +441,7 @@ class PlantGrowth(object):
         # case - no N limitation
         else:
             nlim = 1.0
-    
+        
         # Limitation by nitrogen and water. Water constraint is implicit, 
         # in that, water stress results in an increase of root mass,
         # which are assumed to spread horizontally within the rooting zone.
@@ -443,8 +451,8 @@ class PlantGrowth(object):
         # limited site. This implementation is also consistent with other
         # approaches, e.g. LPJ. In fact I dont see much evidence for models
         # that have a flexible bucket depth.
-        limitation = self.sma(min(nlim, self.state.wtfac_root))
-        self.state.prev_sma = limitation
+        current_limitation = min(nlim, self.state.wtfac_root)
+        self.state.prev_sma = self.sma(current_limitation)
         
         
     def allocate_stored_c_and_n(self, init):

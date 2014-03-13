@@ -99,35 +99,32 @@ def str2boolean(value):
     else:  
         raise ValueError("%s is no recognized as a boolean value" % value)
     
-class MovingAverageFilter:
-	"""Simple moving average filter"""
+class SimpleMovingAverage():
+    def __init__(self, window_size, previous_state=None):
+        assert window_size == int(window_size) and window_size > 0, \
+            "window_size must be an integer >0"
+        self.window_size = window_size
+        self.data = deque()
+        if previous_state is not None:
+            for i in xrange(window_size):
+                self.data.append(previous_state)
+        
+    def __call__(self, n):
+        data = self.data
+        data.append(n)    # appends on the right
+        data_length = len(data)
+        if data_length > self.window_size:
+            data.popleft()
+            data_length -= 1
+        if data_length == 0:
+            average = 0.0
+        else:
+            average = sum( data ) / data_length
  
-	@property
-	def avg(self):
-		"""Returns current moving average value"""
-		return self.avg
- 
-	def __init__(self, n = 8, initial_value = 0):
-		"""Inits filter with window size n and initial value"""
-		self.n = n
-		self.buffer = [initial_value/n]*n
-		self.avg = initial_value
-		self.p = 0
- 
-	def __call__(self, value):
-		"""Consumes next input value"""
-		self.avg -= self.buffer[self.p]
-		self.buffer[self.p] = value/self.n
-		self.avg += self.buffer[self.p]
-		
-		# make sure it does not go out of bounds
-		self.avg = max(0.0, min(1.0, self.avg)) 
-
-		self.p = (self.p  + 1) % self.n
-		return self.avg
-
-
-
+        return average
+    
+    def reset_stream(self):
+        self.data = deque()
  
 if __name__ == '__main__':
 
@@ -136,17 +133,26 @@ if __name__ == '__main__':
     print float_ge(2.1000001, 2.1000001)
     
     
-    data = [10, 19, 10, 15, 25, 18, 13, 16, 10, 19, 10, 15, 25, 18, 13, 16,\
-            10, 19, 10, 15, 25, 18, 13, 16, 10, 19, 10, 15, 25, 18, 13, 16]
-    M = MovingAverageFilter(n=3, initial_value=data[0])
-
-
+    import math
+    import random
+    import matplotlib.pyplot as plt
+    random.seed(5)
+    data = []
+    for i in xrange(100):
+        data.append(math.sin(random.random()))
+    
+    sma = SimpleMovingAverage(window_size=3, previous_state=1.0)
     store = []
     for index, val in enumerate(data):
-        avg =  M(val)
+        avg = sma(val)
         store.append(avg)
-
-    import matplotlib.pyplot as plt
+        #if index == 20:
+        #    sma.reset_stream()
+        
+        #if index == 40:
+        #    sma.reset_stream()
+        
+    
     plt.plot(store, "b-")
     plt.plot(data, "ro")
     plt.show()
