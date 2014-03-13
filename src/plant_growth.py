@@ -399,16 +399,6 @@ class PlantGrowth(object):
                                         self.fluxes.albranch - 
                                         self.fluxes.alleaf)
             
-            # Bit of a hack...when things start off if the model thinks it is
-            # N stressed, foliage alloc is likely to be at the max, so wood
-            # alloc can become negative. All I am doing here is reducing
-            # foliage allocation and just not growing any wood.
-            if self.fluxes.alstem < 0.0:
-                missing = self.fluxes.alstem 
-                # counter intutive as number is negative
-                self.fluxes.alleaf += missing 
-                self.fluxes.alstem = 0.0              
-            #print self.fluxes.alleaf, self.fluxes.albranch, self.fluxes.alstem, self.fluxes.alroot
             
         else:
             raise AttributeError('Unknown C allocation model')
@@ -419,7 +409,7 @@ class PlantGrowth(object):
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
-        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, self.fluxes.alroot
+        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, self.fluxes.alroot, "*", self.state.prev_sma, self.state.canht
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
@@ -476,7 +466,7 @@ class PlantGrowth(object):
         self.state.c_to_alloc_root = self.fluxes.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.fluxes.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.fluxes.alstem * self.state.cstore
-        
+         
         # =========================================================
         # Nitrogen - Fixed ratios N allocation to woody components.
         # =========================================================
@@ -502,13 +492,13 @@ class PlantGrowth(object):
                         self.state.n_to_alloc_stemmob - 
                         self.state.n_to_alloc_branch))
         
+       
         # allocate remaining N to flexible-ratio pools
         self.state.n_to_alloc_shoot = (ntot * self.fluxes.alleaf / 
                                       (self.fluxes.alleaf + 
                                        self.fluxes.alroot *
                                        self.params.ncrfac))
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
         
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                             days_in_yr, project_day):
