@@ -43,6 +43,7 @@ class Phenology(object):
         self.state = state
         self.control = control
         self.store_transfer_len = store_transfer_len
+        self.growing_seas_len = None
         
     def calculate_phenology_flows(self, daylen, met_data, yr_days, 
                                   project_day):
@@ -139,7 +140,7 @@ class Phenology(object):
                 self.accumulated_ncd += self.calc_ncd(Tmean) 
                 
             self.project_day += 1
-        
+    
         self.last_yrs_accumulated_ncd = self.accumulated_ncd
         
         # Length of time taken for new growth from storage to be allocated.
@@ -147,10 +148,14 @@ class Phenology(object):
         # length of the growing season. The litterfall takes place over an 
         # identical period. Dividing by a larger number would increase the
         # rate the C&N is allocated.
+        self.growing_seas_len = self.leaf_off - self.leaf_on
         if self.store_transfer_len == None:
-            self.len_groloss = floor((self.leaf_off - self.leaf_on) / 2.0)
+            self.len_groloss = floor((self.growing_seas_len) / 2.0)
         else:
             self.len_groloss = self.store_transfer_len
+        
+        
+        
         
     def calculate_days_left_in_growing_season(self, yr_days):
         """ Calculate 2 arrays to signify the days left of growing period
