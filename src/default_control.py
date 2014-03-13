@@ -13,6 +13,7 @@ alloc_model = "FIXED"      # C allocation -> fixed, allometric, or grasses
 assim_model = "MATE"       # bewdy or mate?
 calc_sw_params = False     # false=user supplies field capacity and wilting point, true=calculate them based on cosby et al.
 deciduous_model = False    # evergreen_model=False, deciduous_model=True
+disturbance = False        # 0=No disturbance, 1=Clearance event, 2=Fire
 fixleafnc = False          # fixed leaf N C ?
 fixed_stem_nc = True       # False=vary stem N:C with foliage, True=fixed stem N:C
 grazing = False            # Is foliage grazed?
