@@ -184,6 +184,8 @@ nmin0            = 0.0       # Mineral N pool corresponding to Actnc0,etc (g/m2)
 d0x    = 0.35   # Length scale for exponential decline of Umax(z)
 r0     = 0.1325 # root C at half-maximum N uptake (kg C/m3)
 
+# Disturbance
+return_interval = 10 # yrs
 
 #============== Not publicly accessible to the user ==========================#
 # decay rates
