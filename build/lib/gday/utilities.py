@@ -119,6 +119,10 @@ class MovingAverageFilter:
 		self.avg -= self.buffer[self.p]
 		self.buffer[self.p] = value/self.n
 		self.avg += self.buffer[self.p]
+		
+		# make sure it does not go out of bounds
+		self.avg = max(0.0, min(1.0, self.avg)) 
+
 		self.p = (self.p  + 1) % self.n
 		return self.avg
 
