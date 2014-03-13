@@ -157,6 +157,8 @@ class Gday(object):
                 self.P.calculate_phenology_flows(daylen, self.met_data,
                                             days_in_year[i], project_day)
                 
+                # Change window size to length of growing season
+                self.pg.sma.window_size = self.P.growing_seas_len
                 self.zero_stuff()
             # =============== #
             #   DAY LOOP      #
@@ -200,21 +202,7 @@ class Gday(object):
             # =============== #
             #   END OF YEAR   #
             # =============== #
-            if self.control.deciduous_model:
-                #cn = self.state.cstore/self.state.nstore
-                #print "*", self.state.cstore/self.state.nstore, self.state.nstore/self.state.cstore
-                #if cn > 60.0:
-                #    new_c = self.state.cstore / (cn / 60.)
-                #    diff = self.state.cstore - new_c
-                #    self.state.cstore = new_c
-                #print "**", self.state.cstore/self.state.nstore, self.state.nstore/self.state.cstore, diff
-                #print
-                
-                
-                
-                grw_seas = len([i for i in self.state.leaf_out_days if i > 0.0])
-                self.state.grw_seas_stress /= grw_seas
-                
+            if self.control.deciduous_model:                
                 self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.allocate_stored_c_and_n(init=False)
                 
