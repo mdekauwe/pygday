@@ -49,7 +49,7 @@ pawater_topsoil = 50.0               # plant available water - top soil(mm)
 wtfac_root = 1.0
 wtfac_topsoil = 1.0
 lai = 0.0            # m2 (leaf) m-2 (ground)
-mean_lai = None
+max_lai = None
 sla = None
 ncontent = None
 age = 0.0                               #Current stand age (years)
@@ -113,4 +113,5 @@ passncslope = None
 
 
 prev_sma = None # previous simple moving average (n - 1) of the series
+grw_seas_stress = None # average stress for growing season
 #==============================================================================#

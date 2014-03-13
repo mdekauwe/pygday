@@ -201,6 +201,20 @@ class Gday(object):
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:
+                #cn = self.state.cstore/self.state.nstore
+                #print "*", self.state.cstore/self.state.nstore, self.state.nstore/self.state.cstore
+                #if cn > 60.0:
+                #    new_c = self.state.cstore / (cn / 60.)
+                #    diff = self.state.cstore - new_c
+                #    self.state.cstore = new_c
+                #print "**", self.state.cstore/self.state.nstore, self.state.nstore/self.state.cstore, diff
+                #print
+                
+                
+                
+                grw_seas = len([i for i in self.state.leaf_out_days if i > 0.0])
+                self.state.grw_seas_stress /= grw_seas
+                
                 self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.allocate_stored_c_and_n(init=False)
                 
@@ -360,6 +374,7 @@ class Gday(object):
         self.state.nstore = 0.0
         self.state.anpp = 0.0
         self.state.max_lai = 0.0
+        self.state.grw_seas_stress = 0.0
         
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """

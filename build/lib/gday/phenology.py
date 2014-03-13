@@ -200,9 +200,8 @@ class Phenology(object):
         self.fluxes.bnrate = (2.0 * self.state.n_to_alloc_branch / 
                               self.len_groloss**2)
         self.fluxes.wnimrate = (2.0 * self.state.n_to_alloc_stemimm / 
-                              self.len_groloss**2)
+                                self.len_groloss**2)
         self.fluxes.wnmobrate = (2.0 * self.state.n_to_alloc_stemmob / 
-                              self.len_groloss**2)
+                                 self.len_groloss**2)
        
-        
         
