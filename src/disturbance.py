@@ -68,14 +68,21 @@ class Disturbance(object):
         return int(-log(1.0 - random.random()) / rate)
 
     def disturbance(self):
+        
+        if self.control.disturbance == 1: 
+            self.fire()
+        elif self.control.disturbance == 2: 
+            self.grazing()
+    
+    def fire(self):
         """
         Fire...
-        
+
         * 100 percent of aboveground biomass 
         * 100 percent of surface litter
         * 50 percent of N volatilized to the atmosphere
         * 50 percent of N returned to inorgn pool"
-        
+
         vaguely following ...
         http://treephys.oxfordjournals.org/content/24/7/765.full.pdf
         """
@@ -114,5 +121,26 @@ class Disturbance(object):
         self.state.shootn = 0.00004
         self.state.structsurf = 0.001
         self.state.structsurfn = 0.00004  
+    
+    
+    def grazing(self): 
+        """
+        Animal grazing, PHAC...50% of aboveground veg.
+        - 50% to the atmosphere
+        - 50% litter, usual partitioning of C:N between surface litter pools
+        """
+        n_lost = self.state.shootn / 2.0
+        c_lost = self.state.shoot / 2.0
+        self.state.shoot *= 0.5
+        self.state.shootn *= 0.5
         
+        # flux of c to the atmosphere metabolic surface pool
+        self.fluxes.co2_rel_from_surf_metab_litter += c_lost / 2.0
         
+        # drop litter
+        self.fluxes.deadleaves += c_lost / 2.0
+        self.fluxes.deadleafn += n_lost / 2.0
+        
+        # increase n losses
+        self.fluxes.nloss += n_lost / 2.0
+    

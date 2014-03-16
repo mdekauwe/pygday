@@ -170,15 +170,21 @@ class Gday(object):
                 self.pg.sma.window_size = self.P.growing_seas_len
                 self.zero_stuff()
             
-            # Fire?            
-            if self.control.disturbance:
-                if self.db.check_year(yr):
-                    self.db.disturbance() 
             # =============== #
             #   DAY LOOP      #
             # =============== #  
             for doy in xrange(days_in_year[i]):
                 
+                # fire
+                if (self.control.disturbance == 1 and 
+                    self.params.disturbance_doy == doy):
+                        if self.db.check_year(yr):
+                            self.db.disturbance() 
+                # grazing
+                elif (self.control.disturbance == 2 and 
+                      self.params.disturbance_doy == doy):
+                        self.db.disturbance() 
+                        
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
             
@@ -318,11 +324,12 @@ class Gday(object):
         # If we are prescribing disturbance, first allow the forest to 
         # establish
         if self.control.disturbance:
-            self.control.disturbance = False
-            # 500 years (50 yrs x 10 cycles)
-            for spin_num in xrange(10):
+            cntrl_flag = self.control.disturbance
+            self.control.disturbance = 0
+            # 200 years (50 yrs x 4 cycles)
+            for spin_num in xrange(4):
                 (yr, doy) = self.run_sim() # run the model...
-            self.control.disturbance = True
+            self.control.disturbance = cntrl_flag
                    
         while True:
             if (fabs(prev_plantc - self.state.plantc) < tolerance and

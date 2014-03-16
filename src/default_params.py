@@ -186,6 +186,7 @@ r0     = 0.1325 # root C at half-maximum N uptake (kg C/m3)
 
 # Disturbance
 return_interval = 10 # yrs
+disturbance_doy = 1
 
 #============== Not publicly accessible to the user ==========================#
 # decay rates
