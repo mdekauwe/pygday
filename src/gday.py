@@ -175,28 +175,25 @@ class Gday(object):
             # =============== #  
             for doy in xrange(days_in_year[i]):
                 
-                # fire
-                if (self.control.disturbance == 1 and 
-                    self.params.disturbance_doy == doy):
-                        if self.db.check_year(yr):
-                            self.db.disturbance() 
-                # grazing
-                elif (self.control.disturbance == 2 and 
-                      self.params.disturbance_doy == doy):
-                        self.db.disturbance() 
-                        
+                # standard litter calculations
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
-            
+                
+                # Disturbance?
+                # fire
+                if (self.control.disturbance != 0 and 
+                    self.params.disturbance_doy == doy):
+                        self.db.disturbance(yr) 
+                        
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
                                         float(days_in_year[i]), i)
             
                 # soil C & N model fluxes
-                self.cs.calculate_csoil_flows(project_day)
-                self.ns.calculate_nsoil_flows(project_day)
-
+                self.cs.calculate_csoil_flows(project_day, doy)
+                self.ns.calculate_nsoil_flows(project_day, doy)
+                
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
@@ -205,6 +202,8 @@ class Gday(object):
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
                 #print self.state.shoot/self.state.shootn, self.state.shootn/self.state.shoot
+                
+                #print self.state.lai, self.fluxes.gpp*100, self.fluxes.ceaten
                 
                 # =============== #
                 #   END OF DAY    #
@@ -330,7 +329,7 @@ class Gday(object):
             for spin_num in xrange(4):
                 (yr, doy) = self.run_sim() # run the model...
             self.control.disturbance = cntrl_flag
-                   
+            
         while True:
             if (fabs(prev_plantc - self.state.plantc) < tolerance and
                 fabs(prev_soilc - self.state.soilc) < tolerance and 
