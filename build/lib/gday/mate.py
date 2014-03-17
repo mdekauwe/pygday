@@ -222,7 +222,6 @@ class MateC3(object):
         """
         return [self.assim(ci[k], gamma_star[k], a1=self.params.alpha_j/4.0, \
                 a2=2.0*gamma_star[k]) for k in self.am, self.pm]
-        
     
     def calculate_michaelis_menten_parameter(self, Tk):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
@@ -268,7 +267,6 @@ class MateC3(object):
         else:
             N0 = 0.0
         return N0
-    
     
     def calculate_jmax_and_vcmax(self, Tk, N0):
         """ Calculate the maximum RuBP regeneration rate for light-saturated 
@@ -693,7 +691,7 @@ class MateC4(MateC3):
                  for k in self.am, self.pm] 
         
         # Function allowing Jmax/Vcmax to be forced linearly to zero at low T
-        vcmax = [self.adj_params_for_low_temp(vcmax[k], Tk[k])\
+        vcmax = [self.adj_for_low_temp(vcmax[k], Tk[k])\
                  for k in self.am, self.pm]
         
         return vcmax, vcmax25
