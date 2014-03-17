@@ -214,8 +214,7 @@ class Gday(object):
                 #self.cb.check_water_balance(project_day)
                 
                 project_day += 1
-            if self.control.deciduous_model:  
-                    print self.state.max_lai
+            
             # =============== #
             #   END OF YEAR   #
             # =============== #
