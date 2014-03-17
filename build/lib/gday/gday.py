@@ -304,10 +304,10 @@ class Gday(object):
             stemnmob = 0.0
         
     
-    def spin_up_pools(self, tolerance=5E-02):
+    def spin_up_pools(self, tol=5E-03):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 50 years and check if C pools are changing
-           by more than 0.05 units per 1000 yrs.
+           by more than 0.005 units per 1000 yrs (units kg/m2!).
 
         References:
         ----------
@@ -315,9 +315,11 @@ class Gday(object):
         * Murty, D and McMurtrie, R. E. (2000) Ecological Modelling, 134,
           185-205, specifically page 196.
         """
-        prev_plantc = 9999.9
-        prev_soilc = 9999.9
-        prev_litterc = 9999.9
+        prev_plantc = 99999.9
+        prev_soilc = 99999.9
+        
+        
+        conv = const.TONNES_HA_2_KG_M2
         
         # If we are prescribing disturbance, first allow the forest to 
         # establish
@@ -330,23 +332,20 @@ class Gday(object):
             self.control.disturbance = cntrl_flag
             
         while True:
-            if (fabs(prev_plantc - self.state.plantc) < tolerance and
-                fabs(prev_soilc - self.state.soilc) < tolerance and 
-                fabs(prev_litterc - self.state.litterc) < tolerance):
-                break
+            if (fabs((prev_plantc * conv) - (self.state.plantc * conv)) < tol and
+                fabs((prev_soilc * conv) - (self.state.soilc * conv)) < tol):
+                break 
             else:            
                 prev_plantc = self.state.plantc
                 prev_soilc = self.state.soilc
-                prev_litterc = self.state.litterc
                 
                 # 1000 years (50 yrs x 20 cycles)
                 for spin_num in xrange(20):
                     (yr, doy) = self.run_sim() # run the model...
             
                 # Have we reached a steady state?
-                msg = "Spinup: Plant C - %f, Soil C - %f, Litter C - %f\n" % \
-                       (self.state.plantc, self.state.soilc, 
-                        self.state.litterc)
+                msg = "Spinup: Plant C - %f, Soil C - %f\n" % \
+                       (self.state.plantc, self.state.soilc)
                 sys.stderr.write(msg)
         
         self.save_daily_outputs(yr, doy)
