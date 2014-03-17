@@ -121,7 +121,7 @@ class Gday(object):
             self.pr.save_default_parameters()
             sys.exit(0)
         
-        #self.dead = False # johnny 5 is alive
+        self.dead = False # johnny 5 is alive
 
         # calculate initial stuff, e.g. C:N ratios and zero annual flux sums
         self.day_end_calculations(0, INIT=True)
@@ -197,7 +197,7 @@ class Gday(object):
                 
                 
                 
-                #self.are_we_dead()
+                self.are_we_dead()
                 
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
@@ -226,8 +226,8 @@ class Gday(object):
                 self.print_output_file()
             
             # GDAY died in the previous year, re-establish gday for the next yr
-            #if self.dead:
-            #    self.re_establish_gday()
+            if self.dead:
+                self.re_establish_gday()
             
         # close output files
         if self.control.print_options == "END" and not self.spin_up:
