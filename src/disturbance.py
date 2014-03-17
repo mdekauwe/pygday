@@ -1,6 +1,7 @@
 import random
 import sys
 from math import log
+from utilities import float_eq
 
 class Disturbance(object):
 
@@ -46,12 +47,10 @@ class Disturbance(object):
         return (index for index, item in enumerate(a_list) 
                 if item == elem).next()
     
-    def check_year(self, year):
+    def check_for_fire(self, year, growth_obj):
         if year in self.yrs:
-            return True
-        else:
-            return False
-    
+            self.fire(growth_obj) 
+        
     def time_till_next_disturbance(self):
         """ calculate the number of years until a disturbance event occurs
         assuming a return interval of X years 
@@ -66,18 +65,8 @@ class Disturbance(object):
         rate = 1.0 / self.params.return_interval
         
         return int(-log(1.0 - random.random()) / rate)
-
-    def disturbance(self, year):
         
-        if self.control.disturbance == 1: 
-            if self.check_year(year):
-                self.fire()
-        # annual grazing, as opposed to daily grazing as calculated in
-        # litter method 
-        elif self.control.disturbance == 2: 
-            self.grazing()
-    
-    def fire(self):
+    def fire(self, growth_obj):
         """
         Fire...
 
@@ -92,7 +81,9 @@ class Disturbance(object):
         totaln = (self.state.branchn + self.state.shootn + self.state.stemn + 
                   self.state.structsurfn)
         self.state.inorgn += totaln / 2.0
-        
+        print self.control.alloc_model
+        print "***********"
+        print
         # re-establish everything with C/N ~ 25.
         if self.control.alloc_model == "GRASSES":
             self.state.branch = 0.0
@@ -112,7 +103,7 @@ class Disturbance(object):
             self.state.stemnmob = 0.0
         
         self.state.age = 0.0
-        self.state.canht = 0.1
+        self.state.lai = 0.01
         self.state.metabsoil = 0.0
         self.state.metabsoiln = 0.0
         self.state.metabsurf = 0.0
@@ -124,15 +115,31 @@ class Disturbance(object):
         self.state.shootn = 0.00004
         self.state.structsurf = 0.001
         self.state.structsurfn = 0.00004  
-    
-    
-    def grazing(self): 
-        """
-        One off grazing event as opposed to a daily rate that is standard for
-        the model.
-            - Animal grazing, PHAC...50% of aboveground veg.
-       
-        """
-        self.fluxes.ceaten = self.state.shoot * self.params.fracteaten
-        self.fluxes.neaten = self.state.shootn * self.params.fracteaten
         
+        # reset litter flows
+        self.fluxes.deadroots = 0.0
+        self.fluxes.deadstems = 0.0
+        self.fluxes.deadbranch = 0.0
+        self.fluxes.deadsapwood = 0.0
+        self.fluxes.deadleafn = 0.0
+        self.fluxes.deadrootn = 0.0
+        self.fluxes.deadbranchn = 0.0
+        self.fluxes.deadstemn = 0.0
+        
+        # update N:C of plant pools
+        if float_eq(self.state.shoot, 0.0):
+            self.state.shootnc = 0.0
+        else:
+            self.state.shootnc = self.state.shootn / self.state.shoot
+        
+        #print self.state.rootn , self.state.root
+        if float_eq(self.state.root, 0.0):
+            self.state.rootnc = 0.0
+        else:
+            self.state.rootnc = max(0.0, self.state.rootn / self.state.root)
+        
+        growth_obj.sma.reset_stream() # reset any stress limitation
+        self.state.prev_sma = 1.0
+        
+    
+    
