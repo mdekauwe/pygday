@@ -179,18 +179,11 @@ class Gday(object):
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
                 
-                # Disturbance?
-                # fire
-                if (self.control.disturbance == 1 and 
+                # Fire Disturbance?
+                if (self.control.disturbance != 0 and 
                     self.params.disturbance_doy == doy):
-                        if self.db.check_year(yr):
-                            self.db.disturbance() 
-                # annual grazing, as opposed to daily grazing as calculated in
-                # litter method below
-                elif (self.control.disturbance == 2 and 
-                      self.params.disturbance_doy == doy):
-                        self.db.disturbance()
-                        
+                        self.db.check_for_fire(yr, self.pg)
+                            
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 

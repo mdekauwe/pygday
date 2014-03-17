@@ -179,12 +179,11 @@ class Gday(object):
                 # litterfall rate: C and N fluxes
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
                 
-                # Disturbance?
-                # fire
+                # Fire Disturbance?
                 if (self.control.disturbance != 0 and 
                     self.params.disturbance_doy == doy):
-                        self.db.disturbance(yr) 
-                        
+                        self.db.check_for_fire(yr, self.pg)
+                            
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 

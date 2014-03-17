@@ -337,11 +337,12 @@ class PlantGrowth(object):
             # (Causton, 1985)
             self.state.canht = (self.params.heighto * 
                                 self.state.stem**self.params.htpower)
-            #print self.state.canht, self.state.stem
+            
             # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
             # height (m) 
+           
             sap_cross_sec_area = (((self.state.sapwood * 
                                     const.TONNES_AS_KG * 
                                     const.M2_AS_HA) / 
@@ -411,13 +412,14 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown C allocation model')
         
+        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, self.fluxes.alroot, "*", self.state.prev_sma, self.state.canht
+        #print 
+        
         # Total allocation should be one, if not print warning:
         total_alloc = (self.fluxes.alroot + self.fluxes.alleaf + 
                        self.fluxes.albranch + self.fluxes.alstem)
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
-        
-        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, self.fluxes.alroot, "*", self.state.prev_sma, self.state.canht
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
         arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
