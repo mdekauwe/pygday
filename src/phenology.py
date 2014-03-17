@@ -51,7 +51,7 @@ class Phenology(object):
         self.calculate_leafon_off(daylen, met_data, yr_days)
         self.calculate_days_left_in_growing_season(yr_days)
         self.calculate_growing_season_fluxes()
-        
+         
     def calc_gdd(self, Tavg):
         """ calculate the number of growing degree days, hypothesis is that
         leaves appear after a threshold has been passed.
