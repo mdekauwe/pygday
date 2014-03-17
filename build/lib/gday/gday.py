@@ -304,10 +304,10 @@ class Gday(object):
             stemnmob = 0.0
         
     
-    def spin_up_pools(self, tolerance=5E-03):
+    def spin_up_pools(self, tolerance=5E-02):
         """ Spin Up model plant, soil and litter pools.
         -> Examine sequences of 50 years and check if C pools are changing
-           by more than 0.005 units per 1000 yrs.
+           by more than 0.05 units per 1000 yrs.
 
         References:
         ----------
