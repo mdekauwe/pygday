@@ -81,9 +81,7 @@ class Disturbance(object):
         totaln = (self.state.branchn + self.state.shootn + self.state.stemn + 
                   self.state.structsurfn)
         self.state.inorgn += totaln / 2.0
-        print self.control.alloc_model
-        print "***********"
-        print
+        
         # re-establish everything with C/N ~ 25.
         if self.control.alloc_model == "GRASSES":
             self.state.branch = 0.0
