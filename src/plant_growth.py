@@ -375,10 +375,9 @@ class PlantGrowth(object):
                              (self.params.height1 - self.params.height0))
             leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
             
-            #print leaf2sap, leaf2sa_target, self.params.leafsap0, self.params.leafsap1
             self.fluxes.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
-                                                     self.params.c_alloc_fmax, 
-                                                     self.params.targ_sens) 
+                                                      self.params.c_alloc_fmax, 
+                                                      self.params.targ_sens) 
             
             # Allocation to branch dependent on relationship between the stem
             # and branch
@@ -409,7 +408,8 @@ class PlantGrowth(object):
                 self.fluxes.alstem = 0.0
                 self.fluxes.alleaf -= extra
             
-            # minimum allocation to leaves
+            # minimum allocation to leaves - without it tree would die, as this
+            # is done annually.
             if self.control.deciduous_model:
                 if self.fluxes.alleaf < self.params.c_alloc_fmin:
                     self.fluxes.alstem -= self.params.c_alloc_fmin
@@ -418,7 +418,8 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown C allocation model')
         
-        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, self.fluxes.alroot, "*", self.state.prev_sma, self.state.canht
+        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
+        #       self.fluxes.alroot, "*", self.state.prev_sma, self.state.canht
         #print 
         
         # Total allocation should be one, if not print warning:
@@ -765,9 +766,6 @@ class PlantGrowth(object):
             self.fluxes.cpbranch = self.fluxes.npp * self.fluxes.albranch
             self.fluxes.cpstem = self.fluxes.npp * self.fluxes.alstem
             
-            #print self.fluxes.cpleaf, self.fluxes.npp, self.fluxes.alleaf
-            
-            
         # evaluate SLA of new foliage accounting for variation in SLA 
         # with tree and leaf age (Sands and Landsberg, 2002). Assume 
         # SLA of new foliage is linearly related to leaf N:C ratio 
@@ -788,9 +786,6 @@ class PlantGrowth(object):
                                   (self.fluxes.deadleaves + 
                                    self.fluxes.ceaten) *
                                    self.state.lai / self.state.shoot)
-                #print self.state.lai            
-                #print
-                #sys.exit()
             else:
                 self.state.lai = 0.0
         else:
@@ -799,11 +794,11 @@ class PlantGrowth(object):
                 self.state.lai = 0.0
             else:
                 self.state.lai += (self.fluxes.cpleaf * 
-                              (self.params.sla * const.M2_AS_HA / 
-                              (const.KG_AS_TONNES * self.params.cfracts)) -
-                              (self.fluxes.deadleaves + 
-                               self.fluxes.ceaten) *
-                               self.state.lai / self.state.shoot)
+                                  (self.params.sla * const.M2_AS_HA / 
+                                  (const.KG_AS_TONNES * self.params.cfracts)) -
+                                  (self.fluxes.deadleaves +  
+                                   self.fluxes.ceaten) *
+                                   self.state.lai / self.state.shoot)
    
     def precision_control(self, tolerance=1E-08):
         """ Detect very low values in state variables and force to zero to 
@@ -897,10 +892,7 @@ class PlantGrowth(object):
                                 self.state.stemnimm)
         self.state.stemnmob += (self.fluxes.npstemmob - self.params.wdecay *
                                 self.state.stemnmob -
-                                self.params.retransmob * self.state.stemnmob)
-        
-        #print self.state.stemnmob, self.fluxes.npstemmob - self.params.wdecay * self.state.stemnmob, self.fluxes.npstemmob, self.params.wdecay * self.state.stemnmob
-        
+                                self.params.retransmob * self.state.stemnmob)        
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
 
         if self.control.deciduous_model:
@@ -911,7 +903,7 @@ class PlantGrowth(object):
         # ===========================    
         # This doesn't make sense for the deciduous model because of the ramp
         # function. The way the deciduous logic works we now before we start
-        # how much N we have to allocate so it is impossible to allocate in 
+        # how much N we have to allocate so it is impossible (well) to allocate in 
         # excess. Therefore this is only relevant for evergreen model.
         if not self.control.deciduous_model:
             
