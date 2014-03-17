@@ -45,7 +45,7 @@ class CarbonSoilFlows(object):
         # Fraction of C lost due to microbial respiration
         self.frac_microb_resp = 0.85 - (0.68 * self.params.finesoil)
         
-    def calculate_csoil_flows(self, project_day):
+    def calculate_csoil_flows(self, project_day, doy):
         """ C from decomposing litter -> active, slow and passive SOM pools.
 
         Parameters:
@@ -54,6 +54,15 @@ class CarbonSoilFlows(object):
             simulation day
 
         """
+        # need to store grazing flag, as annual grazing flag may override this
+        cntrl_grazing = self.control.grazing
+        if (self.control.disturbance == 2 and 
+            self.params.disturbance_doy == doy):
+                        
+            # Turn on grazing flag so that soil C&N calculations
+            # are done, turn off below
+            self.control.grazing = True
+        
         # calculate model decay rates
         self.calculate_decay_rates(project_day)
 
@@ -87,6 +96,9 @@ class CarbonSoilFlows(object):
         self.fluxes.co2_rel_from_active_pool = self.fluxes.co2_to_air[4]
         self.fluxes.co2_rel_from_slow_pool = self.fluxes.co2_to_air[5]
         self.fluxes.co2_rel_from_passive_pool = self.fluxes.co2_to_air[6]
+        
+        # switch off grazing if this was just activated as an annual event
+        self.control.grazing = cntrl_grazing
         
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
@@ -523,7 +535,16 @@ class NitrogenSoilFlows(object):
         # Fraction of C lost due to microbial respiration
         self.frac_microb_resp = 0.85 - (0.68 * self.params.finesoil)
         
-    def calculate_nsoil_flows(self, project_day):
+    def calculate_nsoil_flows(self, project_day, doy):
+        
+        # need to store grazing flag, as annual grazing flag may override this
+        cntrl_grazing = self.control.grazing
+        if (self.control.disturbance == 2 and 
+            self.params.disturbance_doy == doy):
+                        
+            # Turn on grazing flag so that soil C&N calculations
+            # are done, turn off below
+            self.control.grazing = True
         
         self.fluxes.ninflow = self.met_data['ndep'][project_day]
         
@@ -555,6 +576,9 @@ class NitrogenSoilFlows(object):
         
         # calculate N net mineralisation
         self.fluxes.nmineralisation = self.calc_net_mineralisation()
+        
+        # switch off grazing if this was just activated as an annual event
+        self.control.grazing = cntrl_grazing
         
     def grazer_inputs(self):
         """ Grazer inputs from faeces and urine, flux detd by faeces c:n """
