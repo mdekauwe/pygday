@@ -92,7 +92,7 @@ class MateC3(object):
             Method calculates GPP, NPP and Ra.
         """
         # local var for tidyness
-        (Tair_K, par, vpd, ca) = self.get_met_data(day, daylen)
+        (Tair_K, par, vpd, ca) = self.get_met_data(day)
         
         # calculate mate params & account for temperature dependencies
         gamma_star = self.calculate_co2_compensation_point(Tair_K)
@@ -152,7 +152,7 @@ class MateC3(object):
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
 
-    def get_met_data(self, day, daylen):
+    def get_met_data(self, day):
         """ Grab the days met data out of the structure and return day values.
 
         Parameters:
@@ -585,7 +585,7 @@ class MateC4(MateC3):
         """
         # local var for tidyness
         (Tair_K, par, vpd, ca) = self.get_met_data(day)
-
+        
         ci = [self.calculate_ci(vpd[k], ca) for k in self.am, self.pm]
         N0 = self.calculate_top_of_canopy_n()
         alpha = self.params.alpha_c4
