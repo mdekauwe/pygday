@@ -67,10 +67,13 @@ class Disturbance(object):
         
         return int(-log(1.0 - random.random()) / rate)
 
-    def disturbance(self):
+    def disturbance(self, year):
         
         if self.control.disturbance == 1: 
-            self.fire()
+            if self.check_year(year):
+                self.fire()
+        # annual grazing, as opposed to daily grazing as calculated in
+        # litter method 
         elif self.control.disturbance == 2: 
             self.grazing()
     
@@ -125,22 +128,11 @@ class Disturbance(object):
     
     def grazing(self): 
         """
-        Animal grazing, PHAC...50% of aboveground veg.
-        - 50% to the atmosphere
-        - 50% litter, usual partitioning of C:N between surface litter pools
+        One off grazing event as opposed to a daily rate that is standard for
+        the model.
+            - Animal grazing, PHAC...50% of aboveground veg.
+       
         """
-        n_lost = self.state.shootn / 2.0
-        c_lost = self.state.shoot / 2.0
-        self.state.shoot *= 0.5
-        self.state.shootn *= 0.5
+        self.fluxes.ceaten = self.state.shoot * self.params.fracteaten
+        self.fluxes.neaten = self.state.shootn * self.params.fracteaten
         
-        # flux of c to the atmosphere metabolic surface pool
-        self.fluxes.co2_rel_from_surf_metab_litter += c_lost / 2.0
-        
-        # drop litter
-        self.fluxes.deadleaves += c_lost / 2.0
-        self.fluxes.deadleafn += n_lost / 2.0
-        
-        # increase n losses
-        self.fluxes.nloss += n_lost / 2.0
-    
