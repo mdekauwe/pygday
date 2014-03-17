@@ -154,7 +154,6 @@ class Gday(object):
             self.db.initialise(years)
             
         
-        
         # =============== #
         #   YEAR LOOP     #
         # =============== #
@@ -183,12 +182,12 @@ class Gday(object):
                 if (self.control.disturbance != 0 and 
                     self.params.disturbance_doy == doy):
                         self.db.check_for_fire(yr, self.pg)
-                            
+                                
                 # co2 assimilation, N uptake and loss
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
                                         float(days_in_year[i]), i)
-            
+                
                 # soil C & N model fluxes
                 self.cs.calculate_csoil_flows(project_day, doy)
                 self.ns.calculate_nsoil_flows(project_day, doy)
@@ -196,13 +195,14 @@ class Gday(object):
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
+                
+                
                 #self.are_we_dead()
                 
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
                 #print self.state.shoot/self.state.shootn, self.state.shootn/self.state.shoot
                 
-                #print self.state.lai, self.fluxes.gpp*100, self.fluxes.ceaten
                 
                 # =============== #
                 #   END OF DAY    #
@@ -214,7 +214,8 @@ class Gday(object):
                 #self.cb.check_water_balance(project_day)
                 
                 project_day += 1
-            
+            if self.control.deciduous_model:  
+                    print self.state.max_lai
             # =============== #
             #   END OF YEAR   #
             # =============== #
