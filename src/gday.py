@@ -304,10 +304,12 @@ class Gday(object):
             stemnmob = 0.0
         
     
-    def spin_up_pools(self, tolerance=5E-03):
-        """ Spin Up model plant, soil and litter pools.
-        -> Examine sequences of 50 years and check if C pools are changing
-           by more than 0.005 units per 1000 yrs.
+    def spin_up_pools(self, tol=5E-03):
+        """ Spin up model plant & soil pools to equilibrium.
+        
+        - Examine sequences of 50 years and check if C pools are changing
+          by more than 0.005 units per 1000 yrs. Note this check is done in 
+          units of: kg m-2.
 
         References:
         ----------
@@ -315,8 +317,11 @@ class Gday(object):
         * Murty, D and McMurtrie, R. E. (2000) Ecological Modelling, 134,
           185-205, specifically page 196.
         """
-        prev_plantc = 9999.9
-        prev_soilc = 9999.9
+        prev_plantc = 99999.9
+        prev_soilc = 99999.9
+        
+        # check for convergences in units of kg/m2
+        conv = const.TONNES_HA_2_KG_M2
         
         # If we are prescribing disturbance, first allow the forest to 
         # establish
@@ -329,9 +334,9 @@ class Gday(object):
             self.control.disturbance = cntrl_flag
             
         while True:
-            if (fabs(prev_plantc - self.state.plantc) < tolerance and
-                fabs(prev_soilc - self.state.soilc) < tolerance):
-                break
+            if (fabs((prev_plantc*conv) - (self.state.plantc*conv)) < tol and
+                fabs((prev_soilc*conv) - (self.state.soilc*conv)) < tol):
+                break 
             else:            
                 prev_plantc = self.state.plantc
                 prev_soilc = self.state.soilc
