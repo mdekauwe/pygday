@@ -141,7 +141,7 @@ class PrintOutput(object):
                   'grw_seas_stress']
 
         special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
-                   'deciduous_model', 'fixleafnc', 'grazing', 'model_optroot',\
+                   'deciduous_model', 'fixleafnc', 'model_optroot',\
                    'modeljm', 'passiveconst', 'print_options', 'water_stress',\
                    'calc_sw_params', 'alloc_model','fixed_stem_nc', \
                    'ps_pathway','gs_model']

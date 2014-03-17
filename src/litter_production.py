@@ -91,17 +91,24 @@ class Litter(object):
                                 (self.state.stemnimm + self.state.stemnmob *
                                 (1.0 - self.params.wretrans)))
 
-        # any animals at work?
-        if self.control.grazing:
-            (self.fluxes.ceaten, self.fluxes.neaten) = self.grazing_calc(fdecay)
-        else:
+        # Animal grazing...
+        #
+        # Daily...
+        if self.control.grazing == 1: 
+            (self.fluxes.ceaten, 
+             self.fluxes.neaten) = self.daily_grazing_calc(fdecay)
+        # Once annually
+        elif self.control.grazing == 2 and self.params.disturbance_doy == doy: 
+            (self.fluxes.ceaten, 
+             self.fluxes.neaten) = self.annual_grazing_calc()
+        else: # no grazing
             self.fluxes.ceaten = 0.0
             self.fluxes.neaten = 0.0
 
         return (fdecay, rdecay)
 
-    def grazing_calc(self, fdecay):
-        """ grass grazing...
+    def daily_grazing_calc(self, fdecay):
+        """ daily grass grazing...
 
         Parameters:
         -----------
@@ -119,7 +126,21 @@ class Litter(object):
         ceaten = fdecay * self.params.fracteaten / arg * self.state.shoot
         neaten = fdecay * self.params.fracteaten / arg * self.state.shootn
         return (ceaten, neaten)
-
+    
+    def annual_grazing_calc(self):
+        """ annual grass grazing...single one off event
+        
+        Returns:
+        --------
+        ceaten : float
+            C consumed by grazers [tonnes C/ha/day]
+        neaten : float
+            N consumed by grazers [tonnes C/ha/day]
+        """
+        ceaten = self.state.shoot * self.params.fracteaten
+        neaten = self.state.shootn * self.params.fracteaten
+        return (ceaten, neaten)
+    
     def decay_in_dry_soils(self, decay_rate, decay_rate_dry):
         """Decay rates (e.g. leaf litterfall) can increase in dry soil, adjust
         decay param. This is based on field measurements by F. J. Hingston 

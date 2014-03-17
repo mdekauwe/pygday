@@ -13,10 +13,10 @@ alloc_model = "FIXED"      # C allocation -> fixed, allometric, or grasses
 assim_model = "MATE"       # bewdy or mate?
 calc_sw_params = False     # false=user supplies field capacity and wilting point, true=calculate them based on cosby et al.
 deciduous_model = False    # evergreen_model=False, deciduous_model=True
-disturbance = False        # 0=No disturbance, 1=Clearance event, 2=Fire
+disturbance = 0            # 0=No disturbance, 1=Fire
 fixleafnc = False          # fixed leaf N C ?
 fixed_stem_nc = True       # False=vary stem N:C with foliage, True=fixed stem N:C
-grazing = False            # Is foliage grazed?
+grazing = False            # Is foliage grazed? 0=No, 1=daily, 2=annual and then set disturbance_doy=doy
 gs_model = "MEDLYN"        # Currently only this model, but others could be added.    
 modeljm = True             # modeljm=0, Jmax and Vcmax parameters are read in, modeljm=1, parameters are calculated from leaf N content
 model_optroot = False      # Ross's optimal root model...not sure if this works yet...0=off, 1=on
