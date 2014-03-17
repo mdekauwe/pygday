@@ -691,7 +691,7 @@ class MateC4(MateC3):
                  for k in self.am, self.pm] 
         
         # Function allowing Jmax/Vcmax to be forced linearly to zero at low T
-        vcmax = [self.adj_params_for_low_temp(vcmax[k], Tk[k])\
+        vcmax = [self.adj_for_low_temp(vcmax[k], Tk[k])\
                  for k in self.am, self.pm]
         
         return vcmax, vcmax25
