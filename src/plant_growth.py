@@ -342,7 +342,7 @@ class PlantGrowth(object):
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
             # height (m) 
-           
+            
             sap_cross_sec_area = (((self.state.sapwood * 
                                     const.TONNES_AS_KG * 
                                     const.M2_AS_HA) / 
@@ -354,7 +354,7 @@ class PlantGrowth(object):
                 leaf2sap = self.state.lai / sap_cross_sec_area
             else:
                 leaf2sap = self.state.max_lai / sap_cross_sec_area
-                
+
             # Allocation to leaves dependant on height. Modification of pipe 
             # theory, leaf-to-sapwood ratio is not constant above a certain 
             # height, due to hydraulic constraints (Magnani et al 2000; Deckmyn
@@ -408,6 +408,12 @@ class PlantGrowth(object):
                 extra = self.fluxes.alstem
                 self.fluxes.alstem = 0.0
                 self.fluxes.alleaf -= extra
+            
+            # minimum allocation to leaves
+            if self.control.deciduous_model:
+                if self.fluxes.alleaf < self.params.c_alloc_fmin:
+                    self.fluxes.alstem -= self.params.c_alloc_fmin
+                    self.fluxes.alleaf = self.params.c_alloc_fmin
             
         else:
             raise AttributeError('Unknown C allocation model')
@@ -782,6 +788,9 @@ class PlantGrowth(object):
                                   (self.fluxes.deadleaves + 
                                    self.fluxes.ceaten) *
                                    self.state.lai / self.state.shoot)
+                #print self.state.lai            
+                #print
+                #sys.exit()
             else:
                 self.state.lai = 0.0
         else:
@@ -961,7 +970,7 @@ class PlantGrowth(object):
         self.state.cstore += self.fluxes.npp
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
-  
+        
 if __name__ == "__main__":
     
     # timing...
