@@ -62,9 +62,12 @@ class Disturbance(object):
         return_interval : int/float
             interval disturbance return at in years
         """
-        rate = 1.0 / self.params.return_interval
+        #rate = 1.0 / self.params.return_interval
         
-        return int(-log(1.0 - random.random()) / rate)
+        #return int(-log(1.0 - random.random()) / rate)
+        
+        return 10
+        
         
     def fire(self, growth_obj):
         """
@@ -102,8 +105,6 @@ class Disturbance(object):
         
         self.state.age = 0.0
         self.state.lai = 0.01
-        self.state.metabsoil = 0.0
-        self.state.metabsoiln = 0.0
         self.state.metabsurf = 0.0
         self.state.metabsurfn = 0.0
         self.state.prev_sma = 1.0
