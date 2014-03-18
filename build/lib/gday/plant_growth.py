@@ -342,7 +342,6 @@ class PlantGrowth(object):
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
             # height (m) 
-            
             sap_cross_sec_area = (((self.state.sapwood * 
                                     const.TONNES_AS_KG * 
                                     const.M2_AS_HA) / 
@@ -483,7 +482,8 @@ class PlantGrowth(object):
         self.state.c_to_alloc_root = self.fluxes.alroot * self.state.cstore
         self.state.c_to_alloc_branch = self.fluxes.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.fluxes.alstem * self.state.cstore
-         
+        
+        
         # =========================================================
         # Nitrogen - Fixed ratios N allocation to woody components.
         # =========================================================

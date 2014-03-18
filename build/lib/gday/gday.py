@@ -196,8 +196,8 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                 
                 
-                
-                self.are_we_dead()
+                if not self.control.deciduous_model:
+                    self.are_we_dead()
                 
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
@@ -226,7 +226,7 @@ class Gday(object):
                 self.print_output_file()
             
             # GDAY died in the previous year, re-establish gday for the next yr
-            if self.dead:
+            if self.dead and not self.control.deciduous_model:
                 self.re_establish_gday()
             
         # close output files
@@ -268,7 +268,8 @@ class Gday(object):
             self.state.stemnmob = 0.0
             
             self.dead = True # johnny 5 is dead
-    
+            print "dead"
+            
     def re_establish_gday(self):
         """ grow from seed the following year following death. Concept is that
         somewhere along the line GDAY saved enough C to be able to 
@@ -305,9 +306,11 @@ class Gday(object):
         
     
     def spin_up_pools(self, tol=5E-03):
-        """ Spin Up model plant, soil and litter pools.
-        -> Examine sequences of 50 years and check if C pools are changing
-           by more than 0.005 units per 1000 yrs (units kg/m2!).
+        """ Spin up model plant & soil pools to equilibrium.
+        
+        - Examine sequences of 50 years and check if C pools are changing
+          by more than 0.005 units per 1000 yrs. Note this check is done in 
+          units of: kg m-2.
 
         References:
         ----------
@@ -318,7 +321,7 @@ class Gday(object):
         prev_plantc = 99999.9
         prev_soilc = 99999.9
         
-        
+        # check for convergences in units of kg/m2
         conv = const.TONNES_HA_2_KG_M2
         
         # If we are prescribing disturbance, first allow the forest to 
@@ -332,8 +335,8 @@ class Gday(object):
             self.control.disturbance = cntrl_flag
             
         while True:
-            if (fabs((prev_plantc * conv) - (self.state.plantc * conv)) < tol and
-                fabs((prev_soilc * conv) - (self.state.soilc * conv)) < tol):
+            if (fabs((prev_plantc*conv) - (self.state.plantc*conv)) < tol and
+                fabs((prev_soilc*conv) - (self.state.soilc*conv)) < tol):
                 break 
             else:            
                 prev_plantc = self.state.plantc
