@@ -201,7 +201,7 @@ class Gday(object):
                     self.control.disturbance == 0):
                     self.are_we_dead()
                 
-                print self.state.activesoil, self.state.slowsoil, self.state.passivesoil
+                
                 
                 # =============== #
                 #   END OF DAY    #
@@ -362,7 +362,7 @@ class Gday(object):
                     # 1000 years (50 yrs x 20 cycles)
                     for spin_num in xrange(20):
                         (yr, doy) = self.run_sim() # run the model...
-            
+
                     # Have we reached a steady state?
                     msg = "Spinup: Plant C - %f, Soil C - %f\n" % \
                            (self.state.plantc, self.state.soilc)
