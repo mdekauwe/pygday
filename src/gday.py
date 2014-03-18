@@ -202,7 +202,7 @@ class Gday(object):
                 
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
-                #print self.state.shoot/self.state.shootn, self.state.shootn/self.state.shoot
+                #print self.state.plantc, self.state.soilc
                 
                 
                 # =============== #
