@@ -196,8 +196,8 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                 
                 
-                
-                self.are_we_dead()
+                if not self.control.deciduous_model:
+                    self.are_we_dead()
                 
                 #print self.state.lai, self.fluxes.gpp*100, \
                 #      self.state.pawater_root, self.state.shootnc
@@ -226,7 +226,7 @@ class Gday(object):
                 self.print_output_file()
             
             # GDAY died in the previous year, re-establish gday for the next yr
-            if self.dead:
+            if self.dead and not self.control.deciduous_model:
                 self.re_establish_gday()
             
         # close output files
@@ -268,7 +268,8 @@ class Gday(object):
             self.state.stemnmob = 0.0
             
             self.dead = True # johnny 5 is dead
-    
+            print "dead"
+            
     def re_establish_gday(self):
         """ grow from seed the following year following death. Concept is that
         somewhere along the line GDAY saved enough C to be able to 
