@@ -196,7 +196,8 @@ class Gday(object):
                 self.day_end_calculations(project_day, days_in_year[i])
                 
                 
-                if not self.control.deciduous_model:
+                if (not self.control.deciduous_model and 
+                    self.control.disturbance == 0):
                     self.are_we_dead()
                 
                 #print self.state.lai, self.fluxes.gpp*100, \
@@ -226,7 +227,9 @@ class Gday(object):
                 self.print_output_file()
             
             # GDAY died in the previous year, re-establish gday for the next yr
-            if self.dead and not self.control.deciduous_model:
+            if (self.dead and not 
+                self.control.deciduous_model and 
+                self.control.disturbance == 0):
                 self.re_establish_gday()
             
         # close output files
@@ -326,7 +329,7 @@ class Gday(object):
         
         # If we are prescribing disturbance, first allow the forest to 
         # establish
-        if self.control.disturbance:
+        if self.control.disturbance != 0:
             cntrl_flag = self.control.disturbance
             self.control.disturbance = 0
             # 200 years (50 yrs x 4 cycles)
@@ -334,22 +337,37 @@ class Gday(object):
                 (yr, doy) = self.run_sim() # run the model...
             self.control.disturbance = cntrl_flag
             
-        while True:
-            if (fabs((prev_plantc*conv) - (self.state.plantc*conv)) < tol and
-                fabs((prev_soilc*conv) - (self.state.soilc*conv)) < tol):
-                break 
-            else:            
-                prev_plantc = self.state.plantc
-                prev_soilc = self.state.soilc
+            while True:
+                if fabs((prev_soilc*conv) - (self.state.soilc*conv)) < tol:
+                    break 
+                else:            
+                    prev_soilc = self.state.soilc
                 
-                # 1000 years (50 yrs x 20 cycles)
-                for spin_num in xrange(20):
-                    (yr, doy) = self.run_sim() # run the model...
+                    # 1000 years (50 yrs x 20 cycles)
+                    for spin_num in xrange(20):
+                        (yr, doy) = self.run_sim() # run the model...
             
-                # Have we reached a steady state?
-                msg = "Spinup: Plant C - %f, Soil C - %f\n" % \
-                       (self.state.plantc, self.state.soilc)
-                sys.stderr.write(msg)
+                    # Have we reached a steady state?
+                    msg = "Spinup: Soil C - %f\n" % (self.state.soilc)
+                    sys.stderr.write(msg)
+        else:
+            
+            while True:
+                if (fabs((prev_plantc*conv) - (self.state.plantc*conv)) < tol and
+                    fabs((prev_soilc*conv) - (self.state.soilc*conv)) < tol):
+                    break 
+                else:            
+                    prev_plantc = self.state.plantc
+                    prev_soilc = self.state.soilc
+                
+                    # 1000 years (50 yrs x 20 cycles)
+                    for spin_num in xrange(20):
+                        (yr, doy) = self.run_sim() # run the model...
+            
+                    # Have we reached a steady state?
+                    msg = "Spinup: Plant C - %f, Soil C - %f\n" % \
+                           (self.state.plantc, self.state.soilc)
+                    sys.stderr.write(msg)
         
         self.save_daily_outputs(yr, doy)
         self.pr.clean_up()
