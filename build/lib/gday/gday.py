@@ -183,27 +183,25 @@ class Gday(object):
                     self.params.disturbance_doy == doy):
                         self.db.check_for_fire(yr, self.pg)
                                 
-                # co2 assimilation, N uptake and loss
+                # photosynthesis & growth
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy, 
                                         float(days_in_year[i]), i)
                 
-                # soil C & N model fluxes
+                # soil C & N calculations
                 self.cs.calculate_csoil_flows(project_day, doy)
                 self.ns.calculate_nsoil_flows(project_day, doy)
                 
                 # calculate C:N ratios and increment annual flux sums
                 self.day_end_calculations(project_day, days_in_year[i])
                 
-                
+                # checking if we died during the timestep 
+                #   - added for desert simulations
                 if (not self.control.deciduous_model and 
                     self.control.disturbance == 0):
                     self.are_we_dead()
                 
-                #print self.state.lai, self.fluxes.gpp*100, \
-                #      self.state.pawater_root, self.state.shootnc
-                #print self.state.plantc, self.state.soilc
-                
+                print self.state.activesoil, self.state.slowsoil, self.state.passivesoil
                 
                 # =============== #
                 #   END OF DAY    #
@@ -215,22 +213,23 @@ class Gday(object):
                 #self.cb.check_water_balance(project_day)
                 
                 project_day += 1
-            
             # =============== #
             #   END OF YEAR   #
             # =============== #
             if self.control.deciduous_model:                
+                # Allocate stored C&N for the following year
                 self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.allocate_stored_c_and_n(init=False)
-                
-            if self.control.print_options == "DAILY" and not self.spin_up:
-                self.print_output_file()
             
             # GDAY died in the previous year, re-establish gday for the next yr
+            #   - added for desert simulations
             if (self.dead and not 
                 self.control.deciduous_model and 
                 self.control.disturbance == 0):
                 self.re_establish_gday()
+            
+            if self.control.print_options == "DAILY" and not self.spin_up:
+                self.print_output_file()
             
         # close output files
         if self.control.print_options == "END" and not self.spin_up:
@@ -306,7 +305,7 @@ class Gday(object):
             stemn = 0.00004
             stemnimm = 0.00004
             stemnmob = 0.0
-        
+        print "re-seeding"
     
     def spin_up_pools(self, tol=5E-03):
         """ Spin up model plant & soil pools to equilibrium.
