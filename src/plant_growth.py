@@ -474,7 +474,7 @@ class PlantGrowth(object):
         #    self.fluxes.alroot = 0.11
         #    self.fluxes.albranch = 0.06
         #    self.fluxes.alstem = 0.57
-        
+                
         # ========================
         # Carbon - fixed fractions
         # ========================
@@ -516,6 +516,7 @@ class PlantGrowth(object):
                                        self.fluxes.alroot *
                                        self.params.ncrfac))
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+               
         
     def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                             days_in_yr, project_day):
