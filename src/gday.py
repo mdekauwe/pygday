@@ -153,9 +153,9 @@ class Gday(object):
             self.db.initialise(years)
 
 
-        # =============== #
-        #   YEAR LOOP     #
-        # =============== #
+        # ===================== #
+        #   Y E A R   L O O P   #
+        # ===================== #
         project_day = 0
         for i, yr in enumerate(years):
             self.day_output = [] # empty daily storage list for outpu
@@ -168,9 +168,9 @@ class Gday(object):
                 self.pg.sma.window_size = self.P.growing_seas_len
                 self.zero_stuff()
 
-            # =============== #
-            #   DAY LOOP      #
-            # =============== #
+            # =================== #
+            #   D A Y   L O O P   #
+            # =================== #
             for doy in xrange(days_in_year[i]):
 
                 # standard litter calculation
@@ -202,9 +202,9 @@ class Gday(object):
 
 
 
-                # =============== #
-                #   END OF DAY    #
-                # =============== #
+                # ======================= #
+                #   E N D   O F   D A Y   #
+                # ======================= #
                 if not self.spin_up:
                     self.save_daily_outputs(yr, doy+1)
 
@@ -212,10 +212,11 @@ class Gday(object):
                 #self.cb.check_water_balance(project_day)
 
                 project_day += 1
-            # =============== #
-            #   END OF YEAR   #
-            # =============== #
+            # ========================= #
+            #   E N D   O F   Y E A R   #
+            # ========================= #
             if self.control.deciduous_model:
+                
                 # Allocate stored C&N for the following year
                 self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.allocate_stored_c_and_n(init=False)
