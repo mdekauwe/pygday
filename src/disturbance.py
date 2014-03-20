@@ -2,6 +2,7 @@ import random
 import sys
 from math import log
 from utilities import float_eq
+import constants as const
 
 class Disturbance(object):
 
@@ -26,23 +27,27 @@ class Disturbance(object):
                 
     def initialise(self, years):
         
-        
-        yrs_till_event = self.time_till_next_disturbance()
-        year_of_disturbance = years[0]+yrs_till_event
-        
-        # figure out the years of the disturbance events 
-        self.yrs = []
-        while year_of_disturbance < years[-1]:
+        if self.params.burn_specific_yr is not None:
+            year_of_disturbance = self.params.burn_specific_yr
+            self.yrs = [self.params.burn_specific_yr]
             
-            index = self.index_id(years, year_of_disturbance)
-            
+        else:
             yrs_till_event = self.time_till_next_disturbance()
-            self.yrs.append(year_of_disturbance)
-            
-            # See if there is another event?
-            year_of_disturbance = years[index]+yrs_till_event
+            year_of_disturbance = years[0]+yrs_till_event
+            year_of_disturbance = 1996
         
-    
+            # figure out the years of the disturbance events 
+            self.yrs = []
+            while year_of_disturbance < years[-1]:
+            
+                index = self.index_id(years, year_of_disturbance)
+            
+                yrs_till_event = self.time_till_next_disturbance()
+                self.yrs.append(year_of_disturbance)
+            
+                # See if there is another event?
+                year_of_disturbance = years[index]+yrs_till_event
+        
     def index_id(self, a_list, elem):
         return (index for index, item in enumerate(a_list) 
                 if item == elem).next()
@@ -66,7 +71,7 @@ class Disturbance(object):
         
         #return int(-log(1.0 - random.random()) / rate)
         
-        return 10
+        return 11
         
         
     def fire(self, growth_obj):
@@ -140,5 +145,23 @@ class Disturbance(object):
         growth_obj.sma.reset_stream() # reset any stress limitation
         self.state.prev_sma = 1.0
         
-    
-    
+    def hurricane(self):
+        """ Reduce LAI by 40% """
+        
+        self.state.lai *= 0.4
+        print self.state.lai
+        sla_conv = (self.params.sla * const.M2_AS_HA /
+                    const.KG_AS_TONNES / self.params.cfracts)
+        
+        lost_c = self.state.shoot - (self.state.lai  / sla_conv)
+        self.state.shoot -= lost_c
+        
+        lost_n = self.state.shootnc * lost_c
+        self.state.shootn -= lost_n
+        
+        """ Drop straight to floor, no retranslocation """
+        self.state.structsurf += lost_c
+        self.state.structsurfn += lost_n
+        
+        
+        
