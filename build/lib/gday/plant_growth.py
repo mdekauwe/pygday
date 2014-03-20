@@ -640,6 +640,12 @@ class PlantGrowth(object):
                 self.fluxes.npstemmob = (self.fluxes.npp * self.fluxes.alstem * 
                                         (ncwnew - ncwimm))
                 
+                # This is somewhat badly thought out...best compromise I can 
+                # think of for the moment would be to adjust the respiration
+                # so that C balance at the very least
+                self.fluxes.auto_resp += (self.fluxes.gpp - 
+                                         (self.fluxes.npp / self.params.cue))
+                self.fluxes.gpp = self.fluxes.npp / self.params.cue
                 
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
                         self.fluxes.npstemmob)
