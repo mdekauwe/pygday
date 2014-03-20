@@ -102,7 +102,8 @@ class Gday(object):
                               self.fluxes, self.met_data)
 
         if self.control.deciduous_model:
-            self.state.max_lai = self.state.lai
+            if self.state.max_lai is None:
+                self.state.max_lai = 0.01 # initialise to something really low
             self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
             self.pg.allocate_stored_c_and_n(init=True)
             self.P = Phenology(self.fluxes, self.state, self.control,
@@ -410,7 +411,6 @@ class Gday(object):
         self.state.cstore = 0.0
         self.state.nstore = 0.0
         self.state.anpp = 0.0
-        self.state.max_lai = 0.0
         self.state.grw_seas_stress = 0.0
 
     def correct_rate_constants(self, output=False):
