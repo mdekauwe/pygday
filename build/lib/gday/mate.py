@@ -631,7 +631,7 @@ class MateC4(MateC3):
                                           lue[self.pm] * const.UMOL_TO_MOL * 
                                           const.MOL_C_TO_GRAMS_C)
         
-        #print self.fluxes.gpp_gCm2
+        
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:

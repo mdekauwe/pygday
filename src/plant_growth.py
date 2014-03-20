@@ -640,6 +640,19 @@ class PlantGrowth(object):
                 self.fluxes.npstemmob = (self.fluxes.npp * self.fluxes.alstem * 
                                         (ncwnew - ncwimm))
                 
+                # This is somewhat badly thought out...best compromise I can 
+                # think of for the moment would be to adjust the respiration
+                # so that C balance at the very least. Of course the water
+                # won't be in balance and we will have transpired more water
+                # than we should...
+                self.fluxes.auto_resp += (self.fluxes.gpp - 
+                                         (self.fluxes.npp / self.params.cue))
+                self.fluxes.gpp = self.fluxes.npp / self.params.cue
+                conv = const.G_AS_TONNES / const.M2_AS_HA
+                self.fluxes.gpp_gCm2 = self.fluxes.gpp / conv
+                self.fluxes.gpp_am_pm[0] = self.fluxes.gpp_gCm2 / 2.0
+                self.fluxes.gpp_am_pm[1] = self.fluxes.gpp_gCm2 / 2.0
+                
                 
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
                         self.fluxes.npstemmob)
