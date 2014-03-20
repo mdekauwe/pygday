@@ -99,7 +99,10 @@ class PlantGrowth(object):
         # calculate NPP
         self.carbon_production(project_day, daylen)
 
-        # calculate water balance
+        # calculate water balance. We also need to store the previous days
+        # soil water store
+        previous_topsoil_store = self.state.pawater_topsoil
+        previous_rootzone_store = self.state.pawater_root
         self.wb.calculate_water_balance(project_day, daylen)
         
         # leaf N:C as a fraction of Ncmaxyoung, i.e. the max N:C ratio of
@@ -127,10 +130,18 @@ class PlantGrowth(object):
         self.carbon_allocation(nitfac, doy, days_in_yr)
         
         (ncbnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
-        self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
-                                 days_in_yr, project_day)
+        recalc_wb = self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, 
+                                             rdecay, doy, days_in_yr, 
+                                             project_day)
         
-        
+        # If we didn't have enough N available to satisfy wood demand, NPP
+        # is down-regulated and thus so is GPP. We also need to recalculate the
+        # water balance given the lower GPP.
+        if recalc_wb:
+            self.state.pawater_topsoil = previous_topsoil_store 
+            self.state.pawater_root = previous_rootzone_store
+            self.wb.calculate_water_balance(project_day, daylen)
+            
         self.update_plant_state(fdecay, rdecay, project_day, doy)
         #if self.control.deciduous_model:
         
@@ -541,6 +552,11 @@ class PlantGrowth(object):
         rdecay : float
             fine root decay rate
         """
+        # default is we don't need to recalculate the water balance, 
+        # however if we cut back on NPP due to available N below then we do
+        # need to do this
+        recalc_wb = False
+        
         # N retranslocated proportion from dying plant tissue and stored within
         # the plant
         self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay, doy)
@@ -640,19 +656,17 @@ class PlantGrowth(object):
                 self.fluxes.npstemmob = (self.fluxes.npp * self.fluxes.alstem * 
                                         (ncwnew - ncwimm))
                 
-                # This is somewhat badly thought out...best compromise I can 
-                # think of for the moment would be to adjust the respiration
-                # so that C balance at the very least. Of course the water
-                # won't be in balance and we will have transpired more water
-                # than we should...
-                self.fluxes.auto_resp += (self.fluxes.gpp - 
-                                         (self.fluxes.npp / self.params.cue))
+                # Also need to recalculate GPP and thus Ra and return a flag
+                # so that we know to recalculate the water balance.
                 self.fluxes.gpp = self.fluxes.npp / self.params.cue
                 conv = const.G_AS_TONNES / const.M2_AS_HA
                 self.fluxes.gpp_gCm2 = self.fluxes.gpp / conv
                 self.fluxes.gpp_am_pm[0] = self.fluxes.gpp_gCm2 / 2.0
                 self.fluxes.gpp_am_pm[1] = self.fluxes.gpp_gCm2 / 2.0
                 
+                # New respiration flux
+                self.fluxes.auto_resp =  self.fluxes.npp * self.params.cue
+                recalc_wb = True 
                 
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
                         self.fluxes.npstemmob)
@@ -664,6 +678,7 @@ class PlantGrowth(object):
                                  self.params.ncrfac))
             self.fluxes.nproot = ntot - self.fluxes.npleaf
         
+        return recalc_wb 
         
     def nitrogen_retrans(self, fdecay, rdecay, doy):
         """ Nitrogen retranslocated from senesced plant matter.
