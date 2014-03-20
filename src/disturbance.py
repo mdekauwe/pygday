@@ -146,7 +146,7 @@ class Disturbance(object):
         self.state.prev_sma = 1.0
         
     def hurricane(self):
-        """ Reduce LAI by 40% """
+        """ Specifically for the florida simulations - reduce LAI by 40% """
         
         self.state.lai *= 0.4
         sla_conv = (self.params.sla * const.M2_AS_HA /
