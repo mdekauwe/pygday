@@ -331,11 +331,12 @@ class PlantGrowth(object):
                 
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
+            min_root_alloc = 0.05
             self.fluxes.alroot = (self.params.c_alloc_rmax * 
-                                  self.params.c_alloc_rmin / 
-                                 (self.params.c_alloc_rmin + 
+                                  min_root_alloc / 
+                                 (min_root_alloc + 
                                  (self.params.c_alloc_rmax - 
-                                  self.params.c_alloc_rmin) * 
+                                  min_root_alloc) * 
                                   self.state.prev_sma))
             
             #self.fluxes.alroot = (self.params.c_alloc_rmin + 
@@ -422,8 +423,9 @@ class PlantGrowth(object):
             # is done annually.
             if self.control.deciduous_model:
                 if self.fluxes.alleaf < self.params.c_alloc_fmin:
-                    self.fluxes.alstem -= self.params.c_alloc_fmin
-                    self.fluxes.alleaf = self.params.c_alloc_fmin
+                    min_leaf_alloc = 0.15
+                    self.fluxes.alstem -= min_leaf_alloc
+                    self.fluxes.alleaf = min_leaf_alloc
             
         else:
             raise AttributeError('Unknown C allocation model')
