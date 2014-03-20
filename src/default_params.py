@@ -187,7 +187,9 @@ r0     = 0.1325 # root C at half-maximum N uptake (kg C/m3)
 # Disturbance
 return_interval = 10 # yrs
 disturbance_doy = 1
-
+burn_specific_yr = None
+hurricane_doy = None
+hurricane_yr = None
 #============== Not publicly accessible to the user ==========================#
 # decay rates
 decayrate = [None] * 7
