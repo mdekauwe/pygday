@@ -149,7 +149,6 @@ class Disturbance(object):
         """ Reduce LAI by 40% """
         
         self.state.lai *= 0.4
-        print self.state.lai
         sla_conv = (self.params.sla * const.M2_AS_HA /
                     const.KG_AS_TONNES / self.params.cfracts)
         
