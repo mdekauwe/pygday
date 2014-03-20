@@ -370,22 +370,19 @@ class PlantGrowth(object):
             # theory, leaf-to-sapwood ratio is not constant above a certain 
             # height, due to hydraulic constraints (Magnani et al 2000; Deckmyn
             # et al. 2006).
-            if self.params.leafsap0 < self.params.leafsap1:
-                min_target = self.params.leafsap0
-            else:
-                min_target = self.params.leafsap1
             
-            if self.params.leafsap0 > self.params.leafsap1:
-                max_target = self.params.leafsap0
+            if self.state.canht <= self.params.height0:
+                leaf2sa_target = self.params.leafsap0
+            elif self.state.canht >= self.params.height1:
+                leaf2sa_target = self.params.leafsap1
             else:
-                max_target = self.params.leafsap1
-          
-            leaf2sa_target = (self.params.leafsap0 + 
-                             (self.params.leafsap1 - self.params.leafsap0) * 
-                             (self.state.canht - self.params.height0) / 
-                             (self.params.height1 - self.params.height0))
-            leaf2sa_target = clip(leaf2sa_target, min=min_target, max=max_target)
-            
+                arg1 = self.params.leafsap0
+                arg2 = self.params.leafsap1 - self.params.leafsap0
+                arg3 = self.state.canht - self.params.height0
+                arg4 = self.params.height1 - self.params.height0
+                
+                leaf2sa_target = arg1 + arg2 * arg3 / arg4 
+                
             self.fluxes.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
                                                       self.params.c_alloc_fmax, 
                                                       self.params.targ_sens) 
@@ -421,11 +418,11 @@ class PlantGrowth(object):
             
             # minimum allocation to leaves - without it tree would die, as this
             # is done annually.
-            if self.control.deciduous_model:
-                if self.fluxes.alleaf < self.params.c_alloc_fmin:
-                    min_leaf_alloc = 0.15
-                    self.fluxes.alstem -= min_leaf_alloc
-                    self.fluxes.alleaf = min_leaf_alloc
+            #if self.control.deciduous_model:
+            #    if self.fluxes.alleaf < self.params.c_alloc_fmin:
+            #        min_leaf_alloc = 0.1
+            #        self.fluxes.alstem -= min_leaf_alloc
+            #        self.fluxes.alleaf = min_leaf_alloc
             
         else:
             raise AttributeError('Unknown C allocation model')
@@ -441,8 +438,9 @@ class PlantGrowth(object):
             raise RuntimeError, "Allocation fracs > 1" 
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
-        arg = 0.5 + 0.5 * ((1.0 - simulated / target) / sensitivity)
-        return max(0.0, alloc_max * min(1.0, arg))    
+        frac = 0.5 + 0.5 * (1.0 - simulated / target) / sensitivity
+        
+        return max(0.0, alloc_max * min(1.0, frac))    
     
     
     def calculate_growth_stress_limitation(self):
