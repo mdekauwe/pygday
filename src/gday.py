@@ -152,7 +152,7 @@ class Gday(object):
         if self.control.disturbance:
             # Figure out if any years have a disturbance
             self.db.initialise(years)
-
+        
 
         # ===================== #
         #   Y E A R   L O O P   #
@@ -182,7 +182,12 @@ class Gday(object):
                 if (self.control.disturbance != 0 and
                     self.params.disturbance_doy == doy):
                     self.db.check_for_fire(yr, self.pg)
-
+                # Hurricane?
+                elif (self.control.hurricane == 1 and 
+                      self.params.hurricane_yr == yr and
+                      self.params.hurricane_doy == doy):
+                    self.db.hurricane()
+                
                 # photosynthesis & growth
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy,
