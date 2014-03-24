@@ -394,12 +394,6 @@ class PlantGrowth(object):
                                                        self.params.c_alloc_bmax, 
                                                        self.params.targ_sens) 
 
-            #target_coarse_roots = 0.34 * self.state.stem**0.84
-            #self.state.alcroot = self.alloc_goal_seek(self.state.croot, 
-            #                                           target_coarse_roots, 
-            #                                           self.params.c_alloc_crmax, 
-            #                                           self.params.targ_sens)
-            
             # allocation to stem is the residual
             self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
                                         self.fluxes.albranch - 

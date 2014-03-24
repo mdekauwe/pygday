@@ -356,31 +356,9 @@ class PlantGrowth(object):
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
             # height (m) 
-            sap_cross_sec_area = (((self.state.sapwood * 
-                                    const.TONNES_AS_KG * 
-                                    const.M2_AS_HA) / 
-                                    self.params.cfracts) / 
-                                    self.state.canht / 
-                                    self.params.density)
-            print self.state.max_lai / sap_cross_sec_area
-            print
-            
             arg1 = self.state.sapwood * const.TONNES_AS_KG * const.M2_AS_HA
             arg2 = self.state.canht * self.params.density * self.params.cfracts
-            sap_cross_sec_area2 =  arg1 / arg2
-            
-            print self.state.max_lai / sap_cross_sec_area2
-            
-            
-            
-            print
-            
-            
-            arg1 = (self.state.sapwood / self.params.cfracts * 
-                    const.TONNES_AS_KG * const.M2_AS_HA )
-            sap_cross_sec_area = arg1 * self.state.canht * self.params.density
-            
-            
+            sap_cross_sec_area2 = arg1 / arg2
             
             if not self.control.deciduous_model:
                 leaf2sap = self.state.lai / sap_cross_sec_area
@@ -416,12 +394,6 @@ class PlantGrowth(object):
                                                        self.params.c_alloc_bmax, 
                                                        self.params.targ_sens) 
 
-            #target_coarse_roots = 0.34 * self.state.stem**0.84
-            #self.state.alcroot = self.alloc_goal_seek(self.state.croot, 
-            #                                           target_coarse_roots, 
-            #                                           self.params.c_alloc_crmax, 
-            #                                           self.params.targ_sens)
-            
             # allocation to stem is the residual
             self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
                                         self.fluxes.albranch - 
