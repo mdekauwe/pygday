@@ -5,6 +5,7 @@ from math import exp, log
 import sys
 import constants as const
 from utilities import float_eq, float_lt, float_gt, SimpleMovingAverage, clip
+from utilities import float_le, float_ge
 from bewdy import Bewdy
 from water_balance import WaterBalance, SoilMoisture
 from mate import MateC3, MateC4
@@ -301,8 +302,9 @@ class PlantGrowth(object):
                                    self.params.c_alloc_bmin))
         
             # allocate remainder to stem
-            self.fluxes.alstem = (1.0 - self.fluxes.alleaf - self.fluxes.alroot - 
-                                 self.fluxes.albranch)
+            self.fluxes.alstem = (1.0 - self.fluxes.alleaf - 
+                                  self.fluxes.alroot - 
+                                  self.fluxes.albranch)
             
         elif self.control.alloc_model == "GRASSES":
             
@@ -349,17 +351,14 @@ class PlantGrowth(object):
             # (Causton, 1985)
             self.state.canht = (self.params.heighto * 
                                 self.state.stem**self.params.htpower)
-            
+
             # LAI to stem sapwood cross-sectional area (As m-2 m-2) 
             # (dimensionless)
             # Assume it varies between LS0 and LS1 as a linear function of tree
             # height (m) 
-            sap_cross_sec_area = (((self.state.sapwood * 
-                                    const.TONNES_AS_KG * 
-                                    const.M2_AS_HA) / 
-                                    self.params.cfracts) / 
-                                    self.state.canht / 
-                                    self.params.density)
+            arg1 = self.state.sapwood * const.TONNES_AS_KG * const.M2_AS_HA
+            arg2 = self.state.canht * self.params.density * self.params.cfracts
+            sap_cross_sec_area2 = arg1 / arg2
             
             if not self.control.deciduous_model:
                 leaf2sap = self.state.lai / sap_cross_sec_area
@@ -371,17 +370,16 @@ class PlantGrowth(object):
             # height, due to hydraulic constraints (Magnani et al 2000; Deckmyn
             # et al. 2006).
             
-            if self.state.canht <= self.params.height0:
+            if float_le(self.state.canht, self.params.height0):
                 leaf2sa_target = self.params.leafsap0
-            elif self.state.canht >= self.params.height1:
+            elif float_ge(self.state.canht, self.params.height1):
                 leaf2sa_target = self.params.leafsap1
             else:
                 arg1 = self.params.leafsap0
                 arg2 = self.params.leafsap1 - self.params.leafsap0
                 arg3 = self.state.canht - self.params.height0
                 arg4 = self.params.height1 - self.params.height0
-                
-                leaf2sa_target = arg1 + arg2 * arg3 / arg4 
+                leaf2sa_target = arg1 + (arg2 * arg3 / arg4) 
                 
             self.fluxes.alleaf = self.alloc_goal_seek(leaf2sap, leaf2sa_target, 
                                                       self.params.c_alloc_fmax, 
@@ -411,24 +409,25 @@ class PlantGrowth(object):
             # stem frac would be negative. Perhaps the above shouldn't be 
             # allowed...? But this will stop wood allocation in such a 
             # situation.
-            if self.fluxes.alstem < 0.0:
-                extra = self.fluxes.alstem
-                self.fluxes.alstem = 0.0
-                self.fluxes.alleaf -= extra
+            #if self.fluxes.alstem < 0.0:
+            #    extra = self.fluxes.alstem
+            #    self.fluxes.alstem = 0.0
+            #    self.fluxes.alleaf -= extra
             
             # minimum allocation to leaves - without it tree would die, as this
             # is done annually.
-            #if self.control.deciduous_model:
-            #    if self.fluxes.alleaf < self.params.c_alloc_fmin:
-            #        min_leaf_alloc = 0.1
-            #        self.fluxes.alstem -= min_leaf_alloc
-            #        self.fluxes.alleaf = min_leaf_alloc
+            if self.control.deciduous_model:
+                if self.fluxes.alleaf < 0.1:
+                    min_leaf_alloc = 0.1
+                    self.fluxes.alstem -= min_leaf_alloc
+                    self.fluxes.alleaf = min_leaf_alloc
             
         else:
             raise AttributeError('Unknown C allocation model')
         
-        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
-        #       self.fluxes.alroot, "*", self.state.prev_sma, self.state.canht
+        print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
+               self.fluxes.alroot, "*", self.state.prev_sma, self.state.canht,\
+               self.state.max_lai, self.state.stem
         #print 
         
         # Total allocation should be one, if not print warning:
@@ -479,7 +478,8 @@ class PlantGrowth(object):
         Allocate stored C&N. This is either down as the model is initialised 
         for the first time or at the end of each year. 
         """
-        # JUST here for FACE stuff as first year of ele should have last years alloc fracs
+        # JUST here for FACE stuff as first year of ele should have last years 
+        # alloc fracs
         #if init == True:
         #    self.fluxes.alleaf = 0.26
         #    self.fluxes.alroot = 0.11
@@ -851,13 +851,16 @@ class PlantGrowth(object):
             self.fluxes.deadroots += self.state.root
             self.state.root = 0.0
             self.state.rootn = 0.0
-    
+        
+        # Not setting these to zero as this just leads to errors with desert
+        # regrowth...instead seeding them to a small value with a CN~25.
+        
         if self.state.stem < tolerance:     
             self.fluxes.deadstems += self.state.stem
             self.fluxes.deadstemn += self.state.stemn
-            self.state.stem = 0.0
-            self.state.stemn = 0.0
-            self.state.stemnimm = 0.0
+            self.state.stem = 0.001
+            self.state.stemn = 0.00004
+            self.state.stemnimm = 0.00004
             self.state.stemnmob = 0.0
         
         # need separate one as this will become very small if there is no
@@ -868,7 +871,7 @@ class PlantGrowth(object):
             
         if self.state.stemnimm < tolerance: 
             self.fluxes.deadstemn += self.state.stemnimm
-            self.state.stemnimm = 0.0  
+            self.state.stemnimm = 0.00004  
         
     def update_plant_state(self, fdecay, rdecay, project_day, doy):
         """ Daily change in C content

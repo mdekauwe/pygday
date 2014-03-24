@@ -206,7 +206,7 @@ class Gday(object):
                     self.control.disturbance == 0):
                     self.are_we_dead()
 
-
+                #print self.state.lai, self.fluxes.gpp*100
 
                 # ======================= #
                 #   E N D   O F   D A Y   #
@@ -251,8 +251,9 @@ class Gday(object):
     def are_we_dead(self):
         """ Simplistic scheme to allow GDAY to die and re-establish the
         following year """
+        
         if float_eq(self.state.lai, 0.0):
-
+            print "DEAD"
             # i.e. we have just died put stem C into struct litter
             # works for grasses as this would be zero anyway
             if not self.dead:
@@ -413,6 +414,7 @@ class Gday(object):
         self.state.shootn = 0.0
         self.state.shootnc = 0.0
         self.state.lai = 0.0
+        self.state.max_lai = 0.0
         self.state.cstore = 0.0
         self.state.nstore = 0.0
         self.state.anpp = 0.0
