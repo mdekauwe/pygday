@@ -140,7 +140,7 @@ class Phenology(object):
                 self.accumulated_ncd += self.calc_ncd(Tmean) 
                 
             self.project_day += 1
-    
+        
         self.last_yrs_accumulated_ncd = self.accumulated_ncd
         
         # Length of time taken for new growth from storage to be allocated.
