@@ -333,7 +333,7 @@ class PlantGrowth(object):
                 
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
-            min_root_alloc = 0.05
+            min_root_alloc = 0.1
             self.fluxes.alroot = (self.params.c_alloc_rmax * 
                                   min_root_alloc / 
                                  (min_root_alloc + 
@@ -358,7 +358,7 @@ class PlantGrowth(object):
             # height (m) 
             arg1 = self.state.sapwood * const.TONNES_AS_KG * const.M2_AS_HA
             arg2 = self.state.canht * self.params.density * self.params.cfracts
-            sap_cross_sec_area2 = arg1 / arg2
+            sap_cross_sec_area = arg1 / arg2
             
             if not self.control.deciduous_model:
                 leaf2sap = self.state.lai / sap_cross_sec_area
@@ -419,9 +419,9 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown C allocation model')
         
-        print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
-               self.fluxes.alroot, "*", self.state.prev_sma, self.state.canht,\
-               self.state.max_lai, self.state.stem
+        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
+        #       self.fluxes.alroot, self.state.prev_sma, self.state.canht,\
+        #       self.state.max_lai, self.state.stem
         #print 
         
         # Total allocation should be one, if not print warning:
