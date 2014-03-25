@@ -97,6 +97,12 @@ class PlantGrowth(object):
         rdecay : float
             fine root decay rate
         """
+        # if grazing took place need to reset "stress" running mean calculation
+        # for grasses
+        if self.control.grazing == 2 and self.params.disturbance_doy == doy: 
+            print doy
+            self.sma.reset_stream()
+        
         # calculate NPP
         self.carbon_production(project_day, daylen)
 
@@ -115,12 +121,13 @@ class PlantGrowth(object):
             # daily allocation...
             self.calc_carbon_allocation_fracs(nitfac)
         else:
-            # Allocation is annually for deciduous model, but we need to keep
-            # a check on stresses during the growing season and the LAI
-            # figure out limitations during leaf growth period
+            # Allocation is annually for deciduous "tree" model, but we need to 
+            # keep a check on stresses during the growing season and the LAI
+            # figure out limitations during leaf growth period. This also
+            # applies for deciduous grasses, need to do the growth stress
+            # calc for grasses here too.
             if self.state.leaf_out_days[doy] > 0.0:
                 self.calculate_growth_stress_limitation()
-                
                 
                 # Need to save max lai for pipe model because at the end of the
                 # year LAI=0.0
@@ -290,15 +297,15 @@ class PlantGrowth(object):
         if self.control.alloc_model == "FIXED":
         
             self.fluxes.alleaf = (self.params.c_alloc_fmax + nitfac *
-                                (self.params.c_alloc_fmax - 
+                                 (self.params.c_alloc_fmax - 
                                  self.params.c_alloc_fmin))
             
             self.fluxes.alroot = (self.params.c_alloc_rmax + nitfac *
-                                (self.params.c_alloc_rmax - 
+                                 (self.params.c_alloc_rmax - 
                                  self.params.c_alloc_rmin))
 
             self.fluxes.albranch = (self.params.c_alloc_bmax + nitfac *
-                                  (self.params.c_alloc_bmax - 
+                                   (self.params.c_alloc_bmax - 
                                    self.params.c_alloc_bmin))
         
             # allocate remainder to stem
@@ -308,7 +315,10 @@ class PlantGrowth(object):
             
         elif self.control.alloc_model == "GRASSES":
             
-            self.calculate_growth_stress_limitation()
+            # if combining grasses with the deciduous model this calculation
+            # is done only during the leaf out period. See above.
+            if not self.control.deciduous_model:
+                self.calculate_growth_stress_limitation()
             
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
@@ -420,8 +430,8 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown C allocation model')
         
-        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
-        #       self.fluxes.alroot, self.state.prev_sma, self.state.canht
+        print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
+               self.fluxes.alroot, self.state.prev_sma, self.state.canht
          
         
         # Total allocation should be one, if not print warning:
