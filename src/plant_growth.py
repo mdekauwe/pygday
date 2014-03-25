@@ -100,7 +100,6 @@ class PlantGrowth(object):
         # if grazing took place need to reset "stress" running mean calculation
         # for grasses
         if self.control.grazing == 2 and self.params.disturbance_doy == doy: 
-            print doy
             self.sma.reset_stream()
         
         # calculate NPP
@@ -430,8 +429,8 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown C allocation model')
         
-        print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
-               self.fluxes.alroot, self.state.prev_sma, self.state.canht
+        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
+        #       self.fluxes.alroot, self.state.prev_sma, self.state.canht
          
         
         # Total allocation should be one, if not print warning:
