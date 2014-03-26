@@ -395,6 +395,7 @@ class PlantGrowth(object):
                                                       self.params.c_alloc_fmax, 
                                                       self.params.targ_sens) 
             
+            
             # Allocation to branch dependent on relationship between the stem
             # and branch
             target_branch = (self.params.branch0 * 
@@ -431,7 +432,8 @@ class PlantGrowth(object):
         
         #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
         #       self.fluxes.alroot, self.state.prev_sma, self.state.canht
-         
+        
+        
         
         # Total allocation should be one, if not print warning:
         total_alloc = (self.fluxes.alroot + self.fluxes.alleaf + 
@@ -440,6 +442,11 @@ class PlantGrowth(object):
             raise RuntimeError, "Allocation fracs > 1" 
         
     def alloc_goal_seek(self, simulated, target, alloc_max, sensitivity):
+        
+        # Sensitivity parameter characterises how allocation fraction respond 
+        # when the leaf:sapwood area ratio departs from the target value 
+        # If sensitivity close to 0 then the simulated leaf:sapwood area ratio 
+        # will closely track the target value 
         frac = 0.5 + 0.5 * (1.0 - simulated / target) / sensitivity
         
         return max(0.0, alloc_max * min(1.0, frac))    

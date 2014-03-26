@@ -1006,7 +1006,7 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nloss - self.fluxes.nuptake) + 
                                self.fluxes.nlittrelease)
         
-    
+        
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
         the  N:C ratio of a litter pool within the range 'ncmin' to 'ncmax'.

@@ -495,12 +495,12 @@ class WaterBalance(object):
         
         # Total soil layer
         self.state.pawater_topsoil += (self.fluxes.erain -
-                                    (self.fluxes.transpiration *
-                                     trans_frac) -
-                                     self.fluxes.soil_evap)
+                                      (self.fluxes.transpiration *
+                                       trans_frac) -
+                                       self.fluxes.soil_evap)
         
         self.state.pawater_topsoil = clip(self.state.pawater_topsoil, min=0.0,
-                                        max=self.params.wcapac_topsoil) 
+                                          max=self.params.wcapac_topsoil) 
         
         # Total root zone
         previous = self.state.pawater_root
@@ -514,7 +514,7 @@ class WaterBalance(object):
             self.state.pawater_root -= runoff 
         else:
             runoff = 0.0
-        
+
         self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
                                        max=self.params.wcapac_root)
         
