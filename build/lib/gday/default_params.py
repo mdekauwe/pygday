@@ -104,7 +104,7 @@ leafsap0     = 7500.0  # leaf area  to sapwood cross sectional area ratio when H
 leafsap1     = 2700.0  # leaf to sap area ratio when Height = Height1 (mm^2/mm^2)
 branch0      = 5.61    # constant in branch-stem allometry (trees)
 branch1      = 0.346   # exponent in branch-stem allometry
-targ_sens    = 0.5     # sensitivity of allocation (leaf/branch) to target
+targ_sens    = 0.5     # sensitivity of allocation (leaf/branch) to track the target, higher values = less responsive.
 density      = 420.0   # sapwood density kg DM m-3 (trees)
 nf_min       = 0.005   # leaf N:C minimum N concentration which allows productivity
 nf_crit      = 0.015   # leaf N:C below which N availability limits productivity 
