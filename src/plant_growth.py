@@ -642,6 +642,7 @@ class PlantGrowth(object):
                    self.fluxes.npbranch )
             
             if float_gt(arg, ntot) and self.control.fixleafnc == False:
+                
                 self.fluxes.npp *= (ntot / (self.fluxes.npstemimm +
                                     self.fluxes.npstemmob + 
                                     self.fluxes.npbranch ))
@@ -668,7 +669,7 @@ class PlantGrowth(object):
                 self.fluxes.gpp_am_pm[1] = self.fluxes.gpp_gCm2 / 2.0
                 
                 # New respiration flux
-                self.fluxes.auto_resp =  self.fluxes.npp * self.params.cue
+                self.fluxes.auto_resp =  self.fluxes.gpp - self.fluxes.npp
                 recalc_wb = True 
                 
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
