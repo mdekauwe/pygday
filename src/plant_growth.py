@@ -688,7 +688,7 @@ class PlantGrowth(object):
                                  (self.fluxes.alleaf + self.fluxes.alroot *
                                  self.params.ncrfac))
             self.fluxes.nproot = ntot - self.fluxes.npleaf
-        
+            
         return recalc_wb 
         
     def nitrogen_retrans(self, fdecay, rdecay, doy):
