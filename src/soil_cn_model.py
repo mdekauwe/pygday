@@ -847,10 +847,9 @@ class NitrogenSoilFlows(object):
         return (nimmob, active_nc_slope, slow_nc_slope, passive_nc_slope)
     
     def calc_net_mineralisation(self):
-        """ N Net mineralisation, i.e. excess of N outflows over inflows """
-        return (self.fluxes.ninflow + 
-                self.fluxes.ngross - 
-                self.fluxes.nimmob +
+        """ N Net mineralisation from microbial activity 
+        i.e. excess of N outflows over inflows """
+        return (self.fluxes.ngross - self.fluxes.nimmob +
                 self.fluxes.nlittrelease)
     
     def calculate_nc_slope(self, ncmax, ncmin):
