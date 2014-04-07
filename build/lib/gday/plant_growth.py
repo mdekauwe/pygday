@@ -186,6 +186,7 @@ class PlantGrowth(object):
         ncbnew = (self.params.ncbnew + nitfac *
                  (self.params.ncbnew - self.params.ncbnewz))
         
+        # n:c ratio of new coarse root 
         nccnew = (self.params.nccnew + nitfac *
                  (self.params.nccnew - self.params.nccnewz))
         
