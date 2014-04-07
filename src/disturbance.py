@@ -82,6 +82,7 @@ class Disturbance(object):
         * 100 percent of surface litter
         * 50 percent of N volatilized to the atmosphere
         * 50 percent of N returned to inorgn pool"
+        * Coarse roots are not damaged by fire!
 
         vaguely following ...
         http://treephys.oxfordjournals.org/content/24/7/765.full.pdf
