@@ -196,6 +196,8 @@ class Phenology(object):
         self.fluxes.wrate = (2.0 * self.state.c_to_alloc_stem / 
                              self.len_groloss**2)   
         self.fluxes.brate = (2.0 * self.state.c_to_alloc_branch / 
+                             self.len_groloss**2) 
+        self.fluxes.crate = (2.0 * self.state.c_to_alloc_croot / 
                              self.len_groloss**2)   
         
         
@@ -208,5 +210,6 @@ class Phenology(object):
                                 self.len_groloss**2)
         self.fluxes.wnmobrate = (2.0 * self.state.n_to_alloc_stemmob / 
                                  self.len_groloss**2)
-       
+        self.fluxes.cnrate = (2.0 * self.state.n_to_alloc_croot / 
+                             self.len_groloss**2)   
         

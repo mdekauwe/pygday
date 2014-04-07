@@ -46,12 +46,14 @@ omega = 0.0
 # daily C production
 cpleaf = None
 cproot = None
+cpcroot = None
 cpbranch = None
 cpstem = None
 
 # daily N production
 npleaf = None
 nproot = None
+npcroot = None
 npbranch = None
 npstemimm = None
 npstemmob = None
@@ -59,10 +61,12 @@ npstemmob = None
 # dying stuff
 deadleaves = None   # Leaf litter C production (t/ha/yr)
 deadroots = None    # Root litter C production (t/ha/yr)
+deadcroots = None   # Coarse Root litter C production (t/ha/yr)
 deadbranch = None   # Branch litter C production (t/ha/yr)
 deadstems = None    # Stem litter C production (t/ha/yr)
 deadleafn = None    # Leaf litter N production (t/ha/yr)
 deadrootn = None    # Root litter N production (t/ha/yr)
+deadcrootn = None   # Root litter N production (t/ha/yr)
 deadbranchn = None  # Branch litter N production (t/ha/yr)
 deadstemn = None    # Stem litter N production (t/ha/yr)
 

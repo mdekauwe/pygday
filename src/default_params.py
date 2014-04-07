@@ -116,6 +116,9 @@ ncwimmz          = 0.003          #Immobile stem N C at zero leaf N C
 ncwimm           = 0.003          #Immobile stem N C at critical leaf N C
 ncbnewz          = 0.003          #new branch N C at zero leaf N C
 ncbnew           = 0.003          #new branch N C at critical leaf N C
+nccnewz          = 0.003          #new branch N C at zero leaf N C
+nccnew           = 0.003          #new branch N C at critical leaf N C
+
 ncrfac           = 0.8            #N:C of fine root prodn / N:C c of leaf prodn
 ncmaxfyoung      = 0.04           #max N:C ratio of foliage in young stand, if the same as old=no effect
 ncmaxfold        = 0.04           #max N:C ratio of foliage in old stand, if the same as young=no effect
@@ -137,6 +140,7 @@ rateuptake       = 5.7    # rate of N uptake from mineral N pool (/yr) from here
 rateloss         = 0.5    # Rate of N loss from mineral N pool (/yr)
 fretrans         = 0.5    # foliage n retranslocation fraction - 46-57% in young E. globulus trees - see Corbeels et al 2005 ecological modelling 187, pg 463. Roughly 50% from review Aerts '96
 rretrans         = 0.0    # root n retranslocation fraction
+cretrans         = 0.0    # coarse root n retranslocation fraction
 bretrans         = 0.0    # branch n retranslocation fraction
 wretrans         = 0.0    # mobile wood N retranslocation fraction
 kr               = 0.5    # N uptake coefficent (0.05 kg C m-2 to 0.5 tonnes/ha) see Silvia's PhD, Dewar and McM, 96.
@@ -152,6 +156,7 @@ rdecay           = 0.5            #root turnover rate (1/yr)
 rdecaydry        = 0.5            #root turnover rate - dry soil (1/yr)
 bdecay           = 0.03           #branch and large root turnover rate (1/yr)
 wdecay           = 0.02           #wood turnover rate (1/yr)
+crdecay          = 0.02           #coarse roots turnover rate (1/yr)
 watdecaydry      = 0.0            #water fractn for dry litterfall rates
 watdecaywet      = 0.1            #water fractn for wet litterfall rates
 sapturnover      = 0.1            #Sapwood turnover rate: conversion of sapwood to heartwood (1/yr)
