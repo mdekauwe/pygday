@@ -292,8 +292,7 @@ class CarbonSoilFlows(object):
         # -> structural
         self.fluxes.surf_struct_litter = (self.fluxes.deadleaves *
                                          (1.0 - self.params.fmleaf) +
-                                          self.fluxes.deadbranch * 
-                                          self.params.brabove +
+                                          self.fluxes.deadbranch +
                                           self.fluxes.deadstems + 
                                           self.fluxes.faecesc *
                                           (1.0 - self.params.fmfaeces))
@@ -310,8 +309,7 @@ class CarbonSoilFlows(object):
         # -> structural
         self.fluxes.soil_struct_litter = (self.fluxes.deadroots *
                                          (1.0 - self.params.fmroot) +
-                                          self.fluxes.deadbranch *
-                                         (1.0 - self.params.brabove))
+                                          self.fluxes.deadcrootn)
         # -> metabolic
         self.fluxes.soil_metab_litter = (self.fluxes.deadroots * 
                                          self.params.fmroot)
@@ -617,12 +615,10 @@ class NitrogenSoilFlows(object):
 
         """
         # surface and soil inputs (faeces n goes to abovgrd litter pools)
-        nsurf = (self.fluxes.deadleafn + self.fluxes.deadbranchn *
-                 self.params.brabove + self.fluxes.deadstemn +
-                 self.params.faecesn)
+        nsurf = (self.fluxes.deadleafn + self.fluxes.deadbranchn + 
+                 self.fluxes.deadstemn + self.params.faecesn)
         
-        nsoil = (self.fluxes.deadrootn + self.fluxes.deadbranchn *
-                (1.0 - self.params.brabove))
+        nsoil = self.fluxes.deadrootn + self.fluxes.deadcrootn
 
         return nsurf, nsoil
     

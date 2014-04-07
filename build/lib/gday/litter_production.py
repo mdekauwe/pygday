@@ -57,7 +57,8 @@ class Litter(object):
         # ==================== 
         # C litter production
         # ====================
-        self.fluxes.deadroots = rdecay * self.state.root   # ditto
+        self.fluxes.deadroots = rdecay * self.state.root   
+        self.fluxes.deadcroots = self.params.crdecay * self.state.croot 
         self.fluxes.deadstems = self.params.wdecay * self.state.stem
         self.fluxes.deadbranch = self.params.bdecay * self.state.branch
         self.fluxes.deadsapwood = ((self.params.wdecay + 
@@ -75,14 +76,13 @@ class Litter(object):
         # N litter production
         # ====================
         self.fluxes.deadleafn = self.fluxes.deadleaves * ncflit
-        
-        
-        #print (self.fluxes.deadleafn ) / self.fluxes.deadleaves, self.state.shootnc
-        #import sys; sys.exit()
-        
+    
         # Assuming fraction is retranslocated before senescence, i.e. a fracion 
         # of nutrients is stored within the plant
         self.fluxes.deadrootn = self.fluxes.deadroots * ncrlit
+        self.fluxes.deadcrootn = (self.params.crdecay * self.state.crootn *
+                                 (1.0 - self.params.cretrans))
+        
         self.fluxes.deadbranchn = (self.params.bdecay * self.state.branchn *
                                   (1.0 - self.params.bretrans))
         
@@ -90,7 +90,9 @@ class Litter(object):
         self.fluxes.deadstemn = (self.params.wdecay * 
                                 (self.state.stemnimm + self.state.stemnmob *
                                 (1.0 - self.params.wretrans)))
-
+        
+        
+        
         # Animal grazing...
         #
         # Daily...
