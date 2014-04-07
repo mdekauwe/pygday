@@ -136,8 +136,8 @@ class PlantGrowth(object):
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
         
-        (ncbnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
-        recalc_wb = self.nitrogen_allocation(ncbnew, ncwimm, ncwnew, fdecay, 
+        (ncbnew, nccnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
+        recalc_wb = self.nitrogen_allocation(ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
                                              rdecay, doy, days_in_yr, 
                                              project_day)
         
@@ -186,6 +186,8 @@ class PlantGrowth(object):
         ncbnew = (self.params.ncbnew + nitfac *
                  (self.params.ncbnew - self.params.ncbnewz))
         
+        nccnew = (self.params.nccnew + nitfac *
+                 (self.params.nccnew - self.params.nccnewz))
         
         # fixed N:C in the stemwood
         if self.control.fixed_stem_nc == 1:
@@ -207,7 +209,7 @@ class PlantGrowth(object):
             # New stem ring N:C at critical leaf N:C (mobile)
             ncwnew = max(0.0, 0.162 * self.state.shootnc - 0.00143)
         
-        return (ncbnew, ncwimm, ncwnew)
+        return (ncbnew, nccnew, ncwimm, ncwnew)
 
     def carbon_production(self, project_day, daylen):
         """ Calculate GPP, NPP and plant respiration
@@ -312,6 +314,9 @@ class PlantGrowth(object):
                                   self.fluxes.alroot - 
                                   self.fluxes.albranch)
             
+            self.fluxes.alcroot = 0.2 * self.fluxes.alstem
+            self.fluxes.alstem -= self.fluxes.alcroot
+            
         elif self.control.alloc_model == "GRASSES":
             
             # if combining grasses with the deciduous model this calculation
@@ -409,6 +414,8 @@ class PlantGrowth(object):
             self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
                                         self.fluxes.albranch - 
                                         self.fluxes.alleaf)
+            self.fluxes.alcroot = 0.2 * self.fluxes.alstem
+            self.fluxes.alstem -= self.fluxes.alcroot
             
             # Because I have allowed the max fracs sum > 1, possibility
             # stem frac would be negative. Perhaps the above shouldn't be 
@@ -437,7 +444,8 @@ class PlantGrowth(object):
         
         # Total allocation should be one, if not print warning:
         total_alloc = (self.fluxes.alroot + self.fluxes.alleaf + 
-                       self.fluxes.albranch + self.fluxes.alstem)
+                       self.fluxes.albranch + self.fluxes.alstem + 
+                       self.fluxes.alcroot)
         if float_gt(total_alloc, 1.0):
             raise RuntimeError, "Allocation fracs > 1" 
         
@@ -501,6 +509,7 @@ class PlantGrowth(object):
         # ========================
         self.state.c_to_alloc_shoot = self.fluxes.alleaf * self.state.cstore
         self.state.c_to_alloc_root = self.fluxes.alroot * self.state.cstore
+        self.state.c_to_alloc_croot = self.fluxes.alcroot * self.state.cstore
         self.state.c_to_alloc_branch = self.fluxes.albranch * self.state.cstore
         self.state.c_to_alloc_stem = self.fluxes.alstem * self.state.cstore
         
@@ -525,6 +534,10 @@ class PlantGrowth(object):
                                         self.fluxes.albranch * 
                                         self.params.ncbnew)
         
+        self.state.n_to_alloc_croot = (self.state.cstore * 
+                                        self.fluxes.alcroot * 
+                                        self.params.nccnew)
+                                        
         # Calculate remaining N left to allocate to leaves and roots 
         ntot = max(0.0,(self.state.nstore - self.state.n_to_alloc_stemimm -
                         self.state.n_to_alloc_stemmob - 
@@ -539,7 +552,7 @@ class PlantGrowth(object):
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
                
         
-    def nitrogen_allocation(self, ncbnew, ncwimm, ncwnew, fdecay, rdecay, doy,
+    def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                             days_in_yr, project_day):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
@@ -624,6 +637,8 @@ class PlantGrowth(object):
                                      self.state.growing_days[doy])
             
             self.fluxes.nproot = self.state.n_to_alloc_root / days_in_yr
+            self.fluxes.npcroot = (self.fluxes.cnrate * 
+                                   self.state.growing_days[doy])
             
             self.fluxes.npleaf = (self.fluxes.lnrate * 
                                   self.state.growing_days[doy])
@@ -643,10 +658,13 @@ class PlantGrowth(object):
             self.fluxes.npbranch = (self.fluxes.npp * self.fluxes.albranch * 
                                      ncbnew)
             
+            self.fluxes.npcroot = (self.fluxes.npp * self.fluxes.alcroot * 
+                                     nccnew)
+            
             # If we have allocated more N than we have available 
             #  - cut back N prodn
             arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +
-                   self.fluxes.npbranch )
+                   self.fluxes.npbranch + self.fluxes.npcroot)
             
             if float_gt(arg, ntot) and self.control.fixleafnc == False:
                 
@@ -657,6 +675,7 @@ class PlantGrowth(object):
                 # need to adjust growth values accordingly as well
                 self.fluxes.cpleaf = self.fluxes.npp * self.fluxes.alleaf
                 self.fluxes.cproot = self.fluxes.npp * self.fluxes.alroot
+                self.fluxes.cpcroot = self.fluxes.npp * self.fluxes.alcroot
                 self.fluxes.cpbranch = self.fluxes.npp * self.fluxes.albranch
                 self.fluxes.cpstem = self.fluxes.npp * self.fluxes.alstem
                 
@@ -666,6 +685,8 @@ class PlantGrowth(object):
                                          ncwimm)
                 self.fluxes.npstemmob = (self.fluxes.npp * self.fluxes.alstem * 
                                         (ncwnew - ncwimm))
+                self.fluxes.npcroot = (self.fluxes.npp * self.fluxes.alcroot * 
+                                        nccnew)
                 
                 # Also need to recalculate GPP and thus Ra and return a flag
                 # so that we know to recalculate the water balance.
@@ -680,7 +701,7 @@ class PlantGrowth(object):
                 recalc_wb = True 
                 
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
-                        self.fluxes.npstemmob)
+                     self.fluxes.npstemmob + self.fluxes.npcroot)
             ntot = max(0.0, ntot)
             
             # allocate remaining N to flexible-ratio pools
@@ -714,15 +735,19 @@ class PlantGrowth(object):
         else:
             leafretransn = self.params.fretrans * fdecay * self.state.shootn
         
-        arg1 = (leafretransn +
-                self.params.rretrans * rdecay * self.state.rootn +
-                self.params.bretrans * self.params.bdecay *
-                self.state.branchn)
-        arg2 = (self.params.wretrans * self.params.wdecay *
-                self.state.stemnmob + self.params.retransmob *
-                self.state.stemnmob)
+        rootretransn = self.params.rretrans * rdecay * self.state.rootn
+        crootretransn = (self.params.cretrans * self.params.crdecay *
+                         self.state.crootn)
+        branchretransn = (self.params.bretrans * self.params.bdecay *
+                          self.state.branchn)
+        stemretransn = (self.params.wretrans * self.params.wdecay *
+                        self.state.stemnmob + self.params.retransmob *
+                        self.state.stemnmob)
         
-        return arg1 + arg2
+        return (leafretransn + rootretransn + crootretransn + branchretransn +
+                stemretransn)
+        
+        
     
     def calculate_nuptake(self, project_day):
         """ N uptake depends on the rate at which soil mineral N is made 
@@ -800,9 +825,11 @@ class PlantGrowth(object):
             self.fluxes.cpbranch = self.fluxes.brate * days_left
             self.fluxes.cpstem = self.fluxes.wrate * days_left
             self.fluxes.cproot = self.state.c_to_alloc_root * 1.0 / days_in_yr
+            self.fluxes.cpcroot = self.fluxes.crate * days_left
         else:
             self.fluxes.cpleaf = self.fluxes.npp * self.fluxes.alleaf
             self.fluxes.cproot = self.fluxes.npp * self.fluxes.alroot
+            self.fluxes.cpcroot = self.fluxes.npp * self.fluxes.alcroot
             self.fluxes.cpbranch = self.fluxes.npp * self.fluxes.albranch
             self.fluxes.cpstem = self.fluxes.npp * self.fluxes.alstem
             
@@ -901,6 +928,7 @@ class PlantGrowth(object):
         self.state.shoot += (self.fluxes.cpleaf - self.fluxes.deadleaves -
                              self.fluxes.ceaten)
         self.state.root += self.fluxes.cproot - self.fluxes.deadroots
+        self.state.croot += self.fluxes.cpcroot - self.fluxes.deadcroots
         self.state.branch += self.fluxes.cpbranch - self.fluxes.deadbranch
         self.state.stem += self.fluxes.cpstem - self.fluxes.deadstems
         
@@ -930,6 +958,7 @@ class PlantGrowth(object):
         self.state.branchn += (self.fluxes.npbranch - self.params.bdecay *
                                self.state.branchn)
         self.state.rootn += self.fluxes.nproot - rdecay * self.state.rootn
+        self.state.crootn += self.fluxes.npcroot - self.params.crdecay * self.state.crootn
         
         self.state.stemnimm += (self.fluxes.npstemimm - self.params.wdecay *
                                 self.state.stemnimm)
