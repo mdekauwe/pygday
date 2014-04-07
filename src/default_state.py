@@ -14,6 +14,7 @@ __email__   = "mdekauwe@gmail.com"
 # Carbon state variables (t/ha)
 shoot           = 3.38042             # shoot c
 root            = 0.614058            # root c
+croot           = 0.614058            # coarse root c
 branch          = 0.0                 # branch c
 stem            = 403.635040          # stem c
 structsurf      = 10.275649           # surface structural c
@@ -28,6 +29,7 @@ cstore          = 0.0                    # C store for deciduous model
 # Nitrogen state variables (t/ha)
 shootn       = 0.0635                 # shoot n
 rootn        = 0.006951               # root n
+crootn       = 0.006951               # coarse root n
 branchn      = 0.0                    # branch n
 sapwood      = 0.0                    # Sapwood: Stem=sapwood+heartwood
 stemnimm     = 0.807270               # Immobile stem N (t/ha)
