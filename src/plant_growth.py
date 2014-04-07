@@ -891,6 +891,12 @@ class PlantGrowth(object):
             self.state.root = 0.0
             self.state.rootn = 0.0
         
+        if self.state.croot < tolerance:
+            self.fluxes.deadcrootn += self.state.crootn
+            self.fluxes.deadcroots += self.state.croot
+            self.state.croot = 0.0
+            self.state.crootn = 0.0
+        
         # Not setting these to zero as this just leads to errors with desert
         # regrowth...instead seeding them to a small value with a CN~25.
         
