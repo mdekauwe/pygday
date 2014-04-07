@@ -735,19 +735,20 @@ class PlantGrowth(object):
         else:
             leafretransn = self.params.fretrans * fdecay * self.state.shootn
         
-        rootretransn = self.params.rretrans * rdecay * self.state.rootn
-        crootretransn = (self.params.cretrans * self.params.crdecay *
-                         self.state.crootn)
-        branchretransn = (self.params.bretrans * self.params.bdecay *
-                          self.state.branchn)
-        stemretransn = (self.params.wretrans * self.params.wdecay *
-                        self.state.stemnmob + self.params.retransmob *
-                        self.state.stemnmob)
-        
-        return (leafretransn + rootretransn + crootretransn + branchretransn +
-                stemretransn)
         
         
+        
+        arg1 = (leafretransn +
+                self.params.rretrans * rdecay * self.state.rootn +
+                self.params.cretrans * self.params.crdecay *
+                self.state.crootn +
+                self.params.bretrans * self.params.bdecay *
+                self.state.branchn)
+        arg2 = (self.params.wretrans * self.params.wdecay *
+                self.state.stemnmob + self.params.retransmob *
+                self.state.stemnmob)
+        
+        return arg1 + arg2
     
     def calculate_nuptake(self, project_day):
         """ N uptake depends on the rate at which soil mineral N is made 
