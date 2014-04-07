@@ -116,8 +116,8 @@ ncwimmz          = 0.003          #Immobile stem N C at zero leaf N C
 ncwimm           = 0.003          #Immobile stem N C at critical leaf N C
 ncbnewz          = 0.003          #new branch N C at zero leaf N C
 ncbnew           = 0.003          #new branch N C at critical leaf N C
-nccnewz          = 0.003          #new branch N C at zero leaf N C
-nccnew           = 0.003          #new branch N C at critical leaf N C
+nccnewz          = 0.003          #new coarse root N C at zero leaf N C
+nccnew           = 0.003          #new coarse root N C at critical leaf N C
 
 ncrfac           = 0.8            #N:C of fine root prodn / N:C c of leaf prodn
 ncmaxfyoung      = 0.04           #max N:C ratio of foliage in young stand, if the same as old=no effect
