@@ -423,10 +423,10 @@ class Gday(object):
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
         time_constants = ['rateuptake', 'rateloss', 'retransmob',
-                          'fdecay', 'fdecaydry', 'rdecay', 'rdecaydry',
-                          'bdecay', 'wdecay', 'sapturnover', 'kdec1', 'kdec2',
-                          'kdec3', 'kdec4', 'kdec5', 'kdec6', 'kdec7',
-                          'nuptakez','nmax', 'adapt']
+                          'fdecay', 'fdecaydry', 'crdecay','rdecay', 
+                          'rdecaydry', 'bdecay', 'wdecay', 'sapturnover', 
+                          'kdec1', 'kdec2', 'kdec3', 'kdec4', 'kdec5', 'kdec6', 
+                          'kdec7', 'nuptakez','nmax', 'adapt']
         conv = const.NDAYS_IN_YR
 
         if output == False:
@@ -467,7 +467,8 @@ class Gday(object):
         self.state.litternbg = self.state.structsoiln + self.state.metabsoiln
         self.state.littern = self.state.litternag + self.state.litternbg
         self.state.plantn = (self.state.shootn + self.state.rootn +
-                             self.state.branchn + self.state.stemn)
+                             self.state.crootn + self.state.branchn + 
+                             self.state.stemn)
         self.state.totaln = (self.state.plantn + self.state.littern +
                              self.state.soiln)
 
@@ -477,8 +478,9 @@ class Gday(object):
         self.state.littercag = self.state.structsurf + self.state.metabsurf
         self.state.littercbg = self.state.structsoil + self.state.metabsoil
         self.state.litterc = self.state.littercag + self.state.littercbg
-        self.state.plantc = (self.state.root + self.state.shoot +
-                             self.state.stem + self.state.branch)
+        self.state.plantc = (self.state.root + self.state.croot + 
+                             self.state.shoot + self.state.stem + 
+                             self.state.branch)
         self.state.totalc = (self.state.soilc + self.state.litterc +
                              self.state.plantc)
 
