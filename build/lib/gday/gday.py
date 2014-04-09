@@ -304,6 +304,8 @@ class Gday(object):
             self.state.stemn = 0.0
             self.state.stemnimm = 0.0
             self.state.stemnmob = 0.0
+            self.state.croot = 0.0
+            self.state.crootn = 0.0
         else:
             self.state.branch = 0.001
             self.state.branchn = 0.00004
