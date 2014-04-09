@@ -337,6 +337,7 @@ class PlantGrowth(object):
             
             self.fluxes.alstem = 0.0
             self.fluxes.albranch = 0.0
+            self.fluxes.alcroot = 0.0
             self.fluxes.alleaf = (1.0 - self.fluxes.alroot)
             
         elif self.control.alloc_model == "ALLOMETRIC":
