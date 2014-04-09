@@ -96,6 +96,7 @@ c_alloc_rmax = 0.05    # allocation to roots at root n_crit. If using allometric
 c_alloc_rmin = 0.05    # allocation to roots at zero root n/c. If using allometric model this is the min alloc to fine roots
 c_alloc_bmax = 0.2     # allocation to branches at branch n_crit. If using allometric model this is the max alloc to branches
 c_alloc_bmin = 0.2     # allocation to branches at zero branch n/c. If using allometric model this is the min alloc to branches
+c_alloc_cmax = 0.2     # allocation to coarse roots at n_crit. If using allometric model this is the max alloc to coarse roots
 heighto      = 4.826   # constant in avg tree height (m) - stem (t C/ha) reln
 htpower      = 0.35    # Exponent in avg tree height (m) - stem (t C/ha) reln
 height0      = 5.0     # Height when leaf:sap area ratio = leafsap0 (trees)
@@ -104,6 +105,8 @@ leafsap0     = 7500.0  # leaf area  to sapwood cross sectional area ratio when H
 leafsap1     = 2700.0  # leaf to sap area ratio when Height = Height1 (mm^2/mm^2)
 branch0      = 5.61    # constant in branch-stem allometry (trees)
 branch1      = 0.346   # exponent in branch-stem allometry
+croot0       = 0.34     # constant in coarse_root-stem allometry (trees)
+croot1       = 0.84     # exponent in coarse_root-stem allometry
 targ_sens    = 0.5     # sensitivity of allocation (leaf/branch) to track the target, higher values = less responsive.
 density      = 420.0   # sapwood density kg DM m-3 (trees)
 nf_min       = 0.005   # leaf N:C minimum N concentration which allows productivity
