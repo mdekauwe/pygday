@@ -315,7 +315,7 @@ class PlantGrowth(object):
                                   self.fluxes.alroot - 
                                   self.fluxes.albranch)
             
-            self.fluxes.alcroot = 0.2 * self.fluxes.alstem
+            self.fluxes.alcroot = self.params.c_alloc_cmax * self.fluxes.alstem
             self.fluxes.alstem -= self.fluxes.alcroot
             
         elif self.control.alloc_model == "GRASSES":
@@ -337,6 +337,7 @@ class PlantGrowth(object):
             
             self.fluxes.alstem = 0.0
             self.fluxes.albranch = 0.0
+            self.fluxes.alcroot = 0.0
             self.fluxes.alleaf = (1.0 - self.fluxes.alroot)
             
         elif self.control.alloc_model == "ALLOMETRIC":
@@ -411,11 +412,11 @@ class PlantGrowth(object):
                                                        self.params.c_alloc_bmax, 
                                                        self.params.targ_sens) 
             
-            
-            coarse_root_target = 0.34 * self.state.stem**0.84 
+            coarse_root_target = (self.params.croot0 * 
+                                  self.state.stem**self.params.croot1)
             self.fluxes.alcroot = self.alloc_goal_seek(self.state.croot, 
                                                        coarse_root_target, 
-                                                       0.2, 
+                                                       self.params.c_alloc_cmax, 
                                                        self.params.targ_sens) 
             
             self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
