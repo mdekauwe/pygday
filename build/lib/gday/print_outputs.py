@@ -127,12 +127,12 @@ class PrintOutput(object):
         """
         ignore = ['anpp','actncslope', 'slowncslope', 'passncslope', 'decayrate', \
                   'fmfaeces', 'fipar', 'wtfac_tsoil', 'delta_sw_store',\
-                  'remaining_days', 'growing_days', \
-                  'leaf_out_days', 'albranch', 'alleaf', 'alroot', \
-                  'alstem', 'c_to_alloc_branch', \
-                  'c_to_alloc_root', 'c_to_alloc_shoot', 'c_to_alloc_stem', \
-                  'n_to_alloc_branch', 'n_to_alloc_root', 'n_to_alloc_shoot',\
-                  'n_to_alloc_stem', 'n_to_alloc_stemimm', \
+                  'remaining_days', 'growing_days', 'leaf_out_days', \
+                  'albranch', 'alleaf', 'alroot', 'alstem', \
+                  'c_to_alloc_branch', 'c_to_alloc_root', 'c_to_alloc_croot', \
+                  'c_to_alloc_shoot','c_to_alloc_stem', \
+                  'n_to_alloc_branch', 'n_to_alloc_root', 'n_to_alloc_croot',\
+                  'n_to_alloc_shoot', 'n_to_alloc_stem', 'n_to_alloc_stemimm',\
                   'n_to_alloc_stemmob', 'ncontent', 'fmleaf', 'fmroot',\
                   'branchnc', 'lai', 'litterc', 'littercag' ,'littercbg',\
                   'littern', 'litternag', 'litternbg','plantc','plantn',\
