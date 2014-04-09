@@ -410,13 +410,26 @@ class PlantGrowth(object):
                                                        target_branch, 
                                                        self.params.c_alloc_bmax, 
                                                        self.params.targ_sens) 
-
-            # allocation to stem is the residual
+            
+            
+            coarse_root_target = 0.34 * self.state.stem**0.84 
+            self.fluxes.alcroot = self.alloc_goal_seek(self.state.croot, 
+                                                       coarse_root_target, 
+                                                       0.2, 
+                                                       self.params.targ_sens) 
+            
             self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
                                         self.fluxes.albranch - 
-                                        self.fluxes.alleaf)
-            self.fluxes.alcroot = 0.2 * self.fluxes.alstem
-            self.fluxes.alstem -= self.fluxes.alcroot
+                                        self.fluxes.alleaf -
+                                        self.fluxes.alcroot)
+            
+            
+            # allocation to stem is the residual
+            #self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
+            #                            self.fluxes.albranch - 
+            #                            self.fluxes.alleaf)
+            #self.fluxes.alcroot = 0.2 * self.fluxes.alstem
+            #self.fluxes.alstem -= self.fluxes.alcroot
             
             # Because I have allowed the max fracs sum > 1, possibility
             # stem frac would be negative. Perhaps the above shouldn't be 
@@ -890,6 +903,12 @@ class PlantGrowth(object):
             self.fluxes.deadroots += self.state.root
             self.state.root = 0.0
             self.state.rootn = 0.0
+        
+        if self.state.croot < tolerance:
+            self.fluxes.deadcrootn += self.state.crootn
+            self.fluxes.deadcroots += self.state.croot
+            self.state.croot = 0.0
+            self.state.crootn = 0.0
         
         # Not setting these to zero as this just leads to errors with desert
         # regrowth...instead seeding them to a small value with a CN~25.
