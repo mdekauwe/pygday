@@ -759,6 +759,9 @@ class PlantGrowth(object):
                         self.state.stemnmob + self.params.retransmob *
                         self.state.stemnmob)
         
+        # store for NCEAS output
+        self.fluxes.leafretransn = leafretransn
+        
         return (leafretransn + rootretransn + crootretransn + branchretransn +
                 stemretransn)
         
