@@ -76,6 +76,7 @@ neaten = None       # N consumed by grazers (t C/ha/y)
 faecesc = None      # Flux determined by faeces C:N
 nurine = None       # Rate of N input to soil in urine (t/ha/y)
 
+leafretransn = None
 
 # C&N Surface litter
 surf_struct_litter = None
