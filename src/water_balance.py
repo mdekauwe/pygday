@@ -728,6 +728,14 @@ class SoilMoisture(object):
         sathh = (0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * 
                                fsoil[self.sand_index]))
         
+        # saturated soil water potential or the soil water potential at the air
+        # entry point, see Cosby or Clapp and Hornberger
+        # not sure of units here! Can't find a definitive answer yet!!
+        # units = mm
+        #psi_e = -0.01 * 10.0**(1.88 - 0.0131 * fsoil[self.sand_index])
+        #units = m
+        #psi_e = -10. * 10.0**(1.88 - 0.0131 * fsoil[self.sand_index])
+        
         # volumetric soil moisture concentrations at the saturation point, 0 kPa
         theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
                      fsoil[self.sand_index])
