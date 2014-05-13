@@ -567,7 +567,9 @@ class SoilMoisture(object):
             
             # topsoil
             (theta_fc_topsoil, 
-             theta_wp_topsoil) = self.calc_soil_params(fsoil_top)
+             theta_wp_topsoil,
+             theta_sp_topsoil,
+             b, psi_sat) = self.calc_soil_params(fsoil_top)
             
             # Plant available water in top soil (mm)
             self.params.wcapac_topsoil = (self.params.topsoil_depth * 
@@ -576,12 +578,17 @@ class SoilMoisture(object):
             
             # Rootzone
             (theta_fc_root, 
-             theta_wp_root) = self.calc_soil_params(fsoil_root)
+             theta_wp_root,
+             theta_sp_root,
+             b, psi_sat) = self.calc_soil_params(fsoil_root)
             
             # Plant available water in rooting zone (mm)
             self.params.wcapac_root = (self.params.rooting_depth * 
                                       (theta_fc_root - 
                                        theta_wp_root))
+            
+            
+            
             
         # calculate Landsberg and Waring SW modifier parameters if not
         # specified by the user based on a site calibration
@@ -718,27 +725,36 @@ class SoilMoisture(object):
             volumetric soil water concentration at the wilting point
             
         """
-        pressure_head_wilt = 152.9
+        # soil suction of 3.364 m and 152.9 m, or equivalent of 0.033 & -1.5 MPa
+        pressure_head_wilt = 152.9 
         pressure_head_crit = 3.364
         
-        # Clapp Hornberger exponent
-        b = 3.1 + 15.7 * fsoil[self.clay_index] - 0.3 * fsoil[self.sand_index] 
+        # *Note* subtle unit change to be consistent with fractions as opposed 
+        # to percentages of sand, silt, clay, e.g. I've changed the slope in
+        # the "b" Clapp paramter from 0.157 to 15.7
+        #
+        # Also Cosby is unclear about which log base were used. 'Generally' now 
+        # assumed that logarithms to the base 10
         
-        # saturated soil water suction kg m-2 s-1
+        # Clapp Hornberger exponent [-]
+        b = 3.1 + 15.7 * fsoil[self.clay_index] - 0.3 * fsoil[self.sand_index] 
+       
+        # saturated soil water suction (m) - comes from JULES, appears to be the
+        # same as psi_sat below, derived from Cosby. It looks like the diff
+        # is an attempt to get around needing to now % silt.
+        # Also there is a missing negative sign in the JULES version.
         sathh = (0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * 
                                fsoil[self.sand_index]))
         
-        # saturated soil water potential or the soil water potential at the air
-        # entry point, see Cosby or Clapp and Hornberger
-        # not sure of units here! Can't find a definitive answer yet!!
-        # units = mm
-        #psi_e = -0.01 * 10.0**(1.88 - 0.0131 * fsoil[self.sand_index])
-        #units = m
-        #psi_e = -10. * 10.0**(1.88 - 0.0131 * fsoil[self.sand_index])
         
+        # soil matric potential at saturation, taking inverse of log (base10)
+        # units = m (0.01 converts from mm to m)
+        psi_sat = 0.01 * -(10.0**(1.54 - 0.95 * fsoil[self.sand_index] + 0.63 * 
+                     fsoil[self.silt_index]))
+             
         # volumetric soil moisture concentrations at the saturation point, 0 kPa
         theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
-                     fsoil[self.sand_index])
+                    fsoil[self.sand_index])
         
         # volumetric soil moisture concentrations at the wilting point
         # assumed to = to a suction of -1500 kPa or a depth of water of 152.9 m
@@ -748,8 +764,12 @@ class SoilMoisture(object):
         # capacity) assumed to equal a suction of -33 kPa or a 
         # depth of water of 3.364 m
         theta_fc = theta_sp * (sathh / pressure_head_crit)**(1.0 / b)
+    
+        # biome-bgc
+        #theta_fc = theta_sp * (-0.015 / psi_sat)**(1.0/b)
+        #sys.exit()
         
-        return (theta_fc, theta_wp)
+        return (theta_fc, theta_wp, theta_sp, b, psi_sat)
     
     def calculate_soil_water_fac(self):
         """ Estimate a relative water availability factor [0..1]
