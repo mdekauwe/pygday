@@ -560,7 +560,6 @@ class SoilMoisture(object):
         topsoil_type = self.params.topsoil_type
         rootsoil_type = self.params.rootsoil_type
         
-        
         if self.control.calc_sw_params:
             fsoil_top = self.get_soil_fracs(topsoil_type)
             fsoil_root = self.get_soil_fracs(rootsoil_type)  
@@ -568,8 +567,9 @@ class SoilMoisture(object):
             # topsoil
             (theta_fc_topsoil, 
              theta_wp_topsoil,
-             theta_sp_topsoil,
-             b, psi_sat) = self.calc_soil_params(fsoil_top)
+             self.params.theta_sat_topsoil,
+             self.params.b_topsoil, 
+             self.params.psi_sat_topsoil) = self.calc_soil_params(fsoil_top)
             
             # Plant available water in top soil (mm)
             self.params.wcapac_topsoil = (self.params.topsoil_depth * 
@@ -579,8 +579,9 @@ class SoilMoisture(object):
             # Rootzone
             (theta_fc_root, 
              theta_wp_root,
-             theta_sp_root,
-             b, psi_sat) = self.calc_soil_params(fsoil_root)
+             self.params.theta_sat_root,
+             self.params.b_root, 
+             self.params.psi_sat_root) = self.calc_soil_params(fsoil_root)
             
             # Plant available water in rooting zone (mm)
             self.params.wcapac_root = (self.params.rooting_depth * 
@@ -725,9 +726,9 @@ class SoilMoisture(object):
             volumetric soil water concentration at the wilting point
             
         """
-        # soil suction of 3.364 m and 152.9 m, or equivalent of 0.033 & -1.5 MPa
-        pressure_head_wilt = 152.9 
-        pressure_head_crit = 3.364
+        # soil suction of 3.364m and 152.9m, or equivalent of -0.033 & -1.5 MPa
+        pressure_head_wilt = -152.9 
+        pressure_head_crit = -3.364
         
         # *Note* subtle unit change to be consistent with fractions as opposed 
         # to percentages of sand, silt, clay, e.g. I've changed the slope in
@@ -739,37 +740,29 @@ class SoilMoisture(object):
         # Clapp Hornberger exponent [-]
         b = 3.1 + 15.7 * fsoil[self.clay_index] - 0.3 * fsoil[self.sand_index] 
        
-        # saturated soil water suction (m) - comes from JULES, appears to be the
-        # same as psi_sat below, derived from Cosby. It looks like the diff
-        # is an attempt to get around needing to now % silt.
-        # Also there is a missing negative sign in the JULES version.
-        sathh = (0.01 * 10.0**(2.17 - 0.63 * fsoil[self.clay_index] - 1.58 * 
-                               fsoil[self.sand_index]))
-        
-        
         # soil matric potential at saturation, taking inverse of log (base10)
         # units = m (0.01 converts from mm to m)
-        psi_sat = 0.01 * -(10.0**(1.54 - 0.95 * fsoil[self.sand_index] + 0.63 * 
-                     fsoil[self.silt_index]))
-             
-        # volumetric soil moisture concentrations at the saturation point, 0 kPa
+        psi_sat = (0.01 * -(10.0**(1.54 - 0.95 * fsoil[self.sand_index] + 
+                   0.63 * fsoil[self.silt_index])))
+        
+        # Height (m) x gravity (m/s2) = pressure (kPa)
+        KPA_2_MPA = 0.001
+        METER_OF_HEAD_TO_MPA = 9.81 * KPA_2_MPA
+        psi_sat_mpa = psi_sat * METER_OF_HEAD_TO_MPA
+          
+        # volumetric soil moisture concentrations at the saturation point
         theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
                     fsoil[self.sand_index])
         
         # volumetric soil moisture concentrations at the wilting point
-        # assumed to = to a suction of -1500 kPa or a depth of water of 152.9 m
-        theta_wp = theta_sp * (sathh / pressure_head_wilt)**(1.0 / b)
+        # assumed to equal suction of -1.5 MPa or a depth of water of 152.9 m
+        theta_wp = theta_sp * (psi_sat / pressure_head_wilt)**(1.0 / b)
         
-        # volumetric soil moisture concentrations at the critical point (field
-        # capacity) assumed to equal a suction of -33 kPa or a 
-        # depth of water of 3.364 m
-        theta_fc = theta_sp * (sathh / pressure_head_crit)**(1.0 / b)
-    
-        # biome-bgc
-        #theta_fc = theta_sp * (-0.015 / psi_sat)**(1.0/b)
-        #sys.exit()
-        
-        return (theta_fc, theta_wp, theta_sp, b, psi_sat)
+        # volumetric soil moisture concentrations at field capacity assumed to 
+        # equal a suction of -0.0033 MPa or a depth of water of 3.364 m
+        theta_fc = theta_sp * (psi_sat / pressure_head_crit)**(1.0 / b)
+       
+        return (theta_fc, theta_wp, theta_sp, b, psi_sat_mpa)
     
     def calculate_soil_water_fac(self):
         """ Estimate a relative water availability factor [0..1]
@@ -815,6 +808,22 @@ class SoilMoisture(object):
             wtfac_root = self.calc_sw_modifier(smc_root, 
                                                self.params.ctheta_root, 
                                                self.params.ntheta_root)
+            
+        elif self.control.sw_stress_model == 2:
+            
+            psi_swp_topsoil = (self.params.psi_sat_topsoil * 
+                              (smc_topsoil)**-self.params.b_topsoil)
+            
+            psi_swp_root = (self.params.psi_sat_root * 
+                           (smc_root)**-self.params.b_root)
+            
+            # multipliy these by g1, same as eqn 3 in Zhou et al. 2013.
+            b = 0.66
+            
+            wtfac_topsoil = exp(b * psi_swp_topsoil)
+            wtfac_root = exp(b * psi_swp_root)
+            
+            
         return (wtfac_topsoil, wtfac_root) 
         
     def calc_sw_modifier(self, theta, c_theta, n_theta):
