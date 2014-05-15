@@ -811,18 +811,23 @@ class SoilMoisture(object):
             
         elif self.control.sw_stress_model == 2:
             
-            psi_swp_topsoil = (self.params.psi_sat_topsoil * 
-                              (smc_topsoil)**-self.params.b_topsoil)
+            if float_eq(smc_topsoil, 0.0):
+                psi_swp_topsoil = 0.0
+            else:
+                psi_swp_topsoil = (self.params.psi_sat_topsoil * 
+                                  (smc_topsoil /self.params.theta_sat_topsoil)**-self.params.b_topsoil)
             
-            psi_swp_root = (self.params.psi_sat_root * 
-                           (smc_root)**-self.params.b_root)
+            if float_eq(smc_root, 0.0):
+                psi_swp_root = 0.0
+            else:
+                psi_swp_root = (self.params.psi_sat_root * 
+                           (smc_root/self.params.theta_sat_root)**-self.params.b_root)
             
             # multipliy these by g1, same as eqn 3 in Zhou et al. 2013.
             b = 0.66
             
             wtfac_topsoil = exp(b * psi_swp_topsoil)
             wtfac_root = exp(b * psi_swp_root)
-            
             
         return (wtfac_topsoil, wtfac_root) 
         
