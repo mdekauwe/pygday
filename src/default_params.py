@@ -88,6 +88,12 @@ intercep_frac     = 0.15     # Maximum intercepted fraction, values in Oishi et 
 max_intercep_lai  = 3.0      # canopy LAI at which interception is maximised.
 qs                = 1.0      # exponent in water stress modifier, =1.0 JULES type representation, the smaller the values the more curved the depletion. 
 g1                = 4.8      # stomatal conductance parameter: Slope of reln btw gs and assimilation (fitted by species/pft).
+b_topsoil         = None
+b_root            = None
+psi_sat_root      = None     # MPa
+psi_sat_topsoil   = None     # MPa
+theta_sp_root     = None
+theta_sp_topsoil  = None
 
 # set carbon allocation parameters & allometric parameters
 c_alloc_fmax = 0.25    # allocation to leaves at leaf n_crit. If using allometric model this is the max alloc to leaves
