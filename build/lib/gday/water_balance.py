@@ -809,40 +809,30 @@ class SoilMoisture(object):
                                                self.params.ctheta_root, 
                                                self.params.ntheta_root)
             
+        elif self.control.sw_stress_model == 2:
+            
+            
             if float_eq(smc_topsoil, 0.0):
                 psi_swp_topsoil = 0.0
             else:
-                psi_swp_topsoil = (self.params.psi_sat_topsoil * 
-                                  (smc_topsoil /self.params.theta_sat_topsoil)**-self.params.b_topsoil)
+                arg1 = self.params.psi_sat_topsoil
+                arg2 = smc_topsoil /self.params.theta_sat_topsoil
+                arg3 = -self.params.b_topsoil
+                psi_swp_topsoil = arg1 * arg2**arg3
             
             if float_eq(smc_root, 0.0):
                 psi_swp_root = 0.0
             else:
-                psi_swp_root = (self.params.psi_sat_root * 
-                           (smc_root/self.params.theta_sat_root)**-self.params.b_root)
+                arg1 = self.params.psi_sat_root
+                arg2 = smc_root/self.params.theta_sat_root
+                arg3 = -self.params.b_root
+                psi_swp_root = arg1 * arg2**arg3
             
             # multipliy these by g1, same as eqn 3 in Zhou et al. 2013.
             b = 0.66
             
             wtfac_topsoil = exp(b * psi_swp_topsoil)
             wtfac_root = exp(b * psi_swp_root)
-            
-            
-            print self.params.g1 * wtfac_root
-            
-        elif self.control.sw_stress_model == 2:
-            
-            psi_swp_topsoil = (self.params.psi_sat_topsoil * 
-                              (smc_topsoil /self.params.theta_sat_topsoil)**-self.params.b_topsoil)
-            
-            psi_swp_root = (self.params.psi_sat_root * 
-                           (smc_root/self.params.theta_sat_root)**-self.params.b_root)
-            
-            # multipliy these by g1, same as eqn 3 in Zhou et al. 2013.
-            b = 0.66
-            wtfac_topsoil = exp * (b * psi_swp_topsoil)
-            wtfac_root = exp * (b * psi_swp_root)
-            
             
         return (wtfac_topsoil, wtfac_root) 
         
