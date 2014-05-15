@@ -587,8 +587,7 @@ class SoilMoisture(object):
                                       (theta_fc_root - 
                                        theta_wp_root))
             
-            #MPa, not sure the unit are correct.
-            psi_swp = psi_sat * (self.params.wcapac_root / theta_sp_root)**-b
+            
             
             
         # calculate Landsberg and Waring SW modifier parameters if not
@@ -752,12 +751,7 @@ class SoilMoisture(object):
         # units = m (0.01 converts from mm to m)
         psi_sat = 0.01 * -(10.0**(1.54 - 0.95 * fsoil[self.sand_index] + 0.63 * 
                      fsoil[self.silt_index]))
-        
-        print sathh
-        print psi_sat
-        print
-        
-                    
+             
         # volumetric soil moisture concentrations at the saturation point, 0 kPa
         theta_sp = (0.505 - 0.037 * fsoil[self.clay_index] - 0.142 * 
                     fsoil[self.sand_index])
