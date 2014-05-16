@@ -811,6 +811,13 @@ class SoilMoisture(object):
             
         elif self.control.sw_stress_model == 2:
             
+            # Stomatal limitaiton
+            # Exponetial function to reduce g1 with soil water limitation
+            # based on Zhou et al. 2013, AFM, following Makela et al 1996.
+            # For the moment I have hardwired the PFT parameter as I am still
+            # testing.
+            # Because the model is a daily model we are assuming that LWP is
+            # well approximated by the night SWP.
             
             if float_eq(smc_topsoil, 0.0):
                 psi_swp_topsoil = 0.0
