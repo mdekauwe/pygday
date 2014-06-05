@@ -1,4 +1,3 @@
-====================
 G'DAY
 ====================
 
@@ -11,7 +10,7 @@ The model is coded entirely in `Python
 
 Key Reference
 =============
-1). Comins, H. N. and McMurtrie, R. E. (1993) Long-Term Response of Nutrient-Limited Forests to CO"2 Enrichment; Equilibrium Behavior of Plant-Soil Models. Ecological Applications, 3, 666-681.
+1. Comins, H. N. and McMurtrie, R. E. (1993) Long-Term Response of Nutrient-Limited Forests to CO2 Enrichment; Equilibrium Behavior of Plant-Soil Models. Ecological Applications, 3, 666-681.
 
 .. contents:: :local:
 
@@ -62,7 +61,7 @@ And finally running the model... ::
 
 In all cases ``cfg_fname`` is simple a string with a link to the users parameter file, it can be named anything you please.
     
-Link to me
-============
-
-`My home page <https://sites.google.com/site/mdekauwe/>`_.
+Contacts
+========
+* `Martin De Kauwe <http://mdekauwe.github.io/>`_  (mdekauwe at gmail.com)
+* `Belinda Medlyn <http://bio.mq.edu.au/people/person.php?user=bmedlyn>`_ (bmedlyn at bio.mq.edu.au).
