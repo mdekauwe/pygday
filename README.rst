@@ -3,7 +3,7 @@ G'DAY (Generic Decomposition And Yield) Model
 
 GDAY simulates carbon, nitrogen and water cycling between the plant and the soil. 
 
-The model is coded entirely in `Python <http://www.python.org/>`_ with only a single dependancy package `configobj <http://www.voidspace.org.uk/python/configobj.html>`_. 
+The model is coded entirely in `Python <http://www.python.org/>`_.
 
 
 Key Reference
@@ -15,15 +15,15 @@ Key Reference
 Installation
 =============
 
-The G'DAY model depends on very few non-standard python packages, in fact only one I think??!
+They code has been written such that it has very few dependancies, in fact only one! Python can be easily installed on all machines (see below). The dependancies are:
 
-* `configobj <http://www.voidspace.org.uk/python/configobj.html>`_. (Used for reading cfg/ini files)
+* `configobj <http://www.voidspace.org.uk/python/configobj.html>`_
 
-On the off chance you have a well behaved setup you should only need to do ::
-    
-    easy_install configobj
+Setting up python on your system is very easy. For window or mac users the `Enthought <http://www.enthought.com/>`_ or `Anaconda <http://continuum.io/downloads>`_ python packages are perhaps your simplest avenue. On a Linux machine it is simply as case of using whatever your default package manager is, e.g. sudo apt-get install python2.7. If you are on a mac and don't want to use `Enthought <http://www.enthought.com/>`_ or `Anaconda <http://continuum.io/downloads>`_ then python comes as standard with your system, so infact you don't need to do anything! However, in my personal experience I've found that it is easier to set up your own separate working copy using a package manager such as `Macports <http://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_. I read that all the cool kids are now using the later, but personally I've had no issues with Macports. You may need to install configobj yourself (not sure). But regardless it is simple, there are instructions on the webpage listed above or just download the code, extract it and type ::
 
-Alternatively follow the simple instructions on the above link. Note, replacing this with a small bit of code to read user input files would be
+    python setup.py install
+
+Note, replacing this with a small bit of code to read user input files would be
 trivial. I might write that...
 
 Once you have downloaded the source code, or clone the repository (go on...) there is a simple makefile, e.g. ::
@@ -40,10 +40,11 @@ Running the model
 I need to add some simple scripts (on the todo list!). But within a python script you would require the following lines... ::
     
     from gday import gday as model
+    
     G = model.Gday(cfg_fname, spin_up=True)
     G.spin_up_pools()
 
-will spin the model up. Spin up expects a met forcing file with a 1000 yrs of data, how you recycle this is up to you. The model automatically stops once the soil, plant and litter pools have reached equilibrium (check code for finer details).
+which will spin the model up. Spin up expects a met forcing file with a 1000 yrs of data, how you recycle this is up to you. The model automatically stops once the soil, plant and litter pools have reached equilibrium (check code for finer details).
 
 Changing the model default parameters for user defined ones is trivial and utilises a python dictionary, e.g. ::
 
