@@ -92,8 +92,8 @@ b_topsoil         = None
 b_root            = None
 psi_sat_root      = None     # MPa
 psi_sat_topsoil   = None     # MPa
-theta_sp_root     = None
-theta_sp_topsoil  = None
+theta_sat_root     = None
+theta_sat_topsoil  = None
 
 # set carbon allocation parameters & allometric parameters
 c_alloc_fmax = 0.25    # allocation to leaves at leaf n_crit. If using allometric model this is the max alloc to leaves

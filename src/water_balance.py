@@ -820,7 +820,7 @@ class SoilMoisture(object):
             # well approximated by the night SWP.
             
             if float_eq(smc_topsoil, 0.0):
-                psi_swp_topsoil = 0.0
+                psi_swp_topsoil = -1.5
             else:
                 arg1 = self.params.psi_sat_topsoil
                 arg2 = smc_topsoil /self.params.theta_sat_topsoil
@@ -828,7 +828,7 @@ class SoilMoisture(object):
                 psi_swp_topsoil = arg1 * arg2**arg3
             
             if float_eq(smc_root, 0.0):
-                psi_swp_root = 0.0
+                psi_swp_root = -1.5
             else:
                 arg1 = self.params.psi_sat_root
                 arg2 = smc_root/self.params.theta_sat_root
@@ -840,7 +840,8 @@ class SoilMoisture(object):
             
             wtfac_topsoil = exp(b * psi_swp_topsoil)
             wtfac_root = exp(b * psi_swp_root)
-            
+        
+        #print self.state.pawater_root,wtfac_root    
         return (wtfac_topsoil, wtfac_root) 
         
     def calc_sw_modifier(self, theta, c_theta, n_theta):
