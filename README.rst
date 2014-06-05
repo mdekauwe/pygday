@@ -1,3 +1,4 @@
+=============================================
 G'DAY (Generic Decomposition And Yield) Model
 =============================================
 
@@ -8,7 +9,7 @@ The model is coded entirely in `Python <http://www.python.org/>`_.
 
 Key Reference
 =============
-1. Comins, H. N. and McMurtrie, R. E. (1993) Long-Term Response of Nutrient-Limited Forests to CO2 Enrichment; Equilibrium Behavior of Plant-Soil Models. Ecological Applications, 3, 666-681.
+1. Comins, H. N. and McMurtrie, R. E. (1993) Long-Term Response of Nutrient-Limited Forests to CO2 Enrichment; Equilibrium Behavior of Plant-Soil Models. *Ecological Applications*, **3**, 666-681.
 
 .. contents:: :local:
 
@@ -49,12 +50,14 @@ which will spin the model up. Spin up expects a met forcing file with a 1000 yrs
 Changing the model default parameters for user defined ones is trivial and utilises a python dictionary, e.g. ::
 
     from gday import adjust_gday_param_file as ad
+    
     replace_dict = { "albedo": "0.123" }
     ad.adjust_param_file(cfg_fname, replace_dict)
 
 And finally running the model... ::
 
     from gday import gday as model
+    
     G = model.Gday(cfg_fname)
     G.run_sim()
 
