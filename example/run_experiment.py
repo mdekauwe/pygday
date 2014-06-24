@@ -13,14 +13,14 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (11.02.2014)"
 __email__   = "mdekauwe@gmail.com"
 
-def main():
+def main(site, treatment):
     
     # run new simulations
     os.system("example.py")
 
     # load data
-    amb = read_data("runs/D1GDAYDKAMB.csv")
-
+    amb = read_data("runs/D1GDAY%s%s.csv" % (site, treatment.upper()))
+    
     plt.rcParams['figure.subplot.hspace'] = 0.15
     plt.rcParams['figure.subplot.wspace'] = 0.15
     plt.rcParams['font.size'] = 10
@@ -82,4 +82,6 @@ def read_data(fname):
 
 if __name__ == "__main__":
     
-    main()
+    site = "DUKE"
+    treatment="amb"
+    main(site, treatment)
