@@ -20,19 +20,20 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (11.02.2014)"
 __email__   = "mdekauwe@gmail.com"
 
-def main(experiment_id):
+def main(experiment_id, site, treatment):
     
     # --- FILE PATHS, DIR NAMES ETC --- #
     base_dir = os.getcwd()
     param_dir = os.path.join(base_dir, "params")
-    met_dir = os.path.join(base_dir, "forcing")
+    met_dir = os.path.join(base_dir, "met_data")
     run_dir = os.path.join(base_dir, "runs")
     
     # --- CHANGE PARAM VALUES ON THE FLY --- #
-    itag = experiment_id + "_dk_youngforest"
-    otag = experiment_id + "_dk_simulation"
-    mtag = "nceas_met_AMB.csv"
-    out_fn = "D1GDAYDKAMB.csv"
+    itag = "%s_%s_model_youngforest_%s" % (experiment_id, site, treatment)
+    otag = "%s_%s_model_simulation_%s" % (experiment_id, site, treatment)
+    mtag = "%s_met_data_%s.csv" % (site, treatment)
+    out_fn = "D1GDAY%s%s.csv" % (site, treatment.upper())
+    
     out_param_fname = os.path.join(param_dir, otag + ".cfg")
     cfg_fname = os.path.join(param_dir, itag + ".cfg")
     met_fname = os.path.join(met_dir, mtag)
@@ -85,6 +86,9 @@ def main(experiment_id):
 
 if __name__ == "__main__":
     
-    experiment_id = 'NCEAS'
-    main(experiment_id) 
-   
+    
+    # Ambient
+    experiment_id = "NCEAS"
+    site = "DUKE"
+    treatment="amb"
+    main(experiment_id, site, treatment)
