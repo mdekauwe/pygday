@@ -26,7 +26,7 @@ def main(experiment_id, site, treatment):
     base_dir = os.getcwd()
     param_dir = os.path.join(base_dir, "params")
     met_dir = os.path.join(base_dir, "met_data")
-    run_dir = os.path.join(base_dir, "runs")
+    run_dir = os.path.join(base_dir, "outputs")
     
     # --- CHANGE PARAM VALUES ON THE FLY --- #
     itag = "%s_%s_model_youngforest_%s" % (experiment_id, site, treatment)
