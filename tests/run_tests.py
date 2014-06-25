@@ -32,7 +32,7 @@ def read_data(fname):
     return df
     
 # load data
-df = read_data("../example/runs/D1GDAY%s%s.csv" % (site, treatment.upper()))
+df = read_data("../example/outputs/D1GDAY%s%s.csv" % (site, treatment.upper()))
 
 def evap_trans():
     print "ET = T+ES+EC"

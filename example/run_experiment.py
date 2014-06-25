@@ -19,7 +19,7 @@ def main(site, treatment):
     os.system("example.py")
 
     # load data
-    amb = read_data("runs/D1GDAY%s%s.csv" % (site, treatment.upper()))
+    amb = read_data("outputs/D1GDAY%s%s.csv" % (site, treatment.upper()))
     
     plt.rcParams['figure.subplot.hspace'] = 0.15
     plt.rcParams['figure.subplot.wspace'] = 0.15
