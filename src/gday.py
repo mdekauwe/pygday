@@ -207,6 +207,7 @@ class Gday(object):
                     self.are_we_dead()
 
                 #print self.state.lai, self.fluxes.gpp*100
+                #print self.state.plantc, self.state.soilc
                 
                 # ======================= #
                 #   E N D   O F   D A Y   #
