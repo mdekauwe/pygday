@@ -171,7 +171,6 @@ watdecaywet      = 0.1            #water fractn for wet litterfall rates
 sapturnover      = 0.1            #Sapwood turnover rate: conversion of sapwood to heartwood (1/yr)
 ligshoot         = 0.25           #lignin-to-biomass ratio in leaf litter - Value in smith et al. 2013 = 0.2, note subtly difference in eqn C9.
 ligroot          = 0.25           #lignin-to-biomass ratio in root litter - Value in Smith et al. 2013 = 0.16, note subtly difference in eqn C9.
-brabove          = 0.5            #above-ground fraction of branch pool litter
 structcn         = 150.0          #C:N ratio of structural bit of litter input
 structrat        = 0.0            #structural input n:c as fraction of metab
 
