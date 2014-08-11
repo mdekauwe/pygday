@@ -7,6 +7,17 @@ class Phenology(object):
     estimated leaf out/off dates are used to define the allocation of C&N in the
     deciduous model as a function of soil+air temperature and daylength.
     
+    Clearly the aim is for this to be simple, but I need to revisit this at 
+    some point. Things to do:
+    - model is only valid outside of the tropics due to daylength dependance
+    - we need a drought deciduous leaf drop
+    - grasses don't behave like deciduous forests. So that is a fairly urgent
+      change need for FACE sims.
+    - Need some catch to alert the user if leaves haven't been dropped for some
+      reason. This is a common occurrence due to some other issue but it is 
+      currently hard to track down! 
+    
+    
     References:
     -----------
     Botta, A. et al. (2000) GCB, 6, 709-725.
@@ -76,9 +87,12 @@ class Phenology(object):
         """ Thresholds to drop leaves come from White et al.
         Note 655 minutes = 10.916 hrs.
         
+        - Dependance on daylength means that this is only valid outside of the
+          tropics. 
+        
         References:
         -----------
-        White, M. A. et al. (1997) GBC, 11, 217*234.
+        White, M. A. et al. (1997) GBC, 11, 217-234.
         """
         if (daylen <= 10.9166667 and Tsoil <= 11.15) or Tsoil_next_3days < 2.0:
             return True
