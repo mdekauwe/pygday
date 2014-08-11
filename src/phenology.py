@@ -16,6 +16,9 @@ class Phenology(object):
     - Need some catch to alert the user if leaves haven't been dropped for some
       reason. This is a common occurrence due to some other issue but it is 
       currently hard to track down! 
+      
+    - Look at Caldararu et al 2014, Phenology as a strategy for carbon 
+      optimality: a global model. Seems interesting at a quick glance.
     
     
     References:
