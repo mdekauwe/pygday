@@ -520,13 +520,7 @@ class WaterBalance(object):
             self.fluxes.transpiration = 0.0
             self.fluxes.soil_evap = 0.0
             self.fluxes.et = self.fluxes.interception
-            
-            
-            
-        #if float_le(previous, 0.0):
-        #    self.fluxes.transpiration = 0.0
-        #    self.fluxes.soil_evap = 0.0
-        
+         
         self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
                                        max=self.params.wcapac_root)
         
