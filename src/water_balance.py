@@ -2,7 +2,7 @@
 
 from math import log, exp, sqrt, pi
 
-from utilities import float_gt, float_eq, clip
+from utilities import float_gt, float_eq, float_le, clip
 import constants as const
 import sys
 
@@ -499,6 +499,7 @@ class WaterBalance(object):
                                        trans_frac) -
                                        self.fluxes.soil_evap)
         
+        
         self.state.pawater_topsoil = clip(self.state.pawater_topsoil, min=0.0,
                                           max=self.params.wcapac_topsoil) 
         
@@ -514,9 +515,21 @@ class WaterBalance(object):
             self.state.pawater_root -= runoff 
         else:
             runoff = 0.0
-
+        
+        if float_le(self.state.pawater_root, 0.0):
+            self.fluxes.transpiration = 0.0
+            self.fluxes.soil_evap = 0.0
+            self.fluxes.et = self.fluxes.interception
+            
+            
+            
+        #if float_le(previous, 0.0):
+        #    self.fluxes.transpiration = 0.0
+        #    self.fluxes.soil_evap = 0.0
+        
         self.state.pawater_root = clip(self.state.pawater_root, min=0.0,
                                        max=self.params.wcapac_root)
+        
         
         self.state.delta_sw_store = self.state.pawater_root - previous
         
