@@ -149,11 +149,12 @@ class Disturbance(object):
     def hurricane(self):
         """ Specifically for the florida simulations - reduce LAI by 40% """
         
-        self.state.lai *= 0.4
+        # Reduce LAI by 40%
+        self.state.lai -= (self.state.lai * 0.4)
         sla_conv = (self.params.sla * const.M2_AS_HA /
                     const.KG_AS_TONNES / self.params.cfracts)
         
-        lost_c = self.state.shoot - (self.state.lai  / sla_conv)
+        lost_c = self.state.shoot - (self.state.lai / sla_conv)
         self.state.shoot -= lost_c
         
         lost_n = self.state.shootnc * lost_c
