@@ -154,7 +154,7 @@ class Disturbance(object):
         sla_conv = (self.params.sla * const.M2_AS_HA /
                     const.KG_AS_TONNES / self.params.cfracts)
         
-        lost_c = self.state.shoot - (self.state.lai / sla_conv)
+        lost_c = (self.state.lai / sla_conv) - self.state.shoot
         self.state.shoot -= lost_c
         
         lost_n = self.state.shootnc * lost_c
