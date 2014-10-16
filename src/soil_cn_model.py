@@ -294,6 +294,7 @@ class CarbonSoilFlows(object):
                                          (1.0 - self.params.fmleaf) +
                                           self.fluxes.deadbranch +
                                           self.fluxes.deadstems + 
+                                          self.fluxes.deadcroots +
                                           self.fluxes.faecesc *
                                           (1.0 - self.params.fmfaeces))
 
