@@ -201,6 +201,11 @@ def load_gday_output(fname):
     co2_rel_from_slow_pool = out["co2_rel_from_slow_pool"] * tonnes_per_ha_to_g_m2
     co2_rel_from_passive_pool = out["co2_rel_from_passive_pool"] * tonnes_per_ha_to_g_m2
     
+    # priming stuff
+    REXC = out["root_exc"] * tonnes_per_ha_to_g_m2
+    REXN = out["root_exn"] * tonnes_per_ha_to_g_m2
+    CO2X = out["co2_released_exud"] * tonnes_per_ha_to_g_m2
+    
     # Misc stuff we don't output
     drainage = [UNDEF] * len(doy)
     rleaf = [UNDEF] * len(doy)
@@ -268,7 +273,11 @@ def load_gday_output(fname):
             'CO2FSOM':co2_rel_from_active_pool, 
             'CO2SSOM':co2_rel_from_slow_pool,
             'CO2PSOM':co2_rel_from_passive_pool,
-            'TFACSOM':tfac_soil_decomp}
+            'TFACSOM':tfac_soil_decomp,
+            'REXC':REXC,
+            'REXN':REXN,
+            'CO2X':CO2X
+            }
 
         
 def setup_units():    
@@ -299,7 +308,7 @@ def setup_units():
                 'gC m-2', 'gC m-2', 'gC m-2',
                 'gC m-2 d-1', 'gC m-2 d-1', 'gC m-2 d-1', 'gC m-2 d-1',
                 'gC m-2 d-1', 'gC m-2 d-1', 'gC m-2 d-1', 
-                'frac']
+                'frac','gC m-2 d-1', 'gC m-2 d-1', 'gC m-2 d-1']
     
     
     return units 
@@ -360,7 +369,10 @@ def setup_varnames():
                 'CO2 efflux from fast SOM pool',
                 'CO2 efflux from slow SOM pool', 
                 'CO2 efflux from passive SOM pool',
-                'Temperature scalar on C efflux from SOM pools']
+                'Temperature scalar on C efflux from SOM pools',
+                'Root exudation of C',
+                'Root exudation of N',
+                'CO2 released from exudation']
                 
     
 
@@ -383,7 +395,7 @@ def setup_varnames():
                       'CPASSIVETOACTIVE', 'CACTIVE', 'CSLOW', 'CPASSIVE',
                       'CO2SLITSURF', 'CO2SLITSOIL', 'CO2MLITSURF', 
                       'CO2MLITSOIL', 'CO2FSOM', 'CO2SSOM', 'CO2PSOM',
-                      'TFACSOM']
+                      'TFACSOM', 'REXC', 'REXN', 'CO2X']
     
    
                       
