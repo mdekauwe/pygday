@@ -1005,7 +1005,7 @@ class NitrogenSoilFlows(object):
             self.calc_root_exudation_update()
         if self.control.adjust_rtslow:
             self.adjust_residence_time_of_slow_pool()
-    
+        
     def calc_root_exudation_update(self):
     
         if self.param.root_exu_CUE is None:
@@ -1027,8 +1027,7 @@ class NitrogenSoilFlows(object):
         self.fluxes.hetero_resp += self.fluxes.co2_released_exud
         self.fluxes.nloss += self.fluxes.root_exn - N_to_active_pool
 
-
-        # Adjust NMIN
+        # Adjust N Mineralisation
         self.fluxes.nmineralisation -= (C_to_active_pool / 
                                         som_CN_ratio - 
                                         self.fluxes.root_exn)
@@ -1040,8 +1039,7 @@ class NitrogenSoilFlows(object):
     def adjust_residence_time_of_slow_pool(self):
         
         # this will be a param, but for now this is the Duke value
-        # 0.482892646 gC m-2 -> 0.00482892646 tonnes/hectare
-        self.param.factive_non_prime = 0.00482892646
+        self.param.factive_non_prime = 0.009798958 
         
         # There is no need to repeat these calculations, but I don't think it 
         # does any harm either.
