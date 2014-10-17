@@ -1015,13 +1015,13 @@ class NitrogenSoilFlows(object):
                          self.state.passivesoiln))
         active_CN_ratio = self.state.activesoil / self.state.activesoiln
                           
-        if self.params.root_exu_CUE is None:
+        if self.params.root_exu_CUE == -1.0: # flexible CUE
             # flexible cue
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
             # between 16 to 24. Check this for GDAY
             cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
         else:
-            cue =  self.params.root_exu_CUE
+            cue = self.params.root_exu_CUE
             
         
         FF = 1.0 - cue
