@@ -1048,10 +1048,11 @@ class NitrogenSoilFlows(object):
         # There is no need to repeat these calculations, but I don't think it 
         # does any harm either.
         
-        residence_time_slow_pool = 1.0 / self.params.kdec6
+        #residence_time_slow_pool_orig = 1.0 / self.params.kdec6 # cant do this as it changes!
+        residence_time_slow_pool_orig = 1.0 / 0.198279
         z = 0.25 * self.params.factive_non_prime
         y = ((self.params.factive_non_prime + z) / 
-            (residence_time_slow_pool * self.params.factive_non_prime))
+            (residence_time_slow_pool_orig * self.params.factive_non_prime))
         
         factive = (self.fluxes.active_to_slow +
                    self.fluxes.active_to_passive +
@@ -1062,7 +1063,7 @@ class NitrogenSoilFlows(object):
         else:
             residence_time_slow_pool = (1.0 / ((y * factive) / (factive + z))) 
             self.params.kdec6 = 1.0 / residence_time_slow_pool
-        
+            
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
         the  N:C ratio of a litter pool within the range 'ncmin' to 'ncmax'.
