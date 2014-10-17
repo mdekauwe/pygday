@@ -82,7 +82,7 @@ def initialise_model_data(fname, met_header, DUMP=True):
 def turn_strings_into_bools(control):
     flags = ['model_optroot', "deciduous_model", "modeljm", \
              "water_stress", "fixleafnc", "passiveconst", "calc_sw_params",\
-             'fixed_stem_nc','priming','adjust_rtslow']
+             'fixed_stem_nc','exudation','adjust_rtslow']
     for i in flags:
         setattr(control, i, str2boolean(getattr(control, i)))
         
