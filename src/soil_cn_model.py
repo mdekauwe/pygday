@@ -1013,11 +1013,10 @@ class NitrogenSoilFlows(object):
                         (self.state.activesoiln + 
                          self.state.slowsoiln + 
                          self.state.passivesoiln))
-                             
+        active_CN_ratio = self.state.activesoil / self.state.activesoiln
+                          
         if self.params.root_exu_CUE is None:
             # flexible cue
-            active_CN_ratio = self.state.activesoil / self.state.activesoiln
-            
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
             # between 16 to 24. Check this for GDAY
             cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
@@ -1044,14 +1043,14 @@ class NitrogenSoilFlows(object):
     def adjust_residence_time_of_slow_pool(self):
         
         # this will be a param, but for now this is the Duke value
-        self.param.factive_non_prime = 0.009798958 
+        self.params.factive_non_prime = 0.009798958 
         
         # There is no need to repeat these calculations, but I don't think it 
         # does any harm either.
         residence_time_slow_pool = 1.0 / self.params.kdec6
-        z = 0.25 * self.param.factive_non_prime
-        y = ((self.param.factive_non_prime + z) / 
-            (residence_time_slow_pool * self.param.factive_non_prime))
+        z = 0.25 * self.params.factive_non_prime
+        y = ((self.params.factive_non_prime + z) / 
+            (residence_time_slow_pool * self.params.factive_non_prime))
         
         factive = (self.fluxes.active_to_slow +
                    self.fluxes.active_to_passive +
