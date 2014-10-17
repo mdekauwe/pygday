@@ -24,6 +24,7 @@ model_optroot = False      # Ross's optimal root model...not sure if this works 
 nuptake_model = 1          # 0=constant uptake, 1=func of N inorgn, 2=depends on rate of soil N availability
 passiveconst = False       # hold passive pool at passivesoil
 print_options = "DAILY"    # "daily"=every timestep, "end"=end of run
+priming = False            # 
 ps_pathway = "C3"          # Photosynthetic pathway, c3/c4
 strfloat = 0               # Structural pool input N:C varies=1, fixed=0
 sw_stress_model = 1        # JULES type linear stress func, or Landsberg and Waring non-linear func
