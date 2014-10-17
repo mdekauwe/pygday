@@ -136,7 +136,7 @@ co2_to_air = [None] * 7
 # priming fluxes
 root_exc = 0.0
 root_exn = 0.0
-
+co2_released_exud = 0.0
 
 # C allocated fracs - NB these are at the annual timestep for the deciduous model
 alleaf = 0.0
