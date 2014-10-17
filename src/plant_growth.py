@@ -132,7 +132,10 @@ class PlantGrowth(object):
                 # year LAI=0.0
                 if self.state.lai > self.state.max_lai:
                     self.state.max_lai = self.state.lai
-                    
+        
+        
+        
+                   
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
         
@@ -140,6 +143,9 @@ class PlantGrowth(object):
         recalc_wb = self.nitrogen_allocation(ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
                                              rdecay, doy, days_in_yr, 
                                              project_day)
+        
+        if self.control.priming == True:
+            self.calc_root_exudation_release()
         
         # If we didn't have enough N available to satisfy wood demand, NPP
         # is down-regulated and thus so is GPP. We also need to recalculate the
@@ -154,8 +160,25 @@ class PlantGrowth(object):
         
         self.precision_control()
         
+    def calc_root_exudation_release(self):
+        """
+        Root exudation can be modeled to occur: 
+            1) simultaneously with root growth
+            2) as a result of excess C. 
+        """
+        leaf_CN = 1.0 / self.state.shootnc
+        presc_leaf_CN = 30.0 # make a parameter.
         
+        # fraction varies between 0 and 50 % as a function of leaf CN
+        frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
+
+        self.fluxes.root_exc = frac_to_rexc * self.fluxes.cproot
+        self.fluxes.root_exn = self.fluxes.root_exc / self.state.rootnc
         
+        # Need to remove lost C & N from fine roots so that things balance.
+        self.fluxes.cproot -= self.fluxes.root_exc
+        self.fluxes.nproot -= self.fluxes.root_exn
+
     def calculate_ncwood_ratios(self, nitfac):
         """ Estimate the N:C ratio in the branch and stem. Option to vary
         the N:C ratio of the stem following Jeffreys (1999) or keep it a fixed

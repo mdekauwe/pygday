@@ -294,7 +294,6 @@ class CarbonSoilFlows(object):
                                          (1.0 - self.params.fmleaf) +
                                           self.fluxes.deadbranch +
                                           self.fluxes.deadstems + 
-                                          self.fluxes.deadcroots +
                                           self.fluxes.faecesc *
                                           (1.0 - self.params.fmfaeces))
 
@@ -310,7 +309,7 @@ class CarbonSoilFlows(object):
         # -> structural
         self.fluxes.soil_struct_litter = (self.fluxes.deadroots *
                                          (1.0 - self.params.fmroot) +
-                                          self.fluxes.deadcrootn)
+                                          self.fluxes.deadcroots)
         # -> metabolic
         self.fluxes.soil_metab_litter = (self.fluxes.deadroots * 
                                          self.params.fmroot)
@@ -1002,6 +1001,60 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nloss - self.fluxes.nuptake) + 
                                self.fluxes.nlittrelease)
         
+        if self.control.priming == True:
+            self.calc_root_exudation_update()
+            self.adjust_residence_time_of_slow_pool()
+    
+    def calc_root_exudation_update(self):
+    
+        if self.param.root_exu_CUE is None:
+            cue = 0.5
+        else:
+            som_CN_ratio = ((self.state.activesoilc + 
+                             self.state.slowsoilc + 
+                             self.state.passivesoilc) / 
+                            (self.state.activesoiln + 
+                             self.state.slowsoiln + 
+                             self.state.passivesoiln))
+        
+            # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
+            # between 16 to 24. Check this for GDAY
+            cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
+
+            FF = 1.0 - cue
+            C_to_active_pool = FF * self.fluxes.root_exc
+            N_to_active_pool = C_to_active_pool / som_CN_ratio
+            self.fluxes.hetero_resp += self.fluxes.root_exc - C_to_active_pool
+            self.fluxes.nloss += self.fluxes.root_exn - N_to_active_pool
+
+
+            # Adjust NMIN
+            self.fluxes.nmineralisation -= (C_to_active_pool / 
+                                            som_CN_ratio - 
+                                            self.fluxes.root_exn)
+            
+            
+            # update active pool
+            self.state.activesoilc += C_to_active_pool
+            self.state.activesoiln += N_to_active_pool
+    
+    def adjust_residence_time_of_slow_pool(self):
+        
+        # this will be a param, but for now this is the Duke value
+        # 0.482892646 gC m-2 -> 0.00482892646 tonnes/hectare
+        self.param.factive_non_prime = 0.00482892646
+        
+        # There is no need to repeat these calculations, but I don't think it 
+        # does any harm either.
+        residence_time_slow_pool = 1.0 / self.params.kdec6
+        z = 0.25 * self.param.factive_non_prime
+        y = ((factive + z) / 
+            (residence_time_slow_pool * self.param.factive_non_prime))
+        
+        
+        residence_time_slow_pool = (1.0 / ((y * self.fluxes.active_to_slow) / 
+                                          (self.fluxes.active_to_slow + z))) 
+        self.params.kdec6 = 1.0 / residence_time_slow_pool
         
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
