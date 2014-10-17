@@ -1047,6 +1047,7 @@ class NitrogenSoilFlows(object):
         
         # There is no need to repeat these calculations, but I don't think it 
         # does any harm either.
+        
         residence_time_slow_pool = 1.0 / self.params.kdec6
         z = 0.25 * self.params.factive_non_prime
         y = ((self.params.factive_non_prime + z) / 
@@ -1055,9 +1056,12 @@ class NitrogenSoilFlows(object):
         factive = (self.fluxes.active_to_slow +
                    self.fluxes.active_to_passive +
                    self.fluxes.co2_to_air[4])
-                   
-        residence_time_slow_pool = (1.0 / ((y * factive) / (factive + z))) 
-        self.params.kdec6 = 1.0 / residence_time_slow_pool
+        
+        if float_eq(factive, 0.0):
+            pass # don't adjust rate if there is no flux
+        else:
+            residence_time_slow_pool = (1.0 / ((y * factive) / (factive + z))) 
+            self.params.kdec6 = 1.0 / residence_time_slow_pool
         
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
