@@ -171,14 +171,15 @@ class PlantGrowth(object):
 
         # fraction varies between 0 and 50 % as a function of leaf CN
         frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
-
+        
         self.fluxes.root_exc = frac_to_rexc * self.fluxes.cproot
-        self.fluxes.root_exn = self.fluxes.root_exc / self.state.rootnc
+        self.fluxes.root_exn = self.fluxes.root_exc * self.state.rootnc
         
         # Need to remove lost C & N from fine roots so that things balance.
         self.fluxes.cproot -= self.fluxes.root_exc
         self.fluxes.nproot -= self.fluxes.root_exn
-
+        
+                
     def calculate_ncwood_ratios(self, nitfac):
         """ Estimate the N:C ratio in the branch and stem. Option to vary
         the N:C ratio of the stem following Jeffreys (1999) or keep it a fixed
