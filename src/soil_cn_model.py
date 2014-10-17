@@ -575,6 +575,11 @@ class NitrogenSoilFlows(object):
         # calculate N net mineralisation
         self.fluxes.nmineralisation = self.calc_net_mineralisation()
         
+        if self.control.exudation:
+            self.calc_root_exudation_update()
+        if self.control.adjust_rtslow:
+            self.adjust_residence_time_of_slow_pool()
+        
         # switch off grazing if this was just activated as an annual event
         self.control.grazing = self.cntrl_grazing
         
@@ -1001,22 +1006,23 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nloss - self.fluxes.nuptake) + 
                                self.fluxes.nlittrelease)
         
-        if self.control.exudation:
-            self.calc_root_exudation_update()
-        if self.control.adjust_rtslow:
-            self.adjust_residence_time_of_slow_pool()
-        
     def calc_root_exudation_update(self):
-    
-        if self.param.root_exu_CUE is None:
+        som_CN_ratio = ((self.state.activesoil + 
+                         self.state.slowsoil + 
+                         self.state.passivesoil) / 
+                        (self.state.activesoiln + 
+                         self.state.slowsoiln + 
+                         self.state.passivesoiln))
+                             
+        if self.params.root_exu_CUE is None:
             # flexible cue
-            active_CN_ratio = self.state.activesoilc / self.state.activesoiln
-           
+            active_CN_ratio = self.state.activesoil / self.state.activesoiln
+            
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
             # between 16 to 24. Check this for GDAY
             cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
         else:
-            cue =  self.param.root_exu_CUE
+            cue =  self.params.root_exu_CUE
             
         
         FF = 1.0 - cue
@@ -1028,12 +1034,11 @@ class NitrogenSoilFlows(object):
         self.fluxes.nloss += self.fluxes.root_exn - N_to_active_pool
 
         # Adjust N Mineralisation
-        self.fluxes.nmineralisation -= (C_to_active_pool / 
-                                        som_CN_ratio - 
-                                        self.fluxes.root_exn)
+        self.fluxes.nmineralisation -= ((self.fluxes.root_exc / som_CN_ratio) - 
+                                         self.fluxes.root_exn)
         
         # update active pool
-        self.state.activesoilc += C_to_active_pool
+        self.state.activesoil += C_to_active_pool
         self.state.activesoiln += N_to_active_pool
     
     def adjust_residence_time_of_slow_pool(self):
