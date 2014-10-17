@@ -203,6 +203,10 @@ disturbance_doy = 1
 burn_specific_yr = None
 hurricane_doy = None
 hurricane_yr = None
+
+# priming stuff
+root_exu_CUE = None
+
 #============== Not publicly accessible to the user ==========================#
 # decay rates
 decayrate = [None] * 7

@@ -144,7 +144,7 @@ class PlantGrowth(object):
                                              rdecay, doy, days_in_yr, 
                                              project_day)
         
-        if self.control.priming == True:
+        if self.control.exudation:
             self.calc_root_exudation_release()
         
         # If we didn't have enough N available to satisfy wood demand, NPP
