@@ -168,7 +168,7 @@ class PlantGrowth(object):
         """
         leaf_CN = 1.0 / self.state.shootnc
         presc_leaf_CN = 30.0 # make a parameter.
-        
+
         # fraction varies between 0 and 50 % as a function of leaf CN
         frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
 
