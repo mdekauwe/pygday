@@ -1050,7 +1050,7 @@ class NitrogenSoilFlows(object):
     
         # N immobilisation (loss) due to REXN sequestration in the active pool
         N_miss = (max(0.0, self.fluxes.root_exc / som_CN_ratio) - 
-                      self.fluxes.root_exn))
+                      self.fluxes.root_exn)
     
         # N added to the active pool is independent of the CUE of the microbial
         # pool in response to root exudation
