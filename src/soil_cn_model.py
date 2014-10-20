@@ -1023,7 +1023,6 @@ class NitrogenSoilFlows(object):
         else:
             cue = self.params.root_exu_CUE
             
-        
         FF = 1.0 - cue
         C_to_active_pool = FF * self.fluxes.root_exc
         N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
@@ -1031,14 +1030,28 @@ class NitrogenSoilFlows(object):
         self.fluxes.co2_released_exud = self.fluxes.root_exc - C_to_active_pool
         self.fluxes.hetero_resp += self.fluxes.co2_released_exud
         self.fluxes.nloss += self.fluxes.root_exn - N_to_active_pool
-
-        # Adjust N Mineralisation
-        self.fluxes.nmineralisation -= ((self.fluxes.root_exc / som_CN_ratio) - 
-                                         self.fluxes.root_exn)
         
-        # update active pool
-        self.state.activesoil += C_to_active_pool
-        self.state.activesoiln += N_to_active_pool
+        # N immobilisation due to REXN sequestration in the active pool
+        nmiss = (max(0.0, self.fluxes.root_exc / som_CN_ratio) - 
+                     self.fluxes.root_exn))
+        
+        N_available  
+        # check we don't remove more N than we have available!
+        N_available = self.fluxes.nmineralisation
+        if nmiss > N_available:
+            self.fluxes.nmineralisation -= N_available
+            
+            # update active pool
+            self.state.activesoil += C_to_active_pool # stays the same?
+            self.state.activesoiln += N_available
+        else:
+            # Adjust N Mineralisation
+            self.fluxes.nmineralisation -= nmiss
+          
+            # update active pool
+            self.state.activesoil += C_to_active_pool
+            self.state.activesoiln += N_to_active_pool
+        
     
     def adjust_residence_time_of_slow_pool(self):
         
