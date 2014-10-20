@@ -104,7 +104,13 @@ class CarbonSoilFlows(object):
             self.calc_root_exudation_uptake_of_C()
     
     def calc_root_exudation_uptake_of_C(self):        
-    
+        som_CN_ratio = ((self.state.activesoil + 
+                         self.state.slowsoil + 
+                         self.state.passivesoil) / 
+                        (self.state.activesoiln + 
+                         self.state.slowsoiln + 
+                         self.state.passivesoiln))
+                     
         if self.params.root_exu_CUE == -1.0: # flexible CUE
             # flexible cue
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
