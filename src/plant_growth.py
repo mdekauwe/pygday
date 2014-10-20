@@ -161,20 +161,17 @@ class PlantGrowth(object):
         self.precision_control()
         
     def calc_root_exudation_release(self):
-        """
-        Root exudation can be modeled to occur: 
-            1) simultaneously with root growth
-            2) as a result of excess C. 
-        """
+        # Root exudation modelled to result from fine root growth
+   
         leaf_CN = 1.0 / self.state.shootnc
         presc_leaf_CN = 30.0 # make a parameter.
 
         # fraction varies between 0 and 50 % as a function of leaf CN
         frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
-        
+    
         self.fluxes.root_exc = frac_to_rexc * self.fluxes.cproot
         self.fluxes.root_exn = self.fluxes.root_exc * self.state.rootnc
-        
+    
         # Need to remove lost C & N from fine roots so that things balance.
         self.fluxes.cproot -= self.fluxes.root_exc
         self.fluxes.nproot -= self.fluxes.root_exn

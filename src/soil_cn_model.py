@@ -100,6 +100,28 @@ class CarbonSoilFlows(object):
         # switch off grazing if this was just activated as an annual event
         self.control.grazing = self.cntrl_grazing
         
+        if self.control.exudation:
+            self.calc_root_exudation_uptake_of_C()
+    
+    def calc_root_exudation_uptake_of_C(self):        
+    
+        if self.params.root_exu_CUE == -1.0: # flexible CUE
+            # flexible cue
+            # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
+            # between 16 to 24. Check this for GDAY
+            rex_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
+        else:
+            rex_cue = self.params.root_exu_CUE
+    
+        C_to_active_pool = self.fluxes.root_exc * (1.0 - rex_cue)
+    
+        # update respiraiton fluxes.
+        self.fluxes.co2_released_exud = self.fluxes.root_exc - C_to_active_pool
+        self.fluxes.hetero_resp += self.fluxes.co2_released_exud
+
+        # update active pool
+        self.state.activesoil += C_to_active_pool
+        
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
         and moisture dependency. Note same temperature is assumed for all 3 
@@ -576,7 +598,7 @@ class NitrogenSoilFlows(object):
         self.fluxes.nmineralisation = self.calc_net_mineralisation()
         
         if self.control.exudation:
-            self.calc_root_exudation_update()
+            self.calc_root_exudation_uptake_of_N()
         if self.control.adjust_rtslow:
             self.adjust_residence_time_of_slow_pool()
         
@@ -1006,7 +1028,7 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nloss - self.fluxes.nuptake) + 
                                self.fluxes.nlittrelease)
         
-    def calc_root_exudation_update(self):
+    def calc_root_exudation_uptake_of_N(self):
         som_CN_ratio = ((self.state.activesoil + 
                          self.state.slowsoil + 
                          self.state.passivesoil) / 
@@ -1014,7 +1036,7 @@ class NitrogenSoilFlows(object):
                          self.state.slowsoiln + 
                          self.state.passivesoiln))
         active_CN_ratio = self.state.activesoil / self.state.activesoiln
-                          
+                      
         if self.params.root_exu_CUE == -1.0: # flexible CUE
             # flexible cue
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
@@ -1022,35 +1044,26 @@ class NitrogenSoilFlows(object):
             cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
         else:
             cue = self.params.root_exu_CUE
-            
+        
         FF = 1.0 - cue
-        C_to_active_pool = FF * self.fluxes.root_exc
         N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
+    
+        # N immobilisation (loss) due to REXN sequestration in the active pool
+        N_miss = (max(0.0, self.fluxes.root_exc / som_CN_ratio) - 
+                      self.fluxes.root_exn))
+    
+        # N added to the active pool is independent of the CUE of the microbial
+        # pool in response to root exudation
+        if N_miss < self.fluxes.nmineralisation:
         
-        self.fluxes.co2_released_exud = self.fluxes.root_exc - C_to_active_pool
-        self.fluxes.hetero_resp += self.fluxes.co2_released_exud
-        self.fluxes.nloss += self.fluxes.root_exn - N_to_active_pool
-        
-        # N immobilisation due to REXN sequestration in the active pool
-        nmiss = (max(0.0, self.fluxes.root_exc / som_CN_ratio) - 
-                     self.fluxes.root_exn))
-        
-        N_available  
-        # check we don't remove more N than we have available!
-        N_available = self.fluxes.nmineralisation
-        if nmiss > N_available:
-            self.fluxes.nmineralisation -= N_available
-            
             # update active pool
-            self.state.activesoil += C_to_active_pool # stays the same?
-            self.state.activesoiln += N_available
-        else:
-            # Adjust N Mineralisation
-            self.fluxes.nmineralisation -= nmiss
-          
-            # update active pool
-            self.state.activesoil += C_to_active_pool
             self.state.activesoiln += N_to_active_pool
+        
+            # Adjust N Mineralisation
+            self.fluxes.nmineralisation -= N_miss
+        else:
+            # Not enough N available, so root exudation keeps it original C:N
+            self.state.activesoiln += self.fluxes.root_exn
         
     
     def adjust_residence_time_of_slow_pool(self):
