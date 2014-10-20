@@ -109,11 +109,11 @@ class CarbonSoilFlows(object):
             # flexible cue
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
             # between 16 to 24. Check this for GDAY
-            rex_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
+            self.fluxes.rexc_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
         else:
-            rex_cue = self.params.root_exu_CUE
+            self.fluxes.rexc_cue = self.params.root_exu_CUE
     
-        C_to_active_pool = self.fluxes.root_exc * (1.0 - rex_cue)
+        C_to_active_pool = self.fluxes.root_exc * (1.0 - self.fluxes.rexc_cue)
     
         # update respiraiton fluxes.
         self.fluxes.co2_released_exud = self.fluxes.root_exc - C_to_active_pool
@@ -1036,16 +1036,7 @@ class NitrogenSoilFlows(object):
                          self.state.slowsoiln + 
                          self.state.passivesoiln))
         active_CN_ratio = self.state.activesoil / self.state.activesoiln
-                      
-        if self.params.root_exu_CUE == -1.0: # flexible CUE
-            # flexible cue
-            # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
-            # between 16 to 24. Check this for GDAY
-            cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
-        else:
-            cue = self.params.root_exu_CUE
         
-        FF = 1.0 - cue
         N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
     
         # N immobilisation (loss) due to REXN sequestration in the active pool
@@ -1080,16 +1071,20 @@ class NitrogenSoilFlows(object):
         y = ((self.params.factive_non_prime + z) / 
             (residence_time_slow_pool_orig * self.params.factive_non_prime))
         
-        factive = (self.fluxes.active_to_slow +
-                   self.fluxes.active_to_passive +
-                   self.fluxes.co2_to_air[4])
+        self.fluxes.factive = (self.fluxes.active_to_slow +
+                               self.fluxes.active_to_passive +
+                               self.fluxes.co2_to_air[4])
         
-        if float_eq(factive, 0.0):
-            pass # don't adjust rate if there is no flux
+        if float_eq(self.fluxes.factive, 0.0):
+            residence_time_slow_pool = 1.0 / self.params.kdec6
         else:
-            residence_time_slow_pool = (1.0 / ((y * factive) / (factive + z))) 
+            residence_time_slow_pool = (1.0 / ((y * self.fluxes.factive) / 
+                                        (self.fluxes.factive + z))) 
             self.params.kdec6 = 1.0 / residence_time_slow_pool
-            
+        
+        # Save for outputting purposes only
+        self.fluxes.rtslow = residence_time_slow_pool
+        
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
         the  N:C ratio of a litter pool within the range 'ncmin' to 'ncmax'.
