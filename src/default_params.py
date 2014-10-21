@@ -206,6 +206,9 @@ hurricane_yr = None
 
 # priming stuff
 root_exu_CUE = None
+prime_y = 0.0
+prime_z = 0.0
+
 
 #============== Not publicly accessible to the user ==========================#
 # decay rates

@@ -1058,17 +1058,7 @@ class NitrogenSoilFlows(object):
     
     def adjust_residence_time_of_slow_pool(self):
         
-        # this will be a param, but for now this is the Duke value
-        self.params.factive_non_prime = 0.009798958 
-        
-        # There is no need to repeat these calculations, but I don't think it 
-        # does any harm either.
-        
-        #residence_time_slow_pool_orig = 1.0 / self.params.kdec6 # cant do this as it changes!
-        residence_time_slow_pool_orig = 1.0 / 0.198279
-        z = 0.25 * self.params.factive_non_prime
-        y = ((self.params.factive_non_prime + z) / 
-            (residence_time_slow_pool_orig * self.params.factive_non_prime))
+        self.params.prime_
         
         self.fluxes.factive = (self.fluxes.active_to_slow +
                                self.fluxes.active_to_passive +
@@ -1077,8 +1067,10 @@ class NitrogenSoilFlows(object):
         if float_eq(self.fluxes.factive, 0.0):
             residence_time_slow_pool = 1.0 / self.params.kdec6
         else:
-            residence_time_slow_pool = (1.0 / ((y * self.fluxes.factive) / 
-                                        (self.fluxes.factive + z))) 
+            residence_time_slow_pool = (1.0 / ((self.params.prime_y * 
+                                                self.fluxes.factive) / 
+                                               (self.fluxes.factive + 
+                                                self.params.prime_z))) 
             self.params.kdec6 = 1.0 / residence_time_slow_pool
         
         # Save for outputting purposes only
