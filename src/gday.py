@@ -186,8 +186,8 @@ class Gday(object):
                 elif (self.control.hurricane == 1 and 
                       self.params.hurricane_yr == yr and
                       self.params.hurricane_doy == doy):
-                    self.db.hurricane()
-                
+                    #self.db.hurricane()
+                    pass
                 # photosynthesis & growth
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy,
