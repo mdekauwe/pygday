@@ -164,6 +164,10 @@ class Disturbance(object):
         lost_c = orig_shoot_c - self.state.shoot
         lost_n = self.state.shootnc * lost_c
         self.state.shootn -= lost_n
+        if float_eq(self.state.shoot, 0.0):
+            self.state.shootnc = 0.0
+        else:
+            self.state.shootnc = self.state.shootn / self.state.shoot
         
         # Drop straight to floor, no retranslocation
         self.state.structsurf += lost_c
