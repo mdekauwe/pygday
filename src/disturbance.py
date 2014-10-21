@@ -87,6 +87,7 @@ class Disturbance(object):
         vaguely following ...
         http://treephys.oxfordjournals.org/content/24/7/765.full.pdf
         """
+        
         totaln = (self.state.branchn + self.state.shootn + self.state.stemn + 
                   self.state.structsurfn)
         self.state.inorgn += totaln / 2.0
@@ -110,13 +111,15 @@ class Disturbance(object):
             self.state.stemnmob = 0.0
         
         self.state.age = 0.0
-        self.state.lai = 0.01
         self.state.metabsurf = 0.0
         self.state.metabsurfn = 0.0
         self.state.prev_sma = 1.0
         self.state.root = 0.001
         self.state.rootn = 0.00004
         self.state.shoot = 0.001
+        self.state.lai = (self.params.sla * const.M2_AS_HA / 
+                          const.KG_AS_TONNES / self.params.cfracts * 
+                          self.state.shoot)
         self.state.shootn = 0.00004
         self.state.structsurf = 0.001
         self.state.structsurfn = 0.00004  
@@ -148,19 +151,21 @@ class Disturbance(object):
         
     def hurricane(self):
         """ Specifically for the florida simulations - reduce LAI by 40% """
-        
+                 
         # Reduce LAI by 40%
         self.state.lai -= (self.state.lai * 0.4)
-        sla_conv = (self.params.sla * const.M2_AS_HA /
-                    const.KG_AS_TONNES / self.params.cfracts)
         
-        lost_c = (self.state.lai / sla_conv) - self.state.shoot
-        self.state.shoot -= lost_c
-        
+        # adjust C in the foliage
+        orig_shoot_c = self.state.shoot
+        self.state.shoot = (self.state.lai / (self.params.sla * 
+                                               const.M2_AS_HA / 
+                                               const.KG_AS_TONNES / 
+                                               self.params.cfracts)) 
+        lost_c = orig_shoot_c - self.state.shoot
         lost_n = self.state.shootnc * lost_c
         self.state.shootn -= lost_n
         
-        """ Drop straight to floor, no retranslocation """
+        # Drop straight to floor, no retranslocation
         self.state.structsurf += lost_c
         self.state.structsurfn += lost_n
         
