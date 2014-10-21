@@ -1057,9 +1057,7 @@ class NitrogenSoilFlows(object):
         
     
     def adjust_residence_time_of_slow_pool(self):
-        
-        self.params.prime_
-        
+       
         self.fluxes.factive = (self.fluxes.active_to_slow +
                                self.fluxes.active_to_passive +
                                self.fluxes.co2_to_air[4])
