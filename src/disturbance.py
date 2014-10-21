@@ -162,14 +162,9 @@ class Disturbance(object):
                                                const.KG_AS_TONNES / 
                                                self.params.cfracts)) 
         lost_c = orig_shoot_c - self.state.shoot
-        print self.state.shootn, self.state.shoot
         lost_n = self.state.shootnc * lost_c
         self.state.shootn -= lost_n
         
-        print
-        print lost_n
-        print self.state.shootn, self.state.shoot
-        sys.exit()       
         # Drop straight to floor, no retranslocation
         self.state.structsurf += lost_c
         self.state.structsurfn += lost_n
