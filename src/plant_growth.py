@@ -736,30 +736,10 @@ class PlantGrowth(object):
                 self.fluxes.auto_resp =  self.fluxes.gpp - self.fluxes.npp
                 recalc_wb = True 
                 
-                if self.control.deciduous_model:
-                    if float_eq(self.state.shoot, 0.0):
-                        self.state.lai = 0.0
-                    elif self.state.leaf_out_days[doy] > 0.0:               
-                
-                        self.state.lai += (self.fluxes.cpleaf * 
-                                          (self.params.sla * const.M2_AS_HA / 
-                                          (const.KG_AS_TONNES * self.params.cfracts)) -
-                                          (self.fluxes.deadleaves + 
-                                           self.fluxes.ceaten) *
-                                           self.state.lai / self.state.shoot)
-                    else:
-                        self.state.lai = 0.0
-                else:
-                    # update leaf area [m2 m-2]
-                    if float_eq(self.state.shoot, 0.0):
-                        self.state.lai = 0.0
-                    else:
-                        self.state.lai += (self.fluxes.cpleaf * 
-                                          (self.params.sla * const.M2_AS_HA / 
-                                          (const.KG_AS_TONNES * self.params.cfracts)) -
-                                          (self.fluxes.deadleaves +  
-                                           self.fluxes.ceaten) *
-                                           self.state.lai / self.state.shoot)
+                # adjust LAI for down-regulated growth
+                # DONT THINK THIS NEEDS TO BE HERE IF IT IS AS THE END
+                self.calculate_lai()
+    
         
                 
             ntot -= (self.fluxes.npbranch + self.fluxes.npstemimm +
@@ -907,7 +887,9 @@ class PlantGrowth(object):
         self.params.sla = (self.params.slazero + nitfac *
                           (self.params.slamax - self.params.slazero))
         
-       
+        self.calculate_lai()
+        
+    def calculate_lai(self):
         if self.control.deciduous_model:
             if float_eq(self.state.shoot, 0.0):
                 self.state.lai = 0.0
@@ -932,7 +914,7 @@ class PlantGrowth(object):
                                   (self.fluxes.deadleaves +  
                                    self.fluxes.ceaten) *
                                    self.state.lai / self.state.shoot)
-        
+    
     def precision_control(self, tolerance=1E-08):
         """ Detect very low values in state variables and force to zero to 
         avoid rounding and overflow errors """       
@@ -1038,7 +1020,9 @@ class PlantGrowth(object):
                                 self.state.stemnmob -
                                 self.params.retransmob * self.state.stemnmob)        
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
-
+        
+        self.calculate_lai()
+        
         if self.control.deciduous_model:
             self.calculate_cn_store()
         
@@ -1097,7 +1081,7 @@ class PlantGrowth(object):
                 self.state.rootn -= extrar
                 self.fluxes.nuptake -= extrar 
         
-        
+            
                   
     def calculate_cn_store(self):        
         """ Deciduous trees store carbohydrate during the winter which they then
