@@ -166,8 +166,42 @@ class Disturbance(object):
         self.state.shootn -= lost_n
         
         # Drop straight to floor, no retranslocation
-        self.state.structsurf += lost_c
-        self.state.structsurfn += lost_n
+        
+        # C -> structural
+        if float_eq(lost_c, 0.0):
+            nc_leaf_litter = 0.0
+        else:
+            nc_leaf_litter = lost_n / lost_c
+        
+        if float_eq(nc_leaf_litter, 0.0):
+            # catch divide by zero if we have no leaves 
+            lnleaf = 0.0 
+        else:
+            lnleaf = self.params.ligshoot / self.params.cfracts / nc_leaf_litter
+        fmleaf = max(0.0, 0.85 - (0.018 * lnleaf))
+        
+        self.fluxes.surf_struct_litter += lost_c * (1.0 - fmleaf)
+
+        # C -> metabolic 
+        self.fluxes.surf_metab_litter += lost_c * fmleaf 
+        
+        # N -> structural
+        if float_eq(self.fluxes.surf_struct_litter, 0.0):
+            self.fluxes.n_surf_struct_litter += 0.0
+        else:
+            self.fluxes.n_surf_struct_litter += (lost_n * 
+                                                 self.fluxes.surf_struct_litter *
+                                                 self.params.structrat / 
+                                                 self.fluxes.surf_struct_litter)
+        
+       
+        
+        # N -> metabolic pools
+        self.fluxes.n_surf_metab_litter += (lost_n - 
+                                            self.fluxes.n_surf_struct_litter)
+        
+        #self.state.structsurf += lost_c
+        #self.state.structsurfn += lost_n
         
         
         
