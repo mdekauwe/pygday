@@ -144,7 +144,8 @@ class PrintOutput(object):
                    'deciduous_model', 'fixleafnc', 'model_optroot',\
                    'modeljm', 'passiveconst', 'print_options', 'water_stress',\
                    'calc_sw_params', 'alloc_model','fixed_stem_nc', \
-                   'ps_pathway','gs_model','grazing','exudation','adjust_rtslow']
+                   'ps_pathway','gs_model','grazing','exudation',\
+                   'ncycle','adjust_rtslow']
                    
         self.dump_ini_data("[files]\n", self.files, ignore, special, oparams, 
                             print_tag=False, print_files=True)

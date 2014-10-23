@@ -140,6 +140,9 @@ class Disturbance(object):
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
         
+        if self.control.ncycle == False:
+            self.state.shootnc = self.params.prescribed_leaf_NC
+        
         #print self.state.rootn , self.state.root
         if float_eq(self.state.root, 0.0):
             self.state.rootnc = 0.0
