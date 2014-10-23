@@ -197,19 +197,23 @@ class Gday(object):
                 self.cs.calculate_csoil_flows(project_day, doy)
                 self.ns.calculate_nsoil_flows(project_day, doy)
 
+                if self.control.ncycle == False:
+                    # Turn off all N calculations
+                    self.reset_all_n_pools_and_fluxes()
+                    
                 # calculate C:N ratios and increment annual flux sum
                 self.day_end_calculations(days_in_year[i])
-
+                
                 # checking if we died during the timestep
                 #   - added for desert simulation
                 if (not self.control.deciduous_model and
                     self.control.disturbance == 0):
                     self.are_we_dead()
-
+                
                 #print self.state.lai, self.fluxes.gpp*100
                 #print self.state.plantc, self.state.soilc
                 
-                
+                #print yr, doy, self.state.lai
                 
                 
                 # ======================= #
@@ -461,7 +465,11 @@ class Gday(object):
             self.state.shootnc = 0.0
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
-
+        
+        # Explicitly set the shoot N:C
+        if self.control.ncycle == False:
+            self.state.shootnc = self.params.prescribed_leaf_NC
+        
         #print self.state.rootn , self.state.roo
         if float_eq(self.state.root, 0.0):
             self.state.rootnc = 0.0
@@ -521,7 +529,71 @@ class Gday(object):
             output.append(getattr(self.fluxes, var))
         self.day_output.append(output)
 
+    def reset_all_n_pools_and_fluxes(self):
+        """ If the N-Cycle is turned off the way I am implementing this is to
+        do all the calculations and then reset everything at the end. This is a 
+        waste of resources but saves on multiple IF statements.
+        """
+        # State
+        self.state.shootn = 0.0
+        self.state.rootn = 0.0
+        self.state.crootn = 0.0
+        self.state.branchn = 0.0
+        self.state.stemnimm = 0.0
+        self.state.stemnmob = 0.0
+        self.state.structsurfn = 0.0
+        self.state.metabsurfn = 0.0
+        self.state.structsoiln = 0.0
+        self.state.metabsoiln = 0.0
+        self.state.activesoiln = 0.0
+        self.state.slowsoiln = 0.0
+        self.state.passivesoiln = 0.0
+        self.state.inorgn = 0.0
+        self.state.stemn = 0.0
+        self.state.stemnimm = 0.0
+        self.state.stemnmob = 0.0
+        self.state.nstore = 0.0
+        
+        # Fluxes
+        self.fluxes.nuptake = 0.0
+        self.fluxes.nloss = 0.0
+        self.fluxes.npassive = 0.0
+        self.fluxes.ngross = 0.0
+        self.fluxes.nimmob = 0.0
+        self.fluxes.nlittrelease = 0.0
+        self.fluxes.nmineralisation = 0.0
+        self.fluxes.npleaf = 0.0
+        self.fluxes.nproot = 0.0
+        self.fluxes.npcroot = 0.0
+        self.fluxes.npbranch = 0.0
+        self.fluxes.npstemimm = 0.0
+        self.fluxes.npstemmob = 0.0
+        self.fluxes.deadleafn = 0.0
+        self.fluxes.deadrootn = 0.0
+        self.fluxes.deadcrootn = 0.0
+        self.fluxes.deadbranchn = 0.0
+        self.fluxes.deadstemn = 0.0
+        self.fluxes.neaten = 0.0
+        self.fluxes.nurine = 0.0
+        self.fluxes.leafretransn = 0.0
+        self.fluxes.n_surf_struct_litter = 0.0
+        self.fluxes.n_surf_metab_litter = 0.0
+        self.fluxes.n_soil_struct_litter = 0.0
+        self.fluxes.n_soil_metab_litter = 0.0
+        self.fluxes.n_surf_struct_to_slow = 0.0
+        self.fluxes.n_soil_struct_to_slow = 0.0
+        self.fluxes.n_surf_struct_to_active = 0.0
+        self.fluxes.n_soil_struct_to_active = 0.0
+        self.fluxes.n_surf_metab_to_active = 0.0
+        self.fluxes.n_surf_metab_to_active = 0.0
+        self.fluxes.n_active_to_slow = 0.0
+        self.fluxes.n_active_to_passive = 0.0
+        self.fluxes.n_slow_to_active = 0.0
+        self.fluxes.n_slow_to_passive = 0.0
+        self.fluxes.n_passive_to_active = 0.0
 
+        
+        
 def main():
     """ run a test case of the gday model """
 
