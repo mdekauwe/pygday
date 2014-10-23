@@ -252,7 +252,6 @@ class PlantGrowth(object):
             # average leaf nitrogen content (g N m-2 leaf)
             leafn = (self.state.shootnc * self.params.cfracts /
                      self.params.sla * const.KG_AS_G)
-            
             # total nitrogen content of the canopy
             self.state.ncontent = leafn * self.state.lai
         else:
@@ -702,8 +701,10 @@ class PlantGrowth(object):
             arg = (self.fluxes.npstemimm + self.fluxes.npstemmob +
                    self.fluxes.npbranch + self.fluxes.npcroot)
             
-            if float_gt(arg, ntot) and self.control.fixleafnc == False:
-                
+            if (float_gt(arg, ntot) and 
+                self.control.fixleafnc == False and 
+                self.control.ncycle):
+               
                 # Need to readjust the LAI for the reduced growth as this will
                 # have already been increased. First we need to figure out how
                 # much we have increased LAI by, important it is done here 
