@@ -162,12 +162,17 @@ class PlantGrowth(object):
         
     def calc_root_exudation_release(self):
         # Root exudation modelled to result from fine root growth
-   
-        leaf_CN = 1.0 / self.state.shootnc
-        presc_leaf_CN = 30.0 # make a parameter.
+    
+        if float_eq(self.state.shoot, 0.0):
+            # nothing happens during leaf off period
+            leaf_CN = 0.0
+            frac_to_rexc = 0.0
+        else:
+            leaf_CN = 1.0 / self.state.shootnc
+            presc_leaf_CN = 30.0 # make a parameter.
 
-        # fraction varies between 0 and 50 % as a function of leaf CN
-        frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
+            # fraction varies between 0 and 50 % as a function of leaf CN
+            frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
     
         self.fluxes.root_exc = frac_to_rexc * self.fluxes.cproot
         self.fluxes.root_exn = self.fluxes.root_exc * self.state.rootnc
