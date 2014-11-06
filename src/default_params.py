@@ -37,7 +37,7 @@ finesoil          = 0.5            # clay+silt fraction
 # light interception parameters
 direct_frac       = 0.5            # direct beam fraction of incident radiation
 kext              = 0.5            # extinction coefficient
-lai_cover         = 0.5            # LAI when max cover fraction is reached (m2 (leaf) m-2 (ground) ~ 2.5
+lai_closed        = 2.5            # LAI of closed canopy (max cover fraction is reached (m2 (leaf) m-2 (ground) ~ 2.5)
 sla               = 3.9            # specific leaf area (m2 one-sided/kg DW)
 slazero           = 3.9            # (if equal slamax=no effect) specific leaf area new fol at zero leaf N/C (m2 one-sided/kg DW)
 slamax            = 3.9            # (if equal slazero=no effect) specific leaf area new fol at max leaf N/C (m2 one-sided/kg DW)

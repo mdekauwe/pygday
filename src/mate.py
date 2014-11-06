@@ -620,7 +620,10 @@ class MateC4(MateC3):
         else:
             # absorbed photosynthetically active radiation (umol m-2 s-1)
             self.fluxes.apar = par * self.state.fipar
-
+            
+            
+            
+            
         # gC m-2 d-1
         self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * const.UMOL_TO_MOL *
                                 const.MOL_C_TO_GRAMS_C)
