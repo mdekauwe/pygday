@@ -264,7 +264,7 @@ class PlantGrowth(object):
          
         # When canopy is not closed, canopy light interception is reduced        
         # - calculate the fractional ground cover
-        if self.state.lai < self.params.lai_closed:    
+        if float_lt(self.state.lai, self.params.lai_closed):    
             # discontinuous canopies
             fc = self.state.lai / self.params.lai_closed
         else:
