@@ -262,15 +262,20 @@ class PlantGrowth(object):
         else:
             self.state.ncontent = 0.0
          
-        # When canopy is not closed, canopy light interception is reduced
-        cf = min(1.0, self.state.lai / self.params.lai_cover)
-        
+        # When canopy is not closed, canopy light interception is reduced        
+        # - calculate the fractional ground cover
+        if self.state.lai < self.params.lai_closed:    
+            # discontinuous canopies
+            fc = self.state.lai / self.params.lai_closed
+        else:
+            fc = 1.0
+       
         # fIPAR - the fraction of intercepted PAR = IPAR/PAR incident at the 
         # top of the canopy, accounting for partial closure based on Jackson
-        # and Palmer (1981), derived from beer's law
+        # and Palmer (1979).
         if self.state.lai > 0.0:
             self.state.fipar = ((1.0 - exp(-self.params.kext * 
-                                           self.state.lai / cf)) * cf)
+                                            self.state.lai / fc)) * fc)
         else:
             self.state.fipar = 0.0
         
