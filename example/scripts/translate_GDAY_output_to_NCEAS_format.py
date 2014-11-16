@@ -24,7 +24,7 @@ def date_converter(*args):
                                 str(int(float(args[1]))), '%Y %j')
 
 def translate_output(infname, met_fname):
-    outdir = "runs"
+    outdir = "outputs"
     UNDEF = -9999.
     units = setup_units()
     variable, variable_names = setup_varnames()
