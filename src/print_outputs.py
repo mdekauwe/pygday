@@ -1,6 +1,7 @@
 import os
 import csv
 import constants as const
+import pdb
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (21.03.2011)"
@@ -44,7 +45,10 @@ class PrintOutput(object):
         # dump the state at the end of a run, typical if user is running to
         # equilibrium
         self.out_param_fname = self.files.out_param_fname
-
+        
+        # make output files if the don't exist
+        self.mk_output_dir()
+			
         # daily output filename
         try:
             self.odaily = open(self.files.out_fname, 'wb')
@@ -68,6 +72,16 @@ class PrintOutput(object):
             raise IOError("Can't open %s file for write" % self.odaily)
         
         self.day_output = []
+        
+    def mk_output_dir(self):
+    	if not os.path.isfile(self.files.out_fname):
+        	dirname=''
+        	dirs=self.files.out_fname.split('/')
+        	
+        	for i in dirs[:len(dirs)-1]:
+        		dirname=dirname+i+'/'
+        	
+        	if not os.path.isfile(dirname): os.makedirs(dirname) 
      
     def get_vars_to_print(self):
         """ return lists of variable names to print out """
