@@ -1,7 +1,7 @@
 import os
 import csv
-import constants as const
-import pdb
+import constants 			as const
+import git_revision_info 	as git
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (21.03.2011)"
@@ -32,13 +32,14 @@ class PrintOutput(object):
             output print options
 
         """
-        self.params = params
-        self.state = state
-        self.fluxes = fluxes
-        self.control = control
-        self.files = files
+        self.params 	= params
+        self.state 		= state
+        self.fluxes 	= fluxes
+        self.control 	= control
+        self.files 		= files
         self.print_opts = print_opts
-
+        self.git 		= git
+		
         # dump the default run parameters for the user to change
         self.default_param_fname = self.files.cfg_fname
 
@@ -152,7 +153,7 @@ class PrintOutput(object):
                   'littern', 'litternag', 'litternbg','plantc','plantn',\
                   'rootnc','shootnc','soilc', 'soiln','totalc',\
                   'totaln','wtfac_topsoil','wtfac_root','plantnc',\
-                  'grw_seas_stress']
+                  'grw_seas_stress','git']
 
         special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
                    'deciduous_model', 'fixleafnc', 'model_optroot',\
@@ -161,7 +162,9 @@ class PrintOutput(object):
                    'ps_pathway','gs_model','grazing','exudation',\
                    'ncycle','adjust_rtslow']
                    
-        self.dump_ini_data("[files]\n", self.files, ignore, special, oparams, 
+        self.dump_ini_data("[git]\n", self.git, ignore, special, oparams, 
+                            print_tag=False, print_files=True)                    
+        self.dump_ini_data("\n[files]\n", self.files, ignore, special, oparams, 
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams, 
                             print_tag=False, print_files=False)
