@@ -32,11 +32,11 @@ def translate_output(infname, met_fname):
     
     # load met stuff, i.e. the stuff needed for NCEAS output that G'day 
     # does not output
-    envir = load_met_input_data(met_fname)
+    (envir, envir_comments) = load_met_input_data(met_fname)
     
     # load the rest of the g'day output
-    gday = load_gday_output(infname)
-
+    (gday, gday_comments) = load_gday_output(infname)
+	
     # merge dictionaries to ease output
     data_dict = dict(envir, **gday)
     
@@ -46,6 +46,8 @@ def translate_output(infname, met_fname):
     writer = csv.writer(f, dialect=csv.excel)
     
     # write header for csv file
+    for i in envir_comments: writer.writerow([i])
+    for i in  gday_comments: writer.writerow([i])
     writer.writerow(variable)
     writer.writerow(units)
     writer.writerow(variable_names)
@@ -65,15 +67,30 @@ def remove_comments_from_header(fname):
     
     s = StringIO()
     nskip=0
+    comments=[]
     with open(fname) as f:
         for line in f:
             if '#' in line:
                 line  = line.replace("#", "").lstrip(' ')
+                comments.append(line)
                 nskip = nskip+1
             s.write(line) 
     s.seek(0) # "rewind" to the beginning of the StringIO object
     
-    return (s, nskip)
+    return (s, nskip, comments)
+ 
+def load_commentless_csv_io(fname,colnames_are_commented=False,comment_title=""):   
+    (s, nskip, comments) = remove_comments_from_header(fname)
+    
+    if colnames_are_commented:
+    	nskip=nskip-1
+    	comments.pop()
+    	
+    data = pd.read_csv(s, parse_dates=[[0,1]], skiprows=nskip, index_col=0, 
+                       sep=",", keep_date_col=True, date_parser=date_converter)
+    
+    comments = ["#" + comment_title + ":"] + comments
+    return(data, comments)
 
 def load_met_input_data(fname):
     MJ_TO_MOL = 4.6
@@ -82,11 +99,9 @@ def load_met_input_data(fname):
     UMOL_TO_MOL = 1E-6
     tonnes_per_ha_to_g_m2 = 100.0
     
-    (s, nskip) = remove_comments_from_header(fname)
-	
-    met_data = pd.read_csv(s, parse_dates=[[0,1]], skiprows=nskip-1, index_col=0, 
-                           sep=",", keep_date_col=True, 
-                           date_parser=date_converter)
+    (met_data, comments) = load_commentless_csv_io(fname,
+                               colnames_are_commented=True,
+                               comment_title = "inputs information")
     
     precip = met_data["rain"]
     #par = met_data[:,1] * MJ_TO_MOL * SW_TO_PAR
@@ -97,21 +112,18 @@ def load_met_input_data(fname):
     co2 = met_data["co2"]
     ndep = met_data["ndep"] * tonnes_per_ha_to_g_m2
     
-    return {'CO2': co2, 'PPT':precip, 'PAR':par, 'AT':air_temp, 'ST':soil_temp, 
-            'VPD':vpd, 'NDEP':ndep}
+    return ({'CO2': co2, 'PPT':precip, 'PAR':par, 'AT':air_temp, 'ST':soil_temp, 
+            'VPD':vpd, 'NDEP':ndep}, comments)
     
 def load_gday_output(fname):
     SW_RAD_TO_PAR = 2.3
     UNDEF = -9999.
     tonnes_per_ha_to_g_m2 = 100
     yr_to_day = 365.25
-    pdb.set_trace()
-    (s, nskip) = remove_comments_from_header(fname)
-    pdb.set_trace()
-    out = pd.read_csv(s, parse_dates=[[0,1]], skiprows=nskip, index_col=0, 
-                      sep=",", keep_date_col=True, date_parser=date_converter)
     
-    pdb.set_trace()
+    (out, comments) = load_commentless_csv_io(fname,
+                               comment_title = "gDay version information")
+    
     year = out["year"]
     doy = out["doy"]
     
@@ -248,7 +260,7 @@ def load_gday_output(fname):
     
     
     
-    return {'YEAR':year, 'DOY':doy, 'SW':pawater_root, 
+    return ({'YEAR':year, 'DOY':doy, 'SW':pawater_root, 
             'NEP':nep, 'GPP':gpp, 'NPP':npp, 'CEX':cex, 'CVOC':cvoc, 
             'RECO':recosys, 'RAUTO':ra, 'RLEAF':rleaf, 'RWOOD':rwood, 
             'RGROW':rgrow, 'RHET':rh, 'RSOIL':rsoil, 'ET':et, 'T':trans,
@@ -284,7 +296,7 @@ def load_gday_output(fname):
             'REXC':REXC,
             'REXN':REXN,
             'CO2X':CO2X
-            }
+            } , comments)
 
         
 def setup_units():    
