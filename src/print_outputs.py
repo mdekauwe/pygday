@@ -2,6 +2,8 @@ import os
 import csv
 import constants 			as const
 import git_revision_info 	as git
+import pdb
+import numpy as np
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (21.03.2011)"
@@ -218,10 +220,23 @@ class PrintOutput(object):
             raise IOError("Error writing params file")
     
     def write_daily_output_header(self):
+    	 self.write_daily_output_header_git()
+    	 self.write_daily_output_header_titles()
+    
+    def write_daily_output_header_git(self):
+    	
+        header = ["git info:","URL","local branch","remote branch (if different)","revision ode","tag"]
+        info   = ["",self.git.URL_Fetch,self.git.branch,self.git.remote_branch,
+        	      self.git.revision_code,self.git.tag]
+        
+        for i in range(len(header)): self.wr.writerow(["# " + header[i]+': '+info[i]])
+        
+    def write_daily_output_header_titles(self):
         header = []
         header.extend(["year","doy"])
         header.extend(["%s" % (var) for var in self.print_state])
         header.extend(["%s" % (var) for var in self.print_fluxes])
+        
         self.wr.writerow(header)
         
     
