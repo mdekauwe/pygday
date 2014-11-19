@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import pandas as pd
 from cStringIO import StringIO
+import pdb
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (12.05.2014)"
@@ -61,15 +62,18 @@ def remove_comments_from_header(fname):
     """ I have made files with comments which means the headings can't be 
     parsed to get dictionary headers for pandas! Solution is to remove these
     comments first """
+    
     s = StringIO()
+    nskip=0
     with open(fname) as f:
         for line in f:
             if '#' in line:
-                line = line.replace("#", "").lstrip(' ')
-            s.write(line)
+                line  = line.replace("#", "").lstrip(' ')
+                nskip = nskip+1
+            s.write(line) 
     s.seek(0) # "rewind" to the beginning of the StringIO object
     
-    return s
+    return (s, nskip)
 
 def load_met_input_data(fname):
     MJ_TO_MOL = 4.6
@@ -78,8 +82,9 @@ def load_met_input_data(fname):
     UMOL_TO_MOL = 1E-6
     tonnes_per_ha_to_g_m2 = 100.0
     
-    s = remove_comments_from_header(fname)
-    met_data = pd.read_csv(s, parse_dates=[[0,1]], skiprows=4, index_col=0, 
+    (s, nskip) = remove_comments_from_header(fname)
+	
+    met_data = pd.read_csv(s, parse_dates=[[0,1]], skiprows=nskip-1, index_col=0, 
                            sep=",", keep_date_col=True, 
                            date_parser=date_converter)
     
@@ -100,11 +105,13 @@ def load_gday_output(fname):
     UNDEF = -9999.
     tonnes_per_ha_to_g_m2 = 100
     yr_to_day = 365.25
-    
-    s = remove_comments_from_header(fname)
-    out = pd.read_csv(s, parse_dates=[[0,1]], skiprows=0, index_col=0, 
+    pdb.set_trace()
+    (s, nskip) = remove_comments_from_header(fname)
+    pdb.set_trace()
+    out = pd.read_csv(s, parse_dates=[[0,1]], skiprows=nskip, index_col=0, 
                       sep=",", keep_date_col=True, date_parser=date_converter)
     
+    pdb.set_trace()
     year = out["year"]
     doy = out["doy"]
     
