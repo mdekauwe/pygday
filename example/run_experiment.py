@@ -47,7 +47,7 @@ def main(site, treatment):
     ax1.legend(numpoints=1, loc="best")
     ax1.set_ylabel("NPP (g m$^{2}$ d$^{-1}$)")
     plt.setp(ax1.get_xticklabels(), visible=False)
-    ax1.set_ylim(0., 2000)
+    ax1.set_ylim(0., 1500)
     ax1.set_xlim(1995, 2008)
     
     ax2 = fig.add_subplot(312)
@@ -55,14 +55,14 @@ def main(site, treatment):
     #ax2.legend(numpoints=1, loc="best")
     ax2.set_ylabel("LAI (m$^{2}$ m$^{-2}$)")
     ax2.set_xlabel("Year")
-    ax2.set_ylim(0., 8)
+    ax2.set_ylim(0., 5)
     
     ax3 = fig.add_subplot(313)
     ax3.plot(years, amb.groupby("YEAR").T.sum(), "b-", label="Amb")
     ax3.legend(numpoints=1, loc="best")
     ax3.set_ylabel("Transpiration (mm d$^{-1}$)")
     ax3.set_xlabel("Year")
-    ax3.set_ylim(0., 600)
+    ax3.set_ylim(0., 500)
     plt.show()
     #fig.savefig("example_plot.png", dpi=100)
     
