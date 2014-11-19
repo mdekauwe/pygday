@@ -24,7 +24,7 @@ def date_converter(*args):
                                 str(int(float(args[1]))), '%Y %j')
 
 def translate_output(infname, met_fname):
-    outdir = "runs"
+    outdir = "outputs"
     UNDEF = -9999.
     units = setup_units()
     variable, variable_names = setup_varnames()
@@ -201,10 +201,15 @@ def load_gday_output(fname):
     co2_rel_from_slow_pool = out["co2_rel_from_slow_pool"] * tonnes_per_ha_to_g_m2
     co2_rel_from_passive_pool = out["co2_rel_from_passive_pool"] * tonnes_per_ha_to_g_m2
     
-    # priming stuff
-    REXC = out["root_exc"] * tonnes_per_ha_to_g_m2
-    REXN = out["root_exn"] * tonnes_per_ha_to_g_m2
-    CO2X = out["co2_released_exud"] * tonnes_per_ha_to_g_m2
+    # extra priming stuff
+    rexc = out["root_exc"] * tonnes_per_ha_to_g_m2
+    rexn = out["root_exn"] * tonnes_per_ha_to_g_m2
+    co2x = out["co2_released_exud"] * tonnes_per_ha_to_g_m2
+    factive = out["factive"] * tonnes_per_ha_to_g_m2
+    rtslow = out["rtslow"] * tonnes_per_ha_to_g_m2
+    rexcue = out["rexc_cue"] * tonnes_per_ha_to_g_m2
+    
+   
     
     # Misc stuff we don't output
     drainage = [UNDEF] * len(doy)
@@ -274,10 +279,12 @@ def load_gday_output(fname):
             'CO2SSOM':co2_rel_from_slow_pool,
             'CO2PSOM':co2_rel_from_passive_pool,
             'TFACSOM':tfac_soil_decomp,
-            'REXC':REXC,
-            'REXN':REXN,
-            'CO2X':CO2X
-            }
+            'REXC':rexc,
+            'REXN':rexn,
+            'CO2X':co2x,
+            'FACTIVE':factive,
+            'RTSLOW':rtslow,
+            'REXCUE':rexcue}
 
         
 def setup_units():    
@@ -308,7 +315,8 @@ def setup_units():
                 'gC m-2', 'gC m-2', 'gC m-2',
                 'gC m-2 d-1', 'gC m-2 d-1', 'gC m-2 d-1', 'gC m-2 d-1',
                 'gC m-2 d-1', 'gC m-2 d-1', 'gC m-2 d-1', 
-                'frac','gC m-2 d-1', 'gC m-2 d-1', 'gC m-2 d-1']
+                'frac', 'gC m-2 d-1', 'gN m-2 d-1', 'gC m-2 d-1',
+                'gC m-2 d-1', 'years', 'frac']
     
     
     return units 
@@ -370,9 +378,12 @@ def setup_varnames():
                 'CO2 efflux from slow SOM pool', 
                 'CO2 efflux from passive SOM pool',
                 'Temperature scalar on C efflux from SOM pools',
-                'Root exudation of C',
-                'Root exudation of N',
-                'CO2 released from exudation']
+                'Root Exudation of C',
+                'Root Exudation of N',
+                'CO2 released from exudation',
+                'Total C flux from the active pool',
+                'Residence time of slow pool',
+                'REXC carbon use efficiency']
                 
     
 
@@ -383,7 +394,7 @@ def setup_varnames():
                       'ET', 'T', 'ES', 'EC', 'RO', 'DRAIN', 'LE', 'SH',
                       'CL', 'CW', 'CCR', 'CFR', 'TNC', 'CFLIT', 'CFLITA',
                       'CFLITB', 'CCLITB', 'CSOIL', 'GL', 'GW', 'GCR', 'GR', 
-                      'GREPR','CLLFALL', 'CRLIN', 'CFRLIN','CWIN', 'LAI', 
+                      'GREPR','CLLFALL', 'CCRLIN', 'CFRLIN','CWIN', 'LAI', 
                       'LMA', 'NCON', 'NCAN', 'NWOOD', 'NCR', 'NFR', 'NSTOR', 
                       'NLIT','NRLIT', 'NDW', 'NSOIL', 'NPOOLM', 'NPOOLO', 'NFIX',
                       'NLITIN', 'NWLIN', 'NCRLIN', 'NFRLIN','NUP', 'NGMIN', 'NMIN',
@@ -395,7 +406,7 @@ def setup_varnames():
                       'CPASSIVETOACTIVE', 'CACTIVE', 'CSLOW', 'CPASSIVE',
                       'CO2SLITSURF', 'CO2SLITSOIL', 'CO2MLITSURF', 
                       'CO2MLITSOIL', 'CO2FSOM', 'CO2SSOM', 'CO2PSOM',
-                      'TFACSOM', 'REXC', 'REXN', 'CO2X']
+                      'TFACSOM','REXC','REXN','CO2X','FACTIVE','RTSLOW','REXCUE']
     
    
                       
