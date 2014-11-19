@@ -16,7 +16,7 @@ Key Reference
 Installation
 =============
 
-They code has been written such that it has very few dependancies, in fact only one! Python can be easily installed on all machines (see below). The dependancies are:
+The code has been written such that it has very few dependancies, in fact only one! Python can be easily installed on all machines (see below). The dependancies are:
 
 * `configobj <http://www.voidspace.org.uk/python/configobj.html>`_
 
