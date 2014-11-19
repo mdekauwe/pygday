@@ -603,8 +603,8 @@ def main():
     # timing...
     import time
     start_time = time.time()
-
-    fname = "/Users/mdekauwe/research/FACE/GDAY_simulations/DUKE/experiment/params/NCEAS_dk_youngforest.cfg"
+    
+    fname = "/Users/mdekauwe/research/FACE/gday_simulations/DUKE/step_change/params/NCEAS_DUKE_model_youngforest_amb.cfg"
 
     G = Gday(fname)
     G.run_sim()
@@ -616,7 +616,8 @@ def main():
 
 def profile_main():
     """ profile code """
-    import cProfile, psta
+    import cProfile
+    import pstats
     prof = cProfile.Profile()
     prof = prof.runctx("main()", globals(), locals())
     print "<pre>"
@@ -631,5 +632,5 @@ def profile_main():
 
 if __name__ == "__main__":
 
-    main()
-    #profile_main()
+    #main()
+    profile_main()
