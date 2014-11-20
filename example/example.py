@@ -41,10 +41,13 @@ def main(experiment_id, site, treatment):
     out_fname = os.path.join(run_dir, out_fn)
     replace_dict = { 
                          # files
-                         "out_param_fname": '"%s"' % (out_param_fname),
-                         "cfg_fname": '"%s"' % (cfg_fname),
-                         "met_fname": '"%s"' % (met_fname),
-                         "out_fname": '"%s"' % (out_fname),
+                         # Commented out to stop my local path overwriting
+                         # the example
+                         
+                         #"out_param_fname": '"%s"' % (out_param_fname),
+                         #"cfg_fname": '"%s"' % (cfg_fname),
+                         #"met_fname": '"%s"' % (met_fname),
+                         #"out_fname": '"%s"' % (out_fname),
                          
                          # state 
                          "age": "12.0",
