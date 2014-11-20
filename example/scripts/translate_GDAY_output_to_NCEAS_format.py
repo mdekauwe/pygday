@@ -43,7 +43,7 @@ def translate_output(infname, met_fname):
     ofname = os.path.join(outdir, "temp.nceas")
     f = open(ofname, "w")
     # write output in csv format
-    writer = csv.writer(f, dialect=csv.excel)
+    writer = csv.writer(f, dialect=csv.QUOTE_NONE)
     
     # write header for csv file
     for i in envir_comments: writer.writerow([i])
@@ -71,12 +71,12 @@ def remove_comments_from_header(fname):
     with open(fname) as f:
         for line in f:
             if '#' in line:
+            	comments= comments + [line.replace("\r", "").replace("\n","")]
                 line  = line.replace("#", "").lstrip(' ')
-                comments.append(line)
                 nskip = nskip+1
             s.write(line) 
     s.seek(0) # "rewind" to the beginning of the StringIO object
-    
+    pdb.set_trace()
     return (s, nskip, comments)
  
 def load_commentless_csv_io(fname,colnames_are_commented=False,comment_title=""):   
@@ -85,11 +85,12 @@ def load_commentless_csv_io(fname,colnames_are_commented=False,comment_title="")
     if colnames_are_commented:
     	nskip=nskip-1
     	comments.pop()
+    	comments.pop()
     	
     data = pd.read_csv(s, parse_dates=[[0,1]], skiprows=nskip, index_col=0, 
                        sep=",", keep_date_col=True, date_parser=date_converter)
     
-    comments = ["#" + comment_title + ":"] + comments
+    comments = ["## " + comment_title + ":"] + comments
     return(data, comments)
 
 def load_met_input_data(fname):
