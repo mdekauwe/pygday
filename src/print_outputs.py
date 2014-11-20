@@ -84,7 +84,7 @@ class PrintOutput(object):
         	for i in dirs[:len(dirs)-1]:
         		dirname=dirname+i+'/'
         	
-        	if not os.path.isfile(dirname): os.makedirs(dirname) 
+        	if not os.path.isdir(dirname): os.makedirs(dirname) 
      
     def get_vars_to_print(self):
         """ return lists of variable names to print out """
