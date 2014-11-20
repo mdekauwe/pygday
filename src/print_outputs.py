@@ -2,7 +2,6 @@ import os
 import csv
 import constants 			as const
 import git_revision_info 	as git
-import pdb
 import numpy as np
 
 __author__  = "Martin De Kauwe"
