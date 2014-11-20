@@ -11,7 +11,6 @@ it is preferable.
 
 import os
 import sys
-import pdb
 
 # How to import G'day
 from gday import gday as model
