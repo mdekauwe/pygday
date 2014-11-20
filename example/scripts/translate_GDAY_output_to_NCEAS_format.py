@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import pandas as pd
 from cStringIO import StringIO
-import pdb
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (12.05.2014)"
