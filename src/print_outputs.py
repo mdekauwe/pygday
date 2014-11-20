@@ -225,8 +225,8 @@ class PrintOutput(object):
     
     def write_daily_output_header_git(self):
     	
-        header = ["git info:","URL","local branch","remote branch (if different)","revision ode","tag"]
-        info   = ["",self.git.URL_Fetch,self.git.branch,self.git.remote_branch,
+        header = ["URL","local branch","remote branch (if different)","revision ode","tag"]
+        info   = [self.git.URL_Fetch,self.git.branch,self.git.remote_branch,
         	      self.git.revision_code,self.git.tag]
         
         for i in range(len(header)): self.wr.writerow(["# " + header[i]+': '+info[i]])
