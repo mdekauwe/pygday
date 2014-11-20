@@ -76,7 +76,7 @@ def remove_comments_from_header(fname):
                 nskip = nskip+1
             s.write(line) 
     s.seek(0) # "rewind" to the beginning of the StringIO object
-    pdb.set_trace()
+    
     return (s, nskip, comments)
  
 def load_commentless_csv_io(fname,colnames_are_commented=False,comment_title=""):   
