@@ -69,7 +69,7 @@ class CarbonSoilFlows(object):
         # plant litter inputs to the metabolic and structural pools determined 
         # by ratio of lignin/N ratio 
         (lnleaf, lnroot) = self.ligin_nratio()
-        self.params.fmleaf = self.metafract(lnleaf)
+        self.params.fmleaf = self.metafract(lnleaf)        
         self.params.fmroot = self.metafract(lnroot)
         
         self.flux_from_grazers() # input from faeces
@@ -305,8 +305,7 @@ class CarbonSoilFlows(object):
         # At least 2% goes to metabolic in CENTURY 4 code and as stated in
         # Nalder and Wein (1996) Ecological Modelling, 192, 37-66, which is 
         # presumably based on CENTURY 4 codebase.
-        #return max(0.2, 0.85 - (0.018 * lig2n))
-        
+        #return max(0.02, 0.85 - (0.018 * lig2n))
         return max(0.0, 0.85 - (0.018 * lig2n))
     
     def partition_plant_litter(self):
