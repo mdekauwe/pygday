@@ -102,7 +102,7 @@ def load_met_input_data(fname):
     
     (met_data, comments) = load_commentless_csv_io(fname,
                                colnames_are_commented=True,
-                               comment_title = "inputs information")
+                               comment_title = "input information")
     
     precip = met_data["rain"]
     #par = met_data[:,1] * MJ_TO_MOL * SW_TO_PAR
