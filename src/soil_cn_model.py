@@ -306,11 +306,11 @@ class CarbonSoilFlows(object):
         # Bounded reformulation of the decomposed metabolic fraction based on 
         # Nalder and Wein (2006) Ecological Modelling, 192, 37-66, Eqn 14.
         
-        fm = max(0.0, 0.85 - (0.018 * lig2n))
-        if fm < 1.0 - self.params.ligshoot:
-            fm = 1.0 - self.params.ligshoot
-        return max(0.2, fm)
-        #return max(0.0, 0.85 - (0.018 * lig2n))
+        #fm = max(0.0, 0.85 - (0.018 * lig2n))
+        #if fm < 1.0 - self.params.ligshoot:
+        #    fm = 1.0 - self.params.ligshoot
+        #return max(0.2, fm)
+        return max(0.0, 0.85 - (0.018 * lig2n))
         
         
         
