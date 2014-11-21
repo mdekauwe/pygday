@@ -71,7 +71,8 @@ class CarbonSoilFlows(object):
         (lnleaf, lnroot) = self.ligin_nratio()
         self.params.fmleaf = self.metafract(lnleaf)        
         self.params.fmroot = self.metafract(lnroot)
-        
+        nc_leaf_litter = self.ratio_of_litternc_to_live_leafnc()
+        #print self.params.fmleaf
         self.flux_from_grazers() # input from faeces
         self.partition_plant_litter()
         self.cfluxes_from_structural_pool()
@@ -307,6 +308,7 @@ class CarbonSoilFlows(object):
         # presumably based on CENTURY 4 codebase.
         #return max(0.02, 0.85 - (0.018 * lig2n))
         return max(0.0, 0.85 - (0.018 * lig2n))
+        #return max(0.05, 0.85 - (0.018 * lig2n))
     
     def partition_plant_litter(self):
         """ Partition litter from the plant (surface) and roots into metabolic
