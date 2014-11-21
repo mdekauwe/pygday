@@ -72,7 +72,7 @@ class CarbonSoilFlows(object):
         self.params.fmleaf = self.metafract(lnleaf)        
         self.params.fmroot = self.metafract(lnroot)
         nc_leaf_litter = self.ratio_of_litternc_to_live_leafnc()
-        #print self.params.fmleaf
+
         self.flux_from_grazers() # input from faeces
         self.partition_plant_litter()
         self.cfluxes_from_structural_pool()
@@ -238,8 +238,7 @@ class CarbonSoilFlows(object):
             lnleaf = 0.0 
         else:
             lnleaf = self.params.ligshoot / self.params.cfracts / nc_leaf_litter
-            #print self.params.ligshoot
-
+            
         if float_eq(nc_root_litter, 0.0):
             # catch divide by zero if we have no roots
             lnroot = 0.0 
@@ -302,14 +301,16 @@ class CarbonSoilFlows(object):
         metabolic fraction : float
             partitioned fraction to metabolic pool [must be positive]
         """
-        
         # Bounded reformulation of the decomposed metabolic fraction based on 
         # Nalder and Wein (2006) Ecological Modelling, 192, 37-66, Eqn 14.
         
+        # catch because it can be negative
         #fm = max(0.0, 0.85 - (0.018 * lig2n))
         #if fm < 1.0 - self.params.ligshoot:
         #    fm = 1.0 - self.params.ligshoot
         #return max(0.2, fm)
+        
+        # Original implementation based on Parton et al.
         return max(0.0, 0.85 - (0.018 * lig2n))
         
         
