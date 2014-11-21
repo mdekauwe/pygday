@@ -171,8 +171,8 @@ crdecay          = 0.02           #coarse roots turnover rate (1/yr)
 watdecaydry      = 0.0            #water fractn for dry litterfall rates
 watdecaywet      = 0.1            #water fractn for wet litterfall rates
 sapturnover      = 0.1            #Sapwood turnover rate: conversion of sapwood to heartwood (1/yr)
-ligshoot         = 0.25           #lignin-to-biomass ratio in leaf litter - Value in smith et al. 2013 = 0.2, note subtly difference in eqn C9.
-ligroot          = 0.25           #lignin-to-biomass ratio in root litter - Value in Smith et al. 2013 = 0.16, note subtly difference in eqn C9.
+ligshoot         = 0.25           #lignin-to-biomass ratio in leaf litter; Values from White et al. DBF = 0.18; ENF = 0.24l; GRASS = 0.09; Shrub = 0.15 - Value in smith et al. 2013 = 0.2, note subtly difference in eqn C9.
+ligroot          = 0.25           #lignin-to-biomass ratio in root litter; Values from White et al. = 0.22  - Value in Smith et al. 2013 = 0.16, note subtly difference in eqn C9.
 structcn         = 150.0          #C:N ratio of structural bit of litter input
 structrat        = 0.0            #structural input n:c as fraction of metab
 
