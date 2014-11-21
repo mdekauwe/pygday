@@ -303,11 +303,14 @@ class CarbonSoilFlows(object):
             partitioned fraction to metabolic pool [must be positive]
         """
         
-        # Reformulation of this equation based on 
+        # Bounded reformulation of the decomposed metabolic fraction based on 
         # Nalder and Wein (2006) Ecological Modelling, 192, 37-66, Eqn 14.
-        #return max(0.2, min(1.0 - self.params.ligshoot, 0.85 - (0.018 * lig2n)))
-    
-        return max(0.0, 0.85 - (0.018 * lig2n))
+        
+        fm = max(0.0, 0.85 - (0.018 * lig2n))
+        if fm < 1.0 - self.params.ligshoot:
+            fm = 1.0 - self.params.ligshoot
+        return max(0.2, fm)
+        #return max(0.0, 0.85 - (0.018 * lig2n))
         
         
         
