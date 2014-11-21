@@ -303,13 +303,14 @@ class CarbonSoilFlows(object):
             partitioned fraction to metabolic pool [must be positive]
         """
         
-        # At least 2% goes to metabolic in CENTURY 4 code and as stated in
-        # Nalder and Wein (1996) Ecological Modelling, 192, 37-66, which is 
-        # presumably based on CENTURY 4 codebase.
-        #return max(0.02, 0.85 - (0.018 * lig2n))
-        return max(0.0, 0.85 - (0.018 * lig2n))
-        #return max(0.05, 0.85 - (0.018 * lig2n))
+        # Reformulation of this equation based on 
+        # Nalder and Wein (2006) Ecological Modelling, 192, 37-66, Eqn 14.
+        #return max(0.2, min(1.0 - self.params.ligshoot, 0.85 - (0.018 * lig2n)))
     
+        return max(0.0, 0.85 - (0.018 * lig2n))
+        
+        
+        
     def partition_plant_litter(self):
         """ Partition litter from the plant (surface) and roots into metabolic
         and structural pools  """
