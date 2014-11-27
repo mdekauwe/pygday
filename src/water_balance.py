@@ -971,7 +971,57 @@ class PenmanMonteith(object):
             omega = 0.0
         
         return et, omega
+    
+    def invert_penman(self, vpd, wind, net_rad, tavg, press, trans, ga):
+        """ Invert the Penman-Monteith model to derive canopy conductance
+        
+        Given an assumption about the boundary layer and the actual 
+        canopy transpiration we can invert what the canopy conductance term is.
+        This isn't actually used at all within GDAY, but might be useful if 
+        we extract the PM class.
+        
 
+        Parameters:
+        -----------
+        vpd : float
+            vapour pressure def [kPa]
+        wind : float
+            average daytime wind speed [m s-1]
+        net_rad : float
+            net radiation [mj m-2 s-1] 
+        tavg : float
+            daytime average temperature [degC]
+        press : float
+            average daytime pressure [kPa]
+        ga : float
+            canopy boundary layer conductance [m s-1]
+        trans : float
+            transpiration [mm s-1]
+        Returns:
+        --------
+        gc : float
+            canopy conductance [m s-1]
+
+        """
+        # if not read from met file calculate atmospheric pressure from sea lev
+        if press == None:
+            press = self.calc_atmos_pressure()
+        
+        lambdax = self.calc_latent_heat_of_vapourisation(tavg)
+        gamma = self.calc_pyschrometric_constant(lambdax, press)
+        slope = self.calc_slope_of_saturation_vapour_pressure_curve(tavg)
+        rho = self.calc_density_of_air(tavg)
+        
+        lambda_E = trans * lambdax
+      
+        arg1 = ga * gamma * lambda_E
+        arg2 = (slope * net_rad) - (slope + gamma) * lambda_E + \
+                (ga * rho * self.cp * vpd)
+        Gc = arg1 / arg2
+        
+        return Gc 
+    
+    
     def canopy_boundary_layer_conductance(self, wind, canht):
         """  Canopy boundary layer conductance, ga or 1/ra
 
