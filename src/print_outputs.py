@@ -224,11 +224,12 @@ class PrintOutput(object):
     
     def write_daily_output_header_git(self):
     	
-        header = ["URL","local branch","remote branch (if different)","revision code","tag"]
-        info   = [self.git.URL_Fetch,self.git.branch,self.git.remote_branch,
-        	      self.git.revision_code,self.git.tag]
+        header = ["URL", "local branch", "remote branch (if different)",
+                  "revision code", "tag"]
+        info   = [self.git.URL_Fetch, self.git.branch, self.git.remote_branch,
+        	      self.git.revision_code, self.git.tag]
         
-        for i in range(len(header)): self.wr.writerow(["# " + header[i]+': '+info[i]])
+        for i in range(len(header)): self.wr.writerow(["# " + header[i] + ': ' + info[i]])
         
     def write_daily_output_header_titles(self):
         header = []
