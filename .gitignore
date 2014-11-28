@@ -9,7 +9,7 @@
 .vagrant/
 build/
 scratch/
-
+example/outputs/
 
 
 # Byte-compiled / optimized / DLL files
