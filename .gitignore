@@ -11,8 +11,8 @@
 build/
 scratch/
 outputs/
-
-
+example/outputs/D1GDAYDUKEAMB.csv			
+example/outputs/NCEAS_DUKE_model_spinup_equilib.out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
