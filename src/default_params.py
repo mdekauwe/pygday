@@ -56,8 +56,8 @@ eav               = 51560.0        # Activation energy for Rubisco (J mol-1)
 edj               = 2e+05          # Deactivation energy for electron transport (J mol-1)
 gamstar25         = 42.75          # Base rate of CO2 compensation point at 25 deg C [umol mol-1]
 growth_efficiency = 0.7            # growth efficiency (yg) - used only in Bewdy
-jmaxna            = 40.462         # slope of the reln btween jmax and leaf N content (g N m-2) - (umol/g n/s) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
-jmaxnb            = 13.691         # intercept of jmax vs n (umol/g n/s) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
+jmaxna            = 40.462         # slope of the reln btween jmax and leaf N content, units = (umol [gN]-1 s-1) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
+jmaxnb            = 13.691         # intercept of jmax vs n, units = (umol [gN]-1 s-1) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
 jmax              = -999.9         # maximum rate of electron transport (umol m-2 s-1)
 kc25              = 404.9          # Base rate for carboxylation by Rubisco at 25degC [mmol mol-1]
 ko25              = 278400.0       # Base rate for oxygenation by Rubisco at 25degC [umol mol-1]. Note value in Bernacchie 2001 is in mmol!!
@@ -65,8 +65,8 @@ kq10              = 0.08           # exponential coefficient for Rm vs T
 measurement_temp  = 25.0           # temperature Vcmax/Jmax are measured at, typical 25.0 (celsius) 
 oi                = 205000.0       # intercellular concentration of O2 [umol mol-1]
 theta             = 0.7            # curvature of photosynthetic light response curve
-vcmaxna           = 20.497         # slope of the reln btween vcmax and leaf N content (g N m-2) - (umol/g n/s) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
-vcmaxnb           = 8.403          # intercept of vcmax vs n (umol/g n/s) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
+vcmaxna           = 20.497         # slope of the reln btween vcmax and leaf N content, units = (umol [gN]-1 s-1) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
+vcmaxnb           = 8.403          # intercept of vcmax vs n, units = (umol [gN]-1 s-1) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
 vcmax             = -999.9         # maximum rate of carboxylation (umol m-2 s-1) 
 
 # water model parameters
@@ -171,8 +171,8 @@ crdecay          = 0.02           #coarse roots turnover rate (1/yr)
 watdecaydry      = 0.0            #water fractn for dry litterfall rates
 watdecaywet      = 0.1            #water fractn for wet litterfall rates
 sapturnover      = 0.1            #Sapwood turnover rate: conversion of sapwood to heartwood (1/yr)
-ligshoot         = 0.25           #lignin-to-biomass ratio in leaf litter - Value in smith et al. 2013 = 0.2, note subtly difference in eqn C9.
-ligroot          = 0.25           #lignin-to-biomass ratio in root litter - Value in Smith et al. 2013 = 0.16, note subtly difference in eqn C9.
+ligshoot         = 0.25           #lignin-to-biomass ratio in leaf litter; Values from White et al. DBF = 0.18; ENF = 0.24l; GRASS = 0.09; Shrub = 0.15 - Value in smith et al. 2013 = 0.2, note subtly difference in eqn C9.
+ligroot          = 0.25           #lignin-to-biomass ratio in root litter; Values from White et al. = 0.22  - Value in Smith et al. 2013 = 0.16, note subtly difference in eqn C9.
 structcn         = 150.0          #C:N ratio of structural bit of litter input
 structrat        = 0.0            #structural input n:c as fraction of metab
 
