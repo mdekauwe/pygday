@@ -190,16 +190,10 @@ class ReadConfigFile(object):
                         d[option] = None
                     else:
                         d[option] = int(value)
-                elif section == "print":
+                elif section == "print" or section == "files":
                     d[option] = value
-                elif section == "files":
-                    d[option] = value
-                else:
-                    d[option] = self.Config.get(section, option)
-                if d[option] == -1:
-                    DebugPrint("skip: %s" % option)
             except:
-                print("exception on %s!" % option)
+                print("Error reading .Cfg file into dicitonary: %s!" % option)
                 d[option] = None
 
         return d
