@@ -48,7 +48,7 @@ class PrintOutput(object):
         # daily output filename
         try:
             self.odaily = open(self.files.out_fname, 'wb')
-            self.wr = csv.writer(self.odaily, delimiter=',', 
+            self.wr = csv.writer(self.odaily, delimiter=',',
                                  quoting=csv.QUOTE_NONE, escapechar=' ')
             self.print_fluxes = []
             self.print_state = []
@@ -62,17 +62,17 @@ class PrintOutput(object):
                 except AttributeError:
                     err_msg = "Error accessing var to print: %s" % var
                     raise AttributeError, err_msg
-    
+
             self.write_daily_output_header()
         except IOError:
             raise IOError("Can't open %s file for write" % self.odaily)
-        
+
         self.day_output = []
-     
+
     def get_vars_to_print(self):
         """ return lists of variable names to print out """
         return (self.print_state, self.print_fluxes)
-      
+
     def save_default_parameters(self):
         """ Print default model state, control and param files.
 
@@ -106,7 +106,7 @@ class PrintOutput(object):
             raise IOError("Can't open %s file for write" %
                             self.out_param_fname)
         self.print_parameters(oparams=oparams)
-        
+
         # tidy up
         oparams.close()
 
@@ -146,28 +146,28 @@ class PrintOutput(object):
                    'calc_sw_params', 'alloc_model','fixed_stem_nc', \
                    'ps_pathway','gs_model','grazing','exudation',\
                    'ncycle','adjust_rtslow']
-                   
-        self.dump_ini_data("[files]\n", self.files, ignore, special, oparams, 
+
+        self.dump_ini_data("[files]\n", self.files, ignore, special, oparams,
                             print_tag=False, print_files=True)
-        self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams, 
+        self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams,
                             print_tag=False, print_files=False)
-        self.dump_ini_data("\n[state]\n", self.state, ignore, special, oparams, 
+        self.dump_ini_data("\n[state]\n", self.state, ignore, special, oparams,
                             print_tag=False, print_files=False)
-        self.dump_ini_data("\n[control]\n", self.control, ignore, special, 
+        self.dump_ini_data("\n[control]\n", self.control, ignore, special,
                             oparams, print_tag=False, print_files=False)
         self.dump_ini_data("\n[print]\n", self.print_opts, ignore, special,
                             oparams, print_tag=True, print_files=False)
-        
-    def dump_ini_data(self, ini_section_tag, obj, ignore, special, fp, 
+
+    def dump_ini_data(self, ini_section_tag, obj, ignore, special, fp,
                         print_tag=False,
                         print_files=False):
         """ Get user class attributes and exclude builitin attributes
         Returns a list
-    
+
         Parameters:
         ----------
         ini_section_tag : string
-            section header 
+            section header
         obj : object
             clas object
         ignore : list
@@ -184,35 +184,30 @@ class PrintOutput(object):
             data = [i for i in dir(obj) if not i.startswith('__') \
                     and i not in ignore]
             data.sort()
-            
+
             if print_tag == False and print_files == False:
                 for i in data:
-                    if i in special:
-                        fp.writelines('%s = "%s"\n' % (i, getattr(obj, i)))
-                    else:
-                        fp.writelines("%s = %s\n" % (i, getattr(obj, i)))
-                                    
+                    fp.writelines("%s = %s\n" % (i, getattr(obj, i)))
             elif print_tag == False and print_files == True:
-                fp.writelines('%s = "%s"\n' % (i, getattr(obj, i)) 
-                                for i in data)
+                fp.writelines('%s = %s\n' % (i, getattr(obj, i)) for i in data)
             elif print_tag == True and print_files == False:
-                fp.writelines('%s = "%s"\n' % (i, "yes") for i in obj)
+                fp.writelines('%s = %s\n' % (i, "yes") for i in obj)
         except IOError:
             raise IOError("Error writing params file")
-    
+
     def write_daily_output_header(self):
         header = []
         header.extend(["year","doy"])
         header.extend(["%s" % (var) for var in self.print_state])
         header.extend(["%s" % (var) for var in self.print_fluxes])
         self.wr.writerow(header)
-        
-    
+
+
     def write_daily_outputs_file(self, day_outputs):
         """ Write daily outputs to a csv file """
         self.wr.writerows(day_outputs)
-        
-   
+
+
     def clean_up(self):
         """ close the output file that holds the daily output """
         self.odaily.close()
