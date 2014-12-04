@@ -131,11 +131,11 @@ class ReadConfigFile(object):
             model fluxes
 
         """
-        user_files = self.ConfigSectionMap("files")
-        user_params = self.ConfigSectionMap("params")
-        user_control = self.ConfigSectionMap("control")
-        user_state = self.ConfigSectionMap("state")
-        user_print_opts = self.ConfigSectionMap("print")
+        user_files = self.buid_dict_from_ini_file("files")
+        user_params = self.buid_dict_from_ini_file("params")
+        user_control = self.buid_dict_from_ini_file("control")
+        user_state = self.buid_dict_from_ini_file("state")
+        user_print_opts = self.buid_dict_from_ini_file("print")
 
         # add default cfg fname, dir incase user wants to dump the defaults
         fi.cfg_fname = self.config_file
@@ -143,49 +143,66 @@ class ReadConfigFile(object):
         return (user_control, user_params, user_state, user_files,
                 default_fluxes, user_print_opts)
 
-    def ConfigSectionMap(self, section):
+    def buid_dict_from_ini_file(self, section):
+        """
+        Return the .cfg file as a series of dictionaries depending on which section is called.
+
+        the configparser package reads everything as a string, so we have to cast it
+        ourselves. This isn't entriely straightforward, as we need to (i) catch None's,
+        (ii) catch underscores as isalpha() ignores these and (iii) cast float/ints
+
+        Parameters:
+        -----------
+        section : string
+            Identifier to grab the relevant section from the .cfg file, e.g. "params"
+
+        Returns:
+        --------
+        d : dictionary
+            dictionary containing stuff from the .cfg file.
+        """
         flags = ['model_optroot', "deciduous_model", "modeljm", \
                      'water_stress', "fixleafnc", "passiveconst", "calc_sw_params",\
                      'fixed_stem_nc','exudation','adjust_rtslow', 'ncycle', 'grazing']
         flags_up = ["assim_model", "print_options", "alloc_model", "ps_pathway",\
                           "gs_model"]
 
-        dict1 = {}
+        d = {}
         options = self.Config.options(section)
         for option in options:
             try:
                 value = self.Config.get(section, option)
                 if section == "params" or section == "state":
                     if value.replace('_','').isalpha() and value != "None":
-                        dict1[option] = value
+                        d[option] = value
                     elif value.replace('_','').isalpha() and value == "None":
-                        dict1[option] = None
+                        d[option] = None
                     else:
-                        dict1[option] = float(value)
+                        d[option] = float(value)
                 elif section == "control":
                     if option in flags:
-                        dict1[option] = str2boolean(value)
+                        d[option] = str2boolean(value)
                     elif option in flags_up:
-                        dict1[option] = value.upper()
+                        d[option] = value.upper()
                     elif value.replace('_','').isalpha() and value != "None":
-                        dict1[option] = value
+                        d[option] = value
                     elif value.replace('_','').isalpha() and value == "None":
-                        dict1[option] = None
+                        d[option] = None
                     else:
-                        dict1[option] = int(value)
+                        d[option] = int(value)
                 elif section == "print":
-                    dict1[option] = value
+                    d[option] = value
                 elif section == "files":
-                    dict1[option] = value
+                    d[option] = value
                 else:
-                    dict1[option] = self.Config.get(section, option)
-                if dict1[option] == -1:
+                    d[option] = self.Config.get(section, option)
+                if d[option] == -1:
                     DebugPrint("skip: %s" % option)
             except:
                 print("exception on %s!" % option)
-                dict1[option] = None
+                d[option] = None
 
-        return dict1
+        return d
 
 
 #def read_met_forcing(fname, met_header, comment='#'):
