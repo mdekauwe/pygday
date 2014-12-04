@@ -8,8 +8,7 @@ description.
 import sys
 from math import fabs
 import constants as const
-#from file_parser import initialise_model_data
-from new_file_parser import initialise_model_data
+from file_parser import initialise_model_data
 from plant_growth import PlantGrowth
 from print_outputs import PrintOutput
 from litter_production import Litter
