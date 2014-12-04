@@ -145,12 +145,10 @@ class ReadConfigFile(object):
 
     def ConfigSectionMap(self, section):
         flags = ['model_optroot', "deciduous_model", "modeljm", \
-                 "water_stress", "fixleafnc", "passiveconst", "calc_sw_params",\
-                 'fixed_stem_nc','exudation','adjust_rtslow', 'ncycle', 'grazing']
+                     'water_stress', "fixleafnc", "passiveconst", "calc_sw_params",\
+                     'fixed_stem_nc','exudation','adjust_rtslow', 'ncycle', 'grazing']
         flags_up = ["assim_model", "print_options", "alloc_model", "ps_pathway",\
-                    "gs_model"]
-
-
+                          "gs_model"]
 
         dict1 = {}
         options = self.Config.options(section)
@@ -158,7 +156,6 @@ class ReadConfigFile(object):
             try:
                 value = self.Config.get(section, option)
                 if section == "params" or section == "state":
-
                     if value.replace('_','').isalpha() and value != "None":
                         dict1[option] = value
                     elif value.replace('_','').isalpha() and value == "None":
@@ -176,7 +173,6 @@ class ReadConfigFile(object):
                         dict1[option] = None
                     else:
                         dict1[option] = int(value)
-
                 elif section == "print":
                     dict1[option] = value
                 elif section == "files":
