@@ -44,7 +44,8 @@ class PrintOutput(object):
         # dump the state at the end of a run, typical if user is running to
         # equilibrium
         self.out_param_fname = self.files.out_param_fname
-
+        
+        
         # daily output filename
         try:
             self.odaily = open(self.files.out_fname, 'wb')

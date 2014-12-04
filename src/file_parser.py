@@ -15,7 +15,7 @@ import default_control as c
 import default_state as s
 import default_files as fi
 import default_fluxes
-from configobj import ConfigObj, ConfigObjError
+import ConfigParser
 from utilities import str2boolean
 
 def initialise_model_data(fname, met_header, DUMP=True):
@@ -57,7 +57,7 @@ def initialise_model_data(fname, met_header, DUMP=True):
     config_dict = R.load_files()
     (user_control, user_params, user_state,
         user_files, user_fluxes, user_print) = R.get_config_dicts(config_dict)
-
+    
     # get driving data
     forcing_data = read_met_forcing(user_files['met_fname'], met_header)
 
@@ -72,28 +72,9 @@ def initialise_model_data(fname, met_header, DUMP=True):
         state = s
         control = c
         files = fi
-    
-    turn_strings_into_bools(control)
-    check_case_of_flags(control)
-    
+   
     return (control, params, state, files, default_fluxes, forcing_data,
             user_print)
-
-def turn_strings_into_bools(control):
-    flags = ['model_optroot', "deciduous_model", "modeljm", \
-             "water_stress", "fixleafnc", "passiveconst", "calc_sw_params",\
-             'fixed_stem_nc','exudation','adjust_rtslow', 'ncycle']
-    for i in flags:
-        setattr(control, i, str2boolean(getattr(control, i)))
-        
-        
-        
-def check_case_of_flags(control):
-    """ keep all flags uppercase """
-    flags = ["assim_model", "print_options", "alloc_model", "ps_pathway",\
-             "gs_model"]
-    for i in flags:
-        setattr(control, i, getattr(control, i).upper())
 
 class ReadConfigFile(object):
     """ Read supplied config file (.cfg/.ini).
@@ -110,6 +91,9 @@ class ReadConfigFile(object):
 
         """
         self.config_file = fname
+        self.Config = ConfigParser.ConfigParser()
+        self.Config.optionxform = str # Respect case
+    
     
     def load_files(self):
         """ load config file, return a dictionary
@@ -121,7 +105,7 @@ class ReadConfigFile(object):
 
         """
         try:
-            config = ConfigObj(self.config_file, unrepr=True)
+            config = self.Config.read(self.config_file)
         except (ConfigObjError, IOError), e: 
             raise IOError('%s' % e)
         
@@ -147,18 +131,67 @@ class ReadConfigFile(object):
             model fluxes
 
         """
-        user_files = config_dict['files']
-        user_params = config_dict['params']
-        user_control = config_dict['control']
-        user_state = config_dict['state']
-        user_print_opts = config_dict['print']
-
+        user_files = self.ConfigSectionMap("files")
+        user_params = self.ConfigSectionMap("params")
+        user_control = self.ConfigSectionMap("control")
+        user_state = self.ConfigSectionMap("state")
+        user_print_opts = self.ConfigSectionMap("print")
+        
         # add default cfg fname, dir incase user wants to dump the defaults
         fi.cfg_fname = self.config_file
 
         return (user_control, user_params, user_state, user_files,
                 default_fluxes, user_print_opts)
-
+    
+    def ConfigSectionMap(self, section):
+        flags = ['model_optroot', "deciduous_model", "modeljm", \
+                 "water_stress", "fixleafnc", "passiveconst", "calc_sw_params",\
+                 'fixed_stem_nc','exudation','adjust_rtslow', 'ncycle', 'grazing']
+        flags_up = ["assim_model", "print_options", "alloc_model", "ps_pathway",\
+                    "gs_model"]
+        
+        
+        
+        dict1 = {}
+        options = self.Config.options(section)
+        for option in options:
+            try:
+                value = self.Config.get(section, option)
+                if section == "params" or section == "state":
+                    
+                    if value.replace('_','').replace('"','').isalpha() and value != "None":
+                        dict1[option] = value
+                    elif value.replace('_','').replace('"','').isalpha() and value == "None":
+                        dict1[option] = None
+                    else:
+                        dict1[option] = float(value)
+                elif section == "control":
+                    if option in flags:
+                        dict1[option] = str2boolean(value)
+                    elif option in flags_up:
+                        dict1[option] = value.replace('"', '').upper()
+                    elif value.replace('_','').replace('"','').isalpha() and value != "None":
+                        dict1[option] = value
+                    elif value.replace('_','').replace('"','').isalpha() and value == "None":
+                        dict1[option] = None
+                    else:
+                        dict1[option] = int(value)
+                    
+                elif section == "print":
+                    dict1[option] = value.replace('"', '')
+                elif section == "files":
+                    dict1[option] = value.replace('"', '')
+                else:
+                    dict1[option] = self.Config.get(section, option)
+                if dict1[option] == -1:
+                    DebugPrint("skip: %s" % option)
+            except:
+                print("exception on %s!" % option)
+                dict1[option] = None
+                
+        return dict1
+    
+    
 #def read_met_forcing(fname, met_header, comment='#'):
 #    """ Read the driving data into a dictionary, assumes user has provided
 #    location of variables names.
@@ -213,7 +246,8 @@ def read_met_forcing(fname, met_header, comment='#'):
     """
     try:
         data = {}
-        f = open(fname, 'r')
+        f = open(fname.replace('"', ''), 'r')
+       
         for line_number, line in enumerate(f):            
             if line_number == met_header:
                 # remove comment tag
@@ -224,7 +258,6 @@ def read_met_forcing(fname, met_header, comment='#'):
                     data.setdefault(name, []).append(value) 
         f.close()
     except IOError:
-        print fname
         raise IOError('Could not read met file: "%s"' % fname)
 
     return data
@@ -252,7 +285,7 @@ def adjust_object_attributes(user_dict, obj):
     bad_words = keyword.kwlist
     bad_vars = [method for method in dir(str) if method[:2]=='__']
     for key, value in user_dict.iteritems():
-        
+        #print key, value
         if key in bad_words:
             err_msg = "You cant name your parameter anything from:\n\n %s" \
                             % bad_words
@@ -279,17 +312,19 @@ if __name__ == "__main__":
 
     # pylint: disable=C0103
 
-    fname = 'gday'
-    fdir = "/Users/mdekauwe/src/python/GDAY_model/params"
-
+    fname = "../example/params/NCEAS_DUKE_model_youngforest_amb.cfg"
+    met_header = 4
+    
     # read in user defined variables (stored in dictionaries)
-    (control, params, state, files, fluxes,
-        met_data) = initialise_model_data(fname, default_dir=fdir, DUMP=False)
-
+    (control, params, state, 
+     files, fluxes, met_data, 
+     print_opts) = initialise_model_data(fname, met_header, DUMP=False)
+   
     print state.shootn
-
+    
     par = met_data['par']
-
+    sys.exit()
+    
     import matplotlib.pyplot as plt
     plt.plot(par)
     plt.show()
