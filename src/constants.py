@@ -54,3 +54,6 @@ DAYS_IN_YRS = 365.25
 # Converts conductance from units of mol m-2 s-1 to m s-1 at 25 degC
 # See Jones Appendix 3 or Diaz et al 2007.
 CONV_CONDUCT = 0.0245
+
+UMOL_2_GRAMS_C = UMOL_TO_MOL * MOL_C_TO_GRAMS_C
+GRAM_C_2_TONNES_HA = G_AS_TONNES / M2_AS_HA
