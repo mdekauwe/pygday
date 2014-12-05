@@ -308,7 +308,7 @@ if __name__ == "__main__":
     
     
     # Create the PdfPages object to which we will save the pages:
-    pdf = PdfPages('/Users/mdekauwe/Desktop/root_model_test.pdf')
+    pdf = PdfPages('/Users/mq42056055/Desktop/root_model_test.pdf')
     
     #========Params=======
     d0x = 0.3 # m
