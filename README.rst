@@ -1,11 +1,8 @@
 =============================================
-G'DAY (Generic Decomposition And Yield) Model
+GDAY (Generic Decomposition And Yield) Model
 =============================================
 
-GDAY simulates carbon, nitrogen and water cycling between the plant and the soil. 
-
-The model is coded entirely in `Python <http://www.python.org/>`_ without any
-dependancies. 
+GDAY is a simple ecosystem model that simulates carbon, nitrogen and water cycling. The model is coded entirely in `Python <http://www.python.org/>`_ without any dependancies. 
 
 
 Key Reference
