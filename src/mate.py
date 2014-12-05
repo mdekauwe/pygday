@@ -103,6 +103,7 @@ class MateC3(object):
         
         (jmax_am, vcmax_am) = self.calculate_jmax_and_vcmax(Tk_am, N0)
         (jmax_pm, vcmax_pm) = self.calculate_jmax_and_vcmax(Tk_pm, N0)
+        
         ci_am = self.calculate_ci(vpd_am, ca) 
         ci_pm = self.calculate_ci(vpd_pm, ca) 
         
