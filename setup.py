@@ -45,7 +45,7 @@ def update_version_py():
             #subprocess.call( ["cp", "setup.py", fname] )
             subprocess.call( ["cp", path + "pre-commit.sample", fname] )
             
-            f = open(fname, "r+")
+            f = open(fname, "w")
             f.write("#!/bin/sh \nsudo make install")
             f.close()
              
