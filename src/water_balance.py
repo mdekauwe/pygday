@@ -47,9 +47,7 @@ class WaterBalance(object):
         self.P = PenmanMonteith(dz0v_dh=self.params.dz0v_dh,
                                 displace_ratio=self.params.displace_ratio,
                                 z0h_z0m=self.params.z0h_z0m)
-        self.am = 0
-        self.pm = 1
-            
+        
     def calculate_water_balance(self, day, daylen):
         """ Calculate water balance
 
@@ -62,18 +60,16 @@ class WaterBalance(object):
 
         """
         half_day = daylen/2.0
-        (am, pm) = self.am, self.pm # morning/afternoon
         
         # met forcing
-        (tair_ampm, tair_day, rain, sw_rad_ampm, 
-         sw_rad_day, vpd_ampm, vpd_day, wind_ampm, 
-         wind_day, ca, press) = self.get_met_data(day, daylen)
+        (tair_am, tair_pm, tair_day, rain, sw_rad_am, sw_rad_pm, 
+         sw_rad_day, vpd_am, vpd_pm, vpd_day, wind_am, wind_pm, wind_day, 
+         ca, press) = self.get_met_data(day, daylen)
         
         net_rad_day = self.calc_radiation(tair_day, sw_rad_day, daylen)
-        net_rad_ampm = [self.calc_radiation(tair_ampm[am], sw_rad_ampm[am], \
-                                            half_day), \
-                        self.calc_radiation(tair_ampm[pm], sw_rad_ampm[pm], \
-                                            half_day)]
+        net_rad_am = self.calc_radiation(tair_am, sw_rad_am, half_day)
+        net_rad_pm = self.calc_radiation(tair_am, sw_rad_am, half_day)
+                        
         # calculate water fluxes
         if self.control.trans_model == 0:
             # transpiration calculated from WUE...
@@ -95,12 +91,14 @@ class WaterBalance(object):
                                                wind_day, ca, daylen, press)
             
             elif self.control.assim_model == "MATE":
-                self.calc_transpiration_penmon_am_pm(net_rad_ampm, wind_ampm, 
+                self.calc_transpiration_penmon_am_pm(net_rad_am, net_rad_pm, 
+                                                     wind_am, wind_pm, 
                                                      ca, daylen, press, 
-                                                     vpd_ampm, tair_ampm)
+                                                     vpd_am, vpd_pm, tair_am,
+                                                     tair_pm)
         
         elif self.control.trans_model == 2:
-            self.calc_transpiration_priestay(net_rad_avg, tair_day, press)
+            self.calc_transpiration_priestay(net_rad_day, tair_day, press)
     
         self.calc_infiltration(rain)
         self.fluxes.soil_evap = self.calc_soil_evaporation(tair_day, 
@@ -139,18 +137,24 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-        am, pm = self.am, self.pm
         ca = self.met_data['co2'][day]
+        
         tair_day = self.met_data['tair'][day]
-        tair_ampm = [self.met_data['tam'][day], self.met_data['tpm'][day]]
+        tair_am = self.met_data['tam'][day]
+        tair_pm = self.met_data['tpm'][day]
+        
         sw_rad_day = self.met_data['sw_rad'][day]
-        sw_rad_ampm = [self.met_data['sw_rad_am'][day], \
-                       self.met_data['sw_rad_pm'][day]]
+        sw_rad_am = self.met_data['sw_rad_am'][day]
+        sw_rad_pm = self.met_data['sw_rad_pm'][day]
+        
         rain = self.met_data['rain'][day]
+        
         vpd_day = self.met_data['vpd_avg'][day] # daytime average
-        vpd_ampm= [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
-        wind_ampm = [self.met_data['wind_am'][day], \
-                     self.met_data['wind_pm'][day]]
+        vpd_am = self.met_data['vpd_am'][day]
+        vpd_pm = self.met_data['vpd_pm'][day]
+        
+        wind_am = self.met_data['wind_am'][day]
+        wind_pm = self.met_data['wind_pm'][day]
         wind_day = self.met_data['wind'][day]
         
         if ('atmos_press' in self.met_data and not
@@ -159,8 +163,9 @@ class WaterBalance(object):
         else:
             press = None # use method below to calculate pressure
 
-        return (tair_ampm, tair_day, rain, sw_rad_ampm, sw_rad_day, vpd_ampm, 
-                vpd_day,  wind_ampm, wind_day, ca, press)
+        return (tair_am, tair_pm, tair_day, rain, sw_rad_am, sw_rad_pm, 
+                sw_rad_day, vpd_am, vpd_pm, vpd_day, wind_am, wind_pm, wind_day, 
+                ca, press)
 
     def calc_infiltration(self, rain):
         """ Estimate "effective" rain, or infiltration I guess.
@@ -264,8 +269,9 @@ class WaterBalance(object):
         self.fluxes.ga_mol_m2_sec = ga_m_per_sec * M_PER_SEC_2_MOL_SEC
         self.fluxes.transpiration = transp * SEC_2_DAY
         
-    def calc_transpiration_penmon_am_pm(self, net_rad, wind, ca, 
-                                        daylen, press, vpd, tair):
+    def calc_transpiration_penmon_am_pm(self, net_rad_am, net_rad_pm, 
+                                        wind_am, wind_pm, ca, daylen, press, 
+                                        vpd_am, vpd_pm, tair_am, tair_pm):
         """ Calculate canopy transpiration using the Penman-Monteith equation
         using am and pm data [mm/day]
         
@@ -289,11 +295,10 @@ class WaterBalance(object):
             average daytime pressure [kPa]
 
         """
-        gs_mol_m2_hfday = [0.0]*2
-        ga_mol_m2_hfday = [0.0]*2
-        trans = [0.0]*2
-        omegax = [0.0]*2
-        gpp = self.fluxes.gpp_am_pm # list
+        # local
+        canht = self.state.canht
+        gpp_am = self.fluxes.gpp_am
+        gpp_pm = self.fluxes.gpp_pm
         half_day = daylen / 2.0
         
         # time unit conversions
@@ -301,41 +306,60 @@ class WaterBalance(object):
         HALF_DAY_2_SEC = 1.0 / SEC_2_HALF_DAY
         DAY_2_SEC = 1.0 / (60.0 * 60.0 * daylen)
         
-        for i in self.am, self.pm:
-            # Convert mol/sec to m/s See Jones, 1992, appendix
-            tk = tair[i] + const.DEG_TO_KELVIN
-            MOL_SEC_2_M_PER_SEC = const.MM_TO_M / (press / (const.RGAS * tk))
-            M_PER_SEC_2_MOL_SEC = 1.0 / MOL_SEC_2_M_PER_SEC
-            
-            ga_m_per_sec = self.P.canopy_boundary_layer_conductance(wind[i], 
-                                                               self.state.canht)
-            gs_mol_m2_sec = self.calc_stomatal_conductance(vpd[i], ca, 
-                                                           half_day, gpp[i], 
-                                                           press, tair[i])
-           
-            # unit conversions
-            ga_mol_m2_hfday[i] = ga_m_per_sec * M_PER_SEC_2_MOL_SEC * SEC_2_HALF_DAY
-            gs_mol_m2_hfday[i] = gs_mol_m2_sec * SEC_2_HALF_DAY
-            gs_m_per_sec = gs_mol_m2_sec * MOL_SEC_2_M_PER_SEC 
-            
-            (trans[i], 
-             omegax[i]) = self.P.calc_evaporation(vpd[i], wind[i], gs_m_per_sec, 
-                                                  net_rad[i], tair[i], press, 
-                                                  canht=self.state.canht,
-                                                  ga=ga_m_per_sec)
-            
-            # convert to mm/half day
-            trans[i] *= SEC_2_HALF_DAY
-         
+        MOL_SEC_2_M_PER_SEC_am = (const.MM_TO_M / (press / 
+                                 (const.RGAS * tair_am + const.DEG_TO_KELVIN)))
+        MOL_SEC_2_M_PER_SEC_pm = (const.MM_TO_M / (press / 
+                                 (const.RGAS * tair_pm + const.DEG_TO_KELVIN)))
+        M_PER_SEC_2_MOL_SEC_am = 1.0 / MOL_SEC_2_M_PER_SEC_am
+        M_PER_SEC_2_MOL_SEC_pm = 1.0 / MOL_SEC_2_M_PER_SEC_pm
+        
+        ga_m_per_sec_am = self.P.canopy_boundary_layer_conductance(wind_am, 
+                                                                   canht)
+        ga_m_per_sec_pm = self.P.canopy_boundary_layer_conductance(wind_pm, 
+                                                                   canht)
+        
+        gs_mol_m2_sec_am = self.calc_stomatal_conductance(vpd_am, ca, half_day, 
+                                                          gpp_am, press, 
+                                                          tair_am)
+        gs_mol_m2_sec_pm = self.calc_stomatal_conductance(vpd_pm, ca, half_day, 
+                                                          gpp_pm, press, 
+                                                          tair_pm)
+        
+        # unit conversions
+        ga_mol_m2_hfday_am = (ga_m_per_sec_am * M_PER_SEC_2_MOL_SEC_am * 
+                              SEC_2_HALF_DAY)
+        gs_mol_m2_hfday_am = gs_mol_m2_sec_am * SEC_2_HALF_DAY
+        gs_m_per_sec_am = gs_mol_m2_sec_am * MOL_SEC_2_M_PER_SEC_am 
+        
+        ga_mol_m2_hfday_pm = (ga_m_per_sec_pm * M_PER_SEC_2_MOL_SEC_pm * 
+                              SEC_2_HALF_DAY)
+        gs_mol_m2_hfday_pm = gs_mol_m2_sec_pm * SEC_2_HALF_DAY
+        gs_m_per_sec_pm = gs_mol_m2_sec_pm * MOL_SEC_2_M_PER_SEC_pm
+        
+        (trans_am, 
+         omegax_am) = self.P.calc_evaporation(vpd_am, wind_am, gs_m_per_sec_am, 
+                                              net_rad_am, tair_am, press, 
+                                              canht=canht, ga=ga_m_per_sec_am)
+        (trans_pm, 
+         omegax_pm) = self.P.calc_evaporation(vpd_pm, wind_pm, gs_m_per_sec_pm, 
+                                              net_rad_pm, tair_pm, press, 
+                                              canht=canht, ga=ga_m_per_sec_pm)
+        # convert to mm/half day
+        trans_am *= SEC_2_HALF_DAY
+        trans_pm *= SEC_2_HALF_DAY
+        
         # Unit conversions...
-        self.fluxes.omega = sum(omegax) / 2.0                                  
+        self.fluxes.omega = (omegax_am + omegax_pm) / 2.0                                  
         
         # output in mol H20 m-2 s-1
-        self.fluxes.gs_mol_m2_sec = sum(gs_mol_m2_hfday) * DAY_2_SEC
-        self.fluxes.ga_mol_m2_sec = sum(ga_mol_m2_hfday) * DAY_2_SEC
+        self.fluxes.gs_mol_m2_sec = ((gs_mol_m2_hfday_am + 
+                                      gs_mol_m2_hfday_pm) * DAY_2_SEC)
+        self.fluxes.ga_mol_m2_sec = ((ga_mol_m2_hfday_am + 
+                                      ga_mol_m2_hfday_pm) * DAY_2_SEC)
         
         # mm day-1
-        self.fluxes.transpiration = sum(trans)
+        self.fluxes.transpiration = trans_am + trans_pm
+        
         
     def calc_stomatal_conductance(self, vpd, ca, daylen, gpp, press, temp):
         """ Calculate stomatal conductance, note assimilation rate has been
