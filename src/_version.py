@@ -3,4 +3,4 @@
 # by running 'setup.py version'
 # Or just run the Makefile!
 
-__version__ = 'c72592999d2c225a6745f6f398e97a282964f34c'
+__version__ = '1bff152d77a0a4fd67ee8ffca5c4a7f4fa47a426'
