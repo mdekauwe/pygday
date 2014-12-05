@@ -74,7 +74,7 @@ def date_converter(*args):
 def read_data(fname):
     df = pd.read_csv(fname, parse_dates=[[0,1]], index_col=0, sep=",", 
                      keep_date_col=True, date_parser=date_converter, 
-                     na_values=["-999.9"], skiprows=2)
+                     na_values=["-999.9"], skiprows=3)
     return df
     
     
