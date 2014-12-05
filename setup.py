@@ -43,7 +43,7 @@ def update_version_py():
         if not os.path.isdir(fname):
             #subprocess.call( ["cp", "setup.py", fname] )
             f = open(fname, "w")
-            f.write("sudo make install")
+            f.write("#!/bin/sh \nsudo make install")
             f.close()
              
     for i in ['post-checkout', 'post-commit', 'post-merge']: makeHook(i)
