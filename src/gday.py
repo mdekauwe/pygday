@@ -142,7 +142,6 @@ class Gday(object):
             sys.stderr.write("**** You have turned off the drought stress")
             sys.stderr.write(", I assume you're debugging??!\n")
 
-
     def run_sim(self):
         """ Run model simulation! """
         # local variable
@@ -152,7 +151,7 @@ class Gday(object):
         if self.control.disturbance:
             # Figure out if any years have a disturbance
             self.db.initialise(years)
-        
+
 
         # ===================== #
         #   Y E A R   L O O P   #
@@ -183,11 +182,11 @@ class Gday(object):
                     self.params.disturbance_doy == doy):
                     self.db.check_for_fire(yr, self.pg)
                 # Hurricane?
-                elif (self.control.hurricane == 1 and 
+                elif (self.control.hurricane == 1 and
                       self.params.hurricane_yr == yr and
                       self.params.hurricane_doy == doy):
                     self.db.hurricane()
-                    
+
                 # photosynthesis & growth
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy,
@@ -200,22 +199,22 @@ class Gday(object):
                 if self.control.ncycle == False:
                     # Turn off all N calculations
                     self.reset_all_n_pools_and_fluxes()
-                    
+
                 # calculate C:N ratios and increment annual flux sum
                 self.day_end_calculations(days_in_year[i])
-                
+
                 # checking if we died during the timestep
                 #   - added for desert simulation
                 if (not self.control.deciduous_model and
                     self.control.disturbance == 0):
                     self.are_we_dead()
-                
+
                 #print self.state.lai, self.fluxes.gpp*100
                 #print self.state.plantc, self.state.soilc
-                
+
                 #print yr, doy, self.state.lai
-                
-                
+
+
                 # ======================= #
                 #   E N D   O F   D A Y   #
                 # ======================= #
@@ -230,7 +229,7 @@ class Gday(object):
             #   E N D   O F   Y E A R   #
             # ========================= #
             if self.control.deciduous_model:
-                
+
                 # Allocate stored C&N for the following year
                 self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.allocate_stored_c_and_n(init=False)
@@ -259,7 +258,7 @@ class Gday(object):
     def are_we_dead(self):
         """ Simplistic scheme to allow GDAY to die and re-establish the
         following year """
-        
+
         if float_eq(self.state.lai, 0.0):
             print "DEAD"
             # i.e. we have just died put stem C into struct litter
@@ -435,9 +434,9 @@ class Gday(object):
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
         time_constants = ['rateuptake', 'rateloss', 'retransmob',
-                          'fdecay', 'fdecaydry', 'crdecay','rdecay', 
-                          'rdecaydry', 'bdecay', 'wdecay', 'sapturnover', 
-                          'kdec1', 'kdec2', 'kdec3', 'kdec4', 'kdec5', 'kdec6', 
+                          'fdecay', 'fdecaydry', 'crdecay','rdecay',
+                          'rdecaydry', 'bdecay', 'wdecay', 'sapturnover',
+                          'kdec1', 'kdec2', 'kdec3', 'kdec4', 'kdec5', 'kdec6',
                           'kdec7', 'nuptakez','nmax', 'adapt']
         conv = const.NDAYS_IN_YR
 
@@ -465,11 +464,11 @@ class Gday(object):
             self.state.shootnc = 0.0
         else:
             self.state.shootnc = self.state.shootn / self.state.shoot
-        
+
         # Explicitly set the shoot N:C
         if self.control.ncycle == False:
             self.state.shootnc = self.params.prescribed_leaf_NC
-        
+
         #print self.state.rootn , self.state.roo
         if float_eq(self.state.root, 0.0):
             self.state.rootnc = 0.0
@@ -483,7 +482,7 @@ class Gday(object):
         self.state.litternbg = self.state.structsoiln + self.state.metabsoiln
         self.state.littern = self.state.litternag + self.state.litternbg
         self.state.plantn = (self.state.shootn + self.state.rootn +
-                             self.state.crootn + self.state.branchn + 
+                             self.state.crootn + self.state.branchn +
                              self.state.stemn)
         self.state.totaln = (self.state.plantn + self.state.littern +
                              self.state.soiln)
@@ -494,8 +493,8 @@ class Gday(object):
         self.state.littercag = self.state.structsurf + self.state.metabsurf
         self.state.littercbg = self.state.structsoil + self.state.metabsoil
         self.state.litterc = self.state.littercag + self.state.littercbg
-        self.state.plantc = (self.state.root + self.state.croot + 
-                             self.state.shoot + self.state.stem + 
+        self.state.plantc = (self.state.root + self.state.croot +
+                             self.state.shoot + self.state.stem +
                              self.state.branch)
         self.state.totalc = (self.state.soilc + self.state.litterc +
                              self.state.plantc)
@@ -531,7 +530,7 @@ class Gday(object):
 
     def reset_all_n_pools_and_fluxes(self):
         """ If the N-Cycle is turned off the way I am implementing this is to
-        do all the calculations and then reset everything at the end. This is a 
+        do all the calculations and then reset everything at the end. This is a
         waste of resources but saves on multiple IF statements.
         """
         # State
@@ -553,7 +552,7 @@ class Gday(object):
         self.state.stemnimm = 0.0
         self.state.stemnmob = 0.0
         self.state.nstore = 0.0
-        
+
         # Fluxes
         self.fluxes.nuptake = 0.0
         self.fluxes.nloss = 0.0
@@ -592,8 +591,8 @@ class Gday(object):
         self.fluxes.n_slow_to_passive = 0.0
         self.fluxes.n_passive_to_active = 0.0
 
-        
-        
+
+
 def main():
     """ run a test case of the gday model """
 
@@ -603,7 +602,7 @@ def main():
     # timing...
     import time
     start_time = time.time()
-    
+
     fname = "/Users/mdekauwe/research/FACE/gday_simulations/DUKE/step_change/params/NCEAS_DUKE_model_youngforest_amb.cfg"
 
     G = Gday(fname)
@@ -632,5 +631,5 @@ def profile_main():
 
 if __name__ == "__main__":
 
-    #main()
-    profile_main()
+    main()
+    #profile_main()
