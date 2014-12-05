@@ -38,11 +38,14 @@ def update_version_py():
         return
         
     def makeHook(fname):
-        fname = ".git/hooks/" + fname
+        path = ".git/hooks/"
+        fname = path + fname
         #import pdb; pdb.set_trace()
         if not os.path.isdir(fname):
             #subprocess.call( ["cp", "setup.py", fname] )
-            f = open(fname, "w")
+            subprocess.call( ["cp", path + "pre-commit.sample", fname] )
+            
+            f = open(fname, "r+")
             f.write("#!/bin/sh \nsudo make install")
             f.close()
              
