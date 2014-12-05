@@ -2,4 +2,4 @@
 # This file is originally generated from Git information by running 'setup.py
 # version'
 
-__version__ = '47b05052415e5aa36ebf1178b35a3639e57c15a7'
+__version__ = '9fd9055fb5680cc597d9a62eff1fc66e3a0ca1fa'
