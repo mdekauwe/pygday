@@ -16,12 +16,7 @@ Key Reference
 
 Installation
 =============
-Setting up python on your system is very easy. For window or mac users the `Enthought <http://www.enthought.com/>`_ or `Anaconda <http://continuum.io/downloads>`_ python packages are perhaps your simplest avenue. On a Linux machine it is simply as case of using whatever your default package manager is, e.g. sudo apt-get install python2.7. If you are on a mac and don't want to use `Enthought <http://www.enthought.com/>`_ or `Anaconda <http://continuum.io/downloads>`_ then python comes as standard with your system, so infact you don't need to do anything! However, in my personal experience I've found that it is easier to set up your own separate working copy using a package manager such as `Macports <http://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_. I read that all the cool kids are now using the later, but personally I've had no issues with Macports. You may need to install configobj yourself (not sure). But regardless it is simple, there are instructions on the webpage listed above or just download the code, extract it and type ::
-
-    python setup.py install
-
-Note, replacing this with a small bit of code to read user input files would be
-trivial. I might write that...
+Setting up python on your system is very easy. For window or mac users the `Enthought <http://www.enthought.com/>`_ or `Anaconda <http://continuum.io/downloads>`_ python packages are perhaps your simplest avenue. On a Linux machine it is simply as case of using whatever your default package manager is, e.g. sudo apt-get install python2.7. If you are on a mac and don't want to use `Enthought <http://www.enthought.com/>`_ or `Anaconda <http://continuum.io/downloads>`_ then python comes as standard with your system, so infact you don't need to do anything! However, in my personal experience I've found that it is easier to set up your own separate working copy using a package manager such as `Macports <http://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_. I read that all the cool kids are now using the later, but personally I've had no issues with Macports. 
 
 Once you have downloaded the source code, or clone the repository (go on...) there is a simple makefile, e.g. ::
 
