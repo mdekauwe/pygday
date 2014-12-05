@@ -756,8 +756,8 @@ class PlantGrowth(object):
                 self.fluxes.gpp = self.fluxes.npp / self.params.cue
                 conv = const.G_AS_TONNES / const.M2_AS_HA
                 self.fluxes.gpp_gCm2 = self.fluxes.gpp / conv
-                self.fluxes.gpp_am_pm[0] = self.fluxes.gpp_gCm2 / 2.0
-                self.fluxes.gpp_am_pm[1] = self.fluxes.gpp_gCm2 / 2.0
+                self.fluxes.gpp_am = self.fluxes.gpp_gCm2 / 2.0
+                self.fluxes.gpp_pm = self.fluxes.gpp_gCm2 / 2.0
                 
                 # New respiration flux
                 self.fluxes.auto_resp =  self.fluxes.gpp - self.fluxes.npp
