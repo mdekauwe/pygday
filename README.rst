@@ -1,13 +1,20 @@
 =============================================
-GDAY (Generic Decomposition And Yield) Model
+GDAY Model
 =============================================
 
-GDAY is a simple ecosystem model that simulates carbon, nitrogen and water cycling. The model is coded entirely in `Python <http://www.python.org/>`_ without any dependancies. 
+GDAY (Generic Decomposition And Yield) is a simple, daily time step ecosystem model that represents carbon, nitrogen, and water dynamics at the stand scale. The model is coded entirely in `Python <http://www.python.org/>`_ without any dependancies. 
 
 
 Key Reference
 =============
 1. Comins, H. N. and McMurtrie, R. E. (1993) Long-Term Response of Nutrient-Limited Forests to CO2 Enrichment; Equilibrium Behavior of Plant-Soil Models. *Ecological Applications*, **3**, 666-681.
+2. Medlyn, B. E., McMurtrie, R. E., Dewar, R. C. and Jeffreys, M. P. (2000), Soil processes dominate the long-term response of forest net primary
+productivity to increased temperature and atmospheric CO2 concentration, Canadian Journal of Forest Research, 30, 873–888.
+
+*Note* there are many subtle changes from those original papers included in the 
+code.
+
+
 
 .. contents:: :local:
 
