@@ -1,7 +1,7 @@
 import os
 import csv
 import constants as const
-import git_interface as git
+from _version import __version__ as git_revision
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (21.03.2011)"
@@ -40,7 +40,7 @@ class PrintOutput(object):
         self.print_opts = print_opts
 
         # get the git version of the code and stamp this into the output file
-        #self.revision_code = git.info(["rev-parse","HEAD"])[0]
+        self.revision_code = git_revision
 
         # dump the default run parameters for the user to change
         self.default_param_fname = self.files.cfg_fname
@@ -200,8 +200,8 @@ class PrintOutput(object):
             raise IOError("Error writing params file")
 
     def write_daily_output_header(self):
+        self.wr.writerow(["%s: %s" % ("Git revision code", self.revision_code)])
         header = []
-        #header.extend(["Git code version: %s" % (self.revision_code)])
         header.extend(["year","doy"])
         header.extend(["%s" % (var) for var in self.print_state])
         header.extend(["%s" % (var) for var in self.print_fluxes])
