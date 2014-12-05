@@ -40,9 +40,7 @@ def update_version_py():
     def makeHook(fname):
         path = ".git/hooks/"
         fname = path + fname
-        #import pdb; pdb.set_trace()
         if not os.path.isdir(fname):
-            #subprocess.call( ["cp", "setup.py", fname] )
             subprocess.call( ["cp", path + "pre-commit.sample", fname] )
             
             f = open(fname, "w")
