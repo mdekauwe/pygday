@@ -116,7 +116,7 @@ class Gday(object):
         # build list of variables to prin
         (self.print_state, self.print_fluxes) = self.pr.get_vars_to_print()
 
-        # print model defaul
+        # print model default
         if DUMP == True:
             self.pr.save_default_parameters()
             sys.exit(0)

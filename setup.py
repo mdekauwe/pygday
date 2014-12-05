@@ -36,6 +36,19 @@ def update_version_py():
     except EnvironmentError:
         print "unable to run git, leaving src/_version.py alone"
         return
+        
+    def makeHook(fname):
+        path = ".git/hooks/"
+        fname = path + fname
+        if not os.path.isdir(fname):
+            subprocess.call( ["cp", path + "pre-commit.sample", fname] )
+            
+            f = open(fname, "w")
+            f.write("#!/bin/sh \nsudo make install")
+            f.close()
+             
+    for i in ['post-checkout', 'post-commit', 'post-merge']: makeHook(i)
+        
     f = open("src/_version.py", "w")
     f.write(VERSION_PY % ver)
     f.close()
