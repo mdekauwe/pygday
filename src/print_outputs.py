@@ -1,13 +1,7 @@
 import os
 import csv
-<<<<<<< HEAD
-import constants 			as const
-import git_revision_info 	as git
-import numpy as np
-=======
 import constants as const
 from _version import __version__ as git_revision
->>>>>>> upstream/master
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (21.03.2011)"
