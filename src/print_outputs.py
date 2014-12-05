@@ -32,11 +32,11 @@ class PrintOutput(object):
             output print options
 
         """
-        self.params = params
-        self.state = state
-        self.fluxes = fluxes
-        self.control = control
-        self.files = files
+        self.params 	= params
+        self.state 		= state
+        self.fluxes 	= fluxes
+        self.control 	= control
+        self.files 		= files
         self.print_opts = print_opts
 
         # get the git version of the code and stamp this into the output file
@@ -48,6 +48,9 @@ class PrintOutput(object):
         # dump the state at the end of a run, typical if user is running to
         # equilibrium
         self.out_param_fname = self.files.out_param_fname
+
+        # make output files if the don't exist
+        self.mk_output_dir()
 
         # daily output filename
         try:
@@ -72,6 +75,17 @@ class PrintOutput(object):
             raise IOError("Can't open %s file for write" % self.odaily)
 
         self.day_output = []
+
+    def mk_output_dir(self):
+    	if not os.path.isfile(self.files.out_fname):
+        	dirname=''
+        	dirs=self.files.out_fname.split('/')
+
+        	for i in dirs[:len(dirs)-1]:
+        		dirname=dirname+i+'/'
+
+        	if not os.path.isdir(dirname): os.makedirs(dirname)
+
 
     def get_vars_to_print(self):
         """ return lists of variable names to print out """
@@ -142,7 +156,7 @@ class PrintOutput(object):
                   'littern', 'litternag', 'litternbg','plantc','plantn',\
                   'rootnc','shootnc','soilc', 'soiln','totalc',\
                   'totaln','wtfac_topsoil','wtfac_root','plantnc',\
-                  'grw_seas_stress']
+                  'grw_seas_stress','git']
 
         special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
                    'deciduous_model', 'fixleafnc', 'model_optroot',\
@@ -151,7 +165,9 @@ class PrintOutput(object):
                    'ps_pathway','gs_model','grazing','exudation',\
                    'ncycle','adjust_rtslow']
 
-        self.dump_ini_data("[files]\n", self.files, ignore, special, oparams,
+        self.dump_ini_data("[git]\n", self.git, ignore, special, oparams, #Possibly remove
+                            print_tag=False, print_files=True)
+        self.dump_ini_data("\n[files]\n", self.files, ignore, special, oparams,
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams,
                             print_tag=False, print_files=False)
@@ -205,6 +221,7 @@ class PrintOutput(object):
         header.extend(["year","doy"])
         header.extend(["%s" % (var) for var in self.print_state])
         header.extend(["%s" % (var) for var in self.print_fluxes])
+
         self.wr.writerow(header)
 
 

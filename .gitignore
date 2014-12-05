@@ -1,3 +1,6 @@
+# Some revison stuff
+*_version.py
+
 *.pyo
 *.pyc
 *.bak
@@ -5,13 +8,14 @@
 *.dat
 *.txt
 *.png
+*.DS_Store
 .idea/
 .vagrant/
 build/
 scratch/
+outputs/
 example/outputs/D1GDAYDUKEAMB.csv			
 example/outputs/NCEAS_DUKE_model_spinup_equilib.out
-
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
