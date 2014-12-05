@@ -39,9 +39,13 @@ def update_version_py():
         
     def makeHook(fname):
         fname = ".git/hooks/" + fname
+        #import pdb; pdb.set_trace()
         if not os.path.isdir(fname):
-            subprocess.call( ["cp", "setup.py", fname] )
-    
+            #subprocess.call( ["cp", "setup.py", fname] )
+            f = open(fname, "w")
+            f.write("sudo make install")
+            f.close()
+             
     for i in ['post-checkout', 'post-commit', 'post-merge']: makeHook(i)
         
     f = open("src/_version.py", "w")
