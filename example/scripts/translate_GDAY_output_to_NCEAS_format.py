@@ -34,13 +34,15 @@ def translate_output(infname, met_fname):
     envir = load_met_input_data(met_fname)
     
     # load the rest of the g'day output
-    gday = load_gday_output(infname)
+    (gday, git_ver) = load_gday_output(infname)
 
     # merge dictionaries to ease output
     data_dict = dict(envir, **gday)
     
     ofname = os.path.join(outdir, "temp.nceas")
     f = open(ofname, "w")
+    f.write("%s," % (git_ver))
+    
     # write output in csv format
     writer = csv.writer(f, dialect=csv.excel)
     
@@ -70,6 +72,24 @@ def remove_comments_from_header(fname):
     s.seek(0) # "rewind" to the beginning of the StringIO object
     
     return s
+
+def remove_comments_from_header_and_get_git_rev(fname):
+    """ I have made files with comments which means the headings can't be 
+    parsed to get dictionary headers for pandas! Solution is to remove these
+    comments first """
+    s = StringIO()
+    with open(fname) as f:
+        line_counter = 0
+        for line in f:
+            if line_counter == 0:
+                git_ver = line.rstrip(' ')
+            if '#' in line:
+                line = line.replace("#", "").lstrip(' ')
+            s.write(line)
+            line_counter += 1
+    s.seek(0) # "rewind" to the beginning of the StringIO object
+    
+    return s, git_ver
 
 def load_met_input_data(fname):
     MJ_TO_MOL = 4.6
@@ -101,8 +121,8 @@ def load_gday_output(fname):
     tonnes_per_ha_to_g_m2 = 100
     yr_to_day = 365.25
     
-    s = remove_comments_from_header(fname)
-    out = pd.read_csv(s, parse_dates=[[0,1]], skiprows=0, index_col=0, 
+    (s, git_ver) = remove_comments_from_header_and_get_git_rev(fname)
+    out = pd.read_csv(s, parse_dates=[[0,1]], skiprows=1, index_col=0, 
                       sep=",", keep_date_col=True, date_parser=date_converter)
     
     year = out["year"]
@@ -284,7 +304,7 @@ def load_gday_output(fname):
             'CO2X':co2x,
             'FACTIVE':factive,
             'RTSLOW':rtslow,
-            'REXCUE':rexcue}
+            'REXCUE':rexcue}, git_ver
 
         
 def setup_units():    
