@@ -48,8 +48,8 @@ def translate_output(infname, met_fname):
     writer = csv.writer(f, dialect=csv.QUOTE_NONE)
 
     # write header for csv file
-    for i in envir_comments: writer.writerow([i])
-    for i in  gday_comments: writer.writerow([i])
+    #for i in envir_comments: writer.writerow([i])
+    #for i in  gday_comments: writer.writerow([i])
     writer.writerow(variable)
     writer.writerow(units)
     writer.writerow(variable_names)
@@ -141,14 +141,11 @@ def load_gday_output(fname):
     tonnes_per_ha_to_g_m2 = 100
     yr_to_day = 365.25
 
-<<<<<<< HEAD
     (out, comments) = load_commentless_csv_io(fname,
                                comment_title = "gDay version information")
-=======
     (s, git_ver) = remove_comments_from_header_and_get_git_rev(fname)
     out = pd.read_csv(s, parse_dates=[[0,1]], skiprows=1, index_col=0,
                       sep=",", keep_date_col=True, date_parser=date_converter)
->>>>>>> upstream/master
 
     year = out["year"]
     doy = out["doy"]
@@ -291,7 +288,7 @@ def load_gday_output(fname):
 
 
 
-    return ({'YEAR':year, 'DOY':doy, 'SW':pawater_root,
+    return {'YEAR':year, 'DOY':doy, 'SW':pawater_root,
             'NEP':nep, 'GPP':gpp, 'NPP':npp, 'CEX':cex, 'CVOC':cvoc,
             'RECO':recosys, 'RAUTO':ra, 'RLEAF':rleaf, 'RWOOD':rwood,
             'RGROW':rgrow, 'RHET':rh, 'RSOIL':rsoil, 'ET':et, 'T':trans,
@@ -329,13 +326,7 @@ def load_gday_output(fname):
             'CO2X':co2x,
             'FACTIVE':factive,
             'RTSLOW':rtslow,
-<<<<<<< HEAD
-            'REXCUE':rexcue},
-            comments)
-=======
             'REXCUE':rexcue}, git_ver
->>>>>>> upstream/master
-
 
 def setup_units():
     units = ['--','--','Mean ppm', 'PPT', 'mol m-2', 'Mean DegC', 'Mean DegC',
