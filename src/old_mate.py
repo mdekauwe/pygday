@@ -54,6 +54,8 @@ class MateC3(object):
         self.control = control
         self.state = state
         self.met_data = met_data
+        self.am = 0 # morning index
+        self.pm = 1 # afternoon index  
         self.mt = self.params.measurement_temp + const.DEG_TO_KELVIN      
         
     def calculate_photosynthesis(self, day, daylen):
@@ -90,68 +92,62 @@ class MateC3(object):
             Method calculates GPP, NPP and Ra.
         """
         # local var for tidyness
-        (Tk_am, Tk_pm, par, vpd_am, vpd_pm, ca) = self.get_met_data(day)
+        (Tair_K, par, vpd, ca) = self.get_met_data(day)
         
         # calculate mate params & account for temperature dependencies
+        gamma_star = self.calculate_co2_compensation_point(Tair_K)
+        Km = self.calculate_michaelis_menten_parameter(Tair_K)
         N0 = self.calculate_top_of_canopy_n()
-        
-        gamma_star_am = self.calculate_co2_compensation_point(Tk_am)
-        gamma_star_pm = self.calculate_co2_compensation_point(Tk_pm)
-        
-        Km_am = self.calculate_michaelis_menten_parameter(Tk_am)
-        Km_pm = self.calculate_michaelis_menten_parameter(Tk_pm)
-        
-        (jmax_am, vcmax_am) = self.calculate_jmax_and_vcmax(Tk_am, N0)
-        (jmax_pm, vcmax_pm) = self.calculate_jmax_and_vcmax(Tk_pm, N0)
-        ci_am = self.calculate_ci(vpd_am, ca) 
-        ci_pm = self.calculate_ci(vpd_pm, ca) 
+        (jmax, vcmax) = self.calculate_jmax_and_vcmax(Tair_K, N0)
+        ci = [self.calculate_ci(vpd[k], ca) for k in self.am, self.pm]
         
         # quantum efficiency calculated for C3 plants
-        alpha_am = self.calculate_quantum_efficiency(ci_am, gamma_star_am)
-        alpha_pm = self.calculate_quantum_efficiency(ci_pm, gamma_star_pm)
+        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
         
         # Rubisco carboxylation limited rate of photosynthesis
-        ac_am = self.assim(ci_am, gamma_star_am, a1=vcmax_am, a2=Km_am) 
-        ac_pm = self.assim(ci_pm, gamma_star_pm, a1=vcmax_pm, a2=Km_pm) 
+        ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=Km[k]) \
+              for k in self.am, self.pm]
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
-        aj_am = self.assim(ci_am, gamma_star_am, a1=jmax_am/4.0,
-                           a2=2.0*gamma_star_am)
-        aj_pm = self.assim(ci_pm, gamma_star_pm, a1=jmax_pm/4.0,
-                           a2=2.0*gamma_star_pm)
+        aj = [self.assim(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
+              a2=2.0*gamma_star[k]) for k in self.am, self.pm]
         
         # light-saturated photosynthesis rate at the top of the canopy (gross)
-        asat_am = min(aj_am, ac_am) 
-        asat_pm = min(aj_pm, ac_pm) 
+        asat = [min(aj[k], ac[k]) for k in self.am, self.pm]
         
         # LUE (umol C umol-1 PAR)
-        lue_am = self.epsilon(asat_am, par, daylen, alpha_am)
-        lue_pm = self.epsilon(asat_pm, par, daylen, alpha_pm)
-        # use average to simulate canopy photosynthesis
-        lue_avg = (lue_am + lue_pm) / 2.0 
+        lue = [self.epsilon(asat[k], par, daylen, alpha[k]) \
+               for k in self.am, self.pm]
+        lue_avg = sum(lue) / 2.0 # use average to simulate canopy photosynthesis
         
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
         else:
             # absorbed photosynthetically active radiation (umol m-2 s-1)
             self.fluxes.apar = par * self.state.fipar
-        apar_half_day = self.fluxes.apar / 2.0
-                
-        # convert umol m-2 d-1 -> gC m-2 d-1
-        self.fluxes.gpp_gCm2 = self.fluxes.apar * lue_avg * const.UMOL_2_GRAMS_C
-        self.fluxes.gpp_am = apar_half_day * lue_am * const.UMOL_2_GRAMS_C
-        self.fluxes.gpp_pm = apar_half_day * lue_pm * const.UMOL_2_GRAMS_C
+
+        # gC m-2 d-1
+        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * const.UMOL_TO_MOL *
+                                const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[self.am] = ((self.fluxes.apar / 2.0) * 
+                                          lue[self.am] * const.UMOL_TO_MOL * 
+                                          const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[self.pm] = ((self.fluxes.apar / 2.0) * 
+                                          lue[self.pm] * const.UMOL_TO_MOL * 
+                                          const.MOL_C_TO_GRAMS_C)
+        
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
             self.fluxes.gpp_gCm2 *= self.params.ac
-            self.fluxes.gpp_am *= self.params.ac
-            self.fluxes.gpp_pm *= self.params.ac
+            self.fluxes.gpp_am_pm[self.am] *= self.params.ac
+            self.fluxes.gpp_am_pm[self.pm] *= self.params.ac
             self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
             
         # g C m-2 to tonnes hectare-1 day-1
-        self.fluxes.gpp = self.fluxes.gpp_gCm2 * const.GRAM_C_2_TONNES_HA
-        self.fluxes.npp = self.fluxes.npp_gCm2 * const.GRAM_C_2_TONNES_HA
+        conv = const.G_AS_TONNES / const.M2_AS_HA
+        self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
+        self.fluxes.npp = self.fluxes.npp_gCm2 * conv
         
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
@@ -166,23 +162,19 @@ class MateC3(object):
 
         Returns:
         -------
-        TK_am : float
-            am air temperature [Kelvin]
-        TK_am : float
-            pm air temperature [Kelvin]
-        vpd_am : float
-            am vpd [kPa]
-        vpd_pm : float
-            pm vpd [kPa]
+        Tair_K : float
+            am/pm air temperature in a list [Kelvin]
+        vpd : float
+            am/pm vpd in a list [kPa]
         par : float
             average daytime PAR [umol m-2 d-1]
         ca : float
             atmospheric co2 [umol mol-1]
+
         """
-        Tk_am = self.met_data['tam'][day] + const.DEG_TO_KELVIN
-        Tk_pm = self.met_data['tpm'][day] + const.DEG_TO_KELVIN
-        vpd_am = self.met_data['vpd_am'][day]
-        vpd_pm = self.met_data['vpd_pm'][day]
+        Tair_K = [self.met_data['tam'][day] + const.DEG_TO_KELVIN, \
+                  self.met_data['tpm'][day] + const.DEG_TO_KELVIN]
+        vpd = [self.met_data['vpd_am'][day], self.met_data['vpd_pm'][day]]
         ca = self.met_data["co2"][day]
         
         # if PAR is supplied by the user then use this data, otherwise use the
@@ -197,7 +189,7 @@ class MateC3(object):
             conv = const.RAD_TO_PAR * const.MJ_TO_MOL * const.MOL_TO_UMOL
             par = self.met_data['sw_rad'][day] * conv
         
-        return (Tk_am, Tk_pm, par, vpd_am, vpd_pm, ca)
+        return (Tair_K, par, vpd, ca)
 
     def calculate_co2_compensation_point(self, Tk):
         """ CO2 compensation point in the absence of mitochondrial respiration
@@ -206,32 +198,21 @@ class MateC3(object):
         
         Parameters:
         ----------
-        Tk : float
-            air temperature (Kelvin)
+        temp : float
+            air temperature
         
         Returns:
         -------
-        gamma_star : float 
+        gamma_star : float, list [am, pm]
             CO2 compensation point in the abscence of mitochondrial respiration
         """
-        return self.arrh(self.params.gamstar25, self.params.eag, Tk)
+        return [self.arrh(self.params.gamstar25, self.params.eag, Tk[k]) \
+                for k in self.am, self.pm]
     
     def calculate_quantum_efficiency(self, ci, gamma_star):
         """ Quantum efficiency for AM/PM periods replacing Sands 1996 
         temperature dependancy function with eqn. from Medlyn, 2000 which is 
         based on McMurtrie and Wang 1993.
-        
-        Parameters:
-        ----------
-        ci : float 
-            intercellular CO2 concentration.
-        gamma_star : float [am/pm]
-            CO2 compensation point in the abscence of mitochondrial respiration
-        
-        Returns:
-        -------
-        alpha : float
-            Quantum efficiency
         
         References:
         -----------
@@ -239,22 +220,22 @@ class MateC3(object):
         * McMurtrie and Wang (1993) PCE, 16, 1-13.
         
         """
-        return self.assim(ci, gamma_star, a1=self.params.alpha_j/4.0, 
-                          a2=2.0*gamma_star)
-        
+        return [self.assim(ci[k], gamma_star[k], a1=self.params.alpha_j/4.0, \
+                a2=2.0*gamma_star[k]) for k in self.am, self.pm]
     
     def calculate_michaelis_menten_parameter(self, Tk):
         """ Effective Michaelis-Menten coefficent of Rubisco activity
 
         Parameters:
         ----------
-        Tk : float
-            air temperature (Kelvin)
+        temp : float
+            air temperature
         
         Returns:
         -------
-        Km : float
-            Effective Michaelis-Menten constant for Rubisco catalytic activity
+        value : float, list [am, pm]
+            Km, effective Michaelis-Menten constant for Rubisco catalytic 
+            activity
         
         References:
         -----------
@@ -264,24 +245,21 @@ class MateC3(object):
         
         """
         # Michaelis-Menten coefficents for carboxylation by Rubisco
-        Kc = self.arrh(self.params.kc25, self.params.eac, Tk)
+        Kc = [self.arrh(self.params.kc25, self.params.eac, Tk[k]) \
+              for k in self.am, self.pm]
         
         # Michaelis-Menten coefficents for oxygenation by Rubisco
-        Ko = self.arrh(self.params.ko25, self.params.eao, Tk)
-             
-        # return effective Michaelis-Menten coefficient for CO2
-        return Kc * (1.0 + self.params.oi / Ko)
-       
+        Ko = [self.arrh(self.params.ko25, self.params.eao, Tk[k]) \
+              for k in self.am, self.pm]
+        
+        # return effectinve Michaelis-Menten coeffeicent for CO2
+        return [Kc[k] *(1.0 + self.params.oi / Ko[k]) for k in self.am, self.pm]
                 
     def calculate_top_of_canopy_n(self):  
         """ Calculate the canopy N at the top of the canopy (g N m-2), N0.
         See notes and Chen et al 93, Oecologia, 93,63-69. 
-        
-        Returns:
-        -------
-        N0 : float (g N m-2)
-            Top of the canopy N 
         """
+        
         if float_gt(self.state.lai, 0.0):
             # calculation for canopy N content at the top of the canopy                   
             N0 = (self.state.ncontent * self.params.kext /
@@ -297,51 +275,42 @@ class MateC3(object):
         
         Parameters:
         ----------
-        Tk : float
-            air temperature (Kelvin)
+        temp : float
+            air temperature
         N0 : float
             leaf N
-        
-        Returns:
-        --------
-        jmax : float (umol/m2/sec)
-            the maximum rate of electron transport at 25 degC 
-        vcmax : float (umol/m2/sec)
-            the maximum rate of electron transport at 25 degC 
         """
         if self.control.modeljm == True: 
             # the maximum rate of electron transport at 25 degC 
             jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
             
             # this response is well-behaved for TLEAF < 0.0
-            jmax = self.peaked_arrh(jmax25, self.params.eaj, Tk, 
-                                    self.params.delsj, self.params.edj)
+            jmax = [self.peaked_arrh(jmax25, self.params.eaj, Tk[k], 
+                                     self.params.delsj, self.params.edj) \
+                                     for k in self.am, self.pm]
             
             # the maximum rate of electron transport at 25 degC 
             vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
-            vcmax = self.arrh(vcmax25, self.params.eav, Tk) 
+            vcmax = [self.arrh(vcmax25, self.params.eav, Tk[k]) \
+                     for k in self.am, self.pm]
         else:
-            jmax = self.params.jmax
-            vcmax = self.params.vcmax
+            jmax = [self.params.jmax, self.params.jmax]
+            vcmax = [self.params.vcmax, self.params.vcmax]
         
         # reduce photosynthetic capacity with moisture stress
-        jmax *= self.state.wtfac_root 
-        vcmax *= self.state.wtfac_root 
+        jmax = [self.state.wtfac_root * jmax[k] for k in self.am, self.pm]
+        vcmax = [self.state.wtfac_root * vcmax[k] for k in self.am, self.pm]  
         
         # Function allowing Jmax/Vcmax to be forced linearly to zero at low T
-        jmax = self.adj_for_low_temp(jmax, Tk)
-        vcmax = self.adj_for_low_temp(vcmax, Tk)
-        
-        return (jmax, vcmax)
+        jmax = [self.adj_for_low_temp(jmax[k], Tk[k]) for k in self.am, self.pm]
+        vcmax = [self.adj_for_low_temp(vcmax[k], Tk[k]) \
+                 for k in self.am, self.pm]
+       
+        return jmax, vcmax
     
     def adj_for_low_temp(self, param, Tk, lower_bound=0.0, upper_bound=10.0):
         """ 
         Function allowing Jmax/Vcmax to be forced linearly to zero at low T
-        
-        Parameters:
-        ----------
-        Tk : float
-            air temperature (Kelvin)
         """
         Tc = Tk - const.DEG_TO_KELVIN
         
@@ -613,71 +582,71 @@ class MateC4(MateC3):
             Method calculates GPP, NPP and Ra.
         """
         # local var for tidyness
-        (Tk_am, Tk_pm, par, vpd_am, vpd_pm, ca) = self.get_met_data(day)
+        (Tair_K, par, vpd, ca) = self.get_met_data(day)
         
-        # calculate mate params & account for temperature dependencies
+        ci = [self.calculate_ci(vpd[k], ca) for k in self.am, self.pm]
         N0 = self.calculate_top_of_canopy_n()
-        
-        ci_am = self.calculate_ci(vpd_am, ca) 
-        ci_pm = self.calculate_ci(vpd_pm, ca)
-        
         alpha = self.params.alpha_c4
         
         # Temp dependancies from Massad et al. 2007
-        (vcmax_am, vcmax25_am) = self.calculate_vcmax_parameter(Tk_am, N0)
-        (vcmax_pm, vcmax25_pm) = self.calculate_vcmax_parameter(Tk_pm, N0)
+        (vcmax, vcmax25) = self.calculate_vcmax_parameter(Tair_K, N0)
         
         # Rubisco and light-limited capacity (Appendix, 2B)
         par_per_sec = par / (60.0 * 60.0 * daylen)
-        M_am = self.quadratic(a=self.beta1, b=-(vcmax_am + alpha * par_per_sec), 
-                              c=(vcmax_am * alpha * par_per_sec)) 
-        M_pm = self.quadratic(a=self.beta1, b=-(vcmax_pm + alpha * par_per_sec), 
-                              c=(vcmax_pm * alpha * par_per_sec)) 
-        
+        M = [self.quadratic(a=self.beta1, b=-(vcmax[k] + alpha * par_per_sec), 
+                            c=(vcmax[k] * alpha * par_per_sec)) \
+                            for k in self.am, self.pm]
+
         # The limitation of the overall rate by M and CO2 limited flux:
-        A_am = self.quadratic(a=self.beta2, b=-(M_am + self.kslope * ci_am), 
-                              c=(M_am * self.kslope * ci_am))
-        A_pm = self.quadratic(a=self.beta2, b=-(M_pm + self.kslope * ci_pm), 
-                              c=(M_pm * self.kslope * ci_pm))                    
+        A = [self.quadratic(a=self.beta2, b=-(M[k] + self.kslope * ci[k]), 
+                            c=(M[k] * self.kslope * ci[k])) \
+                            for k in self.am, self.pm]
 
         # These respiration terms are just for assimilation calculations,
         # autotrophic respiration is stil assumed to be half of GPP
-        Rd_am = self.calc_respiration(Tk_am, vcmax25)  
-        Rd_pm = self.calc_respiration(Tk_pm, vcmax25)  
-        
+        (Rd) = self.calc_respiration(Tair_K, vcmax25)    
+
         # Net (saturated) photosynthetic rate, not sure if this
         # makes sense.
-        asat_am = A_am - Rd_am 
-        asat_pm = A_pm - Rd_pm 
+        asat = [A[k] - Rd[k] for k in self.am, self.pm]
         
         # LUE (umol C umol-1 PAR)
-        lue_am = self.epsilon(asat_am, par, daylen, alpha)
-        lue_pm = self.epsilon(asat_pm, par, daylen, alpha)
-        # use average to simulate canopy photosynthesis
-        lue_avg = (lue_am + lue_pm) / 2.0 
+        lue = [self.epsilon(asat[k], par, daylen, alpha) \
+               for k in self.am, self.pm]
+        lue_avg = sum(lue) / 2.0 # use average to simulate canopy photosynthesis
         
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
         else:
             # absorbed photosynthetically active radiation (umol m-2 s-1)
             self.fluxes.apar = par * self.state.fipar
-        apar_half_day = self.fluxes.apar / 2.0
+            
+            
+            
+            
+        # gC m-2 d-1
+        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * const.UMOL_TO_MOL *
+                                const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[self.am] = ((self.fluxes.apar / 2.0) * 
+                                          lue[self.am] * const.UMOL_TO_MOL * 
+                                          const.MOL_C_TO_GRAMS_C)
+        self.fluxes.gpp_am_pm[self.pm] = ((self.fluxes.apar / 2.0) * 
+                                          lue[self.pm] * const.UMOL_TO_MOL * 
+                                          const.MOL_C_TO_GRAMS_C)
         
-        # convert umol m-2 d-1 -> gC m-2 d-1
-        self.fluxes.gpp_gCm2 = self.fluxes.apar * lue_avg * const.UMOL_2_GRAMS_C
-        self.fluxes.gpp_am = apar_half_day * lue_am * const.UMOL_2_GRAMS_C
-        self.fluxes.gpp_pm = apar_half_day * lue_pm * const.UMOL_2_GRAMS_C
+        
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
         if self.control.nuptake_model == 3:
             self.fluxes.gpp_gCm2 *= self.params.ac
-            self.fluxes.gpp_am *= self.params.ac
-            self.fluxes.gpp_pm *= self.params.ac
+            self.fluxes.gpp_am_pm[am] *= self.params.ac
+            self.fluxes.gpp_am_pm[pm] *= self.params.ac
             self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
             
         # g C m-2 to tonnes hectare-1 day-1
-        self.fluxes.gpp = self.fluxes.gpp_gCm2 * const.GRAM_C_2_TONNES_HA
-        self.fluxes.npp = self.fluxes.npp_gCm2 * const.GRAM_C_2_TONNES_HA
+        conv = const.G_AS_TONNES / const.M2_AS_HA
+        self.fluxes.gpp = self.fluxes.gpp_gCm2 * conv
+        self.fluxes.npp = self.fluxes.npp_gCm2 * conv
         
         # Plant respiration assuming carbon-use efficiency.
         self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
@@ -708,6 +677,7 @@ class MateC4(MateC3):
         vcmax : float, list [am, pm]
             maximum rate of Rubisco activity
         """
+        
         # Massad et al. 2007
         #Ea = self.params.eav    
         #Hd = self.params.edv    
@@ -718,13 +688,14 @@ class MateC4(MateC3):
         
         # the maximum rate of electron transport at 25 degC 
         vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
-        vcmax = self.peaked_arrh(vcmax25, Ea, Tk, delS, Hd)
-        
-        # reduce photosynthetic capacity with moisture stress
-        vcmax *= self.state.wtfac_root
+        vcmax = [self.peaked_arrh(vcmax25, Ea, Tk[k], delS, Hd) \
+                 for k in self.am, self.pm]
+        vcmax = [self.state.wtfac_root * vcmax[k]\
+                 for k in self.am, self.pm] 
         
         # Function allowing Jmax/Vcmax to be forced linearly to zero at low T
-        vcmax = self.adj_for_low_temp(vcmax, Tk)
+        vcmax = [self.adj_for_low_temp(vcmax[k], Tk[k])\
+                 for k in self.am, self.pm]
         
         return vcmax, vcmax25
 
@@ -764,7 +735,10 @@ class MateC4(MateC3):
         # rate at a temperature 10 deg C lower
         Q10 = 2.0 
         
-        return Rd25 * Q10**(((Tk - const.DEG_TO_KELVIN) - Tref) / 10.0)
+        Rd = [Rd25 * Q10**(((Tk[k] - const.DEG_TO_KELVIN) - Tref) / 10.0) \
+              for k in self.am, self.pm] 
+       
+        return Rd
         
     def quadratic(self, a=None, b=None, c=None):
         """ minimilist quadratic solution

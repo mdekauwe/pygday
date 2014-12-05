@@ -13,7 +13,8 @@ __email__   = "mdekauwe@gmail.com"
 # Carbon fluxes
 gpp_gCm2 = None
 npp_gCm2 = None
-gpp_am_pm = [0.0, 0.0]
+gpp_am = None
+gpp_pm = None
 gpp = None
 npp = None
 nep = None
