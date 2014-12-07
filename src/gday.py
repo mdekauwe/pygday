@@ -141,7 +141,11 @@ class Gday(object):
         if self.control.water_stress == False:
             sys.stderr.write("**** You have turned off the drought stress")
             sys.stderr.write(", I assume you're debugging??!\n")
-
+        
+        self.fb = open('/Users/mdekauwe/Desktop/test.bin','wb')
+        
+        
+        
     def run_sim(self):
         """ Run model simulation! """
         # local variable
@@ -243,6 +247,8 @@ class Gday(object):
 
             if self.control.print_options == "DAILY" and not self.spin_up:
                 self.print_output_file()
+                
+                
 
         # close output file
         if self.control.print_options == "END" and not self.spin_up:
@@ -254,7 +260,11 @@ class Gday(object):
             return (yr, doy+1)
         else:
             self.pr.clean_up()
-
+        
+ 
+        self.fb.close()
+        
+        
     def are_we_dead(self):
         """ Simplistic scheme to allow GDAY to die and re-establish the
         following year """
@@ -396,8 +406,13 @@ class Gday(object):
 
         # print the daily output file, this is done once at the end of each yr
         if self.control.print_options == "DAILY":
-            self.pr.write_daily_outputs_file(self.day_output)
-
+            self.pr.write_daily_outputs_file(self.day_output) 
+            
+            # Not implemented yet...
+            # - Need to add something to write the hdr
+            # - Need a control switch
+            #self.pr.write_daily_outputs_file_to_binary(self.day_output) 
+            
         # print the final state
         elif self.control.print_options == "END":
             if not self.control.deciduous_model:
@@ -525,7 +540,7 @@ class Gday(object):
         output.extend(getattr(self.state, var) for var in self.print_state)
         output.extend(getattr(self.fluxes, var) for var in self.print_fluxes)
         self.day_output.append(output)
-        
+       
     def reset_all_n_pools_and_fluxes(self):
         """ If the N-Cycle is turned off the way I am implementing this is to
         do all the calculations and then reset everything at the end. This is a
