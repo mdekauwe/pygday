@@ -162,10 +162,11 @@ class ReadConfigFile(object):
             dictionary containing stuff from the .cfg file.
         """
         flags = ['model_optroot', "deciduous_model", "modeljm", \
-                     'water_stress', "fixleafnc", "passiveconst", "calc_sw_params",\
-                     'fixed_stem_nc','exudation','adjust_rtslow', 'ncycle', 'grazing']
-        flags_up = ["assim_model", "print_options", "alloc_model", "ps_pathway",\
-                          "gs_model"]
+                 'water_stress', "fixleafnc", "passiveconst", \
+                 "calc_sw_params",'fixed_stem_nc','exudation',\
+                 'adjust_rtslow', 'ncycle', 'grazing','output_ascii']
+        flags_up = ["assim_model", "print_options", "alloc_model", \
+                    "ps_pathway","gs_model"]
 
         d = {}
         options = self.Config.options(section)

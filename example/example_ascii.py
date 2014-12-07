@@ -31,7 +31,7 @@ def main(experiment_id, site, treatment):
     # --- CHANGE PARAM VALUES ON THE FLY --- #
     itag = "%s_%s_model_youngforest_%s" % (experiment_id, site, treatment)
     otag = "%s_%s_model_simulation_%s" % (experiment_id, site, treatment)
-    mtag = "%s_met_data_%s.csv" % (site, treatment)
+    mtag = "%s_met_data_%s_co2.csv" % (site, treatment)
     out_fn = "D1GDAY%s%s.csv" % (site, treatment.upper())
     
     out_param_fname = os.path.join(param_dir, otag + ".cfg")
