@@ -212,6 +212,18 @@ class PrintOutput(object):
         """ Write daily outputs to a csv file """
         self.wr.writerows(day_outputs)
 
+    def write_daily_outputs_file_to_binary(self, day_outputs):
+        """ Write daily outputs to a binay file 
+        
+        Not properly implemented:
+            - Need to add something to make sure hdr info is attached to output
+              file.
+            - Also need a flag in the control to switch this on.
+        """
+        from array import array
+        for i in xrange(len(day_outputs)):
+            float_array = array('d', day_outputs[i])
+            float_array.tofile(self.odaily)
 
     def clean_up(self):
         """ close the output file that holds the daily output """
