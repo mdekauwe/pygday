@@ -71,7 +71,6 @@ class Gday(object):
 
         """
         self.day_output = [] # store daily outpu
-
         # initialise model structures and read met data
         (self.control, self.params,
          self.state, self.files,
@@ -406,12 +405,13 @@ class Gday(object):
 
         # print the daily output file, this is done once at the end of each yr
         if self.control.print_options == "DAILY":
-            self.pr.write_daily_outputs_file(self.day_output) 
-            
-            # Not implemented yet...
-            # - Need to add something to write the hdr
-            # - Need a control switch
-            #self.pr.write_daily_outputs_file_to_binary(self.day_output) 
+            if self.control.output_ascii:
+                self.pr.write_daily_outputs_file(self.day_output) 
+            else:
+                # Not implemented yet...
+                # - Need to add something to write the hdr
+                # - Need a control switch
+                self.pr.write_daily_outputs_file_to_binary(self.day_output) 
             
         # print the final state
         elif self.control.print_options == "END":
