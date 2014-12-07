@@ -522,12 +522,10 @@ class Gday(object):
             simulation day
         """
         output = [year, doy]
-        for var in self.print_state:
-            output.append(getattr(self.state, var))
-        for var in self.print_fluxes:
-            output.append(getattr(self.fluxes, var))
+        output.extend(getattr(self.state, var) for var in self.print_state)
+        output.extend(getattr(self.fluxes, var) for var in self.print_fluxes)
         self.day_output.append(output)
-
+        
     def reset_all_n_pools_and_fluxes(self):
         """ If the N-Cycle is turned off the way I am implementing this is to
         do all the calculations and then reset everything at the end. This is a
