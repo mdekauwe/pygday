@@ -257,7 +257,6 @@ class Gday(object):
             return (yr, doy+1)
         else:
             self.pr.clean_up()
-        
  
         self.fb.close()
         

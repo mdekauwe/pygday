@@ -254,8 +254,7 @@ def read_met_forcing(fname, met_header, comment='#'):
     """
     try:
         data = {}
-        f = open(fname.replace('"', ''), 'r')
-
+        f = open(fname, 'r')
         for line_number, line in enumerate(f):
             if line_number == met_header:
                 # remove comment tag

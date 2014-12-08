@@ -80,9 +80,11 @@ def main(experiment_id, site, treatment):
     # translate output to NCEAS style output
     
     # add this directory to python search path so we can find the scripts!
-    #sys.path.append(os.path.join(base_dir, "scripts"))
-    #import translate_GDAY_output_to_NCEAS_format as tr
-    #tr.translate_output(out_fname, met_fname)
+    sys.path.append("scripts")
+    import translate_GDAY_output_to_NCEAS_format as tr
+    tr.translate_output(out_fname, met_fname, binary=True)
+    
+    
     
 
 if __name__ == "__main__":
