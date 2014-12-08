@@ -243,7 +243,7 @@ class PrintOutput(object):
         #    float_array = array('d', day_outputs[i])
         #    float_array.tofile(self.odaily)
 
-    def clean_up(self, nrows):
+    def clean_up(self, nrows=None):
         """ close the output file that holds the daily output """
         self.odaily.close()
         if not self.control.output_ascii:
