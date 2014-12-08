@@ -389,6 +389,7 @@ class PlantGrowth(object):
                                   min_root_alloc) * 
                                   self.state.prev_sma))
             
+            # wrong?
             #self.fluxes.alroot = (self.params.c_alloc_rmin + 
             #                    (self.params.c_alloc_rmax - 
             #                     self.params.c_alloc_rmin) * 
@@ -434,10 +435,19 @@ class PlantGrowth(object):
                                                       self.params.targ_sens) 
             
             """
-            # Maintain functional balance
+            # Maintain functional balance between leaf and root biomass
             #   e.g. -> Sitch et al. 2003, GCB.
+            # assume root alloc = leaf alloc (derived from target) as starting
+            # position
+            self.fluxes.alroot = self.fluxes.alleaf
+            
+            min_root_alloc = 0.05
+            min_leaf_alloc = 0.05
             lr_max = 1.0
             stress = lr_max * self.state.prev_sma
+            
+            # Adjust root & leaf allocation to maintain balance, accounting for
+            # stress
             balanced_cf = self.state.root / stress
             mis_match = self.state.shoot / balanced_cf
             if mis_match > 1.0:
@@ -451,9 +461,9 @@ class PlantGrowth(object):
                 orig_ar = self.fluxes.alroot
                 adj = self.fluxes.alroot * mis_match
                 self.fluxes.alroot = max(min_root_alloc, 
-                                        min(self.params.c_alloc_rmax, adj))
+                                         min(self.params.c_alloc_rmax, adj))
                 self.fluxes.alleaf += orig_ar - self.fluxes.alroot
-            print mis_match, self.fluxes.alleaf, self.fluxes.alstem+self.fluxes.albranch, self.fluxes.alroot
+            #print mis_match, self.fluxes.alleaf, self.fluxes.alstem+self.fluxes.albranch, self.fluxes.alroot
             """   
             
             # Allocation to branch dependent on relationship between the stem
