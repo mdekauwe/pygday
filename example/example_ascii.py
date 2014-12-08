@@ -64,6 +64,7 @@ def main(experiment_id, site, treatment):
                          "model_optroot": "false",
                          "modeljm": "true",
                          "nuptake_model": "1",
+                         "output_ascii" : "true",
                          "passiveconst": "false",
                          "print_options": "daily",
                          "ps_pathway": "c3",
