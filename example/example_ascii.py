@@ -23,10 +23,10 @@ __email__   = "mdekauwe@gmail.com"
 def main(experiment_id, site, treatment):
     
     # --- FILE PATHS, DIR NAMES ETC --- #
-    base_dir = os.getcwd()
-    param_dir = os.path.join(base_dir, "params")
-    met_dir = os.path.join(base_dir, "met_data")
-    run_dir = os.path.join(base_dir, "outputs")
+    #base_dir = os.getcwd()
+    param_dir = "params"
+    met_dir = "met_data"
+    run_dir = "outputs"
     
     # --- CHANGE PARAM VALUES ON THE FLY --- #
     itag = "%s_%s_model_youngforest_%s" % (experiment_id, site, treatment)
@@ -38,6 +38,7 @@ def main(experiment_id, site, treatment):
     cfg_fname = os.path.join(param_dir, itag + ".cfg")
     met_fname = os.path.join(met_dir, mtag)
     out_fname = os.path.join(run_dir, out_fn)
+    
     replace_dict = { 
                          # files
                          # Commented out to stop my local path overwriting

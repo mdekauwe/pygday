@@ -70,7 +70,7 @@ class Gday(object):
             Controlling class of the model, runs things.
 
         """
-        self.day_output = [] # store daily outpu
+        self.day_output = [] # store daily output
         # initialise model structures and read met data
         (self.control, self.params,
          self.state, self.files,
@@ -247,8 +247,6 @@ class Gday(object):
             if self.control.print_options == "DAILY" and not self.spin_up:
                 self.print_output_file()
                 
-                
-
         # close output file
         if self.control.print_options == "END" and not self.spin_up:
             self.print_output_file()
