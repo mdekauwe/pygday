@@ -141,10 +141,6 @@ class Gday(object):
             sys.stderr.write("**** You have turned off the drought stress")
             sys.stderr.write(", I assume you're debugging??!\n")
         
-        self.fb = open('/Users/mdekauwe/Desktop/test.bin','wb')
-        
-        
-        
     def run_sim(self):
         """ Run model simulation! """
         # local variable
@@ -256,10 +252,8 @@ class Gday(object):
         if self.spin_up:
             return (yr, doy+1)
         else:
-            self.pr.clean_up()
- 
-        self.fb.close()
-        
+            # Need to pass the project day to calculate NROWS for .hdr file
+            self.pr.clean_up(project_day)
         
     def are_we_dead(self):
         """ Simplistic scheme to allow GDAY to die and re-establish the
@@ -405,9 +399,6 @@ class Gday(object):
             if self.control.output_ascii:
                 self.pr.write_daily_outputs_file(self.day_output) 
             else:
-                # Not implemented yet...
-                # - Need to add something to write the hdr
-                # - Need a control switch
                 self.pr.write_daily_outputs_file_to_binary(self.day_output) 
             
         # print the final state
