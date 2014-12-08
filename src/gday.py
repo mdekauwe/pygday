@@ -604,7 +604,7 @@ def main():
     import time
     start_time = time.time()
 
-    fname = "../example/params/NCEAS_DUKE_model_youngforest_amb.cfg"
+    fname = "../example/params/testing.cfg"
 
     G = Gday(fname)
     G.run_sim()
