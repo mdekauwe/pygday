@@ -36,17 +36,21 @@ def translate_output(infname, met_fname, binary=False):
     # load the rest of the g'day output
     if binary:
         infname_hdr = infname.split('.')[0] + '.bin.hdr'
-        print infname_hdr
-        print os.getcwd()
-        fps = open("outputs/D1GDAYDUKEAMB.bin.hdr", 'r')
-        print fps.readlines()
-        sys.exit()
+        fp = open("outputs/D1GDAYDUKEAMB.bin.hdr", 'r')
+        lines = fp.readlines()
         
-        buff = np.fromfile(infname, dtype=np.float32)
-        print buff.shape
-        #plt.plot(gday['shoot'])
-        #plt.show()
-        sys.exit()
+        # Get HDR info
+        git_ver = lines[0]
+        vars = lines[1].replace("\n","")
+        nrows = int(lines[2].split("=")[1])
+        ncols = int(lines[3].split("=")[1])
+        
+        # Read the file and setup to match csv style. Perhaps a tad dumb
+        # but makes it consistent with ascii translation code
+        buff = np.fromfile(infname, dtype=np.float32).reshape(nrows, ncols)
+        gday = {}
+        for i, v in enumerate(vars.split(",")):
+            gday[v] = buff[:,i]
     else:
         (gday, git_ver) = load_gday_output(infname)
 
@@ -64,7 +68,7 @@ def translate_output(infname, met_fname, binary=False):
     writer.writerow(variable)
     writer.writerow(units)
     writer.writerow(variable_names)
-    for i in xrange(len(gday['DOY'])):
+    for i in xrange(len(gday['year'])):
         writer.writerow([("%.8f" % (float(data_dict[k][i])) \
                          if data_dict.has_key(k) else UNDEF)
                          for k in variable_names])

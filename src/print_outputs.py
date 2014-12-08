@@ -62,7 +62,7 @@ class PrintOutput(object):
             self.print_fluxes = []
             self.print_state = []
             for i, var in enumerate(self.print_opts):
-                #print i, var
+                #print var
                 try:
                     if hasattr(self.state, var):
                         self.print_state.append(var)
@@ -143,7 +143,7 @@ class PrintOutput(object):
                   'n_to_alloc_branch', 'n_to_alloc_root', 'n_to_alloc_croot',\
                   'n_to_alloc_shoot', 'n_to_alloc_stem', 'n_to_alloc_stemimm',\
                   'n_to_alloc_stemmob', 'ncontent', 'fmleaf', 'fmroot',\
-                  'branchnc', 'lai', 'litterc', 'littercag' ,'littercbg',\
+                  'branchnc', 'litterc', 'littercag' ,'littercbg',\
                   'littern', 'litternag', 'litternbg','plantc','plantn',\
                   'rootnc','shootnc','soilc', 'soiln','totalc',\
                   'totaln','wtfac_topsoil','wtfac_root','plantnc',\
@@ -218,8 +218,9 @@ class PrintOutput(object):
                                     ("#Git_revision_code", self.revision_code))
             buff1 = (",".join(("%s" % (var) for var in self.print_state)))
             buff2 = (",".join(("%s" % (var) for var in self.print_fluxes)))
-            self.odaily_hdr_fp.write("year,doy,"+ buff1 + buff2 + "\n")
-            self.odaily_bin_hdr = "year,doy,"+ buff1 + buff2
+            self.odaily_hdr_fp.write("year,doy,"+ buff1+","+ buff2+"\n")
+            self.odaily_bin_hdr = "year,doy,"+ buff1+","+ buff2
+            
             
     def write_daily_outputs_file(self, day_outputs):
         """ Write daily outputs to a csv file """
@@ -233,13 +234,20 @@ class PrintOutput(object):
               file.
             - Also need a flag in the control to switch this on.
         """
-        from array import array
-        for i in xrange(len(day_outputs)):
-            float_array = array('d', day_outputs[i])
-            float_array.tofile(self.odaily)
+        from numpy import array
+        a = array(day_outputs,'float32')
+        a.tofile(self.odaily)
+        
+        #from array import array
+        #for i in xrange(len(day_outputs)):
+        #    float_array = array('d', day_outputs[i])
+        #    float_array.tofile(self.odaily)
 
-    def clean_up(self):
+    def clean_up(self, nrows):
         """ close the output file that holds the daily output """
         self.odaily.close()
         if not self.control.output_ascii:
+            self.odaily_hdr_fp.write("nrows=%d\n" % (nrows))
+            self.odaily_hdr_fp.write("ncols=%d\n" % \
+                                     (len(self.odaily_bin_hdr.split(","))))
             self.odaily_hdr_fp.close()
