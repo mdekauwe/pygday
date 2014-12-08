@@ -40,14 +40,10 @@ def main(experiment_id, site, treatment):
     out_fname = os.path.join(run_dir, out_fn)
     
     replace_dict = { 
-                         # files
-                         # Commented out to stop my local path overwriting
-                         # the example
-                         
-                         #"out_param_fname": "%s" % (out_param_fname),
-                         #"cfg_fname": "%s" % (cfg_fname),
-                         #"met_fname": "%s" % (met_fname),
-                         #"out_fname": "%s" % (out_fname),
+                         "out_param_fname": "%s" % (out_param_fname),
+                         "cfg_fname": "%s" % (cfg_fname),
+                         "met_fname": "%s" % (met_fname),
+                         "out_fname": "%s" % (out_fname),
                          
                          # state 
                          "age": "12.0",
@@ -84,7 +80,7 @@ def main(experiment_id, site, treatment):
     # translate output to NCEAS style output
     
     # add this directory to python search path so we can find the scripts!
-    sys.path.append(os.path.join(base_dir, "scripts"))
+    sys.path.append("scripts")
     import translate_GDAY_output_to_NCEAS_format as tr
     tr.translate_output(out_fname, met_fname)
     

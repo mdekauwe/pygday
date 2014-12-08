@@ -219,6 +219,7 @@ class PrintOutput(object):
             buff1 = (",".join(("%s" % (var) for var in self.print_state)))
             buff2 = (",".join(("%s" % (var) for var in self.print_fluxes)))
             self.odaily_hdr_fp.write("year,doy,"+ buff1 + buff2 + "\n")
+            self.odaily_bin_hdr = "year,doy,"+ buff1 + buff2
             
     def write_daily_outputs_file(self, day_outputs):
         """ Write daily outputs to a csv file """
@@ -240,5 +241,5 @@ class PrintOutput(object):
     def clean_up(self):
         """ close the output file that holds the daily output """
         self.odaily.close()
-        if self.control.output_ascii == "False":
+        if not self.control.output_ascii:
             self.odaily_hdr_fp.close()
