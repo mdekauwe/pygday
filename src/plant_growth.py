@@ -433,6 +433,16 @@ class PlantGrowth(object):
                                                       self.params.targ_sens) 
             
             
+            # Maintain functional balance
+            #   following logic of-> Sitch et al. 2003, GCB.
+            #lr_max = 1.0
+            #stress = lr_max * self.state.prev_sma
+            #min_leaf_alloc = 0.01
+            #total_frac = (self.fluxes.alleaf * 2.0) - min_leaf_alloc
+            #self.fluxes.alroot = min(total_frac, self.fluxes.alleaf / stress)           
+            #self.fluxes.alleaf = total_frac - self.fluxes.alroot
+            
+            
             # Allocation to branch dependent on relationship between the stem
             # and branch
             target_branch = (self.params.branch0 * 
