@@ -441,22 +441,30 @@ class PlantGrowth(object):
             # position
             self.fluxes.alroot = self.fluxes.alleaf
             
+            # arbitrary made up, could be smaller?
             min_root_alloc = 0.05
             min_leaf_alloc = 0.05
+            
+            # leaf-to-root ratio under non-stressed conditons
             lr_max = 1.0
+            
+            # Calculate adjustment on lr_max, based on current "stress"
+            # calculated from running mean of N and water stress
             stress = lr_max * self.state.prev_sma
             
             # Adjust root & leaf allocation to maintain balance, accounting for
             # stress
-            balanced_cf = self.state.root / stress
-            mis_match = self.state.shoot / balanced_cf
+            #
+            # calculate imbalance, based on *biomass*
+            mis_match = self.state.shoot / (self.state.root / stress)
+            # reduce leaf allocation fraction
             if mis_match > 1.0:
                 orig_af = self.fluxes.alleaf
                 adj = self.fluxes.alleaf / mis_match
                 self.fluxes.alleaf = max(min_leaf_alloc, 
                                          min(self.params.c_alloc_fmax, adj))
                 self.fluxes.alroot += orig_af - self.fluxes.alleaf
-                
+            # reduce root allocation    
             else:
                 orig_ar = self.fluxes.alroot
                 adj = self.fluxes.alroot * mis_match
