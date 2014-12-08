@@ -48,12 +48,17 @@ class PrintOutput(object):
         # dump the state at the end of a run, typical if user is running to
         # equilibrium
         self.out_param_fname = self.files.out_param_fname
-
-        # daily output filename
-        try:
+        
+        if self.control.output_ascii:  
             self.odaily = open(self.files.out_fname, 'wb')
             self.wr = csv.writer(self.odaily, delimiter=',',
                                  quoting=csv.QUOTE_NONE, escapechar=' ')
+        else:
+            self.odaily = open(self.files.out_fname, 'wb')
+            binhdr_fname = self.files.out_fname.split(".")[0] + '.bin.hdr' 
+            self.odaily_hdr_fp = open(binhdr_fname, 'wb')
+        # daily output file hdr
+        try:
             self.print_fluxes = []
             self.print_state = []
             for i, var in enumerate(self.print_opts):
@@ -70,7 +75,7 @@ class PrintOutput(object):
             self.write_daily_output_header()
         except IOError:
             raise IOError("Can't open %s file for write" % self.odaily)
-
+        
         self.day_output = []
 
     def get_vars_to_print(self):
@@ -200,14 +205,21 @@ class PrintOutput(object):
             raise IOError("Error writing params file")
 
     def write_daily_output_header(self):
-        self.wr.writerow(["%s:%s" % ("#Git_revision_code", self.revision_code)])
-        header = []
-        header.extend(["year","doy"])
-        header.extend(["%s" % (var) for var in self.print_state])
-        header.extend(["%s" % (var) for var in self.print_fluxes])
-        self.wr.writerow(header)
-
-
+        
+        if self.control.output_ascii:
+            self.wr.writerow(["%s:%s" % ("#Git_revision_code", self.revision_code)])
+            header = []
+            header.extend(["year","doy"])
+            header.extend(["%s" % (var) for var in self.print_state])
+            header.extend(["%s" % (var) for var in self.print_fluxes])
+            self.wr.writerow(header)        
+        else:
+            self.odaily_hdr_fp.write("%s:%s\n" % \
+                                    ("#Git_revision_code", self.revision_code))
+            buff1 = (",".join(("%s" % (var) for var in self.print_state)))
+            buff2 = (",".join(("%s" % (var) for var in self.print_fluxes)))
+            self.odaily_hdr_fp.write("year,doy,"+ buff1 + buff2 + "\n")
+            
     def write_daily_outputs_file(self, day_outputs):
         """ Write daily outputs to a csv file """
         self.wr.writerows(day_outputs)
@@ -228,3 +240,5 @@ class PrintOutput(object):
     def clean_up(self):
         """ close the output file that holds the daily output """
         self.odaily.close()
+        if self.control.output_ascii == "False":
+            self.odaily_hdr_fp.close()
