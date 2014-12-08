@@ -23,7 +23,7 @@ def date_converter(*args):
     return dt.datetime.strptime(str(int(float(args[0]))) + " " +\
                                 str(int(float(args[1]))), '%Y %j')
 
-def translate_output(infname, met_fname):
+def translate_output(infname, met_fname, binary=False):
     outdir = "outputs"
     UNDEF = -9999.
     units = setup_units()
@@ -34,7 +34,21 @@ def translate_output(infname, met_fname):
     envir = load_met_input_data(met_fname)
     
     # load the rest of the g'day output
-    (gday, git_ver) = load_gday_output(infname)
+    if binary:
+        infname_hdr = infname.split('.')[0] + '.bin.hdr'
+        print infname_hdr
+        print os.getcwd()
+        fps = open("outputs/D1GDAYDUKEAMB.bin.hdr", 'r')
+        print fps.readlines()
+        sys.exit()
+        
+        buff = np.fromfile(infname, dtype=np.float32)
+        print buff.shape
+        #plt.plot(gday['shoot'])
+        #plt.show()
+        sys.exit()
+    else:
+        (gday, git_ver) = load_gday_output(infname)
 
     # merge dictionaries to ease output
     data_dict = dict(envir, **gday)
