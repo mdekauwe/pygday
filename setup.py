@@ -78,7 +78,17 @@ class Version(Command):
         update_version_py()
         print "Version is now", get_version()
 
-
+class PyTest(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        import sys,subprocess
+        errno = subprocess.call([sys.executable, 'tests/run_tests.py'])
+        raise SystemExit(errno)
+        
 setup(name="pygday",
     version=get_version(),
     description="A Python implementation of the G'DAY (Generic Decomposition And Yield) model",
@@ -88,5 +98,7 @@ setup(name="pygday",
     platforms = ['any'],
     package_dir = {'gday': 'src'},
     packages = ['gday'],
-    cmdclass={"version": Version },
+    cmdclass={"version": Version,'test': PyTest},
+    test_suite='tests',
+    test_loader='trytond.test_loader:Loader',
 )
