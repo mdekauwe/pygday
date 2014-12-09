@@ -22,9 +22,6 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (09.012.2014)"
 __email__   = "mdekauwe@gmail.com"
 
-
-    
-
 def testMate():
     
     # set up parameters
