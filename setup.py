@@ -99,6 +99,5 @@ setup(name="pygday",
     package_dir = {'gday': 'src'},
     packages = ['gday'],
     cmdclass={"version": Version,'test': PyTest},
-    test_suite='tests',
-    test_loader='trytond.test_loader:Loader',
+   
 )
