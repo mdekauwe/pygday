@@ -646,8 +646,8 @@ class MateC4(MateC3):
 
         # These respiration terms are just for assimilation calculations,
         # autotrophic respiration is stil assumed to be half of GPP
-        Rd_am = self.calc_respiration(Tk_am, vcmax25)  
-        Rd_pm = self.calc_respiration(Tk_pm, vcmax25)  
+        Rd_am = self.calc_respiration(Tk_am, vcmax25_am)  
+        Rd_pm = self.calc_respiration(Tk_pm, vcmax25_pm)  
         
         # Net (saturated) photosynthetic rate, not sure if this
         # makes sense.
