@@ -20,20 +20,19 @@ __author__  = "Martin De Kauwe"
 __version__ = "1.0 (11.02.2014)"
 __email__   = "mdekauwe@gmail.com"
 
-def main(experiment_id, site, treatment):
+def main(experiment_id, site, treatment, ascii=True):
     
     # --- FILE PATHS, DIR NAMES ETC --- #
     #base_dir = os.getcwd()
     param_dir    = "params"
     met_dir      = "met_data"
     run_dir      = "outputs"
-    out_as_ascii = False
     
     # --- CHANGE PARAM VALUES ON THE FLY --- #
     itag   = "%s_%s_model_youngforest_%s" % (experiment_id, site, treatment)
     otag   = "%s_%s_model_simulation_%s" % (experiment_id, site, treatment)
     mtag   = "%s_met_data_%s_co2.csv" % (site, treatment)
-    out_fn = "D1GDAY%s%s" + (".csv" if out_as_ascii else ".bin")
+    out_fn = "D1GDAY%s%s" + (".csv" if ascii else ".bin")
     #import pdb; pdb.set_trace()
     out_fn = out_fn % (site, treatment.upper())
     
@@ -63,7 +62,7 @@ def main(experiment_id, site, treatment):
                          "model_optroot": "false",
                          "modeljm": "true",
                          "nuptake_model": "1",
-                         "output_ascii" : str(out_as_ascii),
+                         "output_ascii" : str(ascii),
                          "passiveconst": "false",
                          "print_options": "daily",
                          "ps_pathway": "c3",
@@ -85,8 +84,10 @@ def main(experiment_id, site, treatment):
     # add this directory to python search path so we can find the scripts!
     sys.path.append("scripts")
     import translate_GDAY_output_to_NCEAS_format as tr
-    tr.translate_output(out_fname, met_fname, binary=not out_as_ascii)
-    
+    if ascii:
+        tr.translate_output(out_fname, met_fname, binary=False)
+    else:
+        tr.translate_output(out_fname, met_fname, binary=True)
     
     
 
@@ -97,4 +98,5 @@ if __name__ == "__main__":
     experiment_id = "NCEAS"
     site = "DUKE"
     treatment="amb"
-    main(experiment_id, site, treatment)
+    ascii = True
+    main(experiment_id, site, treatment, ascii)
