@@ -98,7 +98,7 @@ class WaterBalance(object):
                 self.calc_transpiration_penmon_am_pm(net_rad_ampm, wind_ampm, 
                                                      ca, daylen, press, 
                                                      vpd_ampm, tair_ampm)
-        
+                
         elif self.control.trans_model == 2:
             self.calc_transpiration_priestay(net_rad_avg, tair_day, press)
     
@@ -294,6 +294,7 @@ class WaterBalance(object):
         trans = [0.0]*2
         omegax = [0.0]*2
         gpp = self.fluxes.gpp_am_pm # list
+        print gpp
         half_day = daylen / 2.0
         
         # time unit conversions

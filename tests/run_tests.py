@@ -316,8 +316,6 @@ def testWater(ps_pathway=None, debug=False):
     state.pawater_root = 50.2620995991
     state.pawater_topsoil = 10.734719666
    
-    #fluxes.gpp_am_pm = [1.00246350983, 0.847966589596]
-
     wb = WaterBalance(control, params, state, fluxes, met_data)
     sm = SoilMoisture(control, params, state, fluxes)
     (state.wtfac_topsoil, wtfac_root) = sm.calculate_soil_water_fac()

@@ -144,9 +144,6 @@ class MateC3(object):
         self.fluxes.gpp_pm = apar_half_day * lue_pm * const.UMOL_2_GRAMS_C
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         
-        
-        self.fluxes.gpp_am_pm = [self.fluxes.gpp_am, self.fluxes.gpp_pm]
-        
         if self.control.nuptake_model == 3:
             self.fluxes.gpp_gCm2 *= self.params.ac
             self.fluxes.gpp_am *= self.params.ac
