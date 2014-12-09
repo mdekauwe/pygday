@@ -241,6 +241,10 @@ def testMate(ps_pathway=None):
 
 class GdayTests(unittest.TestCase):
     
+    print 
+    print "---------------------"
+    print
+    
     def testMateC3(self):
         print "Testing MATE C3"
         print 
