@@ -377,7 +377,11 @@ class PlantGrowth(object):
             else:
                 # reset the buffer at the end of the growing season
                 self.sma.reset_stream()
-                
+            
+            #
+            ## Commented out using functional balance below.
+            #
+               
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
             #min_root_alloc = 0.05
