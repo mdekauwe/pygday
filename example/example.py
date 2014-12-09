@@ -15,6 +15,7 @@ import sys
 # How to import G'day
 from gday import gday as model
 from gday import adjust_gday_param_file as ad
+from gday._version import __version__ as git_revision
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (11.02.2014)"
@@ -42,6 +43,8 @@ def main(experiment_id, site, treatment, ascii=True):
     out_fname = os.path.join(run_dir, out_fn)
     
     replace_dict = { 
+                         "git_hash": str(git_revision),
+                         
                          "out_param_fname": "%s" % (out_param_fname),
                          "cfg_fname": "%s" % (cfg_fname),
                          "met_fname": "%s" % (met_fname),
