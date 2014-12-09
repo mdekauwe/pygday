@@ -380,20 +380,14 @@ class PlantGrowth(object):
                 
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
-            min_root_alloc = 0.05
-            min_leaf_alloc = 0.05
-            self.fluxes.alroot = (self.params.c_alloc_rmax * 
-                                  min_root_alloc / 
-                                 (min_root_alloc + 
-                                 (self.params.c_alloc_rmax - 
-                                  min_root_alloc) * 
-                                  self.state.prev_sma))
-            
-            # wrong?
-            #self.fluxes.alroot = (self.params.c_alloc_rmin + 
-            #                    (self.params.c_alloc_rmax - 
-            #                     self.params.c_alloc_rmin) * 
-            #                     self.state.prev_sma)
+            #min_root_alloc = 0.05
+            #min_leaf_alloc = 0.05
+            #self.fluxes.alroot = (self.params.c_alloc_rmax * 
+            #                      min_root_alloc / 
+            #                     (min_root_alloc + 
+            #                     (self.params.c_alloc_rmax - 
+            #                      min_root_alloc) * 
+            #                      self.state.prev_sma))
             
             
             # Calculate tree height: allometric reln using the power function 
@@ -434,7 +428,7 @@ class PlantGrowth(object):
                                                       self.params.c_alloc_fmax, 
                                                       self.params.targ_sens) 
             
-            """
+            
             # Maintain functional balance between leaf and root biomass
             #   e.g. -> Sitch et al. 2003, GCB.
             # assume root alloc = leaf alloc (derived from target) as starting
@@ -471,8 +465,9 @@ class PlantGrowth(object):
                 self.fluxes.alroot = max(min_root_alloc, 
                                          min(self.params.c_alloc_rmax, adj))
                 self.fluxes.alleaf += orig_ar - self.fluxes.alroot
-            #print mis_match, self.fluxes.alleaf, self.fluxes.alstem+self.fluxes.albranch, self.fluxes.alroot
-            """   
+            #print mis_match, self.fluxes.alleaf, \
+            # self.fluxes.alstem+self.fluxes.albranch, self.fluxes.alroot
+            
             
             # Allocation to branch dependent on relationship between the stem
             # and branch
