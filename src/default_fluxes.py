@@ -15,7 +15,6 @@ gpp_gCm2 = None
 npp_gCm2 = None
 gpp_am = None
 gpp_pm = None
-gpp_am_pm = [None,None]
 gpp = None
 npp = None
 nep = None
