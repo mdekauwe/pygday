@@ -17,11 +17,93 @@ import gday.default_files as files
 import gday.default_params as params
 import gday.default_fluxes as fluxes
 import gday.default_state as state
+from gday.water_balance import WaterBalance, SoilMoisture
 
 __author__  = "Martin De Kauwe"
 __version__ = "1.0 (09.012.2014)"
 __email__   = "mdekauwe@gmail.com"
 
+
+
+def setup_metdata(day):
+    #met_fname = "../example/met_data/DUKE_met_data_amb_co2.csv"
+    #met_data = read_met_forcing(met_fname, met_header=4)
+    #print met_data['tam'][day] 
+    #print met_data['tpm'][day] 
+    #print met_data['tair'][day] 
+    #print met_data['sw_rad'][day]
+    #print met_data['sw_rad_am'][day] 
+    #print met_data['sw_rad_pm'][day] 
+    #print met_data["rain"][day] 
+    #print met_data['vpd_am'][day] 
+    #print met_data['vpd_pm'][day]
+    #print met_data['vpd_avg'][day]
+    #print met_data['wind_am'][day]
+    #print met_data['wind_pm'][day]
+    #print met_data['wind'][day]
+    #print met_data["co2"][day]
+    #print met_data['atmos_press'][day] 
+
+    met_data = {}
+    met_data['tam'] = {} 
+    met_data['tam'][day] = {} 
+    met_data['tpm'] = {} 
+    met_data['tpm'][day] = {} 
+    met_data['tair'] = {} 
+    met_data['tair'][day] = {} 
+    
+    met_data['sw_rad'] = {} 
+    met_data['sw_rad'][day] = {} 
+    met_data['sw_rad_am'] = {} 
+    met_data['sw_rad_am'][day] = {} 
+    met_data['sw_rad_pm'] = {} 
+    met_data['sw_rad_pm'][day] = {} 
+    
+    met_data['rain'] = {} 
+    met_data['rain'][day] = {} 
+    
+    met_data['vpd_avg'] = {} 
+    met_data['vpd_avg'][day] = {} 
+    met_data['vpd_am'] = {} 
+    met_data['vpd_am'][day] = {} 
+    met_data['vpd_pm'] = {} 
+    met_data['vpd_pm'][day] = {} 
+    
+    met_data['co2'] = {} 
+    met_data['co2'][day] = {} 
+    
+    met_data['atmos_press'] = {} 
+    met_data['atmos_press'][day] = {} 
+    
+    met_data['wind_am'] = {} 
+    met_data['wind_am'][day] = {} 
+    met_data['wind_pm'] = {} 
+    met_data['wind_pm'][day] = {} 
+    met_data['wind'] = {} 
+    met_data['wind'][day] = {} 
+    met_data['par'] = {} 
+    met_data['par'][day] = {} 
+    
+    # Add values
+    met_data['tam'][day] = 10.0
+    met_data['tpm'][day] = 25.0
+    met_data['tair'][day] = (10.0 + 25.0) / 2.0
+    met_data['sw_rad'][day] = 20.5696188
+    met_data['sw_rad_am'][day] = 11.9967552
+    met_data['sw_rad_pm'][day] = 8.5728636
+    met_data["rain"][day] = 9.0
+    met_data['vpd_am'][day] = 0.3
+    met_data['vpd_pm'][day] = 0.8
+    met_data['vpd_avg'][day] = 0.6
+    met_data['wind_am'][day] = 3.65
+    met_data['wind_pm'][day] = 6.1
+    met_data['wind'][day] = 4.8
+    met_data["co2"][day] = 380.0
+    met_data['atmos_press'][day] = 99.7
+    met_data['par'][day] = 4674600.0
+    
+    return met_data
+    
 def setup_params():
 
     params.a1 = 0.0
@@ -192,39 +274,18 @@ def setup_params():
     
     return params
 
-def testMate(ps_pathway=None):
+def testPhotosynthesis(ps_pathway=None, debug=False):
     
     # Setup stuff
+    day = 100
     params = setup_params()
+    met_data = setup_metdata(day)
+    
     state.wtfac_root = 0.8
-    day = 1
     daylen = 12.0
     state.ncontent = 4.5
     state.lai = 3.0
     state.fipar = (1.0 - exp(-params.kext * state.lai))
-    
-    #met_fname = "../example/met_data/DUKE_met_data_amb_co2.csv"
-    #met_data = read_met_forcing(met_fname, met_header=4)
-    
-    met_data = {}
-    met_data['tam'] = {} 
-    met_data['tam'][day] = {} 
-    met_data['tpm'] = {} 
-    met_data['tpm'][day] = {} 
-    met_data['vpd_am'] = {} 
-    met_data['vpd_am'][day] = {} 
-    met_data['vpd_pm'] = {} 
-    met_data['vpd_pm'][day] = {} 
-    met_data['co2'] = {} 
-    met_data['co2'][day] = {} 
-    met_data['par'] = {} 
-    met_data['par'][day] = {} 
-    met_data['tam'][day] = 18.0
-    met_data['tpm'][day] = 25.0
-    met_data['vpd_am'][day] = 0.8
-    met_data['vpd_pm'][day] = 1.5
-    met_data["co2"][day] = 380.0
-    met_data['par'][day] = 4674600.0
     
     if ps_pathway == "C3":
         M = MateC3(control, params, state, fluxes, met_data)
@@ -232,13 +293,49 @@ def testMate(ps_pathway=None):
     elif ps_pathway == "C4":
         M = MateC4(control, params, state, fluxes, met_data)
         M.calculate_photosynthesis(day, daylen)
-        
-    #print fluxes.gpp_gCm2
-    #print fluxes.npp_gCm2
-    #print fluxes.gpp_am
-    #print fluxes.gpp_pm
+    if debug:
+        print "Mate"
+        print fluxes.gpp_gCm2
+        print fluxes.npp_gCm2
+        print fluxes.gpp_am
+        print fluxes.gpp_pm
+   
+     
+def testWater(ps_pathway=None, debug=False):
+    # Setup stuff
+    day = 100
+    params = setup_params()
+    met_data = setup_metdata(day)
+    testPhotosynthesis(ps_pathway="C3")
     
+    project_day = 100
+    daylen = 12.0
+    state.ncontent = 4.5
+    state.lai = 3.0
+    state.fipar = (1.0 - exp(-params.kext * state.lai))
+    state.pawater_root = 50.2620995991
+    state.pawater_topsoil = 10.734719666
+   
+    #fluxes.gpp_am_pm = [1.00246350983, 0.847966589596]
 
+    wb = WaterBalance(control, params, state, fluxes, met_data)
+    sm = SoilMoisture(control, params, state, fluxes)
+    (state.wtfac_topsoil, wtfac_root) = sm.calculate_soil_water_fac()
+    wb.calculate_water_balance(project_day, daylen)
+    
+    if debug:
+        print "Water"   
+        print state.wtfac_topsoil
+        print state.wtfac_root
+        print fluxes.et
+        print fluxes.soil_evap
+        print fluxes.transpiration
+        print fluxes.erain
+        print fluxes.interception
+        print fluxes.runoff
+        print fluxes.gs_mol_m2_sec
+        print fluxes.ga_mol_m2_sec
+    
 class GdayTests(unittest.TestCase):
     
     print 
@@ -246,57 +343,108 @@ class GdayTests(unittest.TestCase):
     print
     
     def testMateC3(self):
-        print "Testing MATE C3"
+        print "Testing Photosynthesis - C3"
         print 
-        testMate(ps_pathway="C3")
+        testPhotosynthesis(ps_pathway="C3")
         def test_total_gpp(self):
             # Values pre-calculated
-            gpp_gCm2 = 1.75235482132
+            gpp_gCm2 = 1.85043009942
             self.assertAlmostEqual(gpp_gCm2, fluxes.gpp_gCm2)
     
         def test_total_npp(self):
             # Values pre-calculated
-            npp_gCm2 = 0.876177410661
+            npp_gCm2 = 0.925215049712
             self.assertAlmostEqual(npp_gCm2, fluxes.npp_gCm2)
     
         def test_gpp_am(self):    
             # Values pre-calculated
-            gpp_am = 0.945408820784
+            gpp_am = 1.00246350983
             self.assertAlmostEqual(gpp_am, fluxes.gpp_am)
             
     
         def test_gpp_pm(self):       
             # Values pre-calculated
-            gpp_pm = 0.80694600053
-            self.assertAlmostEqual(gpp_pm, fluxes.gpp_pm)
-           
+            correct_value = 0.847966589596
+            self.assertAlmostEqual(correct_value, fluxes.gpp_pm)
+      
     def testMateC4(self):
-        print "Testing MATE C4"
+        print "Testing Photosynthesis - C4"
         print 
-        testMate(ps_pathway="C4")
+        testPhotosynthesis(ps_pathway="C4")
         def test_total_gpp(self):
             # Values pre-calculated
-            gpp_gCm2 = 1.85198282902
-            self.assertAlmostEqual(gpp_gCm2, fluxes.gpp_gCm2)
+            correct_value = 1.86246931786
+            self.assertAlmostEqual(correct_value, fluxes.gpp_gCm2)
     
         def test_total_npp(self):
             # Values pre-calculated
-            npp_gCm2 = 0.925991414512
-            self.assertAlmostEqual(npp_gCm2, fluxes.npp_gCm2)
+            correct_value = 0.931234658932
+            self.assertAlmostEqual(correct_value, fluxes.npp_gCm2)
     
         def test_gpp_am(self):    
             # Values pre-calculated
-            gpp_am = 0.94891019712
-            self.assertAlmostEqual(gpp_am, fluxes.gpp_am)
+            correct_value = 0.959254213558
+            self.assertAlmostEqual(correct_value, fluxes.gpp_am)
            
     
         def test_gpp_pm(self):       
             # Values pre-calculated
-            gpp_pm = 0.903072631905
-            self.assertAlmostEqual(gpp_pm, fluxes.gpp_pm)
-            
+            correct_value = 0.903215104306     
+            self.assertAlmostEqual(correct_value, fluxes.gpp_pm)
+    
+    def testWaterBalance3(self):
+        print "Testing Water Balance"
+        print 
+        testWater(ps_pathway="C3")   
+        def test_wtfac_topsoil(self):
+            # Values pre-calculated
+            correct_value = 0.315219884377
+            self.assertAlmostEqual(correct_value, state.wtfac_topsoil)
+        def test_wtfac_root(self):
+            # Values pre-calculated
+            correct_value = 0.8
+            self.assertAlmostEqual(correct_value, state.wtfac_root)
+        def test_et(self):
+            # Values pre-calculated
+            correct_value = 1.96794847661
+            self.assertAlmostEqual(correct_value, fluxes.et)
+        def test_soil_evap(self):
+            # Values pre-calculated
+            correct_value = 0.34793507562
+            self.assertAlmostEqual(correct_value, fluxes.soil_evap)
+        def test_transpiration(self):
+            # Values pre-calculated
+            correct_value = 0.270013400995
+            self.assertAlmostEqual(correct_value, fluxes.transpiration)
+        def test_erain(self):
+            # Values pre-calculated
+            correct_value = 7.65
+            self.assertAlmostEqual(correct_value, fluxes.erain)
+        def test_interception(self):
+            # Values pre-calculated
+            correct_value = 1.35
+            self.assertAlmostEqual(correct_value, fluxes.interception)
+        def test_runoff(self):
+            # Values pre-calculated
+            correct_value = 0.0
+            self.assertAlmostEqual(correct_value, fluxes.runoff)
+        def test_ga(self):
+            # Values pre-calculated
+            correct_value = 0.0644936068115
+            self.assertAlmostEqual(correct_value, fluxes.ga_mol_m2_sec)
+        def test_gs(self):
+            # Values pre-calculated
+            correct_value = 29.0257955939
+            self.assertAlmostEqual(correct_value, fluxes.gs_mol_m2_sec)
+   
+
+    
+    
         
 if __name__ == "__main__":
     
+    
+    #testPhotosynthesis(ps_pathway="C3", debug=True)
+    #testWater(ps_pathway="C3", debug=True)
+    
     unittest.main()
-    #testMate()
