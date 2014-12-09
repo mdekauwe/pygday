@@ -68,7 +68,7 @@ def translate_output(infname, met_fname, binary=False):
     writer.writerow(variable)
     writer.writerow(units)
     writer.writerow(variable_names)
-    for i in xrange(len(gday['year'])):
+    for i in xrange(len(gday['YEAR'])):
         writer.writerow([("%.8f" % (float(data_dict[k][i])) \
                          if data_dict.has_key(k) else UNDEF)
                          for k in variable_names])
