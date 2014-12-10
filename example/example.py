@@ -67,7 +67,7 @@ def main(experiment_id, site, treatment, ascii=True):
                          "nuptake_model": "1",
                          "output_ascii" : str(ascii),
                          "passiveconst": "false",
-                         "print_options": "end",
+                         "print_options": "daily",
                          "ps_pathway": "c3",
                          "respiration_model": "fixed",
                          "strfloat": "0",
@@ -84,7 +84,7 @@ def main(experiment_id, site, treatment, ascii=True):
     G.run_sim()
     
     # translate output to NCEAS style output
-    sys.exit()
+    
     # add this directory to python search path so we can find the scripts!
     sys.path.append("scripts")
     import translate_GDAY_output_to_NCEAS_format as tr
