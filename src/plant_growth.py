@@ -459,7 +459,7 @@ class PlantGrowth(object):
             
             # Calculate adjustment on lr_max, based on current "stress"
             # calculated from running mean of N and water stress
-            stress =  max(0.001, lr_max * self.state.prev_sma)
+            stress =  max(0.001, min(1.0, lr_max * self.state.prev_sma))
             
             # Adjust root & leaf allocation to maintain balance, accounting for
             # stress
