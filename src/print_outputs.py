@@ -158,7 +158,7 @@ class PrintOutput(object):
         
         self.dump_ini_data("[git]\n", None, ignore, special, 
                             oparams, print_tag=False, print_files=True, git=True)
-        self.dump_ini_data("[files]\n", self.files, ignore, special, oparams,
+        self.dump_ini_data("\n[files]\n", self.files, ignore, special, oparams,
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams,
                             print_tag=False, print_files=False)
