@@ -213,7 +213,7 @@ class PrintOutput(object):
     def write_daily_output_header(self):
         
         if self.control.output_ascii:
-            self.wr.writerow(["%s:%s" % ("#Git_revision_code", self.revision_code)])
+            self.wr.writerow(["%s:%s\n" % ("#Git_revision_code", self.revision_code)])
             header = []
             header.extend(["year","doy"])
             header.extend(["%s" % (var) for var in self.print_state])
