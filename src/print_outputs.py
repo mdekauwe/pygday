@@ -157,7 +157,7 @@ class PrintOutput(object):
                    'ncycle','adjust_rtslow', "respiration_model"]
         
         self.dump_ini_data("[git]\n", None, ignore, special, 
-                            oparams, print_tag=False, print_files=True, git=True)
+                            oparams, print_tag=False, print_files=False, git=True)
         self.dump_ini_data("\n[files]\n", self.files, ignore, special, oparams,
                             print_tag=False, print_files=True)
         self.dump_ini_data("\n[params]\n", self.params, ignore, special,oparams,
@@ -195,8 +195,6 @@ class PrintOutput(object):
             data = [i for i in dir(obj) if not i.startswith('__') \
                     and i not in ignore]
             data.sort()
-            
-            print print_tag , print_files , git
             
             if print_tag == False and print_files == False and git == False:
                 for i in data:
