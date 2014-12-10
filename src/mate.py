@@ -142,21 +142,15 @@ class MateC3(object):
         self.fluxes.gpp_gCm2 = self.fluxes.apar * lue_avg * const.UMOL_2_GRAMS_C
         self.fluxes.gpp_am = apar_half_day * lue_am * const.UMOL_2_GRAMS_C
         self.fluxes.gpp_pm = apar_half_day * lue_pm * const.UMOL_2_GRAMS_C
-        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        
+        # g C m-2 to tonnes hectare-1 day-1
+        self.fluxes.gpp = self.fluxes.gpp_gCm2 * const.GRAM_C_2_TONNES_HA
         
         if self.control.nuptake_model == 3:
             self.fluxes.gpp_gCm2 *= self.params.ac
             self.fluxes.gpp_am *= self.params.ac
             self.fluxes.gpp_pm *= self.params.ac
-            self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
             
-        # g C m-2 to tonnes hectare-1 day-1
-        self.fluxes.gpp = self.fluxes.gpp_gCm2 * const.GRAM_C_2_TONNES_HA
-        self.fluxes.npp = self.fluxes.npp_gCm2 * const.GRAM_C_2_TONNES_HA
-        
-        # Plant respiration assuming carbon-use efficiency.
-        self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
-
     def get_met_data(self, day):
         """ Grab the days met data out of the structure and return day values.
 
@@ -668,20 +662,14 @@ class MateC4(MateC3):
         self.fluxes.gpp_gCm2 = self.fluxes.apar * lue_avg * const.UMOL_2_GRAMS_C
         self.fluxes.gpp_am = apar_half_day * lue_am * const.UMOL_2_GRAMS_C
         self.fluxes.gpp_pm = apar_half_day * lue_pm * const.UMOL_2_GRAMS_C
-        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
+        # g C m-2 to tonnes hectare-1 day-1
+        self.fluxes.gpp = self.fluxes.gpp_gCm2 * const.GRAM_C_2_TONNES_HA
         
         if self.control.nuptake_model == 3:
             self.fluxes.gpp_gCm2 *= self.params.ac
             self.fluxes.gpp_am *= self.params.ac
             self.fluxes.gpp_pm *= self.params.ac
-            self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
             
-        # g C m-2 to tonnes hectare-1 day-1
-        self.fluxes.gpp = self.fluxes.gpp_gCm2 * const.GRAM_C_2_TONNES_HA
-        self.fluxes.npp = self.fluxes.npp_gCm2 * const.GRAM_C_2_TONNES_HA
-        
-        # Plant respiration assuming carbon-use efficiency.
-        self.fluxes.auto_resp = self.fluxes.gpp - self.fluxes.npp
         
     def calculate_vcmax_parameter(self, Tk, N0):
         """ Calculate the maximum rate of rubisco-mediated carboxylation at the
