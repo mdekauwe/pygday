@@ -154,7 +154,7 @@ class PrintOutput(object):
                    'modeljm', 'passiveconst', 'print_options', 'water_stress',\
                    'calc_sw_params', 'alloc_model','fixed_stem_nc', \
                    'ps_pathway','gs_model','grazing','exudation',\
-                   'ncycle','adjust_rtslow']
+                   'ncycle','adjust_rtslow', "respiration_model"]
         
         self.dump_ini_data("[git]\n", None, ignore, special, 
                             oparams, print_tag=False, print_files=True, git=True)
@@ -201,6 +201,7 @@ class PrintOutput(object):
                     fp.writelines("%s = %s\n" % (i, getattr(obj, i)))
             elif print_tag == True and print_files == False  and git == True:
                 fp.writelines('%s = %s\n' % ("git_hash", self.revision_code))
+                print '%s = %s\n' % ("git_hash", self.revision_code)
             elif print_tag == False and print_files == True and git == False:
                 fp.writelines('%s = %s\n' % (i, getattr(obj, i)) for i in data)
             elif print_tag == True and print_files == False and git == False:
