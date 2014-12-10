@@ -195,11 +195,13 @@ class PrintOutput(object):
             data = [i for i in dir(obj) if not i.startswith('__') \
                     and i not in ignore]
             data.sort()
-
+            
+            print print_tag , print_files , git
+            
             if print_tag == False and print_files == False and git == False:
                 for i in data:
                     fp.writelines("%s = %s\n" % (i, getattr(obj, i)))
-            elif print_tag == False and print_files == False  and git == True:
+            elif print_tag == False and print_files == False and git == True:
                 fp.writelines('%s = %s\n' % ("git_hash", self.revision_code))
                 print '%s = %s\n' % ("git_hash", self.revision_code)
             elif print_tag == False and print_files == True and git == False:
