@@ -301,12 +301,12 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
         
-        if respiration_model == "FIXED":
+        if self.control.respiration_model == "FIXED":
             # Plant respiration assuming carbon-use efficiency.
             self.fluxes.auto_resp = self.fluxes.gpp * self.params.cue
-        elif respiration_model == "TEMPERATURE":
+        elif self.control.respiration_model == "TEMPERATURE":
             raise RuntimeError, "Not implemented yet" 
-        elif respiration_model == "BIOMASS":
+        elif self.control.respiration_model == "BIOMASS":
             raise RuntimeError, "Not implemented yet" 
         
         self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 - self.fluxes.auto_resp
