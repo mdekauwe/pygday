@@ -69,6 +69,7 @@ def main(experiment_id, site, treatment, ascii=True):
                          "passiveconst": "false",
                          "print_options": "daily",
                          "ps_pathway": "c3",
+                         "respiration_model": "fixed",
                          "strfloat": "0",
                          "trans_model": "1",
                          "use_eff_nc": "0",

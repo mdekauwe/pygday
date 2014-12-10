@@ -100,7 +100,8 @@ def remove_comments_from_header_and_get_git_rev(fname):
         line_counter = 0
         for line in f:
             if line_counter == 0:
-                git_ver = line.rstrip(' ')
+                git_ver = line.replace(" ", "") 
+                print git_ver
             if '#' in line:
                 line = line.replace("#", "").lstrip(' ')
             s.write(line)
@@ -140,6 +141,7 @@ def load_gday_output(fname):
     yr_to_day = 365.25
     
     (s, git_ver) = remove_comments_from_header_and_get_git_rev(fname)
+    print git_ver
     out = pd.read_csv(s, parse_dates=[[0,1]], skiprows=1, index_col=0, 
                       sep=",", keep_date_col=True, date_parser=date_converter)
     
