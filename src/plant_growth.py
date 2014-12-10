@@ -301,6 +301,7 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown assimilation model')
         
+        # Calculate plant respiration
         if self.control.respiration_model == "FIXED":
             # Plant respiration assuming carbon-use efficiency.
             self.fluxes.auto_resp = self.fluxes.gpp * self.params.cue
@@ -309,7 +310,8 @@ class PlantGrowth(object):
         elif self.control.respiration_model == "BIOMASS":
             raise RuntimeError, "Not implemented yet" 
         
-        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 - self.fluxes.auto_resp
+        # Calculate NPP
+        self.fluxes.npp_gCm2 = self.fluxes.gpp_gCm2 * self.params.cue
         self.fluxes.npp = self.fluxes.npp_gCm2 * const.GRAM_C_2_TONNES_HA
         
     def calc_carbon_allocation_fracs(self, nitfac):
@@ -459,14 +461,14 @@ class PlantGrowth(object):
             
             # Calculate adjustment on lr_max, based on current "stress"
             # calculated from running mean of N and water stress
-            stress =  max(0.001, min(1.0, lr_max * self.state.prev_sma))
+            stress = lr_max * self.state.prev_sma
             
             # Adjust root & leaf allocation to maintain balance, accounting for
             # stress
             #
             # calculate imbalance, based on *biomass*
-            
             mis_match = self.state.shoot / (self.state.root * stress)
+            
             # reduce leaf allocation fraction
             if mis_match > 1.0:
                 orig_af = self.fluxes.alleaf
