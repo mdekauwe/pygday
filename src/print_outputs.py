@@ -199,7 +199,7 @@ class PrintOutput(object):
             if print_tag == False and print_files == False and git == False:
                 for i in data:
                     fp.writelines("%s = %s\n" % (i, getattr(obj, i)))
-            elif print_tag == True and print_files == False  and git == True:
+            elif print_tag == False and print_files == False  and git == True:
                 fp.writelines('%s = %s\n' % ("git_hash", self.revision_code))
                 print '%s = %s\n' % ("git_hash", self.revision_code)
             elif print_tag == False and print_files == True and git == False:
