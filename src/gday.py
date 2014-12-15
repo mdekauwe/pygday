@@ -212,7 +212,7 @@ class Gday(object):
                 #print self.state.plantc, self.state.soilc
 
                 #print yr, doy, self.state.lai
-
+                
 
                 # ======================= #
                 #   E N D   O F   D A Y   #
