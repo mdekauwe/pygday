@@ -1175,59 +1175,61 @@ class PlantGrowth(object):
                                 self.params.retransmob * self.state.stemnmob)        
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
 
-        
-        #============================
-        # Enforce maximum N:C ratios.
-        # ===========================    
-        # If foliage or root N/C exceeds its max, then N uptake is cut back
-        
-        # maximum leaf n:c ratio is function of stand age
-        #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
-        age_effect = ((self.state.age - self.params.ageyoung) / 
-                      (self.params.ageold - self.params.ageyoung))
-
-        ncmaxf = (self.params.ncmaxfyoung - 
-                 (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
-                  age_effect)
-        
-        if float_lt(ncmaxf, self.params.ncmaxfold):
-            ncmaxf = self.params.ncmaxfold
-
-        if float_gt(ncmaxf, self.params.ncmaxfyoung):
-            ncmaxf = self.params.ncmaxfyoung
-        
-        extras = 0.0
-        if self.state.lai > 0.0:
-            
-            if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
-                extras = self.state.shootn - self.state.shoot * ncmaxf
-                
-                # Ensure N uptake cannot be reduced below zero.
-                if float_gt(extras, self.fluxes.nuptake):
-                    extras = self.fluxes.nuptake
-                
-                self.state.shootn -= extras
-                self.fluxes.nuptake -= extras
-                
-        # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
-        # back. n.b. new ring n/c max is already set because it is related 
-        # to leaf n:c
-        ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
-        extrar = 0.0
-        if float_gt(self.state.rootn, (self.state.root * ncmaxr)):
-   
-            extrar = self.state.rootn - self.state.root * ncmaxr
-
-            # Ensure N uptake cannot be reduced below zero.
-            if float_gt((extras + extrar), self.fluxes.nuptake):
-                extrar = self.fluxes.nuptake - extras
-            
-            self.state.rootn -= extrar
-            self.fluxes.nuptake -= extrar 
-        
         # Update deciduous storage pools
         if self.control.deciduous_model:
             self.calculate_cn_store()
+        
+        if not self.control.deciduous_model:
+            #============================
+            # Enforce maximum N:C ratios.
+            # ===========================    
+            # If foliage or root N/C exceeds its max, then N uptake is cut back
+        
+            # maximum leaf n:c ratio is function of stand age
+            #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
+            age_effect = ((self.state.age - self.params.ageyoung) / 
+                          (self.params.ageold - self.params.ageyoung))
+
+            ncmaxf = (self.params.ncmaxfyoung - 
+                     (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
+                      age_effect)
+        
+            if float_lt(ncmaxf, self.params.ncmaxfold):
+                ncmaxf = self.params.ncmaxfold
+
+            if float_gt(ncmaxf, self.params.ncmaxfyoung):
+                ncmaxf = self.params.ncmaxfyoung
+        
+            extras = 0.0
+            if self.state.lai > 0.0:
+            
+                if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
+                    extras = self.state.shootn - self.state.shoot * ncmaxf
+                
+                    # Ensure N uptake cannot be reduced below zero.
+                    if float_gt(extras, self.fluxes.nuptake):
+                        extras = self.fluxes.nuptake
+                
+                    self.state.shootn -= extras
+                    self.fluxes.nuptake -= extras
+                
+            # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
+            # back. n.b. new ring n/c max is already set because it is related 
+            # to leaf n:c
+            ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
+            extrar = 0.0
+            if float_gt(self.state.rootn, (self.state.root * ncmaxr)):
+   
+                extrar = self.state.rootn - self.state.root * ncmaxr
+
+                # Ensure N uptake cannot be reduced below zero.
+                if float_gt((extras + extrar), self.fluxes.nuptake):
+                    extrar = self.fluxes.nuptake - extras
+            
+                self.state.rootn -= extrar
+                self.fluxes.nuptake -= extrar 
+        
+        
         
         
     def calculate_cn_store(self):        
