@@ -370,18 +370,50 @@ class PlantGrowth(object):
             
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
-            min_root_alloc = 0.4
-            self.fluxes.alroot = (self.params.c_alloc_rmax * 
-                                  min_root_alloc / 
-                                 (min_root_alloc + 
-                                 (self.params.c_alloc_rmax - 
-                                  min_root_alloc) * 
-                                  self.state.prev_sma))
+            #min_root_alloc = 0.4
+            #self.fluxes.alroot = (self.params.c_alloc_rmax * 
+            #                      min_root_alloc / 
+            #                     (min_root_alloc + 
+            #                     (self.params.c_alloc_rmax - 
+            #                      min_root_alloc) * 
+            #                      self.state.prev_sma))
+            
+            # assume there must be a minimum leaf and root allocation
+            min_root_alloc = 0.01
+            min_leaf_alloc = 0.01
+            max_root_alloc = 0.99
+            max_leaf_alloc = 0.99
+            
+            # leaf-to-root ratio under non-stressed conditons
+            lr_max = 0.8
+            
+            # Calculate adjustment on lr_max, based on current "stress"
+            # calculated from running mean of N and water stress
+            stress = max(0.01, lr_max * self.state.prev_sma)
+            
+            # Adjust root & leaf allocation to maintain balance, accounting for
+            # stress
+            #
+            # calculate imbalance, based on *biomass*
+            mis_match = self.state.shoot / (self.state.root * stress)
+
+            # reduce leaf allocation fraction
+            if mis_match > 1.0:
+                adj = self.fluxes.alleaf / mis_match
+                self.fluxes.alleaf = max(min_leaf_alloc, 
+                                         min(max_leaf_alloc, adj))
+                self.fluxes.alroot = 1.0 - self.fluxes.alleaf
+            # reduce root allocation    
+            else:
+                adj = self.fluxes.alroot * mis_match
+                self.fluxes.alroot = max(min_root_alloc, 
+                                         min(max_root_alloc, adj))
+                self.fluxes.alleaf = 1.0 - self.fluxes.alroot
             
             self.fluxes.alstem = 0.0
             self.fluxes.albranch = 0.0
             self.fluxes.alcroot = 0.0
-            self.fluxes.alleaf = (1.0 - self.fluxes.alroot)
+            
             
         elif self.control.alloc_model == "ALLOMETRIC":
             
@@ -461,14 +493,14 @@ class PlantGrowth(object):
             
             # Calculate adjustment on lr_max, based on current "stress"
             # calculated from running mean of N and water stress
-            stress = lr_max * self.state.prev_sma
+            stress = max(0.01, lr_max * self.state.prev_sma)
             
             # Adjust root & leaf allocation to maintain balance, accounting for
             # stress
             #
             # calculate imbalance, based on *biomass*
             mis_match = self.state.shoot / (self.state.root * stress)
-            
+
             # reduce leaf allocation fraction
             if mis_match > 1.0:
                 orig_af = self.fluxes.alleaf
@@ -482,11 +514,9 @@ class PlantGrowth(object):
                 adj = self.fluxes.alroot * mis_match
                 self.fluxes.alroot = max(min_root_alloc, 
                                          min(self.params.c_alloc_rmax, adj))
-                self.fluxes.alleaf += orig_ar - self.fluxes.alroot
-            #print mis_match, self.fluxes.alleaf, \
-            # self.fluxes.alstem+self.fluxes.albranch, self.fluxes.alroot
-            
-            
+                reduction = max(0.0, orig_ar - self.fluxes.alroot)
+                self.fluxes.alleaf += reduction
+                        
             # Allocation to branch dependent on relationship between the stem
             # and branch
             target_branch = (self.params.branch0 * 
@@ -528,8 +558,8 @@ class PlantGrowth(object):
             # minimum allocation to leaves - without it tree would die, as this
             # is done annually.
             if self.control.deciduous_model:
-                if self.fluxes.alleaf < 0.1:
-                    min_leaf_alloc = 0.1
+                if self.fluxes.alleaf < 0.05:
+                    min_leaf_alloc = 0.05
                     self.fluxes.alstem -= min_leaf_alloc
                     self.fluxes.alleaf = min_leaf_alloc
             
@@ -927,6 +957,14 @@ class PlantGrowth(object):
             U0 = self.params.rateuptake * self.state.inorgn
             Kr = self.params.kr
             nuptake = max(U0 * self.state.root / (self.state.root + Kr), 0.0)
+            
+            # Make minimum uptake rate supply rate for deciduous_model cases
+            # otherwise it is possible when growing from scratch we don't have
+            # enough root mass to obtain N at the annual time step
+            if self.control.deciduous_model:   
+                nuptake = max(U0 * self.state.root / (self.state.root + Kr), U0)
+            
+            
         elif self.control.nuptake_model == 3:
             # N uptake is a function of available soil N, soil moisture 
             # following a Michaelis-Menten approach 
