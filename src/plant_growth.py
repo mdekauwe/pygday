@@ -1175,9 +1175,6 @@ class PlantGrowth(object):
                                 self.params.retransmob * self.state.stemnmob)        
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
 
-        # Update deciduous storage pools
-        if self.control.deciduous_model:
-            self.calculate_cn_store()
         
         #if not self.control.deciduous_model:
         #============================
@@ -1229,7 +1226,10 @@ class PlantGrowth(object):
             self.state.rootn -= extrar
             self.fluxes.nuptake -= extrar 
     
-    
+        # Update deciduous storage pools
+        if self.control.deciduous_model:
+            self.calculate_cn_store()
+        
     
     
     def calculate_cn_store(self):        
