@@ -958,13 +958,6 @@ class PlantGrowth(object):
             Kr = self.params.kr
             nuptake = max(U0 * self.state.root / (self.state.root + Kr), 0.0)
             
-            # Make minimum uptake rate supply rate for deciduous_model cases
-            # otherwise it is possible when growing from scratch we don't have
-            # enough root mass to obtain N at the annual time step
-            if self.control.deciduous_model:   
-                nuptake = max(U0 * self.state.root / (self.state.root + Kr), U0)
-            
-            
         elif self.control.nuptake_model == 3:
             # N uptake is a function of available soil N, soil moisture 
             # following a Michaelis-Menten approach 
