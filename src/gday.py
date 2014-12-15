@@ -130,7 +130,7 @@ class Gday(object):
         self.state.lai = max(0.01, (self.params.sla * const.M2_AS_HA /
                                     const.KG_AS_TONNES / self.params.cfracts *
                                     self.state.shoot))
-        
+
         # figure out the number of years for simulation and the number of
         # days in each year
         self.years = uniq(self.met_data["year"])
