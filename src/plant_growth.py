@@ -507,7 +507,8 @@ class PlantGrowth(object):
             #
             ## Catch for growing from a zero state
             #
-            if float_eq(self.state.shoot, 0.0):
+            if (float_eq(self.state.shoot, 0.0) and 
+                not self.control.deciduous_model):
                 self.fluxes.alleaf = self.params.c_alloc_fmax
                 self.fluxes.alroot = self.params.c_alloc_rmax
             else:
@@ -1174,8 +1175,6 @@ class PlantGrowth(object):
                                 self.params.retransmob * self.state.stemnmob)        
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
 
-        if self.control.deciduous_model:
-            self.calculate_cn_store()
         
         #============================
         # Enforce maximum N:C ratios.
@@ -1199,14 +1198,14 @@ class PlantGrowth(object):
         
         extras = 0.0
         if self.state.lai > 0.0:
-
+            
             if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
                 extras = self.state.shootn - self.state.shoot * ncmaxf
                 
                 # Ensure N uptake cannot be reduced below zero.
                 if float_gt(extras, self.fluxes.nuptake):
                     extras = self.fluxes.nuptake
-
+                print ncmaxf, self.state.shootn/self.state.shoot
                 self.state.shootn -= extras
                 self.fluxes.nuptake -= extras
                 
@@ -1222,10 +1221,15 @@ class PlantGrowth(object):
             # Ensure N uptake cannot be reduced below zero.
             if float_gt((extras + extrar), self.fluxes.nuptake):
                 extrar = self.fluxes.nuptake - extras
-
+            
             self.state.rootn -= extrar
             self.fluxes.nuptake -= extrar 
-                
+        
+        # Update deciduous storage pools
+        if self.control.deciduous_model:
+            self.calculate_cn_store()
+        
+        
     def calculate_cn_store(self):        
         """ Deciduous trees store carbohydrate during the winter which they then
         use in the following year to build new leaves (buds & budburst are 
