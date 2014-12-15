@@ -1205,7 +1205,7 @@ class PlantGrowth(object):
                 # Ensure N uptake cannot be reduced below zero.
                 if float_gt(extras, self.fluxes.nuptake):
                     extras = self.fluxes.nuptake
-                print ncmaxf, self.state.shootn/self.state.shoot
+                
                 self.state.shootn -= extras
                 self.fluxes.nuptake -= extras
                 
