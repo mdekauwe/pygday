@@ -114,6 +114,7 @@ class Gday(object):
                 float_eq(self.state.avg_alcroot, 0.0)): 
                 self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
             else:
+                
                 self.fluxes.alleaf = self.state.avg_alleaf
                 self.fluxes.alstem = self.state.avg_alstem 
                 self.fluxes.albranch = self.state.avg_albranch 

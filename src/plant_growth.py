@@ -382,13 +382,14 @@ class PlantGrowth(object):
             
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
-            #min_root_alloc = 0.4
-            #self.fluxes.alroot = (self.params.c_alloc_rmax * 
-            #                      min_root_alloc / 
-            #                     (min_root_alloc + 
-            #                     (self.params.c_alloc_rmax - 
-            #                      min_root_alloc) * 
-            #                      self.state.prev_sma))
+            min_root_alloc = 0.4
+            self.fluxes.alroot = (self.params.c_alloc_rmax * 
+                                  min_root_alloc / 
+                                 (min_root_alloc + 
+                                 (self.params.c_alloc_rmax - 
+                                  min_root_alloc) * 
+                                  self.state.prev_sma))
+            self.fluxes.alleaf = 1.0 - self.fluxes.alroot
             
             # assume there must be a minimum leaf and root allocation
             min_root_alloc = 0.01
@@ -481,7 +482,7 @@ class PlantGrowth(object):
                                                       self.params.c_alloc_fmax, 
                                                       self.params.targ_sens) 
             
-            """
+            
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation, this is adjusted below as we aim
             # to maintain a functional balance
@@ -493,10 +494,7 @@ class PlantGrowth(object):
                                  (self.params.c_alloc_rmax - 
                                   min_root_alloc) * 
                                   self.state.prev_sma))
-            """
-            self.fluxes.alroot = self.fluxes.alleaf
-            
-            
+           
             
             # Maintain functional balance between leaf and root biomass
             #   e.g. -> Sitch et al. 2003, GCB.
