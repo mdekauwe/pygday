@@ -583,17 +583,6 @@ class PlantGrowth(object):
                                         self.fluxes.alcroot)
                
                
-            
-            
-            # Because I have allowed the max fracs sum > 1, possibility
-            # stem frac would be negative. Perhaps the above shouldn't be 
-            # allowed...? But this will stop wood allocation in such a 
-            # situation.
-            #if self.fluxes.alstem < 0.0:
-            #    extra = self.fluxes.alstem
-            #    self.fluxes.alstem = 0.0
-            #    self.fluxes.alleaf -= extra
-            
             # minimum allocation to leaves - without it tree would die, as this
             # is done annually.
             if self.control.deciduous_model:
