@@ -69,6 +69,8 @@ class PlantGrowth(object):
                                     top_soil_depth=self.params.topsoil_depth*const.MM_TO_M)
         
         # Window size = root lifespan in days...
+        # For deciduous species window size is set as the length of the 
+        # growing season in the main part of the code
         self.window_size = (int(1.0 / (self.params.rdecay * const.NDAYS_IN_YR)* 
                             const.NDAYS_IN_YR))
         #self.window_size = 365
@@ -132,10 +134,19 @@ class PlantGrowth(object):
                 # year LAI=0.0
                 if self.state.lai > self.state.max_lai:
                     self.state.max_lai = self.state.lai
-        
-        
-        
-                   
+                
+                if self.state.shoot > self.state.max_shoot:
+                    self.state.max_shoot = self.state.shoot
+                
+            self.calc_carbon_allocation_fracs(nitfac)
+            
+            
+            
+            self.fluxes.avg_alleaf += self.fluxes.alleaf
+            self.fluxes.avg_albranch += self.fluxes.albranch
+            self.fluxes.avg_alstem += self.fluxes.alstem
+        self.fluxes.avg_alroot += self.fluxes.alroot
+             
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
         
@@ -431,22 +442,6 @@ class PlantGrowth(object):
                 # reset the buffer at the end of the growing season
                 self.sma.reset_stream()
             
-            #
-            ## Commented out using functional balance below.
-            #
-               
-            # figure out root allocation given available water & nutrients
-            # hyperbola shape to allocation
-            #min_root_alloc = 0.05
-            #min_leaf_alloc = 0.05
-            #self.fluxes.alroot = (self.params.c_alloc_rmax * 
-            #                      min_root_alloc / 
-            #                     (min_root_alloc + 
-            #                     (self.params.c_alloc_rmax - 
-            #                      min_root_alloc) * 
-            #                      self.state.prev_sma))
-            
-            
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
             self.state.canht = (self.params.heighto * 
@@ -485,14 +480,28 @@ class PlantGrowth(object):
                                                       self.params.c_alloc_fmax, 
                                                       self.params.targ_sens) 
             
+            # figure out root allocation given available water & nutrients
+            # hyperbola shape to allocation, this is adjusted below as we aim
+            # to maintain a functional balance
+            min_root_alloc = 0.05
+            min_leaf_alloc = 0.05
+            self.fluxes.alroot = (self.params.c_alloc_rmax * 
+                                  min_root_alloc / 
+                                 (min_root_alloc + 
+                                 (self.params.c_alloc_rmax - 
+                                  min_root_alloc) * 
+                                  self.state.prev_sma))
+            
+            
+            
             
             # Maintain functional balance between leaf and root biomass
             #   e.g. -> Sitch et al. 2003, GCB.
             
             # minimum allocation is 1%
-            min_root_alloc = 0.01
-            min_leaf_alloc = 0.01
-            
+            min_root_alloc = 0.05
+            min_leaf_alloc = 0.05
+            min_wood_alloc = 0.1
             # leaf-to-root ratio under non-stressed conditons
             lr_max = 1.0
             
@@ -513,24 +522,30 @@ class PlantGrowth(object):
                 self.fluxes.alroot = self.params.c_alloc_rmax
             else:
                 # calculate imbalance, based on *biomass*
-                mis_match = self.state.shoot / (self.state.root * stress)
-
+                if not self.control.deciduous_model:
+                    mis_match = self.state.shoot / (self.state.root * stress)
+                else:
+                    mis_match = (self.state.max_shoot / 
+                                 (self.state.root * stress))
+                    
                 # reduce leaf allocation fraction
                 if mis_match > 1.0:
                     orig_af = self.fluxes.alleaf
                     adj = self.fluxes.alleaf / mis_match
                     self.fluxes.alleaf = max(min_leaf_alloc, 
                                              min(self.params.c_alloc_fmax, adj))
-                    self.fluxes.alroot += orig_af - self.fluxes.alleaf
+                    self.fluxes.alroot += max(min_wood_alloc, orig_af - self.fluxes.alleaf)
                 # reduce root allocation    
                 else:
                     orig_ar = self.fluxes.alroot
                     adj = self.fluxes.alroot * mis_match
                     self.fluxes.alroot = max(min_root_alloc, 
                                              min(self.params.c_alloc_rmax, adj))
+                    
                     reduction = max(0.0, orig_ar - self.fluxes.alroot)
                     self.fluxes.alleaf += reduction
-                        
+            
+                  
             # Allocation to branch dependent on relationship between the stem
             # and branch
             target_branch = (self.params.branch0 * 
@@ -547,18 +562,19 @@ class PlantGrowth(object):
                                                        self.params.c_alloc_cmax, 
                                                        self.params.targ_sens) 
             
+            left_over = (1.0 - self.fluxes.alroot - self.fluxes.alleaf)
+            if (self.fluxes.albranch + self.fluxes.alcroot) > left_over:
+                self.fluxes.alstem = 0.4 * left_over
+                self.fluxes.albranch = 0.3 * left_over
+                self.fluxes.alcroot = 0.3 * leaf_over
+            
             self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
                                         self.fluxes.albranch - 
                                         self.fluxes.alleaf -
                                         self.fluxes.alcroot)
+               
+               
             
-            
-            # allocation to stem is the residual
-            #self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
-            #                            self.fluxes.albranch - 
-            #                            self.fluxes.alleaf)
-            #self.fluxes.alcroot = 0.2 * self.fluxes.alstem
-            #self.fluxes.alstem -= self.fluxes.alcroot
             
             # Because I have allowed the max fracs sum > 1, possibility
             # stem frac would be negative. Perhaps the above shouldn't be 
@@ -574,17 +590,19 @@ class PlantGrowth(object):
             if self.control.deciduous_model:
                 if self.fluxes.alleaf < 0.05:
                     min_leaf_alloc = 0.05
-                    self.fluxes.alstem -= min_leaf_alloc
+                    if self.fluxes.alstem > min_leaf_alloc:
+                        self.fluxes.alstem -= min_leaf_alloc
+                    else:
+                        self.fluxes.alroot -= min_leaf_alloc
                     self.fluxes.alleaf = min_leaf_alloc
-            
+                
         else:
             raise AttributeError('Unknown C allocation model')
         
-        #print self.fluxes.alleaf, self.fluxes.alstem, self.fluxes.albranch, \
-        #       self.fluxes.alroot, self.state.prev_sma, self.state.canht
-        
-        
-        
+        #print "*", self.fluxes.alleaf, \
+        #          (self.fluxes.alstem + self.fluxes.albranch), \
+        #           self.fluxes.alroot
+       
         # Total allocation should be one, if not print warning:
         total_alloc = (self.fluxes.alroot + self.fluxes.alleaf + 
                        self.fluxes.albranch + self.fluxes.alstem + 
@@ -646,7 +664,8 @@ class PlantGrowth(object):
         #    self.fluxes.alroot = 0.11
         #    self.fluxes.albranch = 0.06
         #    self.fluxes.alstem = 0.57
-                
+        
+        
         # ========================
         # Carbon - fixed fractions
         # ========================
@@ -693,7 +712,8 @@ class PlantGrowth(object):
                                        self.fluxes.alroot *
                                        self.params.ncrfac))
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-               
+        
+        
         
     def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, rdecay, doy,
                             days_in_yr, project_day):
@@ -975,7 +995,7 @@ class PlantGrowth(object):
             # Make minimum uptake rate supply rate for deciduous_model cases
             # otherwise it is possible when growing from scratch we don't have
             # enough root mass to obtain N at the annual time step
-            # This probably needs more thought!
+            # I don't see an obvious better solution?
             if self.control.deciduous_model:   
                 nuptake = max(U0 * self.state.root / (self.state.root + Kr), U0)
             
@@ -1001,8 +1021,6 @@ class PlantGrowth(object):
             arg3 = exp(0.0693 * self.met_data['tair'][project_day])
             arg4 = 1.0 - self.params.ac
             nuptake = (arg1 / arg2) * arg3 * arg4
-            
-            #print self.params.nmax, self.params.knl, ks, exp(0.0693 * tavg) 
             
         else:
             raise AttributeError('Unknown N uptake option')
@@ -1176,56 +1194,109 @@ class PlantGrowth(object):
         self.state.stemn = self.state.stemnimm + self.state.stemnmob
 
         
-        #if not self.control.deciduous_model:
-        #============================
-        # Enforce maximum N:C ratios.
-        # ===========================    
-        # If foliage or root N/C exceeds its max, then N uptake is cut back
+        if not self.control.deciduous_model:
+            #============================
+            # Enforce maximum N:C ratios.
+            # ===========================    
+            # If foliage or root N/C exceeds its max, then N uptake is cut back
     
-        # maximum leaf n:c ratio is function of stand age
-        #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
-        age_effect = ((self.state.age - self.params.ageyoung) / 
-                      (self.params.ageold - self.params.ageyoung))
+            # maximum leaf n:c ratio is function of stand age
+            #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
+            age_effect = ((self.state.age - self.params.ageyoung) / 
+                          (self.params.ageold - self.params.ageyoung))
 
-        ncmaxf = (self.params.ncmaxfyoung - 
-                 (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
-                  age_effect)
+            ncmaxf = (self.params.ncmaxfyoung - 
+                     (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
+                      age_effect)
     
-        if float_lt(ncmaxf, self.params.ncmaxfold):
-            ncmaxf = self.params.ncmaxfold
+            if float_lt(ncmaxf, self.params.ncmaxfold):
+                ncmaxf = self.params.ncmaxfold
 
-        if float_gt(ncmaxf, self.params.ncmaxfyoung):
-            ncmaxf = self.params.ncmaxfyoung
+            if float_gt(ncmaxf, self.params.ncmaxfyoung):
+                ncmaxf = self.params.ncmaxfyoung
     
-        extras = 0.0
-        if self.state.lai > 0.0:
+            extras = 0.0
+            if self.state.lai > 0.0:
         
+                if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
+                    extras = self.state.shootn - self.state.shoot * ncmaxf
+            
+                    # Ensure N uptake cannot be reduced below zero.
+                    if float_gt(extras, self.fluxes.nuptake):
+                        extras = self.fluxes.nuptake
+            
+                    self.state.shootn -= extras
+                    self.fluxes.nuptake -= extras
+            
+            # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
+            # back. n.b. new ring n/c max is already set because it is related 
+            # to leaf n:c
+            ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
+            extrar = 0.0
+            if float_gt(self.state.rootn, (self.state.root * ncmaxr)):
+
+                extrar = self.state.rootn - self.state.root * ncmaxr
+
+                # Ensure N uptake cannot be reduced below zero.
+                if float_gt((extras + extrar), self.fluxes.nuptake):
+                    extrar = self.fluxes.nuptake - extras
+        
+                self.state.rootn -= extrar
+                self.fluxes.nuptake -= extrar 
+        """
+        else:
+            
+        
+            #============================
+            # Enforce maximum N:C ratios.
+            # ===========================    
+            # If foliage or root N/C exceeds its max, then N uptake is cut 
+            # back
+
+            # maximum leaf n:c ratio is function of stand age
+            #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
+            age_effect = ((self.state.age - self.params.ageyoung) / 
+                          (self.params.ageold - self.params.ageyoung))
+
+            ncmaxf = (self.params.ncmaxfyoung - 
+                     (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
+                      age_effect)
+
+            if float_lt(ncmaxf, self.params.ncmaxfold):
+                ncmaxf = self.params.ncmaxfold
+
+            if float_gt(ncmaxf, self.params.ncmaxfyoung):
+                ncmaxf = self.params.ncmaxfyoung
+        
+            extras = 0.0
             if float_gt(self.state.shootn, (self.state.shoot * ncmaxf)):
                 extras = self.state.shootn - self.state.shoot * ncmaxf
-            
+    
                 # Ensure N uptake cannot be reduced below zero.
                 if float_gt(extras, self.fluxes.nuptake):
                     extras = self.fluxes.nuptake
-            
-                self.state.shootn -= extras
+    
+                #self.state.shootn -= extras
                 self.fluxes.nuptake -= extras
             
-        # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
-        # back. n.b. new ring n/c max is already set because it is related 
-        # to leaf n:c
-        ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
-        extrar = 0.0
-        if float_gt(self.state.rootn, (self.state.root * ncmaxr)):
-
-            extrar = self.state.rootn - self.state.root * ncmaxr
-
-            # Ensure N uptake cannot be reduced below zero.
-            if float_gt((extras + extrar), self.fluxes.nuptake):
-                extrar = self.fluxes.nuptake - extras
         
-            self.state.rootn -= extrar
-            self.fluxes.nuptake -= extrar 
-    
+            # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
+            # back. n.b. new ring n/c max is already set because it is related 
+            # to leaf n:c
+            ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
+            extrar = 0.0
+            if float_gt(self.state.rootn, (self.state.root * ncmaxr)):
+
+                extrar = self.state.rootn - self.state.root * ncmaxr
+
+                # Ensure N uptake cannot be reduced below zero.
+                if float_gt((extras + extrar), self.fluxes.nuptake):
+                    extrar = self.fluxes.nuptake - extras
+
+                #self.state.rootn -= extrar
+                self.fluxes.nuptake -= extrar 
+        
+        """   
         # Update deciduous storage pools
         if self.control.deciduous_model:
             self.calculate_cn_store()
@@ -1241,7 +1312,17 @@ class PlantGrowth(object):
         self.state.cstore += self.fluxes.npp
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
+    
+    def calculate_average_alloc_fractions(self, tot_days):
+        self.fluxes.alleaf = self.fluxes.avg_alleaf / float(tot_days)
+        self.fluxes.alroot = self.fluxes.avg_alroot / float(tot_days)
+        self.fluxes.albranch = self.fluxes.avg_albranch / float(tot_days)
+        self.fluxes.alstem = self.fluxes.avg_alstem / float(tot_days)
         
+        
+
+    
+         
 if __name__ == "__main__":
     
     # timing...
