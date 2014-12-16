@@ -11,6 +11,7 @@ __email__   = "mdekauwe@gmail.com"
 
 
 
+
 # Carbon state variables (t/ha)
 shoot           = 3.38042             # shoot c
 root            = 0.614058            # root c
@@ -59,6 +60,12 @@ age = 0.0                               #Current stand age (years)
 canht = 17.0     # Canopy height (m)
 
 
+# Average growing season allocation fractions
+avg_alleaf = 0.0
+avg_alroot = 0.0
+avg_albranch = 0.0
+avg_alstem = 0.0
+avg_alcroot = 0.0
 
 
 # decid model
