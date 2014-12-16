@@ -104,7 +104,6 @@ class Gday(object):
             if self.state.max_lai is None:
                 self.state.max_lai = 0.01 # initialise to something really low
                 self.state.max_shoot = 0.01 # initialise to something really low
-                self.state.max_root = 0.01 # initialise to something really low
             
             self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
             self.pg.allocate_stored_c_and_n(init=True)
@@ -436,7 +435,6 @@ class Gday(object):
         self.state.lai = 0.0
         self.state.max_lai = 0.0
         self.state.max_shoot = 0.0
-        self.state.max_root = 0.0
         self.state.cstore = 0.0
         self.state.nstore = 0.0
         self.state.anpp = 0.0
