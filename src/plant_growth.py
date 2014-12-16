@@ -562,11 +562,20 @@ class PlantGrowth(object):
                                                        self.params.c_alloc_cmax, 
                                                        self.params.targ_sens) 
             
+            # Ensure we don't end up with alloc fractions that make no
+            # physical sense. In such a situation assume a bl
             left_over = (1.0 - self.fluxes.alroot - self.fluxes.alleaf)
             if (self.fluxes.albranch + self.fluxes.alcroot) > left_over:
                 self.fluxes.alstem = 0.4 * left_over
                 self.fluxes.albranch = 0.3 * left_over
-                self.fluxes.alcroot = 0.3 * leaf_over
+                if float_eq(self.state.croot, 0.0):
+                    self.fluxes.alcroot = 0.0
+                    self.fluxes.alstem = 0.5 * left_over
+                    self.fluxes.albranch = 0.5 * left_over
+                else:    
+                    self.fluxes.alcroot = 0.3 * leaf_over
+                    self.fluxes.alstem = 0.4 * left_over
+                    self.fluxes.albranch = 0.3 * left_over
             
             self.fluxes.alstem = (1.0 - self.fluxes.alroot - 
                                         self.fluxes.albranch - 
