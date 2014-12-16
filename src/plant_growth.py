@@ -480,6 +480,7 @@ class PlantGrowth(object):
                                                       self.params.c_alloc_fmax, 
                                                       self.params.targ_sens) 
             
+            """
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation, this is adjusted below as we aim
             # to maintain a functional balance
@@ -491,7 +492,8 @@ class PlantGrowth(object):
                                  (self.params.c_alloc_rmax - 
                                   min_root_alloc) * 
                                   self.state.prev_sma))
-            
+            """
+            self.fluxes.alroot = self.fluxes.alleaf
             
             
             
