@@ -103,6 +103,9 @@ class Gday(object):
         if self.control.deciduous_model:
             if self.state.max_lai is None:
                 self.state.max_lai = 0.01 # initialise to something really low
+                self.state.max_shoot = 0.01 # initialise to something really low
+                self.state.max_root = 0.01 # initialise to something really low
+            
             self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
             self.pg.allocate_stored_c_and_n(init=True)
             self.P = Phenology(self.fluxes, self.state, self.control,
@@ -230,9 +233,12 @@ class Gday(object):
             if self.control.deciduous_model:
 
                 # Allocate stored C&N for the following year
-                self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
+                
+                #self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
+                
+                self.pg.calculate_average_alloc_fractions(days_in_year[i])
                 self.pg.allocate_stored_c_and_n(init=False)
-
+                
             # GDAY died in the previous year, re-establish gday for the next yr
             #   - added for desert simulation
             if (self.dead and not
@@ -429,11 +435,18 @@ class Gday(object):
         self.state.shootnc = 0.0
         self.state.lai = 0.0
         self.state.max_lai = 0.0
+        self.state.max_shoot = 0.0
+        self.state.max_root = 0.0
         self.state.cstore = 0.0
         self.state.nstore = 0.0
         self.state.anpp = 0.0
-        self.state.grw_seas_stress = 0.0
-
+        self.state.grw_seas_stress = 1.0
+        
+        self.fluxes.avg_alleaf = 0.
+        self.fluxes.avg_alroot = 0.0
+        self.fluxes.avg_albranch  = 0.0
+        self.fluxes.avg_alstem = 0.
+        
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
         time_constants = ['rateuptake', 'rateloss', 'retransmob',

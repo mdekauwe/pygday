@@ -148,6 +148,11 @@ alroot = 0.0
 albranch = 0.0
 alstem = 0.0
 
+avg_alleaf = 0.0
+avg_alroot = 0.0
+avg_albranch = 0.0
+avg_alstem = 0.0
+
 # Misc stuff
 cica_avg = None # used in water balance, only when running mate model
 apar = None
