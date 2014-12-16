@@ -105,8 +105,24 @@ class Gday(object):
                 self.state.max_lai = 0.01 # initialise to something really low
                 self.state.max_shoot = 0.01 # initialise to something really low
             
-            self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
+            # Are we reading in last years average growing season?
+            if (float_eq(self.state.avg_alleaf, 0.0) and 
+                float_eq(self.state.avg_alstem, 0.0) and 
+                float_eq(self.state.avg_albranch, 0.0) and 
+                float_eq(self.state.avg_alleaf, 0.0) and 
+                float_eq(self.state.avg_alroot, 0.0) and 
+                float_eq(self.state.avg_alcroot, 0.0)): 
+                self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
+            else:
+                self.fluxes.alleaf = self.state.avg_alleaf
+                self.fluxes.alstem = self.state.avg_alstem 
+                self.fluxes.albranch = self.state.avg_albranch 
+                self.fluxes.alroot = self.state.avg_alroot 
+                self.fluxes.alcroot = self.state.avg_alcroot
+            
+            
             self.pg.allocate_stored_c_and_n(init=True)
+            self.pg.enforce_sensible_nstore()
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
                               store_transfer_len=self.params.store_transfer_len)
@@ -235,8 +251,9 @@ class Gday(object):
                 
                 #self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 
-                self.pg.calculate_average_alloc_fractions(days_in_year[i])
+                self.pg.calculate_average_alloc_fractions(self.P.growing_seas_len)
                 self.pg.allocate_stored_c_and_n(init=False)
+                self.pg.enforce_sensible_nstore()
                 
             # GDAY died in the previous year, re-establish gday for the next yr
             #   - added for desert simulation
@@ -440,10 +457,12 @@ class Gday(object):
         self.state.anpp = 0.0
         self.state.grw_seas_stress = 1.0
         
-        self.fluxes.avg_alleaf = 0.
-        self.fluxes.avg_alroot = 0.0
-        self.fluxes.avg_albranch  = 0.0
-        self.fluxes.avg_alstem = 0.
+        if self.control.deciduous_model:
+            self.state.avg_alleaf = 0.0
+            self.state.avg_alroot = 0.0
+            self.state.avg_alcroot = 0.0
+            self.state.avg_albranch  = 0.0
+            self.state.avg_alstem = 0.0
         
     def correct_rate_constants(self, output=False):
         """ adjust rate constants for the number of days in years """
