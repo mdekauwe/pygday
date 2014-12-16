@@ -258,7 +258,8 @@ class Gday(object):
                 
                 #print self.fluxes.alleaf, self.fluxes.alroot, \
                 #    (self.fluxes.albranch+self.fluxes.alstem)
-                
+                #print self.state.cstore, self.state.nstore, self.state.nstore/self.state.cstore
+                #print
                 
             # GDAY died in the previous year, re-establish gday for the next yr
             #   - added for desert simulation
