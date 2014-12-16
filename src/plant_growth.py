@@ -138,14 +138,15 @@ class PlantGrowth(object):
                 if self.state.shoot > self.state.max_shoot:
                     self.state.max_shoot = self.state.shoot
                 
-            self.calc_carbon_allocation_fracs(nitfac)
+                self.calc_carbon_allocation_fracs(nitfac)
             
-            
-            
-            self.fluxes.avg_alleaf += self.fluxes.alleaf
-            self.fluxes.avg_albranch += self.fluxes.albranch
-            self.fluxes.avg_alstem += self.fluxes.alstem
-        self.fluxes.avg_alroot += self.fluxes.alroot
+                # store the days allocation fraction, we average these at the
+                # end of the year (for the growing season)
+                self.state.avg_alleaf += self.fluxes.alleaf
+                self.state.avg_albranch += self.fluxes.albranch
+                self.state.avg_alstem += self.fluxes.alstem
+                self.state.avg_alroot += self.fluxes.alroot
+                self.state.avg_alcroot += self.fluxes.alcroot
              
         # Distribute new C and N through the system
         self.carbon_allocation(nitfac, doy, days_in_yr)
@@ -602,7 +603,13 @@ class PlantGrowth(object):
         #print "*", self.fluxes.alleaf, \
         #          (self.fluxes.alstem + self.fluxes.albranch), \
         #           self.fluxes.alroot
-       
+        
+        #if nitfac == 0.0:
+        #    print "*", self.fluxes.alleaf, \
+        #              (self.fluxes.alstem + self.fluxes.albranch), \
+        #               self.fluxes.alroot
+        
+        
         # Total allocation should be one, if not print warning:
         total_alloc = (self.fluxes.alroot + self.fluxes.alleaf + 
                        self.fluxes.albranch + self.fluxes.alstem + 
@@ -1314,12 +1321,19 @@ class PlantGrowth(object):
         self.state.anpp += self.fluxes.npp
     
     def calculate_average_alloc_fractions(self, tot_days):
-        self.fluxes.alleaf = self.fluxes.avg_alleaf / float(tot_days)
-        self.fluxes.alroot = self.fluxes.avg_alroot / float(tot_days)
-        self.fluxes.albranch = self.fluxes.avg_albranch / float(tot_days)
-        self.fluxes.alstem = self.fluxes.avg_alstem / float(tot_days)
+        self.state.avg_alleaf /= float(tot_days)
+        self.state.avg_alroot /= float(tot_days)
+        self.state.avg_alcroot /= float(tot_days)
+        self.state.avg_albranch /= float(tot_days)
+        self.state.avg_alstem /= float(tot_days)
         
-    """   
+        self.fluxes.alleaf = self.state.avg_alleaf 
+        self.fluxes.alroot = self.state.avg_alroot 
+        self.fluxes.alcroot = self.state.avg_alcroot 
+        self.fluxes.albranch = self.state.avg_albranch 
+        self.fluxes.alstem = self.state.avg_alstem 
+        
+    #"""   
     def enforce_sensible_nstore(self):
         
     
@@ -1348,12 +1362,11 @@ class PlantGrowth(object):
         if float_gt(self.state.n_to_alloc_shoot, (self.state.c_to_alloc_shoot * ncmaxf)):
             extras = self.state.n_to_alloc_shoot - (self.state.c_to_alloc_shoot * ncmaxf)
             
-            loss = (self.params.rateloss * const.NDAYS_IN_YR) * extras
-            self.fluxes.nloss += loss
-            self.state.nstore += extras - loss
+            #loss = (self.params.rateloss * const.NDAYS_IN_YR) * extras
+            #self.fluxes.nloss += loss
+            self.state.inorgn += extras #- loss
             self.state.n_to_alloc_shoot -= extras
-        else:
-            self.state.nstore = 0.0 
+        
         
         # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
         # back. n.b. new ring n/c max is already set because it is related 
@@ -1363,14 +1376,14 @@ class PlantGrowth(object):
 
             extrar = self.state.n_to_alloc_root - (self.state.c_to_alloc_root * ncmaxr)
             
-            loss = (self.params.rateloss * const.NDAYS_IN_YR) * extrar
-            self.fluxes.nloss += loss
-            self.state.nstore += extrar - loss
-            
+            #loss = (self.params.rateloss * const.NDAYS_IN_YR) * extrar
+            #self.fluxes.nloss += loss
+            self.state.inorgn += extrar #- loss
             self.state.n_to_alloc_root -= extrar
-        else:
-            self.state.nstore = 0.0     
-    """    
+        
+        
+             
+    #"""    
  
 if __name__ == "__main__":
     

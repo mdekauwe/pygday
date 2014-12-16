@@ -289,6 +289,7 @@ def adjust_object_attributes(user_dict, obj):
     # make sure parameters is not named a reserved python word
     ignore = ['cfg_fname']
     special = ['topsoil_type', 'rootsoil_type']
+  
     bad_words = keyword.kwlist
     bad_vars = [method for method in dir(str) if method[:2]=='__']
     for key, value in user_dict.iteritems():
