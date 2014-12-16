@@ -1320,12 +1320,12 @@ class PlantGrowth(object):
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
     
-    def calculate_average_alloc_fractions(self, tot_days):
-        self.state.avg_alleaf /= float(tot_days)
-        self.state.avg_alroot /= float(tot_days)
-        self.state.avg_alcroot /= float(tot_days)
-        self.state.avg_albranch /= float(tot_days)
-        self.state.avg_alstem /= float(tot_days)
+    def calculate_average_alloc_fractions(self, days):
+        self.state.avg_alleaf /= float(days)
+        self.state.avg_alroot /= float(days)
+        self.state.avg_alcroot /= float(days)
+        self.state.avg_albranch /= float(days)
+        self.state.avg_alstem /= float(days)
         
         self.fluxes.alleaf = self.state.avg_alleaf 
         self.fluxes.alroot = self.state.avg_alroot 

@@ -122,7 +122,7 @@ class Gday(object):
             
             
             self.pg.allocate_stored_c_and_n(init=True)
-            self.pg.enforce_sensible_nstore()
+            #self.pg.enforce_sensible_nstore()
             self.P = Phenology(self.fluxes, self.state, self.control,
                                self.params.previous_ncd,
                               store_transfer_len=self.params.store_transfer_len)
@@ -253,7 +253,11 @@ class Gday(object):
                 
                 self.pg.calculate_average_alloc_fractions(self.P.growing_seas_len)
                 self.pg.allocate_stored_c_and_n(init=False)
-                self.pg.enforce_sensible_nstore()
+                #self.pg.enforce_sensible_nstore()
+                
+                #print self.fluxes.alleaf, self.fluxes.alroot, \
+                #    (self.fluxes.albranch+self.fluxes.alstem)
+                
                 
             # GDAY died in the previous year, re-establish gday for the next yr
             #   - added for desert simulation
