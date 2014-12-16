@@ -1319,10 +1319,59 @@ class PlantGrowth(object):
         self.fluxes.albranch = self.fluxes.avg_albranch / float(tot_days)
         self.fluxes.alstem = self.fluxes.avg_alstem / float(tot_days)
         
+    """   
+    def enforce_sensible_nstore(self):
         
-
     
-         
+        
+        #============================
+        # Enforce maximum N:C ratios.
+        # ===========================    
+        # If foliage or root N/C exceeds its max, then N uptake is cut 
+        # back
+
+        # maximum leaf n:c ratio is function of stand age
+        #  - switch off age effect by setting ncmaxfyoung = ncmaxfold
+        age_effect = ((self.state.age - self.params.ageyoung) / 
+                      (self.params.ageold - self.params.ageyoung))
+
+        ncmaxf = (self.params.ncmaxfyoung - 
+                 (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
+                  age_effect)
+
+        if float_lt(ncmaxf, self.params.ncmaxfold):
+            ncmaxf = self.params.ncmaxfold
+
+        if float_gt(ncmaxf, self.params.ncmaxfyoung):
+            ncmaxf = self.params.ncmaxfyoung
+        
+        if float_gt(self.state.n_to_alloc_shoot, (self.state.c_to_alloc_shoot * ncmaxf)):
+            extras = self.state.n_to_alloc_shoot - (self.state.c_to_alloc_shoot * ncmaxf)
+            
+            loss = (self.params.rateloss * const.NDAYS_IN_YR) * extras
+            self.fluxes.nloss += loss
+            self.state.nstore += extras - loss
+            self.state.n_to_alloc_shoot -= extras
+        else:
+            self.state.nstore = 0.0 
+        
+        # if root N:C ratio exceeds its max, then nitrogen uptake is cut 
+        # back. n.b. new ring n/c max is already set because it is related 
+        # to leaf n:c
+        ncmaxr = ncmaxf * self.params.ncrfac  # max root n:c
+        if float_gt(self.state.n_to_alloc_root, (self.state.c_to_alloc_root * ncmaxr)):
+
+            extrar = self.state.n_to_alloc_root - (self.state.c_to_alloc_root * ncmaxr)
+            
+            loss = (self.params.rateloss * const.NDAYS_IN_YR) * extrar
+            self.fluxes.nloss += loss
+            self.state.nstore += extrar - loss
+            
+            self.state.n_to_alloc_root -= extrar
+        else:
+            self.state.nstore = 0.0     
+    """    
+ 
 if __name__ == "__main__":
     
     # timing...
