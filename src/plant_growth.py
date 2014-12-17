@@ -574,7 +574,7 @@ class PlantGrowth(object):
                     self.fluxes.alstem = 0.5 * left_over
                     self.fluxes.albranch = 0.5 * left_over
                 else:    
-                    self.fluxes.alcroot = 0.3 * leaf_over
+                    self.fluxes.alcroot = 0.3 * left_over
                     self.fluxes.alstem = 0.4 * left_over
                     self.fluxes.albranch = 0.3 * left_over
             
