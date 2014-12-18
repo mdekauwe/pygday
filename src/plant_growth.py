@@ -755,8 +755,8 @@ class PlantGrowth(object):
         if self.control.model_optroot == True:    
             
             # convert t ha-1 day-1 to gN m-2 year-1
-            nsupply = (self.calculate_nuptake() * const.TONNES_HA_2_G_M2 * 
-                       const.DAYS_IN_YRS)
+            nsupply = (self.calculate_nuptake(project_day, fsoilT) * 
+                       const.TONNES_HA_2_G_M2 * const.DAYS_IN_YRS)
             
             # covnert t ha-1 to kg DM m-2
             rtot = (self.state.root * const.TONNES_HA_2_KG_M2 / 
@@ -965,7 +965,7 @@ class PlantGrowth(object):
         
         
     
-    def calculate_nuptake(self, project_day):
+    def calculate_nuptake(self, project_day, fsoilT):
         """ N uptake depends on the rate at which soil mineral N is made 
         available to the plants.
         
