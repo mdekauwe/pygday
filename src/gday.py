@@ -206,9 +206,10 @@ class Gday(object):
                     self.db.hurricane()
 
                 # photosynthesis & growth
+                fsoilT = self.cs.soil_temp_factor(project_day)
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy,
-                                        float(days_in_year[i]), i)
+                                        float(days_in_year[i]), i, fsoilT)
 
                 # soil C & N calculation
                 self.cs.calculate_csoil_flows(project_day, doy)
