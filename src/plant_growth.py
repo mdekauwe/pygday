@@ -397,7 +397,7 @@ class PlantGrowth(object):
             
             # Calculate adjustment on lr_max, based on current "stress"
             # calculated from running mean of N and water stress
-            stress = max(0.01, lr_max * self.state.prev_sma)
+            stress = lr_max * self.state.prev_sma
             
             # Adjust root & leaf allocation to maintain balance, accounting for
             # stress
@@ -496,8 +496,8 @@ class PlantGrowth(object):
             lr_max = 1.0
             
             # Calculate adjustment on lr_max, based on current "stress"
-            # calculated from running mean of N and water stress
-            stress = max(0.01, lr_max * self.state.prev_sma)
+            # calculated from running mean of N and water stress. Scalar 
+            stress = lr_max * self.state.prev_sma
             
             # Adjust root & leaf allocation to maintain balance, accounting for
             # stress
@@ -642,8 +642,9 @@ class PlantGrowth(object):
         # accurately reflect an increase in root C production at a water
         # limited site. This implementation is also consistent with other
         # approaches, e.g. LPJ. In fact I dont see much evidence for models
-        # that have a flexible bucket depth.
-        current_limitation = min(nlim, self.state.wtfac_root)
+        # that have a flexible bucket depth. Minimum constraint is limited to
+        # 0.1, following Zaehle et al. 2010 (supp), eqn 18.
+        current_limitation = max(0.1, min(nlim, self.state.wtfac_root))
         self.state.prev_sma = self.sma(current_limitation)
         
         
