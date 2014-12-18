@@ -85,6 +85,7 @@ class PlantGrowth(object):
         
         self.sma = SimpleMovingAverage(self.window_size, self.state.prev_sma)
         
+        self.check_max_NC = True
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
                         days_in_yr, yr_index):
@@ -486,8 +487,9 @@ class PlantGrowth(object):
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation, this is adjusted below as we aim
             # to maintain a functional balance
-            min_root_alloc = 0.05
-            min_leaf_alloc = 0.05
+            min_root_alloc = self.params.c_alloc_rmin
+            min_leaf_alloc = self.params.c_alloc_fmin
+            min_wood_alloc = 0.1
             self.fluxes.alroot = (self.params.c_alloc_rmax * 
                                   min_root_alloc / 
                                  (min_root_alloc + 
@@ -499,10 +501,6 @@ class PlantGrowth(object):
             # Maintain functional balance between leaf and root biomass
             #   e.g. -> Sitch et al. 2003, GCB.
             
-            # minimum allocation is 1%
-            min_root_alloc = 0.05
-            min_leaf_alloc = 0.05
-            min_wood_alloc = 0.1
             # leaf-to-root ratio under non-stressed conditons
             lr_max = 1.0
             
@@ -535,7 +533,8 @@ class PlantGrowth(object):
                     adj = self.fluxes.alleaf / mis_match
                     self.fluxes.alleaf = max(min_leaf_alloc, 
                                              min(self.params.c_alloc_fmax, adj))
-                    self.fluxes.alroot += max(min_wood_alloc, orig_af - self.fluxes.alleaf)
+                    self.fluxes.alroot += (max(min_root_alloc, 
+                                               orig_af - self.fluxes.alleaf))
                 # reduce root allocation    
                 else:
                     orig_ar = self.fluxes.alroot
@@ -719,9 +718,8 @@ class PlantGrowth(object):
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
         
-        
-    def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, rdecay, doy,
-                            days_in_yr, project_day):
+    def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
+                            rdecay, doy, days_in_yr, project_day):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
         to the shoot and roots with flexible ratios.
@@ -752,6 +750,14 @@ class PlantGrowth(object):
         # the plant
         self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay, doy)
         self.fluxes.nuptake = self.calculate_nuptake(project_day)
+        
+        # If we are using the deciduous model, only take up N during the 
+        # growing season
+        if self.control.deciduous_model:
+            if float_eq(self.state.leaf_out_days[doy], 0.0):
+                self.fluxes.nuptake = 0.0
+        
+        
         
         # Ross's Root Model.
         if self.control.model_optroot == True:    
@@ -1252,8 +1258,10 @@ class PlantGrowth(object):
         # Update deciduous storage pools
         if self.control.deciduous_model:
             self.calculate_cn_store()
+            
+                
         
-    
+       
     
     def calculate_cn_store(self):        
         """ Deciduous trees store carbohydrate during the winter which they then
@@ -1278,7 +1286,7 @@ class PlantGrowth(object):
         self.fluxes.albranch = self.state.avg_albranch 
         self.fluxes.alstem = self.state.avg_alstem 
         
-    #"""   
+    """
     def enforce_sensible_nstore(self):
         
     
@@ -1297,7 +1305,7 @@ class PlantGrowth(object):
         ncmaxf = (self.params.ncmaxfyoung - 
                  (self.params.ncmaxfyoung - self.params.ncmaxfold) * 
                   age_effect)
-
+        print self.state.inorgn, 
         if float_lt(ncmaxf, self.params.ncmaxfold):
             ncmaxf = self.params.ncmaxfold
 
@@ -1307,8 +1315,6 @@ class PlantGrowth(object):
         if float_gt(self.state.n_to_alloc_shoot, (self.state.c_to_alloc_shoot * ncmaxf)):
             extras = self.state.n_to_alloc_shoot - (self.state.c_to_alloc_shoot * ncmaxf)
             
-            #loss = (self.params.rateloss * const.NDAYS_IN_YR) * extras
-            #self.fluxes.nloss += loss
             self.state.inorgn += extras #- loss
             self.state.n_to_alloc_shoot -= extras
         
@@ -1321,14 +1327,9 @@ class PlantGrowth(object):
 
             extrar = self.state.n_to_alloc_root - (self.state.c_to_alloc_root * ncmaxr)
             
-            #loss = (self.params.rateloss * const.NDAYS_IN_YR) * extrar
-            #self.fluxes.nloss += loss
-            self.state.inorgn += extrar #- loss
+            self.state.inorgn += extrar 
             self.state.n_to_alloc_root -= extrar
-        
-        
-             
-    #"""    
+    """        
  
 if __name__ == "__main__":
     
