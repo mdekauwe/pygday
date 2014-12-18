@@ -306,7 +306,7 @@ class Phenology(object):
         
         if self.leaf_on_found == False or self.leaf_off_found == False:
              raise RuntimeError, "Problem in phenology leaf on/off not found" 
-    
+        
         
     def calculate_days_left_in_growing_season(self, yr_days):
         """ Calculate 2 arrays to signify the days left of growing period
