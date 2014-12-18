@@ -383,20 +383,14 @@ class PlantGrowth(object):
             
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
-            min_root_alloc = 0.4
             self.fluxes.alroot = (self.params.c_alloc_rmax * 
-                                  min_root_alloc / 
-                                 (min_root_alloc + 
+                                  self.params.c_alloc_rmin / 
+                                 (self.params.c_alloc_rmin + 
                                  (self.params.c_alloc_rmax - 
-                                  min_root_alloc) * 
+                                  self.params.c_alloc_rmin) * 
                                   self.state.prev_sma))
             self.fluxes.alleaf = 1.0 - self.fluxes.alroot
             
-            # assume there must be a minimum leaf and root allocation
-            min_root_alloc = 0.01
-            min_leaf_alloc = 0.01
-            max_root_alloc = 0.99
-            max_leaf_alloc = 0.99
             
             # leaf-to-root ratio under non-stressed conditons
             lr_max = 0.8
@@ -422,14 +416,14 @@ class PlantGrowth(object):
                 # reduce leaf allocation fraction
                 if mis_match > 1.0:
                     adj = self.fluxes.alleaf / mis_match
-                    self.fluxes.alleaf = max(min_leaf_alloc, 
-                                             min(max_leaf_alloc, adj))
+                    self.fluxes.alleaf = max(self.params.c_alloc_fmin, 
+                                             min(self.params.c_alloc_fmax, adj))
                     self.fluxes.alroot = 1.0 - self.fluxes.alleaf
                 # reduce root allocation    
                 else:
                     adj = self.fluxes.alroot * mis_match
-                    self.fluxes.alroot = max(min_root_alloc, 
-                                             min(max_root_alloc, adj))
+                    self.fluxes.alroot = max(self.params.c_alloc_rmin, 
+                                             min(self.params.c_alloc_rmax, adj))
                     self.fluxes.alleaf = 1.0 - self.fluxes.alroot
             
             self.fluxes.alstem = 0.0
@@ -487,14 +481,11 @@ class PlantGrowth(object):
             # figure out root allocation given available water & nutrients
             # hyperbola shape to allocation, this is adjusted below as we aim
             # to maintain a functional balance
-            min_root_alloc = self.params.c_alloc_rmin
-            min_leaf_alloc = self.params.c_alloc_fmin
-            min_wood_alloc = 0.1
             self.fluxes.alroot = (self.params.c_alloc_rmax * 
-                                  min_root_alloc / 
-                                 (min_root_alloc + 
+                                  self.params.c_alloc_rmin / 
+                                 (self.params.c_alloc_rmin + 
                                  (self.params.c_alloc_rmax - 
-                                  min_root_alloc) * 
+                                  self.params.c_alloc_rmin) * 
                                   self.state.prev_sma))
            
             
@@ -531,15 +522,15 @@ class PlantGrowth(object):
                 if mis_match > 1.0:
                     orig_af = self.fluxes.alleaf
                     adj = self.fluxes.alleaf / mis_match
-                    self.fluxes.alleaf = max(min_leaf_alloc, 
+                    self.fluxes.alleaf = max(self.params.c_alloc_fmin, 
                                              min(self.params.c_alloc_fmax, adj))
-                    self.fluxes.alroot += (max(min_root_alloc, 
+                    self.fluxes.alroot += (max(self.params.c_alloc_rmin, 
                                                orig_af - self.fluxes.alleaf))
                 # reduce root allocation    
                 else:
                     orig_ar = self.fluxes.alroot
                     adj = self.fluxes.alroot * mis_match
-                    self.fluxes.alroot = max(min_root_alloc, 
+                    self.fluxes.alroot = max(self.params.c_alloc_rmin, 
                                              min(self.params.c_alloc_rmax, adj))
                     
                     reduction = max(0.0, orig_ar - self.fluxes.alroot)
