@@ -88,7 +88,7 @@ class PlantGrowth(object):
         self.check_max_NC = True
         
     def calc_day_growth(self, project_day, fdecay, rdecay, daylen, doy, 
-                        days_in_yr, yr_index):
+                        days_in_yr, yr_index, fsoilT):
         """Evolve plant state, photosynthesis, distribute N and C"
 
         Parameters:
@@ -155,7 +155,7 @@ class PlantGrowth(object):
         (ncbnew, nccnew, ncwimm, ncwnew) = self.calculate_ncwood_ratios(nitfac)
         recalc_wb = self.nitrogen_allocation(ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
                                              rdecay, doy, days_in_yr, 
-                                             project_day)
+                                             project_day, fsoilT)
         
         if self.control.exudation:
             self.calc_root_exudation_release()
@@ -710,7 +710,7 @@ class PlantGrowth(object):
         
         
     def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
-                            rdecay, doy, days_in_yr, project_day):
+                            rdecay, doy, days_in_yr, project_day, fsoilT):
         """ Nitrogen distribution - allocate available N through system.
         N is first allocated to the woody component, surplus N is then allocated
         to the shoot and roots with flexible ratios.
@@ -740,7 +740,7 @@ class PlantGrowth(object):
         # N retranslocated proportion from dying plant tissue and stored within
         # the plant
         self.fluxes.retrans = self.nitrogen_retrans(fdecay, rdecay, doy)
-        self.fluxes.nuptake = self.calculate_nuptake(project_day)
+        self.fluxes.nuptake = self.calculate_nuptake(project_day, fsoilT)
         
         # If we are using the deciduous model, only take up N during the 
         # growing season
@@ -1023,13 +1023,56 @@ class PlantGrowth(object):
             arg3 = exp(0.0693 * self.met_data['tair'][project_day])
             arg4 = 1.0 - self.params.ac
             nuptake = (arg1 / arg2) * arg3 * arg4
+        elif self.control.nuptake_model == 4:
+            """ N uptake function as a function of root mass, soil temperature,
+            accounting for plant N status, available inorganic N.
             
+            Reference:
+            ----------
+            See supplementary material.
+            * S. Zaehle and A. D. Friend (2010) Carbon and nitrogen cycle 
+              dynamics in the O-CN land surface model: 1. Model description, 
+              site-scale evaluation, and sensitivity to parameter estimates.
+              Global Biogeochemical Cycles, 24, GB1005.
+            """
+            max_leaf_NC = 0.04
+            min_leaf_NC = 0.00625
+            
+            # grams m-2
+            N_avail = self.state.inorgn * 100
+            Croot = self.state.root * 100
+            
+            #
+            ## THERE MUST BE A CONVERSION FACTOR HERE?
+            #
+            # maximum N uptake cpcity per unit fine root mass 
+            # (micrograms N g-1 C d-1)
+            vmax = 5.14
+            
+            # rate of N uptake not assoicate with Michaelis-Menten kinetics 
+            # (unitless)
+            K1_Nmin = 0.05 
+            
+            # half saturation concentration of fine root N uptake (g N m-2)
+            K2_Nmin = 0.83 
+            
+            if self.control.deciduous_model:
+                NC_plant = ( (self.state.shootnc + 
+                              self.state.rootnc + 
+                              self.state.nstore/self.state.cstore) / 3.0 )
+            else:
+                NC_plant = ( (self.state.shootnc + 
+                              self.state.rootnc) / 2.0 )
+            f_NC_plant = (max(0.0, (NC_plant - max_leaf_NC) / 
+                                   (max_leaf_NC - min_leaf_NC)))
+            
+            # tonnes/hectare
+            nuptake = (vmax * Nmin * (K1_Nmin + (1.0 / (Nmin + K2_Nmin))) * 
+                       fsoilT * f_NC_plant * Croot) * 0.01
+
+
         else:
             raise AttributeError('Unknown N uptake option')
-        
-        # Stop N uptake if C:N falls below 10
-        #if self.state.plantnc > 0.1:
-        #    nuptake = 0.0
         
         return nuptake
     
