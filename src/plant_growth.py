@@ -129,6 +129,7 @@ class PlantGrowth(object):
             # applies for deciduous grasses, need to do the growth stress
             # calc for grasses here too.
             if self.state.leaf_out_days[doy] > 0.0:
+                self.calculate_growth_stress_limitation()
                 
                 # Need to save max lai for pipe model because at the end of the
                 # year LAI=0.0
@@ -374,7 +375,11 @@ class PlantGrowth(object):
             self.fluxes.alstem -= self.fluxes.alcroot
             
         elif self.control.alloc_model == "GRASSES":
-            self.calculate_growth_stress_limitation()
+            
+            # if combining grasses with the deciduous model this calculation
+            # is done only during the leaf out period. See above.
+            #if not self.control.deciduous_model:
+            #    self.calculate_growth_stress_limitation()
             
             # First figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
@@ -412,14 +417,19 @@ class PlantGrowth(object):
                 self.fluxes.alroot = max(self.params.c_alloc_rmin, 
                                          min(self.params.c_alloc_rmax, adj))
                 self.fluxes.alleaf = 1.0 - self.fluxes.alroot
-            
+        
             self.fluxes.alstem = 0.0
             self.fluxes.albranch = 0.0
             self.fluxes.alcroot = 0.0
             
             
         elif self.control.alloc_model == "ALLOMETRIC":
-            self.calculate_growth_stress_limitation()
+            
+            #if not self.control.deciduous_model:
+            #    self.calculate_growth_stress_limitation()
+            #else:
+            #    # reset the buffer at the end of the growing season
+            #    self.sma.reset_stream()
             
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
@@ -479,9 +489,7 @@ class PlantGrowth(object):
             # Calculate adjustment on lr_max, based on current "stress"
             # calculated from running mean of N and water stress
             stress = lr_max * self.state.prev_sma
-                      
-            
-            
+             
             # calculate imbalance, based on *biomass*
             if not self.control.deciduous_model:
                 mis_match = self.state.shoot / (self.state.root * stress)
