@@ -129,7 +129,6 @@ class PlantGrowth(object):
             # applies for deciduous grasses, need to do the growth stress
             # calc for grasses here too.
             if self.state.leaf_out_days[doy] > 0.0:
-                self.calculate_growth_stress_limitation()
                 
                 # Need to save max lai for pipe model because at the end of the
                 # year LAI=0.0
@@ -375,13 +374,9 @@ class PlantGrowth(object):
             self.fluxes.alstem -= self.fluxes.alcroot
             
         elif self.control.alloc_model == "GRASSES":
+            self.calculate_growth_stress_limitation()
             
-            # if combining grasses with the deciduous model this calculation
-            # is done only during the leaf out period. See above.
-            if not self.control.deciduous_model:
-                self.calculate_growth_stress_limitation()
-            
-            # figure out root allocation given available water & nutrients
+            # First figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
             self.fluxes.alroot = (self.params.c_alloc_rmax * 
                                   self.params.c_alloc_rmin / 
@@ -392,39 +387,31 @@ class PlantGrowth(object):
             self.fluxes.alleaf = 1.0 - self.fluxes.alroot
             
             
+            # Now adjust root & leaf allocation to maintain balance, accounting 
+            # for stress e.g. -> Sitch et al. 2003, GCB.
+            
             # leaf-to-root ratio under non-stressed conditons
             lr_max = 0.8
             
             # Calculate adjustment on lr_max, based on current "stress"
             # calculated from running mean of N and water stress
             stress = lr_max * self.state.prev_sma
+                      
+            # calculate new allocation fractions based on imbalance ib *biomass*
+            mis_match = self.state.shoot / (self.state.root * stress)
             
-            # Adjust root & leaf allocation to maintain balance, accounting for
-            # stress
-            #
-            
-            #
-            ## Catch for growing from a zero state
-            #
-            if float_eq(self.state.shoot, 0.0):
-                self.fluxes.alleaf = 0.5
-                self.fluxes.alroot = 0.5
-            else:            
-                # calculate imbalance, based on *biomass*
-                mis_match = self.state.shoot / (self.state.root * stress)
-
-                # reduce leaf allocation fraction
-                if mis_match > 1.0:
-                    adj = self.fluxes.alleaf / mis_match
-                    self.fluxes.alleaf = max(self.params.c_alloc_fmin, 
-                                             min(self.params.c_alloc_fmax, adj))
-                    self.fluxes.alroot = 1.0 - self.fluxes.alleaf
-                # reduce root allocation    
-                else:
-                    adj = self.fluxes.alroot * mis_match
-                    self.fluxes.alroot = max(self.params.c_alloc_rmin, 
-                                             min(self.params.c_alloc_rmax, adj))
-                    self.fluxes.alleaf = 1.0 - self.fluxes.alroot
+            # reduce leaf allocation fraction
+            if mis_match > 1.0:
+                adj = self.fluxes.alleaf / mis_match
+                self.fluxes.alleaf = max(self.params.c_alloc_fmin, 
+                                         min(self.params.c_alloc_fmax, adj))
+                self.fluxes.alroot = 1.0 - self.fluxes.alleaf
+            # reduce root allocation    
+            else:
+                adj = self.fluxes.alroot * mis_match
+                self.fluxes.alroot = max(self.params.c_alloc_rmin, 
+                                         min(self.params.c_alloc_rmax, adj))
+                self.fluxes.alleaf = 1.0 - self.fluxes.alroot
             
             self.fluxes.alstem = 0.0
             self.fluxes.albranch = 0.0
@@ -432,12 +419,7 @@ class PlantGrowth(object):
             
             
         elif self.control.alloc_model == "ALLOMETRIC":
-            
-            if not self.control.deciduous_model:
-                self.calculate_growth_stress_limitation()
-            else:
-                # reset the buffer at the end of the growing season
-                self.sma.reset_stream()
+            self.calculate_growth_stress_limitation()
             
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
@@ -488,54 +470,43 @@ class PlantGrowth(object):
                                   self.params.c_alloc_rmin) * 
                                   self.state.prev_sma))
            
-            
-            # Maintain functional balance between leaf and root biomass
-            #   e.g. -> Sitch et al. 2003, GCB.
+            # Now adjust root & leaf allocation to maintain balance, accounting 
+            # for stress e.g. -> Sitch et al. 2003, GCB.
             
             # leaf-to-root ratio under non-stressed conditons
             lr_max = 1.0
             
             # Calculate adjustment on lr_max, based on current "stress"
-            # calculated from running mean of N and water stress. Scalar 
+            # calculated from running mean of N and water stress
             stress = lr_max * self.state.prev_sma
+                      
             
-            # Adjust root & leaf allocation to maintain balance, accounting for
-            # stress
-            #
             
-            #
-            ## Catch for growing from a zero state
-            #
-            if (float_eq(self.state.shoot, 0.0) and 
-                not self.control.deciduous_model):
-                self.fluxes.alleaf = self.params.c_alloc_fmax
-                self.fluxes.alroot = self.params.c_alloc_rmax
+            # calculate imbalance, based on *biomass*
+            if not self.control.deciduous_model:
+                mis_match = self.state.shoot / (self.state.root * stress)
             else:
-                # calculate imbalance, based on *biomass*
-                if not self.control.deciduous_model:
-                    mis_match = self.state.shoot / (self.state.root * stress)
-                else:
-                    mis_match = (self.state.max_shoot / 
-                                 (self.state.root * stress))
-                    
-                # reduce leaf allocation fraction
-                if mis_match > 1.0:
-                    orig_af = self.fluxes.alleaf
-                    adj = self.fluxes.alleaf / mis_match
-                    self.fluxes.alleaf = max(self.params.c_alloc_fmin, 
-                                             min(self.params.c_alloc_fmax, adj))
-                    self.fluxes.alroot += (max(self.params.c_alloc_rmin, 
-                                               orig_af - self.fluxes.alleaf))
-                # reduce root allocation    
-                else:
-                    orig_ar = self.fluxes.alroot
-                    adj = self.fluxes.alroot * mis_match
-                    self.fluxes.alroot = max(self.params.c_alloc_rmin, 
-                                             min(self.params.c_alloc_rmax, adj))
-                    
-                    reduction = max(0.0, orig_ar - self.fluxes.alroot)
-                    self.fluxes.alleaf += reduction
-            
+                mis_match = (self.state.max_shoot / 
+                             (self.state.root * stress))
+                
+            # reduce leaf allocation fraction
+            if mis_match > 1.0:
+                orig_af = self.fluxes.alleaf
+                adj = self.fluxes.alleaf / mis_match
+                self.fluxes.alleaf = max(self.params.c_alloc_fmin, 
+                                         min(self.params.c_alloc_fmax, adj))
+                self.fluxes.alroot += (max(self.params.c_alloc_rmin, 
+                                           orig_af - self.fluxes.alleaf))
+            # reduce root allocation    
+            else:
+                orig_ar = self.fluxes.alroot
+                adj = self.fluxes.alroot * mis_match
+                self.fluxes.alroot = max(self.params.c_alloc_rmin, 
+                                         min(self.params.c_alloc_rmax, adj))
+                
+                reduction = max(0.0, orig_ar - self.fluxes.alroot)
+                self.fluxes.alleaf += reduction
+        
                   
             # Allocation to branch dependent on relationship between the stem
             # and branch

@@ -229,7 +229,6 @@ class Gday(object):
                     self.are_we_dead()
 
                 #print self.state.plantc, self.state.soilc
-
                 #print yr, doy, self.state.lai, self.fluxes.gpp*100
                 
                 
@@ -254,6 +253,9 @@ class Gday(object):
                 #self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.calculate_average_alloc_fractions(self.P.growing_seas_len)
                 self.pg.allocate_stored_c_and_n(init=False)
+                
+                # reset the stress buffer at the end of the growing season
+                self.pg.sma.reset_stream()
                 
                 #print self.fluxes.alleaf, self.fluxes.alroot, \
                 #    (self.fluxes.albranch+self.fluxes.alstem)
