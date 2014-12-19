@@ -321,7 +321,7 @@ class MateC3(object):
             # the maximum rate of electron transport at 25 degC 
             vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
             vcmax = self.arrh(vcmax25, self.params.eav, Tk) 
-        else:
+        elif self.control.modeljm == 2: 
             vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
             vcmax = self.arrh(vcmax25, self.params.eav, Tk) 
             
