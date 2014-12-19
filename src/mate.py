@@ -325,7 +325,7 @@ class MateC3(object):
             vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
             vcmax = self.arrh(vcmax25, self.params.eav, Tk) 
             
-            jmax = self.params.jv_slope * Vcmax - self.params.jv_intercept
+            jmax = self.params.jv_slope * vcmax - self.params.jv_intercept
         
         # reduce photosynthetic capacity with moisture stress
         jmax *= self.state.wtfac_root 
