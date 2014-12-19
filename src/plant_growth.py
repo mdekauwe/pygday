@@ -513,7 +513,7 @@ class PlantGrowth(object):
                                          min(self.params.c_alloc_rmax, adj))
                 
                 reduction = max(0.0, orig_ar - self.fluxes.alroot)
-                self.fluxes.alleaf += reduction
+                self.fluxes.alleaf += max(self.params.c_alloc_fmax, reduction)
         
                   
             # Allocation to branch dependent on relationship between the stem
@@ -543,7 +543,7 @@ class PlantGrowth(object):
                     self.fluxes.alstem = 0.5 * left_over
                     self.fluxes.albranch = 0.5 * left_over
                 else:    
-                    self.fluxes.alcroot = 0.3 * leaf_over
+                    self.fluxes.alcroot = 0.3 * left_over
                     self.fluxes.alstem = 0.4 * left_over
                     self.fluxes.albranch = 0.3 * left_over
             
@@ -567,9 +567,11 @@ class PlantGrowth(object):
         else:
             raise AttributeError('Unknown C allocation model')
         
-        #print "*", self.fluxes.alleaf, \
+        
+        
+        #print self.fluxes.alleaf, \
         #          (self.fluxes.alstem + self.fluxes.albranch), \
-        #           self.fluxes.alroot
+        #           self.fluxes.alroot, self.fluxes.alcroot
         
         #if nitfac == 0.0:
         #    print "*", self.fluxes.alleaf, \
