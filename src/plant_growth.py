@@ -489,14 +489,19 @@ class PlantGrowth(object):
             # Calculate adjustment on lr_max, based on current "stress"
             # calculated from running mean of N and water stress
             stress = lr_max * self.state.prev_sma
-             
+            
+            
             # calculate imbalance, based on *biomass*
             if not self.control.deciduous_model:
-                mis_match = self.state.shoot / (self.state.root * stress)
-            else:
+                # Catch for floating point reset of root C mass
+                if float_eq(self.state.root, 0.0):
+                    mis_match = 1.9
+                else:
+                    mis_match = self.state.shoot / (self.state.root * stress)
+            else:                              
                 mis_match = (self.state.max_shoot / 
                              (self.state.root * stress))
-                
+            
             # reduce leaf allocation fraction
             if mis_match > 1.0:
                 orig_af = self.fluxes.alleaf
@@ -569,9 +574,9 @@ class PlantGrowth(object):
         
         
         
-        #print self.fluxes.alleaf, \
-        #          (self.fluxes.alstem + self.fluxes.albranch), \
-        #           self.fluxes.alroot, self.fluxes.alcroot
+        print self.fluxes.alleaf, \
+                  (self.fluxes.alstem + self.fluxes.albranch), \
+                   self.fluxes.alroot, self.fluxes.alcroot, self.state.shoot
         
         #if nitfac == 0.0:
         #    print "*", self.fluxes.alleaf, \
