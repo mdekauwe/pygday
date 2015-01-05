@@ -574,9 +574,9 @@ class PlantGrowth(object):
         
         
         
-        print self.fluxes.alleaf, \
-                  (self.fluxes.alstem + self.fluxes.albranch), \
-                   self.fluxes.alroot, self.fluxes.alcroot, self.state.shoot
+        #print self.fluxes.alleaf, \
+        #          (self.fluxes.alstem + self.fluxes.albranch), \
+        #           self.fluxes.alroot, self.fluxes.alcroot, self.state.shoot
         
         #if nitfac == 0.0:
         #    print "*", self.fluxes.alleaf, \
