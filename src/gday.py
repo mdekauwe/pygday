@@ -352,6 +352,7 @@ class Gday(object):
             self.state.stemn = 0.00004
             self.state.stemnimm = 0.00004
             self.state.stemnmob = 0.0
+            self.state.sapwood = 0.001
         print "re-seeding"
 
     def spin_up_pools(self, tol=5E-03):
