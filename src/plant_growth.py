@@ -188,6 +188,8 @@ class PlantGrowth(object):
             frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
     
         self.fluxes.root_exc = frac_to_rexc * self.fluxes.cproot
+        
+        
         self.fluxes.root_exn = self.fluxes.root_exc * self.state.rootnc
     
         # Need to remove lost C & N from fine roots so that things balance.
