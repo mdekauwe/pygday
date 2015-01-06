@@ -170,7 +170,7 @@ class Gday(object):
             # Figure out if any years have a disturbance
             self.db.initialise(years)
 
-
+        
         # ===================== #
         #   Y E A R   L O O P   #
         # ===================== #
