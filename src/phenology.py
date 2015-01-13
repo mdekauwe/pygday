@@ -206,10 +206,12 @@ class Phenology(object):
             ppt_sum += met_data['rain'][self.project_day]
             
             # Calculate ppt total from the next 7 days
-            if self.project_day < 358:
+            
+            if d < 358:
                 st = self.project_day+1
                 en = self.project_day+8
                 ppt_sum_next = sum(met_data['rain'][st:en])
+                
             else:
                 # i.e. end of year, didn't find this so have no effect
                 ppt_sum_next = 0.0
@@ -262,6 +264,7 @@ class Phenology(object):
                     if (ppt_sum_prev < 11.4 and
                         ppt_sum_next < 9.7 and 
                         Tmean > tmax_ann): 
+                    
                         self.leaf_off_found = True
                         self.leaf_off = d
                         
@@ -306,7 +309,7 @@ class Phenology(object):
         
         if self.leaf_on_found == False or self.leaf_off_found == False:
              raise RuntimeError, "Problem in phenology leaf on/off not found" 
-    
+        
         
     def calculate_days_left_in_growing_season(self, yr_days):
         """ Calculate 2 arrays to signify the days left of growing period
