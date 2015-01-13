@@ -55,7 +55,7 @@ def main(experiment_id, site, treatment, ascii=True):
                          
                          
                          # control
-                         "alloc_model": "fixed",
+                         "alloc_model": "allometric",
                          "assim_model": "mate",
                          "calc_sw_params": "1",   #0 uses fwp values, 1= derive them
                          "deciduous_model": "false",
@@ -63,8 +63,8 @@ def main(experiment_id, site, treatment, ascii=True):
                          "fixleafnc": "false",
                          "grazing": "false",
                          "model_optroot": "false",
-                         "modeljm": "true",
-                         "nuptake_model": "1",
+                         "modeljm": "2",
+                         "nuptake_model": "2",
                          "output_ascii" : str(ascii),
                          "passiveconst": "false",
                          "print_options": "daily",

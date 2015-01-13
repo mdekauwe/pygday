@@ -170,7 +170,7 @@ class Gday(object):
             # Figure out if any years have a disturbance
             self.db.initialise(years)
 
-
+        
         # ===================== #
         #   Y E A R   L O O P   #
         # ===================== #
@@ -185,7 +185,7 @@ class Gday(object):
                 # Change window size to length of growing season
                 self.pg.sma.window_size = self.P.growing_seas_len
                 self.zero_stuff()
-
+                
             # =================== #
             #   D A Y   L O O P   #
             # =================== #
@@ -206,9 +206,10 @@ class Gday(object):
                     self.db.hurricane()
 
                 # photosynthesis & growth
+                fsoilT = self.cs.soil_temp_factor(project_day)
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy,
-                                        float(days_in_year[i]), i)
+                                        float(days_in_year[i]), i, fsoilT)
 
                 # soil C & N calculation
                 self.cs.calculate_csoil_flows(project_day, doy)
@@ -227,12 +228,10 @@ class Gday(object):
                     self.control.disturbance == 0):
                     self.are_we_dead()
 
-                #print self.state.lai, self.fluxes.gpp*100
                 #print self.state.plantc, self.state.soilc
-
-                #print yr, doy, self.state.lai
+                #print yr, doy, self.state.lai, self.fluxes.gpp*100
                 
-
+                
                 # ======================= #
                 #   E N D   O F   D A Y   #
                 # ======================= #
@@ -241,25 +240,27 @@ class Gday(object):
 
                 # check the daily water balance
                 #self.cb.check_water_balance(project_day)
-
+                
                 project_day += 1
+            
             # ========================= #
             #   E N D   O F   Y E A R   #
             # ========================= #
+            
+            # Allocate stored C&N for the following year
             if self.control.deciduous_model:
-
-                # Allocate stored C&N for the following year
-                
+                # Using average alloc fracs across growing season instead
                 #self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
-                
                 self.pg.calculate_average_alloc_fractions(self.P.growing_seas_len)
                 self.pg.allocate_stored_c_and_n(init=False)
-                #self.pg.enforce_sensible_nstore()
+                
+                # reset the stress buffer at the end of the growing season
+                self.pg.sma.reset_stream()
                 
                 #print self.fluxes.alleaf, self.fluxes.alroot, \
                 #    (self.fluxes.albranch+self.fluxes.alstem)
-                #print self.state.cstore, self.state.nstore, self.state.nstore/self.state.cstore
                 #print
+                
                 
             # GDAY died in the previous year, re-establish gday for the next yr
             #   - added for desert simulation
@@ -351,6 +352,7 @@ class Gday(object):
             self.state.stemn = 0.00004
             self.state.stemnimm = 0.00004
             self.state.stemnmob = 0.0
+            self.state.sapwood = 0.001
         print "re-seeding"
 
     def spin_up_pools(self, tol=5E-03):

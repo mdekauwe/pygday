@@ -21,7 +21,7 @@ fixleafnc = False              # fixed leaf N C ?
 fixed_stem_nc = True           # False=vary stem N:C with foliage, True=fixed stem N:C
 grazing = False                # Is foliage grazed? 0=No, 1=daily, 2=annual and then set disturbance_doy=doy
 gs_model = "MEDLYN"            # Currently only this model, but others could be added.    
-modeljm = True                 # modeljm=0, Jmax and Vcmax parameters are read in, modeljm=1, parameters are calculated from leaf N content
+modeljm = True                 # modeljm=0, Jmax and Vcmax parameters are read in, modeljm=1, parameters are calculated from leaf N content, modeljm=3, Vcmax is calculated from leaf N content but Jmax is related to Vcmax
 model_optroot = False          # Ross's optimal root model...not sure if this works yet...0=off, 1=on
 nuptake_model = 1              # 0=constant uptake, 1=func of N inorgn, 2=depends on rate of soil N availability
 ncycle = True                  # Nitrogen cycle on or off?

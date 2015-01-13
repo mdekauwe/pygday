@@ -69,6 +69,8 @@ theta             = 0.7            # curvature of photosynthetic light response 
 vcmaxna           = 20.497         # slope of the reln btween vcmax and leaf N content, units = (umol [gN]-1 s-1) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
 vcmaxnb           = 8.403          # intercept of vcmax vs n, units = (umol [gN]-1 s-1) # And for Vcmax-N slopes (vcmaxna) see Table 8.2 in CLM4_tech_note, Oleson et al. 2010.
 vcmax             = -999.9         # maximum rate of carboxylation (umol m-2 s-1) 
+jv_slope          = -999.9         # Jmax to Vcmax slope
+jv_intercept      = -999.9         # Jmax to Vcmax intercept
 
 # water model parameters
 dz0v_dh           = 0.123    # Rate of change of vegetation roughness length for momentum with height. Value from Jarvis? for conifer 0.075
