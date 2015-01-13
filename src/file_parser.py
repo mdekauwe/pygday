@@ -161,7 +161,7 @@ class ReadConfigFile(object):
         d : dictionary
             dictionary containing stuff from the .cfg file.
         """
-        flags = ['model_optroot', "deciduous_model", "modeljm", \
+        flags = ['model_optroot', "deciduous_model", \
                  'water_stress', "fixleafnc", "passiveconst", \
                  "calc_sw_params",'fixed_stem_nc','exudation',\
                  'adjust_rtslow', 'ncycle', 'grazing','output_ascii']

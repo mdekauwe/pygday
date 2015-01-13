@@ -119,9 +119,9 @@ class CarbonSoilFlows(object):
             self.fluxes.rexc_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
         else:
             self.fluxes.rexc_cue = self.params.root_exu_CUE
-    
+            
         C_to_active_pool = self.fluxes.root_exc * (1.0 - self.fluxes.rexc_cue)
-    
+        
         # update respiraiton fluxes.
         self.fluxes.co2_released_exud = self.fluxes.root_exc - C_to_active_pool
         self.fluxes.hetero_resp += self.fluxes.co2_released_exud

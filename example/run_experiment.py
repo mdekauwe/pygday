@@ -16,7 +16,7 @@ __email__   = "mdekauwe@gmail.com"
 def main(site, treatment):
     
     # run new simulations
-    os.system("example_ascii.py")
+    os.system("example.py")
 
     # load data
     amb = read_data("outputs/D1GDAY%s%s.csv" % (site, treatment.upper()))
