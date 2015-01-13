@@ -306,7 +306,11 @@ class MateC3(object):
         vcmax : float (umol/m2/sec)
             the maximum rate of electron transport at 25 degC 
         """
-        if self.control.modeljm == True: 
+        
+        if self.control.modeljm == 0:
+            jmax = self.params.jmax
+            vcmax = self.params.vcmax
+        elif self.control.modeljm == 1: 
             # the maximum rate of electron transport at 25 degC 
             jmax25 = self.params.jmaxna * N0 + self.params.jmaxnb
             
@@ -317,9 +321,14 @@ class MateC3(object):
             # the maximum rate of electron transport at 25 degC 
             vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
             vcmax = self.arrh(vcmax25, self.params.eav, Tk) 
-        else:
-            jmax = self.params.jmax
-            vcmax = self.params.vcmax
+        elif self.control.modeljm == 2: 
+            vcmax25 = self.params.vcmaxna * N0 + self.params.vcmaxnb
+            vcmax = self.arrh(vcmax25, self.params.eav, Tk) 
+            
+            jmax25 = self.params.jv_slope * vcmax25 - self.params.jv_intercept
+            jmax = self.peaked_arrh(jmax25, self.params.eaj, Tk, 
+                                    self.params.delsj, self.params.edj)
+            
         
         # reduce photosynthetic capacity with moisture stress
         jmax *= self.state.wtfac_root 

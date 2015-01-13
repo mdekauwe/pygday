@@ -151,7 +151,7 @@ class PrintOutput(object):
 
         special = ['rootsoil_type', 'topsoil_type', 'assim_model', 'co2_conc',\
                    'deciduous_model', 'fixleafnc', 'model_optroot',\
-                   'modeljm', 'passiveconst', 'print_options', 'water_stress',\
+                   'passiveconst', 'print_options', 'water_stress',\
                    'calc_sw_params', 'alloc_model','fixed_stem_nc', \
                    'ps_pathway','gs_model','grazing','exudation',\
                    'ncycle','adjust_rtslow', "respiration_model"]
