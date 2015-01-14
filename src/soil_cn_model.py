@@ -1056,31 +1056,33 @@ class NitrogenSoilFlows(object):
         the CENTURY framework, where C flows between pools lead to either
         mineralisation (N gain) or immobilisation (N loss) due to differences
         in the CN ratio of the outgoing and incoming pools.
+        
+        The amount of N added to the active pool is independent of the CUE of 
+        the microbial pool in response to root exudation (REXCUE).
+        
         """
+        active_CN_ratio = self.state.activesoil / self.state.activesoiln
         
         # Need to account for the increase in available N
+        N_miss = (max(0.0, self.fluxes.root_exc / active_CN_ratio - 
+                           self.fluxes.root_exn))
         
-        
-        active_CN_ratio = self.state.activesoil / self.state.activesoiln
-        N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
-    
-        # N immobilisation (loss) due to REXN sequestration in the active pool
-        N_miss = (max(0.0, self.fluxes.root_exc / active_CN_ratio) - 
-                      self.fluxes.root_exn)
-    
-        # N added to the active pool is independent of the CUE of the microbial
-        # pool in response to root exudation
         if N_miss < self.fluxes.nmineralisation:
-        
+            
+            N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
+            
             # update active pool
             self.state.activesoiln += N_to_active_pool
         
             # Adjust N Mineralisation
             self.fluxes.nmineralisation -= N_miss
         else:
-            # Not enough N available, so root exudation keeps it original C:N
+            # We cannot support the change in CN by the available N, so 
+            # exudation keeps its original CN ratio
+            
+            # update active pool
             self.state.activesoiln += self.fluxes.root_exn
-        
+    
     
     def adjust_residence_time_of_slow_pool(self):
        
