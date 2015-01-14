@@ -1086,7 +1086,6 @@ class NitrogenSoilFlows(object):
         
         # Save for outputting purposes only
         self.fluxes.rtslow = residence_time_slow_pool 
-        print self.fluxes.rtslow, self.fluxes.factive, self.fluxes.active_to_slow, self.fluxes.active_to_passive, self.fluxes.co2_to_air[4]
         
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
