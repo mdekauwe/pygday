@@ -1069,11 +1069,11 @@ class NitrogenSoilFlows(object):
                                self.fluxes.co2_to_air[4])
         
         if float_eq(self.fluxes.factive, 0.0):
-            residence_time_slow_pool = 1.0 / self.params.kdec6
-            
-            
+            # Need to correct units of rate constant
+            residence_time_slow_pool = (1.0 / (self.params.kdec6 * 
+                                                const.NDAYS_IN_YR))
         else:
-            residence_time_slow_pool = ((1.0 / self.params.prime_y)  * 
+            residence_time_slow_pool = (1.0 / self.params.prime_y  * 
                                         (self.fluxes.factive / 
                                         (self.fluxes.factive + 
                                          self.params.prime_z)))
@@ -1086,7 +1086,7 @@ class NitrogenSoilFlows(object):
         
         # Save for outputting purposes only
         self.fluxes.rtslow = residence_time_slow_pool 
-        
+        print self.fluxes.rtslow, self.fluxes.factive, self.fluxes.active_to_slow, self.fluxes.active_to_passive, self.fluxes.co2_to_air[4]
         
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep
