@@ -105,6 +105,11 @@ class CarbonSoilFlows(object):
             self.calc_root_exudation_uptake_of_C()
     
     def calc_root_exudation_uptake_of_C(self):        
+        """ The amount of C which enters the active pool varies according to the
+        CUE of SOM in response to root exudation (REXCUE). REXCUE determines 
+        the fraction of REXC that enters the active pool as C. The remaining
+        flux is respired.
+        """
         som_CN_ratio = ((self.state.activesoil + 
                          self.state.slowsoil + 
                          self.state.passivesoil) / 
@@ -116,7 +121,7 @@ class CarbonSoilFlows(object):
             # flexible cue
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
             # between 16 to 24. Check this for GDAY
-            self.fluxes.rexc_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
+            self.fluxes.rexc_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))        
         else:
             self.fluxes.rexc_cue = self.params.root_exu_CUE
             
