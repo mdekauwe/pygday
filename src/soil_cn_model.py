@@ -1044,6 +1044,16 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nlittrelease)
         
     def calc_root_exudation_uptake_of_N(self):
+        """ When N mineralisation is large enough to allow a small amount of N
+        immobilisation, the amount of N which enters the active pool is 
+        calculated according to REXC divided by the CN of the active pool. When
+        exudation enters the active pool, the CN ratio of the exudates drops 
+        from REXC/REXN to the CN of the active pool. Which is consistent with 
+        the CENTURY framework, where C flows between pools lead to either
+        mineralisation (N gain) or immobilisation (N loss) due to differences
+        in the CN ratio of the outgoing and incoming pools.
+        """
+        
         active_CN_ratio = self.state.activesoil / self.state.activesoiln
         N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
     
