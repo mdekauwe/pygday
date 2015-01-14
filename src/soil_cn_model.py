@@ -1073,16 +1073,15 @@ class NitrogenSoilFlows(object):
             
             
         else:
-            
             residence_time_slow_pool = ((1.0 / self.params.prime_y)  * 
                                         (self.fluxes.factive / 
                                         (self.fluxes.factive + 
-                                        self.params.prime_z)))
+                                         self.params.prime_z)))
             
-            RTSLOW = 1.0 / ((y * factive) / (factive + z))
+            # GDAY uses decay rates rather than residence times...
+            self.params.kdec6 = 1.0 / residence_time_slow_pool 
             
-            self.params.kdec6 = (1.0 / residence_time_slow_pool) 
-            # needs to be per day
+            # rate constant needs to be per day inside GDAY
             self.params.kdec6 /= const.NDAYS_IN_YR
         
         # Save for outputting purposes only
