@@ -116,11 +116,6 @@ class CarbonSoilFlows(object):
                  self.state.passivesoil)
         som_CN_ratio = soilc / soiln
     
-        #som_CN_ratio = ((self.state.activesoil / self.state.activesoiln) +
-        #                (self.state.slowsoil / self.state.slowsoiln) +
-        #                (self.state.passivesoil / self.state.passivesoiln))
-        #som_CN_ratio /= 3.0
-         
         if self.params.root_exu_CUE == -1.0: # flexible CUE
             # flexible cue
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
