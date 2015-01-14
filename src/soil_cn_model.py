@@ -126,14 +126,12 @@ class CarbonSoilFlows(object):
             self.fluxes.rexc_cue = self.params.root_exu_CUE
             
         C_to_active_pool = self.fluxes.root_exc * (1.0 - self.fluxes.rexc_cue)
+        self.state.activesoil += C_to_active_pool
         
-        # update respiraiton fluxes.
+        # update respiration fluxes.
         self.fluxes.co2_released_exud = self.fluxes.root_exc - C_to_active_pool
         self.fluxes.hetero_resp += self.fluxes.co2_released_exud
 
-        # update active pool
-        self.state.activesoil += C_to_active_pool
-        
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
         and moisture dependency. Note same temperature is assumed for all 3 
