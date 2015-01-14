@@ -110,13 +110,17 @@ class CarbonSoilFlows(object):
         the fraction of REXC that enters the active pool as C. The remaining
         flux is respired.
         """
-        som_CN_ratio = ((self.state.activesoil + 
-                         self.state.slowsoil + 
-                         self.state.passivesoil) / 
-                        (self.state.activesoiln + 
-                         self.state.slowsoiln + 
-                         self.state.passivesoiln))
-                     
+        soiln = (self.state.activesoiln + self.state.slowsoiln + 
+                 self.state.passivesoiln)
+        soilc = (self.state.activesoil + self.state.slowsoil +
+                 self.state.passivesoil)
+        som_CN_ratio = soilc / soiln
+    
+        #som_CN_ratio = ((self.state.activesoil / self.state.activesoiln) +
+        #                (self.state.slowsoil / self.state.slowsoiln) +
+        #                (self.state.passivesoil / self.state.passivesoiln))
+        #som_CN_ratio /= 3.0
+         
         if self.params.root_exu_CUE == -1.0: # flexible CUE
             # flexible cue
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
@@ -1053,6 +1057,9 @@ class NitrogenSoilFlows(object):
         mineralisation (N gain) or immobilisation (N loss) due to differences
         in the CN ratio of the outgoing and incoming pools.
         """
+        
+        # Need to account for the increase in available N
+        
         
         active_CN_ratio = self.state.activesoil / self.state.activesoiln
         N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
