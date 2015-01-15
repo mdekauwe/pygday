@@ -1080,7 +1080,11 @@ class NitrogenSoilFlows(object):
     
     
     def adjust_residence_time_of_slow_pool(self):
-       
+        """ Priming simulations the residence time of the slow pool is flexible,
+        as the flux out of the active pool (factive) increases the residence
+        time of the slow pool decreases.        
+        """
+        # total flux out of the factive pool
         self.fluxes.factive = (self.fluxes.active_to_slow +
                                self.fluxes.active_to_passive +
                                self.fluxes.co2_to_air[4])
