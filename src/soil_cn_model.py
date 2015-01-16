@@ -1056,18 +1056,15 @@ class NitrogenSoilFlows(object):
         the microbial pool in response to root exudation (REXCUE).
         
         """
-        # Need to account for lost C as respiration when calculating N
-        C_to_active_pool = self.fluxes.root_exc - self.fluxes.co2_released_exud
-        
         active_CN_ratio = self.state.activesoil / self.state.activesoiln
         
         # Need to account for the increase in available N
-        N_miss = (max(0.0, C_to_active_pool / active_CN_ratio - 
+        N_miss = (max(0.0, self.fluxes.root_exc / active_CN_ratio - 
                            self.fluxes.root_exn))
         
         if N_miss < self.fluxes.nmineralisation:
             
-            N_to_active_pool = C_to_active_pool / active_CN_ratio
+            N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
             
             # update active pool
             self.state.activesoiln += N_to_active_pool
