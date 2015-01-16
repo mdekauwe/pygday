@@ -1042,10 +1042,12 @@ class NitrogenSoilFlows(object):
         
     def calc_root_exudation_uptake_of_N(self):
         active_CN_ratio = self.state.activesoil / self.state.activesoiln
-        N_to_active_pool = self.fluxes.root_exc / active_CN_ratio
+        
+        C_to_active_pool = self.fluxes.root_exc * (1.0 - self.fluxes.rexc_cue)
+        N_to_active_pool = C_to_active_pool / active_CN_ratio
     
         # N immobilisation (loss) due to REXN sequestration in the active pool
-        N_miss = (max(0.0, self.fluxes.root_exc / active_CN_ratio) - 
+        N_miss = (max(0.0, C_to_active_pool / active_CN_ratio) - 
                       self.fluxes.root_exn)
     
         # N added to the active pool is independent of the CUE of the microbial
