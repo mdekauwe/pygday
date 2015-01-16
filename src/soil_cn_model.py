@@ -105,29 +105,31 @@ class CarbonSoilFlows(object):
             self.calc_root_exudation_uptake_of_C()
     
     def calc_root_exudation_uptake_of_C(self):        
-        som_CN_ratio = ((self.state.activesoil + 
-                         self.state.slowsoil + 
-                         self.state.passivesoil) / 
-                        (self.state.activesoiln + 
-                         self.state.slowsoiln + 
-                         self.state.passivesoiln))
-                     
+        """ The amount of C which enters the active pool varies according to the
+        CUE of SOM in response to root exudation (REXCUE). REXCUE determines 
+        the fraction of REXC that enters the active pool as C. The remaining
+        flux is respired.
+        """
+        soiln = (self.state.activesoiln + self.state.slowsoiln + 
+                 self.state.passivesoiln)
+        soilc = (self.state.activesoil + self.state.slowsoil +
+                 self.state.passivesoil)
+        som_CN_ratio = soilc / soiln
+    
         if self.params.root_exu_CUE == -1.0: # flexible CUE
             # flexible cue
             # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
             # between 16 to 24. Check this for GDAY
-            self.fluxes.rexc_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))
+            self.fluxes.rexc_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))        
         else:
             self.fluxes.rexc_cue = self.params.root_exu_CUE
             
         C_to_active_pool = self.fluxes.root_exc * (1.0 - self.fluxes.rexc_cue)
+        self.state.activesoil += C_to_active_pool
         
-        # update respiraiton fluxes.
+        # update respiration fluxes.
         self.fluxes.co2_released_exud = self.fluxes.root_exc - C_to_active_pool
         self.fluxes.hetero_resp += self.fluxes.co2_released_exud
-
-        # update active pool
-        self.state.activesoil += C_to_active_pool
         
     def calculate_decay_rates(self, project_day):
         """ Model decay rates - decomposition rates have a strong temperature 
@@ -1041,31 +1043,50 @@ class NitrogenSoilFlows(object):
                                self.fluxes.nlittrelease)
         
     def calc_root_exudation_uptake_of_N(self):
+        """ When N mineralisation is large enough to allow a small amount of N
+        immobilisation, the amount of N which enters the active pool is 
+        calculated according to REXC divided by the CN of the active pool. When
+        exudation enters the active pool, the CN ratio of the exudates drops 
+        from REXC/REXN to the CN of the active pool. Which is consistent with 
+        the CENTURY framework, where C flows between pools lead to either
+        mineralisation (N gain) or immobilisation (N loss) due to differences
+        in the CN ratio of the outgoing and incoming pools.
+        
+        The amount of N added to the active pool is independent of the CUE of 
+        the microbial pool in response to root exudation (REXCUE).
+        
+        """
+        C_to_active_pool = self.fluxes.root_exc * (1.0 - self.fluxes.rexc_cue)
+        
         active_CN_ratio = self.state.activesoil / self.state.activesoiln
         
-        C_to_active_pool = self.fluxes.root_exc * (1.0 - self.fluxes.rexc_cue)
-        N_to_active_pool = C_to_active_pool / active_CN_ratio
-    
-        # N immobilisation (loss) due to REXN sequestration in the active pool
-        N_miss = (max(0.0, C_to_active_pool / active_CN_ratio) - 
-                      self.fluxes.root_exn)
-    
-        # N added to the active pool is independent of the CUE of the microbial
-        # pool in response to root exudation
-        if N_miss < self.fluxes.nmineralisation:
+        # Need to account for the increase in available N
+        N_miss = (max(0.0, C_to_active_pool / active_CN_ratio - 
+                           self.fluxes.root_exn))
         
+        if N_miss < self.fluxes.nmineralisation:
+            
+            N_to_active_pool = C_to_active_pool / active_CN_ratio
+            
             # update active pool
             self.state.activesoiln += N_to_active_pool
         
             # Adjust N Mineralisation
             self.fluxes.nmineralisation -= N_miss
         else:
-            # Not enough N available, so root exudation keeps it original C:N
+            # We cannot support the change in CN by the available N, so 
+            # exudation keeps its original CN ratio
+            
+            # update active pool
             self.state.activesoiln += self.fluxes.root_exn
         
     
     def adjust_residence_time_of_slow_pool(self):
-       
+        """ Priming simulations the residence time of the slow pool is flexible,
+        as the flux out of the active pool (factive) increases the residence
+        time of the slow pool decreases.        
+        """
+        # total flux out of the factive pool
         self.fluxes.factive = (self.fluxes.active_to_slow +
                                self.fluxes.active_to_passive +
                                self.fluxes.co2_to_air[4])
@@ -1087,7 +1108,7 @@ class NitrogenSoilFlows(object):
             self.params.kdec6 /= const.NDAYS_IN_YR
         
         # Save for outputting purposes only
-        self.fluxes.rtslow = residence_time_slow_pool 
+        self.fluxes.rtslow = residence_time_slow_pool  
         
     def nc_limit(self, cpool, npool, ncmin, ncmax):
         """ Release N to 'Inorgn' pool or fix N from 'Inorgn', in order to keep

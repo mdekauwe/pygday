@@ -174,7 +174,9 @@ class PlantGrowth(object):
         self.precision_control()
         
     def calc_root_exudation_release(self):
-        # Root exudation modelled to result from fine root growth
+        # Root exudation modelled to occur: with (1) fine root growth or (2)
+        # as a result of excess C. A fraction of fine root growth is allocated
+        # to stimulate exudation. This fraction increases with N stress.
     
         if float_eq(self.state.shoot, 0.0):
             # nothing happens during leaf off period
@@ -185,14 +187,17 @@ class PlantGrowth(object):
             presc_leaf_CN = 30.0 # make a parameter.
 
             # fraction varies between 0 and 50 % as a function of leaf CN
-            frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
+            frac_to_alloc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
+            
+        self.fluxes.root_exc = frac_to_alloc * self.fluxes.cproot
+        if float_eq(self.fluxes.cproot, 0.0):
+            self.fluxes.root_exn = 0.0
+        else:
+            fine_root_NC = self.fluxes.nproot / self.fluxes.cproot
+            self.fluxes.root_exn = self.fluxes.root_exc * fine_root_NC
     
-        self.fluxes.root_exc = frac_to_rexc * self.fluxes.cproot
-        
-        
-        self.fluxes.root_exn = self.fluxes.root_exc * self.state.rootnc
-    
-        # Need to remove lost C & N from fine roots so that things balance.
+        # Need to exudation C & N fluxes from fine root growth fluxes so that 
+        # things balance.
         self.fluxes.cproot -= self.fluxes.root_exc
         self.fluxes.nproot -= self.fluxes.root_exn
         
