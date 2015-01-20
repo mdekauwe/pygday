@@ -700,9 +700,23 @@ class PlantGrowth(object):
                                       (self.fluxes.alleaf + 
                                        self.fluxes.alroot *
                                        self.params.ncrfac))
+        
+        # Make sure leaf NC doesn't exceed a plausible range, if so the 
+        # additional N will end up in the roots
+        leaf_NC = self.state.n_to_alloc_shoot / self.state.c_to_alloc_shoot
+        if leaf_NC > 0.04:
+            self.state.n_to_alloc_shoot = self.state.c_to_alloc_shoot * 0.04
+        
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
         
+        root_NC = self.state.n_to_alloc_root / self.state.c_to_alloc_root
+        ncmaxr = 0.04 * self.params.ncrfac  # max root n:c
+        if root_NC > ncmaxr:
+            extrar = self.state.n_to_alloc_root - (self.state.c_to_alloc_root * ncmaxr)
+            self.state.inorgn += extrar
+            self.state.n_to_alloc_root -= extrar
+            
     def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
                             rdecay, doy, days_in_yr, project_day, fsoilT):
         """ Nitrogen distribution - allocate available N through system.
@@ -750,13 +764,14 @@ class PlantGrowth(object):
         
         # Limit our uptake of N in the deciduous model if we start to approach
         # stores with physically implausible NC ratios .
-        if self.control.deciduous_model:
-            if self.state.cstore > 0.0:
-                if self.state.nstore / self.state.cstore > 0.04:
-                    self.fluxes.nuptake = 0.0         
+        #if self.control.deciduous_model:
+        #    if self.state.cstore > 0.0:     
+        #        if self.state.nstore / self.state.cstore > 0.04:
+        #            self.fluxes.nuptake = 0.0         
         
-        
-        
+                    
+              
+                
         
         # Ross's Root Model.
         if self.control.model_optroot == True:    
@@ -1006,8 +1021,8 @@ class PlantGrowth(object):
             # otherwise it is possible when growing from scratch we don't have
             # enough root mass to obtain N at the annual time step
             # I don't see an obvious better solution?
-            if self.control.deciduous_model:   
-                nuptake = max(U0 * self.state.root / (self.state.root + Kr), U0)
+            #if self.control.deciduous_model:   
+            #    nuptake = max(U0 * self.state.root / (self.state.root + Kr), U0)
             
             
         elif self.control.nuptake_model == 3:
