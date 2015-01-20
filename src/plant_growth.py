@@ -738,10 +738,22 @@ class PlantGrowth(object):
         
         # If we are using the deciduous model, only take up N during the 
         # growing season
-        if self.control.deciduous_model:
-            if float_eq(self.state.leaf_out_days[doy], 0.0):
-                self.fluxes.nuptake = 0.0
+        #if self.control.deciduous_model:
+        #    if float_eq(self.state.leaf_out_days[doy], 0.0):
+        #        self.fluxes.nuptake = 0.0
+        #    else:
+        #        if self.state.cstore > 0.0:
+        #            
+        #            if self.state.nstore/self.state.cstore > 0.06:
+        #                self.fluxes.nuptake = 0.0
         
+        
+        # Limit our uptake of N in the deciduous model if we start to approach
+        # stores with physically implausible NC ratios.
+        if self.control.deciduous_model:
+            if self.state.cstore > 0.0:
+                if self.state.nstore / self.state.cstore > 0.06:
+                    self.fluxes.nuptake = 0.0         
         
         
         # Ross's Root Model.
@@ -1300,7 +1312,9 @@ class PlantGrowth(object):
         self.state.cstore += self.fluxes.npp
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
-    
+        
+        
+        
     def calculate_average_alloc_fractions(self, days):
         self.state.avg_alleaf /= float(days)
         self.state.avg_alroot /= float(days)
