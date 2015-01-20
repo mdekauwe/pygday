@@ -749,7 +749,7 @@ class PlantGrowth(object):
         
         
         # Limit our uptake of N in the deciduous model if we start to approach
-        # stores with physically implausible NC ratios.
+        # stores with physically implausible NC ratios .
         if self.control.deciduous_model:
             if self.state.cstore > 0.0:
                 if self.state.nstore / self.state.cstore > 0.05:
