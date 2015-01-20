@@ -249,9 +249,6 @@ class Gday(object):
             
             # Allocate stored C&N for the following year
             if self.control.deciduous_model:
-                
-                print self.state.nstore / self.state.cstore, self.state.n_to_alloc_shoot/self.state.c_to_alloc_shoot
-                
                 # Using average alloc fracs across growing season instead
                 #self.pg.calc_carbon_allocation_fracs(0.0) #comment this!!
                 self.pg.calculate_average_alloc_fractions(self.P.growing_seas_len)
