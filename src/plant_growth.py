@@ -703,11 +703,11 @@ class PlantGrowth(object):
         
         # Make sure leaf NC doesn't exceed a plausible range, if so the 
         # additional N will end up in the roots
-        print self.fluxes.alleaf, self.state.cstore
-        print self.fluxes.alroot, self.state.cstore
-        print self.fluxes.alcroot, self.state.cstore
-        print self.fluxes.albranch, self.state.cstore
-        print self.fluxes.alstem, self.state.cstore
+        #print self.fluxes.alleaf, self.state.cstore
+        #print self.fluxes.alroot, self.state.cstore
+        #print self.fluxes.alcroot, self.state.cstore
+        #print self.fluxes.albranch, self.state.cstore
+        #print self.fluxes.alstem, self.state.cstore
         
         
         leaf_NC = self.state.n_to_alloc_shoot / self.state.c_to_alloc_shoot
