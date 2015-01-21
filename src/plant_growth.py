@@ -187,9 +187,9 @@ class PlantGrowth(object):
             presc_leaf_CN = 30.0 # make a parameter.
 
             # fraction varies between 0 and 50 % as a function of leaf CN
-            frac_to_alloc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
+            frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
             
-        self.fluxes.root_exc = frac_to_alloc * self.fluxes.cproot
+        self.fluxes.root_exc = frac_to_rexc * self.fluxes.cproot
         if float_eq(self.fluxes.cproot, 0.0):
             self.fluxes.root_exn = 0.0
         else:
@@ -703,6 +703,13 @@ class PlantGrowth(object):
         
         # Make sure leaf NC doesn't exceed a plausible range, if so the 
         # additional N will end up in the roots
+        print self.fluxes.alleaf, self.state.cstore
+        print self.fluxes.alroot, self.state.cstore
+        print self.fluxes.alcroot, self.state.cstore
+        print self.fluxes.albranch, self.state.cstore
+        print self.fluxes.alstem, self.state.cstore
+        
+        
         leaf_NC = self.state.n_to_alloc_shoot / self.state.c_to_alloc_shoot
         if leaf_NC > 0.04:
             self.state.n_to_alloc_shoot = self.state.c_to_alloc_shoot * 0.04
