@@ -700,16 +700,16 @@ class PlantGrowth(object):
                                       (self.fluxes.alleaf + 
                                        self.fluxes.alroot *
                                        self.params.ncrfac))
-        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
         
-        """
+        #"""
         
         leaf_NC = self.state.n_to_alloc_shoot / self.state.c_to_alloc_shoot
         if leaf_NC > 0.04:
             self.state.n_to_alloc_shoot = self.state.c_to_alloc_shoot * 0.04
         
-        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        self.state.n_to_alloc_root = max(0.0, ntot - self.state.n_to_alloc_shoot)
         
         
         root_NC = self.state.n_to_alloc_root / self.state.c_to_alloc_root
@@ -717,10 +717,17 @@ class PlantGrowth(object):
         if root_NC > ncmaxr:
             extrar = (self.state.n_to_alloc_root - 
                       (self.state.c_to_alloc_root * ncmaxr))
-            self.state.inorgn += extrar
+            
+            
+            
             self.state.n_to_alloc_root -= extrar
             
-        """
+            nloss = self.params.rateloss * 365.25 * extrar
+            extrar = max(0.0, extrar - nloss)
+            self.state.inorgn += extrar
+            self.fluxes.nloss += nloss
+            
+        #"""
            
     def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
                             rdecay, doy, days_in_yr, project_day, fsoilT):
@@ -757,9 +764,9 @@ class PlantGrowth(object):
         
         # If we are using the deciduous model, only take up N during the 
         # growing season
-        #if self.control.deciduous_model:
-        #    if float_eq(self.state.leaf_out_days[doy], 0.0):
-        #        self.fluxes.nuptake = 0.0
+        if self.control.deciduous_model:
+            if float_eq(self.state.leaf_out_days[doy], 0.0):
+                self.fluxes.nuptake = 0.0
         
         
                 
