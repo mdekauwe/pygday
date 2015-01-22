@@ -718,14 +718,8 @@ class PlantGrowth(object):
             extrar = (self.state.n_to_alloc_root - 
                       (self.state.c_to_alloc_root * ncmaxr))
             
-            
-            
+            self.state.inorgn += extrar       
             self.state.n_to_alloc_root -= extrar
-            
-            nloss = self.params.rateloss * 365.25 * extrar
-            extrar = max(0.0, extrar - nloss)
-            self.state.inorgn += extrar
-            self.fluxes.nloss += nloss
             
         #"""
            
