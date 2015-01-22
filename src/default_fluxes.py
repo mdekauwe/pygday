@@ -24,7 +24,7 @@ retrans = None
 
 # Nitrogen fluxes
 nuptake = None
-nloss = None
+nloss = 0.0
 npassive = None # n passive -> active
 ngross = None   # N gross mineralisation
 nimmob = None   # N immobilisation in SOM
