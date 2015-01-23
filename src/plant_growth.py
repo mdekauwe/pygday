@@ -721,6 +721,8 @@ class PlantGrowth(object):
             self.state.inorgn += extrar       
             self.state.n_to_alloc_root -= extrar
             
+            
+            
         #"""
            
     def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
@@ -1013,8 +1015,8 @@ class PlantGrowth(object):
             # otherwise it is possible when growing from scratch we don't have
             # enough root mass to obtain N at the annual time step
             # I don't see an obvious better solution?
-            if self.control.deciduous_model:   
-                nuptake = max(U0 * self.state.root / (self.state.root + Kr), U0)
+            #if self.control.deciduous_model:   
+            #    nuptake = max(U0 * self.state.root / (self.state.root + Kr), U0)
             
             
         elif self.control.nuptake_model == 3:
@@ -1321,6 +1323,20 @@ class PlantGrowth(object):
         self.state.cstore += self.fluxes.npp
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
+        
+        
+        if self.state.cstore > 0.0:
+            
+            store_NC = self.state.nstore / self.state.cstore 
+            if store_NC > 0.06:
+                new_n_store = self.state.cstore * 0.06
+                extraN = self.state.nstore - new_n_store
+                self.state.nstore = new_n_store
+                self.state.inorgn += extraN
+              
+                
+        
+        
         
     def calculate_average_alloc_fractions(self, days):
         self.state.avg_alleaf /= float(days)
