@@ -1333,7 +1333,13 @@ class PlantGrowth(object):
                 extraN = self.state.nstore - new_n_store
                 self.state.nstore = new_n_store
                 self.state.inorgn += extraN
-              
+                
+                # assumption here is that the retrans flux just ends up
+                # in the inorganic pool too.
+                if self.fluxes.nuptake > extraN:
+                    self.fluxes.nuptake -= extraN
+                else:
+                    self.fluxes.nuptake = 0.0
                 
         
         
