@@ -709,7 +709,7 @@ class PlantGrowth(object):
         if leaf_NC > 0.04:
             self.state.n_to_alloc_shoot = self.state.c_to_alloc_shoot * 0.04
         
-        self.state.n_to_alloc_root = max(0.0, ntot - self.state.n_to_alloc_shoot)
+        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
         
         root_NC = self.state.n_to_alloc_root / self.state.c_to_alloc_root
@@ -1323,25 +1323,6 @@ class PlantGrowth(object):
         self.state.cstore += self.fluxes.npp
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
-        
-        
-        if self.state.cstore > 0.0:
-            
-            store_NC = self.state.nstore / self.state.cstore 
-            if store_NC > 0.06:
-                new_n_store = self.state.cstore * 0.06
-                extraN = self.state.nstore - new_n_store
-                self.state.nstore = new_n_store
-                self.state.inorgn += extraN
-                
-                # assumption here is that the retrans flux just ends up
-                # in the inorganic pool too.
-                if self.fluxes.nuptake > extraN:
-                    self.fluxes.nuptake -= extraN
-                else:
-                    self.fluxes.nuptake = 0.0
-                
-        
         
         
     def calculate_average_alloc_fractions(self, days):
