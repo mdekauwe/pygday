@@ -178,7 +178,7 @@ class PlantGrowth(object):
         # as a result of excess C. A fraction of fine root growth is allocated
         # to stimulate exudation. This fraction increases with N stress.
     
-        if float_eq(self.state.shoot, 0.0):
+        if float_eq(self.state.shoot, 0.0) or float_eq(self.state.shootn, 0.0):
             # nothing happens during leaf off period
             leaf_CN = 0.0
             frac_to_rexc = 0.0
