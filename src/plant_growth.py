@@ -700,14 +700,12 @@ class PlantGrowth(object):
                                       (self.fluxes.alleaf + 
                                        self.fluxes.alroot *
                                        self.params.ncrfac))
-        #self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
-        
-        
-        #"""
+        self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
+        """
         
         leaf_NC = self.state.n_to_alloc_shoot / self.state.c_to_alloc_shoot
         if leaf_NC > 0.04:
-            self.state.n_to_alloc_shoot = self.state.c_to_alloc_shoot * 0.04
+            self.state.n_to_alloc_shoot = self.state.c_to_alloc_shoot * 0.14
         
         self.state.n_to_alloc_root = ntot - self.state.n_to_alloc_shoot
         
@@ -719,11 +717,8 @@ class PlantGrowth(object):
                       (self.state.c_to_alloc_root * ncmaxr))
             
             self.state.inorgn += extrar       
-            self.state.n_to_alloc_root -= extrar
-            
-            
-            
-        #"""
+            self.state.n_to_alloc_root -= extrar    
+        """
            
     def nitrogen_allocation(self, ncbnew, nccnew, ncwimm, ncwnew, fdecay, 
                             rdecay, doy, days_in_yr, project_day, fsoilT):
@@ -1319,12 +1314,77 @@ class PlantGrowth(object):
         use in the following year to build new leaves (buds & budburst are 
         implied) 
         """
+        
         # Total C & N storage to allocate annually.
         self.state.cstore += self.fluxes.npp
         self.state.nstore += self.fluxes.nuptake + self.fluxes.retrans 
         self.state.anpp += self.fluxes.npp
         
         
+        """
+        
+        
+        # Control on the size of the N store
+        #
+        # Check that the N we are taking up isn't massively in excess of the
+        # N we could realistically use. To do this we need to make some 
+        # assumptions about allocation, so the N store is still likely to be
+        # slightly larger than the actual required, but should at least
+        # track something plausible
+    
+        # arbitrary set, but can't see anything much larger than this being
+        # required
+        c_alloc_smax = (1.0 - self.params.c_alloc_fmin - 
+                        self.params.c_alloc_rmin -self.params.c_alloc_bmin) 
+    
+        # N flux into new ring (immobile component -> structrual components)
+        n_to_alloc_stemimm = (self.state.cstore * c_alloc_smax * 
+                              self.params.ncwimm)
+
+        # N flux into new ring (mobile component -> can be retrans for new
+        # woody tissue)
+        n_to_alloc_stemmob = (self.state.cstore * c_alloc_smax * 
+                              (self.params.ncwnew - self.params.ncwimm))
+
+        n_to_alloc_branch = (self.state.cstore * self.params.c_alloc_bmax * 
+                             self.params.ncbnew)
+    
+        n_to_alloc_croot = (self.state.cstore * self.params.c_alloc_cmax * 
+                            self.params.nccnew)
+                                    
+    
+   
+        # allocate remaining N to flexible-ratio pools
+        n_to_alloc_shoot = 0.04 * self.state.c_to_alloc_shoot
+        ncmaxr = 0.04 * self.params.ncrfac 
+        n_to_alloc_root = ncmaxr * self.state.c_to_alloc_shoot
+    
+    
+        total_Nstore_req = (n_to_alloc_stemimm + n_to_alloc_stemmob + 
+                            n_to_alloc_branch + n_to_alloc_croot +
+                            n_to_alloc_shoot + n_to_alloc_root)
+    
+       
+        # Check the final store
+        N_supply = self.fluxes.nuptake + self.fluxes.retrans
+    
+        
+    
+        new_Nstore = self.state.nstore + N_supply
+        
+    
+        if new_Nstore > total_Nstore_req:
+            extra = new_Nstore - total_Nstore_req
+            self.state.nstore = total_Nstore_req
+            self.fluxes.nuptake = 0.0
+            self.state.inorgn += extra - self.fluxes.retrans
+        else:
+             self.state.nstore += N_supply
+        """  
+        
+        
+        
+             
     def calculate_average_alloc_fractions(self, days):
         self.state.avg_alleaf /= float(days)
         self.state.avg_alroot /= float(days)
