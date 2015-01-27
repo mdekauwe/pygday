@@ -755,9 +755,9 @@ class PlantGrowth(object):
         
         # If we are using the deciduous model, only take up N during the 
         # growing season
-        if self.control.deciduous_model:
-            if float_eq(self.state.leaf_out_days[doy], 0.0):
-                self.fluxes.nuptake = 0.0
+        #if self.control.deciduous_model:
+        #    if float_eq(self.state.leaf_out_days[doy], 0.0):
+        #        self.fluxes.nuptake = 0.0
         
         
                 
