@@ -122,7 +122,10 @@ class CarbonSoilFlows(object):
             # The constraint of 0.3<=REXCUE<=0.6 is based on observations of the 
             # physical limits of microbes
             
-            rex_NC = max(0.0, self.fluxes.root_exn / self.fluxes.root_exc)
+            if float_eq(self.fluxes.root_exc, 0.0):
+                rex_NC = 0.0
+            else:
+                rex_NC = self.fluxes.root_exn / self.fluxes.root_exc
             self.fluxes.rexc_cue = max(0.3, min(0.6, rex_NC * active_CN))        
         else:
             self.fluxes.rexc_cue = self.params.root_exu_CUE

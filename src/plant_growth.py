@@ -188,7 +188,8 @@ class PlantGrowth(object):
 
             # fraction varies between 0 and 50 % as a function of leaf CN
             frac_to_rexc = max(0.0, min(0.5, (leaf_CN / presc_leaf_CN) - 1.0))
-            
+        
+        
         self.fluxes.root_exc = frac_to_rexc * self.fluxes.cproot
         if float_eq(self.fluxes.cproot, 0.0):
             self.fluxes.root_exn = 0.0
