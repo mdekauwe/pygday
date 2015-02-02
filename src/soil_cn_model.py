@@ -115,25 +115,15 @@ class CarbonSoilFlows(object):
         (delta_Cact). The remaining fraction of REXC is respired as CO2.
         
         """
-        #soiln = (self.state.activesoiln + self.state.slowsoiln + 
-        #         self.state.passivesoiln)
-        #soilc = (self.state.activesoil + self.state.slowsoil +
-        #         self.state.passivesoil)
-        #som_CN_ratio = soilc / soiln
-        
         active_CN = self.state.activesoil / self.state.activesoiln
         
         if self.params.root_exu_CUE == -1.0: # flexible CUE
             # flexible cue
-            # 28 and 0.25 give CUEs between 0.3 and 0.6 for CN values of SOM 
-            # between 16 to 24. 
             # The constraint of 0.3<=REXCUE<=0.6 is based on observations of the 
             # physical limits of microbes
-            #self.fluxes.rexc_cue = max(0.3, min(0.6, som_CN_ratio / 28.0 - 0.25))     
-            
             
             rex_NC = self.fluxes.root_exn / self.fluxes.root_exc
-            self.fluxes.rexc_cue = max(0.3, min(0.6, rex_CN / active_CN))        
+            self.fluxes.rexc_cue = max(0.3, min(0.6, rex_NC * active_CN))        
         else:
             self.fluxes.rexc_cue = self.params.root_exu_CUE
             
