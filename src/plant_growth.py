@@ -193,8 +193,10 @@ class PlantGrowth(object):
         if float_eq(self.fluxes.cproot, 0.0):
             self.fluxes.root_exn = 0.0
         else:
-            fine_root_NC = self.fluxes.nproot / self.fluxes.cproot
-            self.fluxes.root_exn = self.fluxes.root_exc * fine_root_NC
+            #fine_root_NC = self.fluxes.nproot / self.fluxes.cproot
+            #self.fluxes.root_exn = self.fluxes.root_exc * fine_root_NC
+            active_NC_ratio = self.state.activesoiln / self.state.activesoil 
+            self.fluxes.root_exn = self.fluxes.root_exc * active_NC_ratio
     
         # Need to exudation C & N fluxes from fine root growth fluxes so that 
         # things balance.
