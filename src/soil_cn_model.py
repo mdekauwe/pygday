@@ -1070,30 +1070,25 @@ class NitrogenSoilFlows(object):
         the microbial pool in response to root exudation (REXCUE).
         
         """
-        N_available =  self.fluxes.nmineralisation + self.state.inorgn
+        N_available =  self.fluxes.nmineralisation
         
         active_NC_ratio = self.state.activesoiln / self.state.activesoil 
-        
         delta_Nact = (self.fluxes.root_exc * self.fluxes.rexc_cue * 
                       active_NC_ratio) 
         
-        
-        N_miss = (max(0.0, delta_Nact - self.fluxes.root_exn))
-        
+        N_miss = delta_Nact - self.fluxes.root_exn
         
         if N_miss <= 0.0:
             N_to_active_pool = self.fluxes.root_exn
             
-        elif N_miss <= self.fluxes.nmineralisation:
+        elif N_miss <= N_available:
             self.fluxes.nmineralisation -= N_miss
             N_to_active_pool = self.fluxes.root_exn + N_miss
         elif self.fluxes.nmineralisation <= N_miss:
-    
             N_to_active_pool = (self.fluxes.root_exn + 
-                                self.fluxes.nmineralisation)
+                                N_available)
             self.fluxes.nmineralisation = 0.0
-        
-        
+    
         # update active pool
         self.state.activesoiln += N_to_active_pool
         
