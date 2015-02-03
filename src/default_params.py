@@ -214,6 +214,12 @@ root_exu_CUE = None
 prime_y = 0.0
 prime_z = 0.0
 
+# previous days frost factors - set to 1.0, i.e. no effect to start with
+fcAp = 1.0 
+fc_alpha_p = 1.0 
+f_long_gp = 1.0
+Thardp = None
+
 
 #============== Not publicly accessible to the user ==========================#
 # decay rates
