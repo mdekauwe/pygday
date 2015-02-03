@@ -668,9 +668,9 @@ class MateC3(object):
         self.params.f_long_gp = f_long
     
         # Combined factor
-        total_alpha_limf = f_long * fc_alpha 
-        total_amax_limf = fcA * f_long
-    
+        total_alpha_limf = max(min(1.0, f_long * fc_alpha), 0.0)  
+        total_amax_limf = max(min(1.0, fcA * f_long), 0.0)
+                          
         return (total_alpha_limf, total_amax_limf)
 
 
