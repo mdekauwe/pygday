@@ -639,7 +639,7 @@ class MateC3(object):
         
         if self.params.fc_alpha_p < 0.8:
             fc_alpha = f_alpha * (self.params.fc_alpha_p + 0.2)
-        elif self.params.fc_alpha_p >= 0.8
+        elif self.params.fc_alpha_p >= 0.8:
             fc_alpha = f_alpha
     
         # set previous days values to todays value
