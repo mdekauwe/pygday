@@ -92,16 +92,7 @@ class MateC3(object):
         # local var for tidyness
         (Tk_am, Tk_pm, par, vpd_am, vpd_pm, ca) = self.get_met_data(day)
         
-        # Reducing assimilation if we encounter frost
-        if self.control.frost:
-            Tmax = self.met_data['tmax'][day]
-            Tmin = self.met_data['tmin'][day]
-            
-            Thard = self.calc_frost_hardiness(daylen, Tmin, Tmax)
-            (total_alpha_limf, 
-            total_amax_limf) = self.calc_frost_impact_factors(Thard, Tmin, Tmax)
-            self.params.alpha_j *=total_alpha_limf
-            
+        
         # calculate mate params & account for temperature dependencies
         N0 = self.calculate_top_of_canopy_n()
         
@@ -120,7 +111,21 @@ class MateC3(object):
         # quantum efficiency calculated for C3 plants
         alpha_am = self.calculate_quantum_efficiency(ci_am, gamma_star_am)
         alpha_pm = self.calculate_quantum_efficiency(ci_pm, gamma_star_pm)
-             
+        
+        # Reducing assimilation if we encounter frost. Frost is assumed to 
+        # impact on the maximum photosynthetic capacity and alpha_j
+        # So there is only an indirect effect on LAI, this could be changed...
+        if self.control.frost:
+            Tmax = self.met_data['tmax'][day]
+            Tmin = self.met_data['tmin'][day]
+            
+            Thard = self.calc_frost_hardiness(daylen, Tmin, Tmax)
+            (total_alpha_limf, 
+            total_amax_limf) = self.calc_frost_impact_factors(Thard, Tmin, Tmax)
+            alpha_am *= total_alpha_limf
+            alpha_a=pm *= total_alpha_limf
+            
+         
         # Rubisco carboxylation limited rate of photosynthesis
         ac_am = self.assim(ci_am, gamma_star_am, a1=vcmax_am, a2=Km_am) 
         ac_pm = self.assim(ci_pm, gamma_star_pm, a1=vcmax_pm, a2=Km_pm) 
