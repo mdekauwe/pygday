@@ -643,7 +643,7 @@ class MateC3(object):
         ## Short term effects, complete recovery ~ 5 days
         #
         if self.params.fcap < 0.8:
-            fcA = f_A * (self.params.fcaP + 0.2)
+            fcA = f_A * (self.params.fcap + 0.2)
         elif self.params.fcap >= 0.8:
             fcA = f_A
         
