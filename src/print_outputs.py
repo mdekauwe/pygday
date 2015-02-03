@@ -154,7 +154,8 @@ class PrintOutput(object):
                    'passiveconst', 'print_options', 'water_stress',\
                    'calc_sw_params', 'alloc_model','fixed_stem_nc', \
                    'ps_pathway','gs_model','grazing','exudation',\
-                   'ncycle','adjust_rtslow', "respiration_model"]
+                   'ncycle','adjust_rtslow', "respiration_model",\
+                   'frost']
         
         self.dump_ini_data("[git]\n", None, ignore, special, 
                             oparams, print_tag=False, print_files=False, git=True)

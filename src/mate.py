@@ -92,6 +92,12 @@ class MateC3(object):
         # local var for tidyness
         (Tk_am, Tk_pm, par, vpd_am, vpd_pm, ca) = self.get_met_data(day)
         
+        if self.control.frost:
+            Thard = self.calc_frost_hardiness()
+            (total_alpha_limf, 
+             total_amax_limf) = self.calc_frost_impact_factors(Thard)
+            self.params.alpha_j *=total_alpha_limf
+            
         # calculate mate params & account for temperature dependencies
         N0 = self.calculate_top_of_canopy_n()
         
@@ -110,7 +116,7 @@ class MateC3(object):
         # quantum efficiency calculated for C3 plants
         alpha_am = self.calculate_quantum_efficiency(ci_am, gamma_star_am)
         alpha_pm = self.calculate_quantum_efficiency(ci_pm, gamma_star_pm)
-        
+             
         # Rubisco carboxylation limited rate of photosynthesis
         ac_am = self.assim(ci_am, gamma_star_am, a1=vcmax_am, a2=Km_am) 
         ac_pm = self.assim(ci_pm, gamma_star_pm, a1=vcmax_pm, a2=Km_pm) 
@@ -124,7 +130,10 @@ class MateC3(object):
         # light-saturated photosynthesis rate at the top of the canopy (gross)
         asat_am = min(aj_am, ac_am) 
         asat_pm = min(aj_pm, ac_pm) 
-        
+        if self.control.frost:
+            asat_am *= total_amax_limf
+            asat_pm *= total_amax_limf
+            
         # LUE (umol C umol-1 PAR)
         lue_am = self.epsilon(asat_am, par, daylen, alpha_am)
         lue_pm = self.epsilon(asat_pm, par, daylen, alpha_pm)
@@ -534,7 +543,125 @@ class MateC3(object):
         arg3 = 1.0 + exp((Tk * deltaS - Hd) / (Tk * const.RGAS))
         
         return arg1 * arg2 / arg3
+    
+    def calc_frost_hardiness(self, daylength, Tnight):
+        """ Capacity of plants to survive frost defined by a hardiness 
+        paramater, Thard.
+    
+    
+        Parameters:
+        ----------
+        
 
+        Returns:
+        -------
+        Thard : float (deg C)
+            Nightly minimum temperature causing a 50% reduction in Amax in 
+            previously undamaged leaves.
+    
+        References:
+        -----------
+        * King and Ball, 1998, Aust. J. Plant Physiol., 25, 27-37.   
+        """
+        beta = 1.0 # degC/h
+        # Average night-time temperature
+        Tnight = Tmin + 0.25 * (Tmax - Tmin)
+    
+        # equinox daylength
+        Teq = 12.0 
+    
+        # Stationary level of hardiness
+        Tstat = (self.params.frost_a + self.params.frost_b * 
+                 (Tnight + beta * (daylength - Teq)))
+    
+        # previous days Thard
+        if self.params.Thardp is None:
+            self.params.Thardp = Tstat
+        
+        # Frost hardiness parameter
+        Thard = (self.params.Thardp + self.params.frost_c * 
+                 (Tstat - self.params.Thardp))
+        
+        # set previous value to todays value
+        self.params.Thardp = Thard
+        
+        return (Thard)
+    
+    def calc_frost_impact_factors(self):
+        """ Calculate multiplicative frost impact factors, 0=lethal frost; 1=no
+        damage from the previous night
+    
+    
+        Parameters:
+        ----------
+        k25 : float
+            rate parameter value at 25 degC
+        Ea : float
+            activation energy for the parameter [J mol-1]
+        Tk : float
+            leaf temperature [deg K]
+
+        Returns:
+        -------
+        total_alpha_limf : float [0-1]
+            limitation on alpha
+        total_amax_limf : float [0-1]
+            limitation on Amax
+    
+        References:
+        -----------
+        * King and Ball, 1998, Aust. J. Plant Physiol., 25, 27-37.   
+        """
+    
+        # Factor accounting for the previous nights frost on Amax
+        if Tmin > Thard + 0.5 * Trange:
+            f_A = 1.0
+        elif Thard + 0.5 * Trange > Tmin and Tmin > Thard - 0.5 * Trange:
+            f_A = 0.5 * (1.0 + sin(pi * (Tmin - Thard) / Trange))
+        elif Tmin <= Thard - 0.5 * Trange:
+            f_A = 0.0
+    
+        # Factor accounting for effect on initial slope of the light response
+        # curve (alpha)
+        d = 1.5 + 0.5 * exp(-2.0 * self.params.kext * self.state.lai)
+        if f_A >= 0.5:
+            f_alpha = f_A**d   
+        elif f_A < 0.5:
+            f_alpha = f_A / d
+    
+        #
+        ## Short term effects, complete recovery ~ 5 days
+        #
+        if self.params.fcAp < 0.8:
+            fcA = f_A * (self.params.fcAP + 0.2)
+        elif self.params.fcAp >= 0.8:
+            fcA = f_A
+        
+        if self.params.fc_alpha_p < 0.8:
+            fc_alpha = f_alpha * (self.params.fc_alpha_p + 0.2)
+        elif self.params.fc_alpha_p >= 0.8
+            fc_alpha = f_alpha
+    
+        # set previous days values to todays value
+        self.params.fcAp = fcA
+        self.params.fc_alpha_p = fc_alpha_p
+    
+        #
+        ## Long term cumulative frost impact factor
+        #
+        if f_alpha < 1.0
+            f_long = f_alpha**self.params.frost_p * self.params.f_long_gp
+        elif f_alpha = 1.0:
+            f_long = 0.01 + 0.99 * self.params.f_long_gp
+    
+        # set previous value to todays value
+        self.params.f_long_gp = f_long
+    
+        # Combined factor
+        total_alpha_limf = f_long * fc_alpha 
+        total_amax_limf = fcA * f_long
+    
+        return (total_alpha_limf, total_amax_limf)
 
 
 class MateC4(MateC3):
