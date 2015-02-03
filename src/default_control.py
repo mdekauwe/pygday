@@ -19,6 +19,7 @@ exudation = False              #
 hurricane = 0                  # 0=No hurricane, 1=Hurricane
 fixleafnc = False              # fixed leaf N C ?
 fixed_stem_nc = True           # False=vary stem N:C with foliage, True=fixed stem N:C
+frost = False                  # Frost model on or off
 grazing = False                # Is foliage grazed? 0=No, 1=daily, 2=annual and then set disturbance_doy=doy
 gs_model = "MEDLYN"            # Currently only this model, but others could be added.    
 modeljm = 1                    # modeljm=0, Jmax and Vcmax parameters are read in, modeljm=1, parameters are calculated from leaf N content, modeljm=2, Vcmax is calculated from leaf N content but Jmax is related to Vcmax
