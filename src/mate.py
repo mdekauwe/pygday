@@ -93,9 +93,11 @@ class MateC3(object):
         (Tk_am, Tk_pm, par, vpd_am, vpd_pm, ca) = self.get_met_data(day)
         
         if self.control.frost:
-            Thard = self.calc_frost_hardiness()
+            Tmax = self.met_data['tmax'][day]
+            Tmin = self.met_data['tmin'][day]
+            Thard = self.calc_frost_hardiness(daylen, Tmin, Tmax)
             (total_alpha_limf, 
-             total_amax_limf) = self.calc_frost_impact_factors(Thard)
+            total_amax_limf) = self.calc_frost_impact_factors(Thard, Tmin, Tmax)
             self.params.alpha_j *=total_alpha_limf
             
         # calculate mate params & account for temperature dependencies
@@ -544,7 +546,7 @@ class MateC3(object):
         
         return arg1 * arg2 / arg3
     
-    def calc_frost_hardiness(self, daylength, Tnight):
+    def calc_frost_hardiness(self, daylength, Tmin, Tmax):
         """ Capacity of plants to survive frost defined by a hardiness 
         paramater, Thard.
     
@@ -564,6 +566,7 @@ class MateC3(object):
         * King and Ball, 1998, Aust. J. Plant Physiol., 25, 27-37.   
         """
         beta = 1.0 # degC/h
+        
         # Average night-time temperature
         Tnight = Tmin + 0.25 * (Tmax - Tmin)
     
@@ -587,7 +590,7 @@ class MateC3(object):
         
         return (Thard)
     
-    def calc_frost_impact_factors(self):
+    def calc_frost_impact_factors(self, Thard, Tmin, Tmax):
         """ Calculate multiplicative frost impact factors, 0=lethal frost; 1=no
         damage from the previous night
     
@@ -612,6 +615,7 @@ class MateC3(object):
         -----------
         * King and Ball, 1998, Aust. J. Plant Physiol., 25, 27-37.   
         """
+        Trange = Tmax - Tmin
     
         # Factor accounting for the previous nights frost on Amax
         if Tmin > Thard + 0.5 * Trange:
