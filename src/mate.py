@@ -584,15 +584,15 @@ class MateC3(object):
                  (Tnight + beta * (daylength - Teq)))
     
         # previous days Thard
-        if self.params.Thardp is None:
-            self.params.Thardp = Tstat
+        if self.params.thardp is None:
+            self.params.thardp = Tstat
         
         # Frost hardiness parameter
-        Thard = (self.params.Thardp + self.params.frost_c * 
-                 (Tstat - self.params.Thardp))
+        Thard = (self.params.thardp + self.params.frost_c * 
+                 (Tstat - self.params.thardp))
         
         # set previous value to todays value
-        self.params.Thardp = Thard
+        self.params.thardp = Thard
         
         return (Thard)
     
@@ -642,9 +642,9 @@ class MateC3(object):
         #
         ## Short term effects, complete recovery ~ 5 days
         #
-        if self.params.fcAp < 0.8:
-            fcA = f_A * (self.params.fcAP + 0.2)
-        elif self.params.fcAp >= 0.8:
+        if self.params.fcap < 0.8:
+            fcA = f_A * (self.params.fcaP + 0.2)
+        elif self.params.fcap >= 0.8:
             fcA = f_A
         
         if self.params.fc_alpha_p < 0.8:
@@ -653,7 +653,7 @@ class MateC3(object):
             fc_alpha = f_alpha
     
         # set previous days values to todays value
-        self.params.fcAp = fcA
+        self.params.fcap = fcA
         self.params.fc_alpha_p = fc_alpha
     
         #

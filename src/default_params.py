@@ -219,10 +219,10 @@ frost_a = -26.5
 frost_b = 3.0
 frost_c = 0.02
 frost_p = 0.15
-fcAp = 1.0 
+fcap = 1.0 
 fc_alpha_p = 1.0 
 f_long_gp = 1.0
-Thardp = None
+thardp = None
 
 
 #============== Not publicly accessible to the user ==========================#
