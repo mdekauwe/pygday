@@ -123,7 +123,7 @@ class MateC3(object):
             (total_alpha_limf, 
             total_amax_limf) = self.calc_frost_impact_factors(Thard, Tmin, Tmax)
             alpha_am *= total_alpha_limf
-            alpha_a=pm *= total_alpha_limf
+            alpha_pm *= total_alpha_limf
             
          
         # Rubisco carboxylation limited rate of photosynthesis
