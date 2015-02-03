@@ -651,7 +651,7 @@ class MateC3(object):
         #
         if f_alpha < 1.0:
             f_long = f_alpha**self.params.frost_p * self.params.f_long_gp
-        elif f_alpha = 1.0:
+        elif f_alpha == 1.0:
             f_long = 0.01 + 0.99 * self.params.f_long_gp
     
         # set previous value to todays value
