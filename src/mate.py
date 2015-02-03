@@ -617,8 +617,12 @@ class MateC3(object):
         -----------
         * King and Ball, 1998, Aust. J. Plant Physiol., 25, 27-37.   
         """
-        Trange = Tmax - Tmin
-    
+        
+        # Temperature range between 0 and 100% photosynthetic damage from low 
+        # temp following Battaglia et a. 2004.
+        Trange = 5.0
+        #Trange = Tmax - Tmin
+        
         # Factor accounting for the previous nights frost on Amax
         if Tmin > Thard + 0.5 * Trange:
             f_A = 1.0
