@@ -124,8 +124,7 @@ class MateC3(object):
             total_amax_limf) = self.calc_frost_impact_factors(Thard, Tmin, Tmax)
             alpha_am *= total_alpha_limf
             alpha_pm *= total_alpha_limf
-            
-         
+     
         # Rubisco carboxylation limited rate of photosynthesis
         ac_am = self.assim(ci_am, gamma_star_am, a1=vcmax_am, a2=Km_am) 
         ac_pm = self.assim(ci_pm, gamma_star_pm, a1=vcmax_pm, a2=Km_pm) 
@@ -591,6 +590,11 @@ class MateC3(object):
         # Frost hardiness parameter
         Thard = (self.params.thardp + self.params.frost_c * 
                  (Tstat - self.params.thardp))
+        
+        if Thard < -12.0:
+            Thard = -12.0
+        elif Thard > -3.0:
+            Thard = -3.0
         
         # set previous value to todays value
         self.params.thardp = Thard
