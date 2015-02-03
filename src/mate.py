@@ -92,6 +92,7 @@ class MateC3(object):
         # local var for tidyness
         (Tk_am, Tk_pm, par, vpd_am, vpd_pm, ca) = self.get_met_data(day)
         
+        # Reducing assimilation if we encounter frost
         if self.control.frost:
             Tmax = self.met_data['tmax'][day]
             Tmin = self.met_data['tmin'][day]
