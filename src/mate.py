@@ -93,18 +93,13 @@ class MateC3(object):
         (Tk_am, Tk_pm, par, vpd_am, vpd_pm, ca) = self.get_met_data(day)
         
         if self.control.frost:
-            #Tmax = self.met_data['tmax'][day]
-            #Tmin = self.met_data['tmin'][day]
-            
-            Tmin = 5.0
-            Tmax = 20.0
+            Tmax = self.met_data['tmax'][day]
+            Tmin = self.met_data['tmin'][day]
             
             Thard = self.calc_frost_hardiness(daylen, Tmin, Tmax)
             (total_alpha_limf, 
             total_amax_limf) = self.calc_frost_impact_factors(Thard, Tmin, Tmax)
             self.params.alpha_j *=total_alpha_limf
-            
-            #print total_alpha_limf, total_amax_limf
             
         # calculate mate params & account for temperature dependencies
         N0 = self.calculate_top_of_canopy_n()
@@ -666,7 +661,7 @@ class MateC3(object):
     
         # set previous value to todays value
         self.params.f_long_gp = f_long
-        print f_long, fc_alpha, fcA
+        
         # Combined factor
         total_alpha_limf = max(min(1.0, f_long * fc_alpha), 0.0)  
         total_amax_limf = max(min(1.0, fcA * f_long), 0.0)
