@@ -215,6 +215,9 @@ prime_y = 0.0
 prime_z = 0.0
 
 # previous days frost factors - set to 1.0, i.e. no effect to start with
+frost_a = -26.5
+frost_b = 3.0
+frost_c = 0.02
 fcAp = 1.0 
 fc_alpha_p = 1.0 
 f_long_gp = 1.0
