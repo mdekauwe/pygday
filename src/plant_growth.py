@@ -519,7 +519,7 @@ class PlantGrowth(object):
                 self.fluxes.alroot += (max(self.params.c_alloc_rmin, 
                                            orig_af - self.fluxes.alleaf))
             # reduce root allocation    
-            else:
+            elif mis_match < 1.0:
                 orig_ar = self.fluxes.alroot
                 adj = self.fluxes.alroot * mis_match
                 self.fluxes.alroot = max(self.params.c_alloc_rmin, 
@@ -527,7 +527,7 @@ class PlantGrowth(object):
                 
                 reduction = max(0.0, orig_ar - self.fluxes.alroot)
                 self.fluxes.alleaf += max(self.params.c_alloc_fmax, reduction)
-        
+            
                   
             # Allocation to branch dependent on relationship between the stem
             # and branch
