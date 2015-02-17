@@ -70,6 +70,7 @@ deadrootn = None    # Root litter N production (t/ha/yr)
 deadcrootn = None   # Root litter N production (t/ha/yr)
 deadbranchn = None  # Branch litter N production (t/ha/yr)
 deadstemn = None    # Stem litter N production (t/ha/yr)
+deadsapwood = None  
 
 # grazing stuff
 ceaten = None       # C consumed by grazers (t C/ha/y)
