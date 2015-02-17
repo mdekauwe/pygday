@@ -107,7 +107,7 @@ n_soil_struct_to_active = None
 surf_metab_to_active = None
 soil_metab_to_active = None
 n_surf_metab_to_active = None
-n_surf_metab_to_active = None
+n_soil_metab_to_active = None
 
 # C fluxes out of active pool
 active_to_slow = None
