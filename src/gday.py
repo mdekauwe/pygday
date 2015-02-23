@@ -231,7 +231,7 @@ class Gday(object):
                 #print self.state.plantc, self.state.soilc
                 #print yr, doy, self.state.lai, self.fluxes.gpp*100
                 
-                
+                #print self.fluxes.gpp*100, self.state.prev_sma
                 # ======================= #
                 #   E N D   O F   D A Y   #
                 # ======================= #

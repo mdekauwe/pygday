@@ -386,8 +386,8 @@ class PlantGrowth(object):
             
             # if combining grasses with the deciduous model this calculation
             # is done only during the leaf out period. See above.
-            #if not self.control.deciduous_model:
-            #    self.calculate_growth_stress_limitation()
+            if not self.control.deciduous_model:
+                self.calculate_growth_stress_limitation()
             
             # First figure out root allocation given available water & nutrients
             # hyperbola shape to allocation
@@ -433,11 +433,8 @@ class PlantGrowth(object):
             
         elif self.control.alloc_model == "ALLOMETRIC":
             
-            #if not self.control.deciduous_model:
-            #    self.calculate_growth_stress_limitation()
-            #else:
-            #    # reset the buffer at the end of the growing season
-            #    self.sma.reset_stream()
+            if not self.control.deciduous_model:
+                self.calculate_growth_stress_limitation()
             
             # Calculate tree height: allometric reln using the power function 
             # (Causton, 1985)
