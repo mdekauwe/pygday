@@ -2,6 +2,8 @@
 GDAY model
 =============================================
 
+** NOTE discontinued, see the C version **
+
 GDAY (Generic Decomposition And Yield) is a simple, daily time step ecosystem model that represents carbon, nitrogen, and water dynamics at the stand scale. The model is coded entirely in `Python <http://www.python.org/>`_ without any dependancies. 
 
 
