@@ -101,6 +101,7 @@ class Litter(object):
              self.fluxes.neaten) = self.daily_grazing_calc(fdecay)
         # Once annually
         elif self.control.grazing == 2 and self.params.disturbance_doy == doy: 
+            
             (self.fluxes.ceaten, 
              self.fluxes.neaten) = self.annual_grazing_calc()
         else: # no grazing

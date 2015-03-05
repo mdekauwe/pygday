@@ -194,7 +194,9 @@ class Gday(object):
                 # standard litter calculation
                 # litterfall rate: C and N fluxe
                 (fdecay, rdecay) = self.lf.calculate_litter(doy)
-
+                
+                
+                
                 # Fire Disturbance?
                 if (self.control.disturbance != 0 and
                     self.params.disturbance_doy == doy):
@@ -210,7 +212,7 @@ class Gday(object):
                 self.pg.calc_day_growth(project_day, fdecay, rdecay,
                                         daylen[doy], doy,
                                         float(days_in_year[i]), i, fsoilT)
-
+    
                 # soil C & N calculation
                 self.cs.calculate_csoil_flows(project_day, doy)
                 self.ns.calculate_nsoil_flows(project_day, doy)

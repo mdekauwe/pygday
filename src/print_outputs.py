@@ -153,7 +153,7 @@ class PrintOutput(object):
                    'deciduous_model', 'fixleafnc', 'model_optroot',\
                    'passiveconst', 'print_options', 'water_stress',\
                    'calc_sw_params', 'alloc_model','fixed_stem_nc', \
-                   'ps_pathway','gs_model','grazing','exudation',\
+                   'ps_pathway','gs_model','exudation',\
                    'ncycle','adjust_rtslow', "respiration_model",\
                    'frost']
         
