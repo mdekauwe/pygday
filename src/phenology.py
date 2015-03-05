@@ -324,6 +324,8 @@ class Phenology(object):
         self.state.growing_days = [] 
         self.state.leaf_out_days= [] 
         for doy in xrange(1, yr_days+1):
+            #print doy, self.leaf_on, self.leaf_off, self.len_groloss
+            #import sys; sys.exit()
             if doy > self.leaf_off - self.len_groloss and doy <= self.leaf_off:
                 self.state.remaining_days.append((doy - 0.5) - 
                                                   self.leaf_off + 
@@ -341,6 +343,9 @@ class Phenology(object):
                 self.state.leaf_out_days.append(1.0)             
             else:
                 self.state.leaf_out_days.append(0.0)
+        
+        
+            
         
     def calculate_growing_season_fluxes(self):
         
