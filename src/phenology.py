@@ -199,7 +199,7 @@ class Phenology(object):
             nov_doy = 305
         
         ppt_sum = 0.0
-        for d in xrange(yr_days):
+        for d in xrange(1, yr_days+1):
             
             Tmean = met_data['tair'][self.project_day]
             Tsoil = met_data['tsoil'][self.project_day]
