@@ -18,53 +18,85 @@ class Mate(MateC3):
     
     def calculate_photosynthesis(self, tair, par, vpd, ca, daylen, sw):
         
-        Tair_K = [tair + const.DEG_TO_KELVIN, \
-                  tair + const.DEG_TO_KELVIN]
-        vpd = [vpd, vpd]
+        
+        Tk_am = tair + const.DEG_TO_KELVIN
+        Tk_pm = tair + const.DEG_TO_KELVIN
+        vpd_am = vpd
+        vpd_pm = vpd
+        
         state.wtfac_root = calc_sw_modifier(sw, self.params.ctheta_root, 
                                             self.params.ntheta_root)
         
-        # calculate mate params & account for temperature dependencies
-        gamma_star = self.calculate_co2_compensation_point(Tair_K)
-        Km = self.calculate_michaelis_menten_parameter(Tair_K)
+       # calculate mate params & account for temperature dependencies
         N0 = self.calculate_top_of_canopy_n()
-        (jmax, vcmax) = self.calculate_jmax_and_vcmax(Tair_K, N0)
-        ci = [self.calculate_ci(vpd[k], ca) for k in self.am, self.pm]
+        
+        gamma_star_am = self.calculate_co2_compensation_point(Tk_am)
+        gamma_star_pm = self.calculate_co2_compensation_point(Tk_pm)
+        
+        Km_am = self.calculate_michaelis_menten_parameter(Tk_am)
+        Km_pm = self.calculate_michaelis_menten_parameter(Tk_pm)
+        
+        (jmax_am, vcmax_am) = self.calculate_jmax_and_vcmax(Tk_am, N0)
+        (jmax_pm, vcmax_pm) = self.calculate_jmax_and_vcmax(Tk_pm, N0)
+        
+        ci_am = self.calculate_ci(vpd_am, ca) 
+        ci_pm = self.calculate_ci(vpd_pm, ca) 
         
         # quantum efficiency calculated for C3 plants
-        alpha = self.calculate_quantum_efficiency(ci, gamma_star)
+        alpha_am = self.calculate_quantum_efficiency(ci_am, gamma_star_am)
+        alpha_pm = self.calculate_quantum_efficiency(ci_pm, gamma_star_pm)
         
+        # Reducing assimilation if we encounter frost. Frost is assumed to 
+        # impact on the maximum photosynthetic capacity and alpha_j
+        # So there is only an indirect effect on LAI, this could be changed...
+        if self.control.frost:
+            Tmax = self.met_data['tmax'][day]
+            Tmin = self.met_data['tmin'][day]
+            
+            Thard = self.calc_frost_hardiness(daylen, Tmin, Tmax)
+            (total_alpha_limf, 
+            total_amax_limf) = self.calc_frost_impact_factors(Thard, Tmin, Tmax)
+            alpha_am *= total_alpha_limf
+            alpha_pm *= total_alpha_limf
+     
         # Rubisco carboxylation limited rate of photosynthesis
-        ac = [self.assim(ci[k], gamma_star[k], a1=vcmax[k], a2=Km[k]) \
-              for k in self.am, self.pm]
+        ac_am = self.assim(ci_am, gamma_star_am, a1=vcmax_am, a2=Km_am) 
+        ac_pm = self.assim(ci_pm, gamma_star_pm, a1=vcmax_pm, a2=Km_pm) 
         
         # Light-limited rate of photosynthesis allowed by RuBP regeneration
-        aj = [self.assim(ci[k], gamma_star[k], a1=jmax[k]/4.0, \
-              a2=2.0*gamma_star[k]) for k in self.am, self.pm]
+        aj_am = self.assim(ci_am, gamma_star_am, a1=jmax_am/4.0,
+                           a2=2.0*gamma_star_am)
+        aj_pm = self.assim(ci_pm, gamma_star_pm, a1=jmax_pm/4.0,
+                           a2=2.0*gamma_star_pm)
         
         # light-saturated photosynthesis rate at the top of the canopy (gross)
-        asat = [min(aj[k], ac[k]) for k in self.am, self.pm]
-        
+        asat_am = min(aj_am, ac_am) 
+        asat_pm = min(aj_pm, ac_pm) 
+        if self.control.frost:
+            asat_am *= total_amax_limf
+            asat_pm *= total_amax_limf
+            
         # LUE (umol C umol-1 PAR)
-        lue = [self.epsilon(asat[k], par, daylen, alpha[k]) \
-               for k in self.am, self.pm]
-        lue_avg = sum(lue) / 2.0 # use average to simulate canopy photosynthesis
-
+        lue_am = self.epsilon(asat_am, par, daylen, alpha_am)
+        lue_pm = self.epsilon(asat_pm, par, daylen, alpha_pm)
+        # use average to simulate canopy photosynthesis
+        lue_avg = (lue_am + lue_pm) / 2.0 
+        
         if float_eq(self.state.lai, 0.0):
             self.fluxes.apar = 0.0
         else:
             # absorbed photosynthetically active radiation (umol m-2 s-1)
             self.fluxes.apar = par * self.state.fipar
-
-        # gC m-2 d-1
-        self.fluxes.gpp_gCm2 = (self.fluxes.apar * lue_avg * const.UMOL_TO_MOL *
-                                const.MOL_C_TO_GRAMS_C)
-        self.fluxes.gpp_am_pm[self.am] = ((self.fluxes.apar / 2.0) * 
-                                          lue[self.am] * const.UMOL_TO_MOL * 
-                                          const.MOL_C_TO_GRAMS_C)
-        self.fluxes.gpp_am_pm[self.pm] = ((self.fluxes.apar / 2.0) * 
-                                          lue[self.pm] * const.UMOL_TO_MOL * 
-                                          const.MOL_C_TO_GRAMS_C)
+        apar_half_day = self.fluxes.apar / 2.0
+        
+        
+        # convert umol m-2 d-1 -> gC m-2 d-1
+        self.fluxes.gpp_gCm2 = self.fluxes.apar * lue_avg * const.UMOL_2_GRAMS_C
+        self.fluxes.gpp_am = apar_half_day * lue_am * const.UMOL_2_GRAMS_C
+        self.fluxes.gpp_pm = apar_half_day * lue_pm * const.UMOL_2_GRAMS_C
+        
+        # g C m-2 to tonnes hectare-1 day-1
+        self.fluxes.gpp = self.fluxes.gpp_gCm2 * const.GRAM_C_2_TONNES_HA
         # photosynthesis -> umol m-2 s-1
         A = self.fluxes.apar * lue_avg / (daylen * 3600.)
         return A
@@ -120,7 +152,7 @@ if __name__ == "__main__":
     sw = np.linspace(0.0, 1.0, N)
     ca = np.linspace(250, 1000, N)
 
-    met_fname = "forcing/nceas_met_AMB.csv"
+    met_fname = "met_data/DUKE_met_data_amb_co2.csv"
     met_data = read_met_forcing(met_fname, met_header=4)
     M = Mate(control, params, state, fluxes, met_data)
     
